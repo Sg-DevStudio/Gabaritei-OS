@@ -23,7 +23,8 @@
       sessoes: [],   // {id, data, topicoId, tipo, duracaoMin, qFeitas, qCertas, obs}
       revisoes: [],  // {id, topicoId, tipo, dataAgendada, dataConcluida, resultadoPct}
       simulados: [], // {id, data, tipo, acertos:[{disciplinaId, certas, total}]}
-      config: { ultimoBackup: null, metaQuestoesSemana: 100, criadoEm: agora, atualizadoEm: agora }
+      agenda: [],    // {id, data, disciplinaId, topicoId|null, duracaoMin, obs, feito}
+      config: { ultimoBackup: null, metaQuestoesSemana: 100, tema: 'claro', criadoEm: agora, atualizadoEm: agora }
     };
   }
 
@@ -35,7 +36,9 @@
     if (!state.config.atualizadoEm) state.config.atualizadoEm = state.config.criadoEm;
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
+    if (!state.config.tema) state.config.tema = 'claro';
     if (!state.cronogramas) state.cronogramas = { sustentavel: [], hardcore: [] };
+    if (!state.agenda) state.agenda = [];
     if (!state.sessoes) state.sessoes = [];
     if (!state.revisoes) state.revisoes = [];
     if (!state.simulados) state.simulados = [];

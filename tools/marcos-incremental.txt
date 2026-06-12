@@ -1,0 +1,5 @@
+ini|Semana de continuidade — RLM, Constitucional, Administrativo, Proc. Penal e Português seguem juntas de onde pararam
+fim_disc|{0}: 1ª passada concluída — fazer simulado parcial e manter contato semanal (questões/revisão)
+entra|{0} entra no ciclo de estudos
+total|Simulado total no horário previsto da prova
+final|Revisão geral + simulado total de fechamento

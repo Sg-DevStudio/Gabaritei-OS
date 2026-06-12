@@ -30,6 +30,23 @@ Documentos-irmãos: [plano-projeto-plataforma-estudos.md](plano-projeto-platafor
 
 ## Entradas
 
+### 12/06/2026 (tarde) — planejamento manual, visual novo e plano incremental
+- **Skill atualizada** (v2 no repo, `skill/` + `.skill` reempacotado): sem links de
+  plataformas nos entregáveis; edição de plano via JSON (round-trip preservando IDs);
+  cronograma agora é **hierárquico e incremental** (3–5 disciplinas-base na semana 1,
+  entrada progressiva, concluída vira questões/revisão, ordem pedagógica inviolável);
+  entrega em Word (.docx) estilo Blueprint, conteúdo acima de estética.
+- **Plano TRF3 regenerado** (`data/plano-trf3-tecnico.json` + Downloads, original
+  preservado): semanas 1–7 com RLM/CON/ADM/PPE/POR juntas; PCI entra na S8, DEF na
+  S12, PRE na S16, TRI na S19; mínimo de 5 disciplinas por semana; sem links.
+- **App — Planejamento manual**: novo calendário semanal/mensal com arrastar-e-soltar
+  de disciplinas para os dias (toque no celular), blocos editáveis, disciplina manual
+  (funciona sem plano importado), integrado à fila da tela Hoje.
+- **App — visual**: sidebar azul-marinho com ícones, heatmap de constância central
+  estilo GitHub na tela Hoje, % de acertos com mensagem motivacional por faixa,
+  **modo escuro completo** (botão flutuante, persistido), raios maiores e chips.
+- Verificado no navegador (claro/escuro, mobile/desktop), zero erros no console.
+
 ### 12/06/2026 — repositório e organização
 - Criado o repositório `SamuelGomes01/App_Gest-o_Estudos` (GitHub) e movidos todos os
   arquivos do projeto para dentro dele.
