@@ -187,6 +187,18 @@
       'Samuel';
   }
 
+  function recordeAntesDeHoje(sessoes, hoje) {
+    const ontem = D.addDias(hoje, -1);
+    return D.streak(sessoes.filter(function (s) { return s.data < hoje; }), ontem).recorde;
+  }
+
+  function emojisConstancia(st, recordeAnterior) {
+    const emojis = [];
+    if (st.atual >= 7) emojis.push('🎉');
+    if (st.atual > 0 && st.atual > recordeAnterior) emojis.push('🏆');
+    return emojis.length ? '<span class="streak-emojis" aria-hidden="true">' + emojis.join('') + '</span>' : '';
+  }
+
   function saudacaoCompleta(saudacao) {
     const nome = nomeUsuario();
     return nome ? saudacao + ', ' + nome : saudacao;
@@ -434,6 +446,7 @@
   function concluirRegistro(dados) {
     const hoje = D.hojeISO();
     const metaAntes = D.metaSemanal(state, hoje);
+    const streakAntes = D.streak(D.sessoesDoPlano(state), hoje);
 
     state.sessoes.push({
       id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: hoje,
@@ -461,6 +474,16 @@
     toast('Sessão registrada', 'sucesso');
 
     // RN07 — sugestão de reestudo (o usuário decide)
+    const streakDepois = D.streak(D.sessoesDoPlano(state), hoje);
+    const ganhouDia = streakDepois.atual > streakAntes.atual;
+    if (ganhouDia && streakDepois.atual > streakAntes.recorde) {
+      confete();
+      toast('Novo recorde de constância: ' + streakDepois.atual + ' dias! 🏆', 'sucesso');
+    } else if (ganhouDia && streakDepois.atual >= 7) {
+      confete();
+      toast('Sequência forte: ' + streakDepois.atual + ' dias de constância! 🎉', 'sucesso');
+    }
+
     if (D.sugerirReestudo(dados.qFeitas, dados.qCertas)) {
       const m = abrirModal(
         '<h3>Mais erros que acertos</h3>' +
@@ -504,6 +527,8 @@
     const hoje = D.hojeISO();
     const dias = D.heatmapDias(state.sessoes, hoje, nDias);
     const st = D.streak(state.sessoes, hoje);
+    const recordeAnterior = recordeAntesDeHoje(state.sessoes, hoje);
+    const extras = emojisConstancia(st, recordeAnterior);
     let html = '<div class="heatmap-wrap">';
     if (comResumo) {
       html += '<div class="streak-resumo">' +
@@ -511,6 +536,9 @@
           ? 'Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia seguido' : ' dias seguidos') + '</strong> estudando · recorde: ' + st.recorde
           : 'Nenhum estudo registrado hoje — preenche a primeira bolha do dia!' + (st.recorde > 0 ? ' Recorde: ' + st.recorde + ' dias.' : '')) +
         '</div>';
+    }
+    if (comResumo && st.atual > 0 && extras) {
+      html = html.replace('</strong> estudando ', '</strong> estudando' + extras + ' ');
     }
     html += '<div class="heatmap">' +
       dias.map(function (d) {
@@ -526,6 +554,8 @@
     const hoje = D.hojeISO();
     const dias = D.heatmapDias(D.sessoesDoPlano(state), hoje, nDias || 30);
     const st = D.streak(D.sessoesDoPlano(state), hoje);
+    const recordeAnterior = recordeAntesDeHoje(D.sessoesDoPlano(state), hoje);
+    const extras = emojisConstancia(st, recordeAnterior);
     const inicio = dias.length ? dias[0].data : hoje;
     const fim = dias.length ? dias[dias.length - 1].data : hoje;
     return '<div class="constancia-faixa">' +
@@ -572,9 +602,9 @@
   function painelDisciplinasHojeHtml() {
     const linhas = dadosPainelDisciplinas();
     if (linhas.length === 0) return '';
-    return '<div class="card painel-disciplinas-card"><div class="card-kpi-rotulo">Painel</div>' +
+    return '<div class="card painel-disciplinas-card"><h3 class="painel-titulo">Painel de disciplinas</h3>' +
       '<div class="painel-scroll"><table class="painel-disciplinas"><thead><tr>' +
-      '<th>Disciplinas</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
+      '<th>Matéria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
       linhas.map(function (d) {
         const pctClasse = d.pct === null ? 'neutro' : d.pct >= 70 ? 'bom' : d.pct >= 60 ? 'medio' : 'baixo';
         return '<tr data-disc-detalhe="' + esc(d.id) + '" role="button" tabindex="0">' +
@@ -598,6 +628,7 @@
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
       return '<div class="cab-pagina"><div><h1>' + saudacaoCompleta(saudacao) + '</h1></div></div>' +
+        '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>' +
         linksApoioHojeHtml() +
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
@@ -628,28 +659,28 @@
       '<p class="sub">' + resumoDia + '</p></div>' +
       '<button class="botao-secundario" id="btn-registrar-livre">Registrar sessão</button></div>';
 
-    html += linksApoioHojeHtml();
     html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
+    html += linksApoioHojeHtml();
 
     // constância em destaque, centralizada (estilo GitHub)
-    html += '<div class="card"><h3 style="text-align:center">Constância</h3>' + heatmapHtml(119, true) + '</div>';
+    html += '<div class="card constancia-card"><h3 style="text-align:center">⚡ Constância</h3>' + heatmapHtml(119, true) + '</div>';
 
     // cards: radar + horas + questões + desempenho com mensagem
     html += '<div class="linha-cards">';
     if (state.plano) html += provaEstimadaHtml();
     const pctHoras = meta.horasAlvo > 0 ? Math.min(100, Math.round((meta.minutos / 60 / meta.horasAlvo) * 100)) : 0;
     html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Horas na semana</div>' +
-      '<div class="card-kpi-valor">' + D.formatarMin(meta.minutos) + (meta.horasAlvo > 0 ? '<span style="font-size:0.85rem;color:var(--grafite)"> / ' + meta.horasAlvo + 'h</span>' : '') + '</div>' +
+      '<div class="card-kpi-valor card-kpi-valor-compacto">' + D.formatarMin(meta.minutos) + (meta.horasAlvo > 0 ? '<span style="font-size:0.85rem;color:var(--grafite)"> / ' + meta.horasAlvo + 'h</span>' : '') + '</div>' +
       (meta.horasAlvo > 0 ? '<div class="barra' + (pctHoras >= 100 ? ' barra-verde' : '') + '" style="margin-top:0.4rem"><span style="width:' + pctHoras + '%"></span></div>' :
         '<div class="card-kpi-extra">defina um plano para ter meta semanal</div>') + '</div>';
     const pctQ = meta.questoesAlvo > 0 ? Math.min(100, Math.round((meta.qFeitas / meta.questoesAlvo) * 100)) : 0;
     html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Questões na semana</div>' +
-      '<div class="card-kpi-valor">' + meta.qFeitas + '<span style="font-size:0.85rem;color:var(--grafite)"> / ' + meta.questoesAlvo + '</span></div>' +
+      '<div class="card-kpi-valor card-kpi-valor-compacto">' + meta.qFeitas + '<span style="font-size:0.85rem;color:var(--grafite)"> / ' + meta.questoesAlvo + '</span></div>' +
       '<div class="barra' + (pctQ >= 100 ? ' barra-verde' : '') + '" style="margin-top:0.4rem"><span style="width:' + pctQ + '%"></span></div></div>';
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
     const pctSemana = meta.qFeitas > 0 ? Math.round((meta.qCertas / meta.qFeitas) * 100) : D.desempenhoGeral(state);
     html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Acertos' + (meta.qFeitas > 0 ? ' na semana' : '') + '</div>' +
-      '<div class="card-kpi-valor">' + (pctSemana === null ? '—' : pctSemana + '%') + '</div>' +
+      '<div class="card-kpi-valor card-kpi-valor-compacto">' + (pctSemana === null ? '—' : pctSemana + '%') + '</div>' +
       '<div class="msg-coach">' + mensagemCoach(pctSemana, metaPct) + '</div></div>';
     html += '</div>';
 
@@ -1807,6 +1838,78 @@
   let mesRef = D.hojeISO().slice(0, 7);            // 'AAAA-MM' do mês exibido
 
   const DIAS_CURTOS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  const ROTINA_DIAS = [
+    { id: 'dom', label: 'DOM', offset: 6, ativo: false, minutos: 120 },
+    { id: 'seg', label: 'SEG', offset: 0, ativo: true, minutos: 180 },
+    { id: 'ter', label: 'TER', offset: 1, ativo: true, minutos: 120 },
+    { id: 'qua', label: 'QUA', offset: 2, ativo: true, minutos: 180 },
+    { id: 'qui', label: 'QUI', offset: 3, ativo: true, minutos: 120 },
+    { id: 'sex', label: 'SEX', offset: 4, ativo: true, minutos: 180 },
+    { id: 'sab', label: 'SÁB', offset: 5, ativo: true, minutos: 180 }
+  ];
+
+  function minutosParaHora(min) {
+    const total = ((Math.round(min) % 1440) + 1440) % 1440;
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
+
+  function horaParaMin(hora) {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(hora || ''));
+    if (!m) return 9 * 60;
+    return Math.max(0, Math.min(1439, parseInt(m[1], 10) * 60 + parseInt(m[2], 10)));
+  }
+
+  function parseHorasDia(valor) {
+    const texto = String(valor || '').trim().replace(',', '.');
+    const m = /^(\d{1,2}):(\d{2})$/.exec(texto);
+    if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    const horas = parseFloat(texto);
+    return Number.isFinite(horas) ? Math.round(horas * 60) : 0;
+  }
+
+  function formatarHorasDia(min) {
+    return String(Math.floor((min || 0) / 60)).padStart(2, '0') + ':' + String((min || 0) % 60).padStart(2, '0');
+  }
+
+  function rotinaPadrao() {
+    const dias = {};
+    ROTINA_DIAS.forEach(function (d) {
+      dias[d.id] = { ativo: d.ativo, inicio: '09:00', minutos: d.minutos };
+    });
+    return { dias: dias, minBloco: 45, maxBloco: 60 };
+  }
+
+  function rotinaEstudosAtual() {
+    const base = rotinaPadrao();
+    const atual = state.config && state.config.rotinaEstudos ? state.config.rotinaEstudos : {};
+    if (atual.dias) {
+      ROTINA_DIAS.forEach(function (d) {
+        if (!atual.dias[d.id]) return;
+        base.dias[d.id] = Object.assign({}, base.dias[d.id], atual.dias[d.id]);
+      });
+    }
+    base.minBloco = parseInt(atual.minBloco, 10) || base.minBloco;
+    base.maxBloco = parseInt(atual.maxBloco, 10) || base.maxBloco;
+    return base;
+  }
+
+  function totalMinutosRotina(rotina) {
+    return ROTINA_DIAS.reduce(function (n, d) {
+      const dia = rotina.dias[d.id];
+      return n + (dia && dia.ativo ? dia.minutos || 0 : 0);
+    }, 0);
+  }
+
+  function rotuloHorarioAgenda(bloco) {
+    if (bloco.horaInicio && bloco.horaFim) return bloco.horaInicio + ' - ' + bloco.horaFim;
+    return D.formatarMin(bloco.duracaoMin || 0);
+  }
+
+  function blocoAgendaConcluido(bloco) {
+    if (bloco.feito) return true;
+    const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
+    return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
+  }
 
   function registrarDeAgenda(blocoAg) {
     const disc = D.disciplinaPorId(state, blocoAg.disciplinaId);
@@ -2065,6 +2168,68 @@
       '<div id="catalogo-lista"><div class="estado-vazio" style="padding:1rem"><span class="bolha bolha-carregando bolha-pendente"></span><br>Carregando catálogo…</div></div></div>';
   }
 
+  function carregarCatalogoPlanejamento(raiz) {
+    const alvoCatalogo = raiz.querySelector('#catalogo-lista');
+    if (!alvoCatalogo) return;
+    fetch('data/catalogo.json').then(function (r) { return r.json(); }).then(function (catalogo) {
+      alvoCatalogo.innerHTML = catalogo.map(function (c, i) {
+        const jaTem = state.planos.some(function (p) { return p.plano.concurso === c.concurso; });
+        return '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
+          '<div class="fila-info"><div class="fila-titulo">' + esc(c.titulo) + '</div>' +
+          '<div class="fila-sub">' + esc(c.descricao) + '</div></div>' +
+          (jaTem ? '<span class="etiqueta etiqueta-feito">na sua lista ✓</span>'
+            : '<button class="botao-mini" data-cat="' + i + '">Adicionar</button>') +
+          '</div>';
+      }).join('');
+      alvoCatalogo.querySelectorAll('[data-cat]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          const c = catalogo[parseInt(b.getAttribute('data-cat'), 10)];
+          b.disabled = true;
+          fetch(c.arquivo).then(function (r) { return r.json(); }).then(function (json) {
+            const v = D.validarPlano(json);
+            if (!v.ok) { toast('Plano do catálogo inválido: ' + v.erros[0], 'erro'); return; }
+            adicionarPlano(json);
+            aplicarPlanosDuracaoAoAtivo(true);
+            fecharModal();
+            render();
+            toast('Plano adicionado: ' + v.resumo.concurso, 'sucesso');
+          }).catch(function () { toast('Não consegui carregar o plano do catálogo.', 'erro'); b.disabled = false; });
+        });
+      });
+    }).catch(function () {
+      alvoCatalogo.innerHTML = '<p class="sub">Catálogo indisponível offline.</p>';
+    });
+  }
+
+  function abrirConfiguracoesPlanejamento() {
+    const risco = state.plano ? '<div class="card planejamento-card plano-risco"><div class="card-kpi-rotulo">Zona de risco</div>' +
+      '<h3>Excluir plano atual</h3>' +
+      '<p class="sub">Remove o plano ativo e limpa sessões, revisões, simulados e blocos da agenda vinculados a ele.</p>' +
+      '<div class="compact-actions"><button class="botao-mini botao-perigo" id="cfg-excluir-plano">Excluir plano atual</button></div></div>' : '';
+    const m = abrirModal(
+      '<h3>Configurações do planejamento</h3>' +
+      '<p class="sub">Importe, crie ou remova planos sem sair do calendário.</p>' +
+      '<div class="planejamento-config-panel modal-config-panel">' +
+      importacaoPlanejamentoHtml() +
+      catalogoPlanejamentoHtml() +
+      risco +
+      '</div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="cfg-fechar">Fechar</button></div>'
+    );
+    m.classList.add('modal-amplo');
+    m.querySelector('#cfg-fechar').addEventListener('click', fecharModal);
+    const emBranco = m.querySelector('#pl-em-branco-2');
+    if (emBranco) emBranco.addEventListener('click', function () { fecharModal(); criarPlanoManualComPrompt(); });
+    const importar = m.querySelector('#pl-importar');
+    if (importar) importar.addEventListener('click', function () { importarPlanoPeloPlanejamento(m); });
+    const excluir = m.querySelector('#cfg-excluir-plano');
+    if (excluir) excluir.addEventListener('click', function () {
+      const id = state.planoAtivoId;
+      if (id && excluirPlano(id, true)) fecharModal();
+    });
+    carregarCatalogoPlanejamento(m);
+  }
+
   function criarPlanoManual(nome) {
     const titulo = (nome || 'Meus estudos').trim();
     state.planos.push({
@@ -2082,6 +2247,31 @@
     criarPlanoManual(nome);
     render();
     toast('Plano "' + nome.trim() + '" criado', 'sucesso');
+  }
+
+  function pertenceAoPlano(item, planoId) {
+    return item && (item.planoId === planoId || (!item.planoId && state.planoAtivoId === planoId));
+  }
+
+  function excluirPlano(planoId, limparHistorico) {
+    const p = state.planos.find(function (x) { return x.id === planoId; });
+    if (!p) return false;
+    const msg = limparHistorico
+      ? 'Excluir o plano "' + p.plano.concurso + '" e também sessões, revisões, simulados e agenda dele?'
+      : 'Excluir o plano "' + p.plano.concurso + '"? As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
+    if (!confirm(msg)) return false;
+    if (limparHistorico) {
+      state.sessoes = state.sessoes.filter(function (s) { return !pertenceAoPlano(s, planoId); });
+      state.revisoes = state.revisoes.filter(function (r) { return !pertenceAoPlano(r, planoId); });
+      state.simulados = state.simulados.filter(function (s) { return !pertenceAoPlano(s, planoId); });
+      state.agenda = state.agenda.filter(function (a) { return !pertenceAoPlano(a, planoId); });
+    }
+    window.Store.removerPlano(state, planoId);
+    editalAbertas = new Set();
+    salvar();
+    render();
+    toast('Plano excluído' + (limparHistorico ? ' com os dados vinculados' : ''), 'sucesso');
+    return true;
   }
 
   function grupoCognitivoDisciplina(d) {
@@ -2249,6 +2439,86 @@
     });
   }
 
+  function abrirGerarPlanoComRotina() {
+    if (!state.plano || state.disciplinas.length === 0) {
+      toast('Crie ou importe disciplinas antes de gerar o plano.', 'erro');
+      return;
+    }
+    const ritmo = state.plano.ritmoAtivo;
+    const atual = state.plano.ritmos && ritmo ? state.plano.ritmos[ritmo] : null;
+    const mesesAtual = atual && atual.meses ? atual.meses : 6;
+    const rotina = rotinaEstudosAtual();
+    const totalAtual = totalMinutosRotina(rotina);
+    const optsMin = [25, 30, 45, 50, 60, 75, 90].map(function (v) {
+      return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + v + 'min</option>';
+    }).join('');
+    const optsMax = [45, 60, 75, 90, 120].map(function (v) {
+      return '<option value="' + v + '"' + (v === rotina.maxBloco ? ' selected' : '') + '>' + (v >= 60 ? (v / 60) + 'h' : v + 'min') + '</option>';
+    }).join('');
+    const diasHtml = ROTINA_DIAS.map(function (d) {
+      const cfg = rotina.dias[d.id] || { ativo: d.ativo, inicio: '09:00', minutos: d.minutos };
+      return '<label class="rotina-dia">' +
+        '<input type="checkbox" data-rot-ativo="' + d.id + '"' + (cfg.ativo ? ' checked' : '') + '>' +
+        '<span class="rotina-dia-badge">' + d.label + '</span>' +
+        '<input type="time" data-rot-inicio="' + d.id + '" value="' + esc(cfg.inicio || '09:00') + '" aria-label="Horário inicial de ' + d.label + '">' +
+        '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
+        '</label>';
+    }).join('');
+    const m = abrirModal(
+      '<h3>Gerar plano de estudos</h3>' +
+      '<p class="sub">Defina sua rotina. O sistema vai respeitar dias, horas disponíveis e blocos máximos por disciplina.</p>' +
+      '<form id="form-gerar-plano-rotina">' +
+      '<div class="grade-2"><div><label for="gp-meses">Terminar edital em</label><select id="gp-meses">' +
+      [3, 6, 9].map(function (v) {
+        return '<option value="' + v + '"' + (v === mesesAtual ? ' selected' : '') + '>' + v + ' meses</option>';
+      }).join('') + '</select></div>' +
+      '<div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + (Math.round(totalAtual / 60 * 10) / 10) + 'h na semana</div></div></div>' +
+      '<label>Quais dias e quantas horas pretende estudar?</label>' +
+      '<div class="rotina-dias">' + diasHtml + '</div>' +
+      '<label>Qual mínimo e máximo de tempo que deseja estudar uma mesma disciplina?</label>' +
+      '<div class="grade-2"><div><select id="gp-min-bloco">' + optsMin + '</select></div>' +
+      '<div><select id="gp-max-bloco">' + optsMax + '</select></div></div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="gp-cancelar">Cancelar</button>' +
+      '<button type="submit">Gerar plano</button></div></form>'
+    );
+    m.classList.add('modal-amplo');
+    function rotinaDoModal() {
+      const cfg = { dias: {}, minBloco: parseInt(m.querySelector('#gp-min-bloco').value, 10), maxBloco: parseInt(m.querySelector('#gp-max-bloco').value, 10) };
+      ROTINA_DIAS.forEach(function (d) {
+        const ativo = m.querySelector('[data-rot-ativo="' + d.id + '"]').checked;
+        const inicio = m.querySelector('[data-rot-inicio="' + d.id + '"]').value || '09:00';
+        const minutos = Math.max(0, Math.min(720, parseHorasDia(m.querySelector('[data-rot-horas="' + d.id + '"]').value)));
+        cfg.dias[d.id] = { ativo: ativo, inicio: inicio, minutos: minutos };
+      });
+      if (cfg.maxBloco < cfg.minBloco) cfg.maxBloco = cfg.minBloco;
+      return cfg;
+    }
+    function atualizarTotal() {
+      const total = totalMinutosRotina(rotinaDoModal());
+      const el = m.querySelector('#gp-total');
+      if (el) el.textContent = (Math.round(total / 60 * 10) / 10) + 'h na semana';
+    }
+    m.querySelectorAll('[data-rot-ativo], [data-rot-inicio], [data-rot-horas], #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
+      el.addEventListener('change', atualizarTotal);
+      el.addEventListener('input', atualizarTotal);
+    });
+    m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#form-gerar-plano-rotina').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const meses = parseInt(m.querySelector('#gp-meses').value, 10);
+      const rotinaNova = rotinaDoModal();
+      const horas = Math.max(1, Math.round(totalMinutosRotina(rotinaNova) / 60));
+      if (horas < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); return; }
+      state.config.rotinaEstudos = rotinaNova;
+      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true)) return;
+      fecharModal();
+      const cron = D.cronogramaAtivo(state);
+      agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
+      agendaModo = 'semana';
+      gerarSemanaNaAgenda();
+    });
+  }
+
   function deslocarDisciplinaCronograma(disciplinaId, delta) {
     if (!state.plano || !state.cronogramas) return;
     const chave = state.plano.ritmoAtivo || 'sustentavel';
@@ -2381,6 +2651,7 @@
     if (!v.ok) { toast('Plano inválido: ' + v.erros[0], 'erro'); return; }
     adicionarPlano(json);
     aplicarPlanosDuracaoAoAtivo(true);
+    fecharModal();
     render();
     toast('Plano adicionado: ' + v.resumo.concurso, 'sucesso');
   }
@@ -2397,10 +2668,6 @@
       planosCadastradosHtml() +
       '</div>';
 
-    if (planejamentoConfigAberta) {
-      html += '<div class="planejamento-config-panel">' + importacaoPlanejamentoHtml() + catalogoPlanejamentoHtml() + '</div>';
-    }
-
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
         '<strong>Nenhuma disciplina ainda</strong>Crie uma disciplina manual ou importe um plano para começar a planejar.' +
@@ -2410,11 +2677,14 @@
     }
 
     // paleta de disciplinas (arrastáveis)
-    html += '<div class="paleta-disc">' +
+    html += '<div class="card planejamento-disciplinas-card"><h3>Personalize seu plano de estudos</h3>' +
+      '<p class="sub">Arraste uma matéria para o calendário ou toque nela para agendar hoje.</p>' +
+      '<div class="paleta-disc">' +
       state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
         return '<button class="chip-disc" draggable="true" data-chip="' + esc(d.id) + '" style="background:' + esc(d.cor) + '" title="' + esc(d.nome) + '">' + esc(d.id) + '</button>';
       }).join('') +
-      '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span></div>';
+      '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
+      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
 
     // barra de navegação + alternância semana/mês
     const rotulo = agendaModo === 'semana'
@@ -2434,7 +2704,9 @@
       html += '<div class="agenda-grid">';
       for (let i = 0; i < 7; i++) {
         const data = D.addDias(agendaRef, i);
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; });
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; }).sort(function (a, b) {
+          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+        });
         const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
@@ -2442,9 +2714,10 @@
           blocos.map(function (b) {
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
-            return '<div class="agenda-bloco' + (b.feito ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
+            const concluido = blocoAgendaConcluido(b);
+            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
               '<span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + (t ? esc(t.nome) + ' · ' : '') + D.formatarMin(b.duracaoMin || 0) + (b.feito ? ' · feito ✓' : '') + '</span></div>';
+              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></div>';
           }).join('') +
           '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
       }
@@ -2459,13 +2732,18 @@
       for (let c = 0; c < 42; c++) {
         const noMes = cursor.slice(0, 7) === mesRef;
         if (c >= 35 && !noMes) break;
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; });
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; }).sort(function (a, b) {
+          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+        });
         html += '<div class="mes-celula' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') + '" data-vai-semana="' + esc(cursor) + '" role="button" tabindex="0">' +
           '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
-          (blocos.length > 0 ? '<div class="mes-pontos">' + blocos.slice(0, 8).map(function (b) {
+          (blocos.length > 0 ? '<div class="mes-eventos">' + blocos.slice(0, 3).map(function (b) {
             const d = D.disciplinaPorId(state, b.disciplinaId);
-            return '<span class="mes-ponto" style="background:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc(d ? d.nome : '') + '"></span>';
-          }).join('') + '</div>' : '') +
+            const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+            return '<div class="mes-evento' + (blocoAgendaConcluido(b) ? ' feito' : '') + '" style="--disc-cor:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc((d ? d.nome : b.disciplinaId) + (t ? ' · ' + t.nome : '')) + '">' +
+              '<span class="mes-evento-nome">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
+              '<span class="mes-evento-hora">' + rotuloHorarioAgenda(b) + '</span></div>';
+          }).join('') + (blocos.length > 3 ? '<span class="mes-mais">Mais ' + (blocos.length - 3) + '</span>' : '') + '</div>' : '') +
           '</div>';
         cursor = D.addDias(cursor, 1);
       }
@@ -2477,11 +2755,12 @@
   function ligarPlanejamento(raiz) {
     const config = raiz.querySelector('#pl-config');
     if (config) config.addEventListener('click', function () {
-      planejamentoConfigAberta = !planejamentoConfigAberta;
-      render();
+      abrirConfiguracoesPlanejamento();
     });
     const novaDisc = raiz.querySelector('#pl-nova-disc');
     if (novaDisc) novaDisc.addEventListener('click', abrirNovaDisciplina);
+    const novaDiscCard = raiz.querySelector('#pl-nova-disc-card');
+    if (novaDiscCard) novaDiscCard.addEventListener('click', abrirNovaDisciplina);
     const criarDisc = raiz.querySelector('#pl-criar-disc');
     if (criarDisc) criarDisc.addEventListener('click', abrirNovaDisciplina);
     ['#pl-em-branco', '#pl-em-branco-2', '#pl-em-branco-vazio'].forEach(function (sel) {
@@ -2497,7 +2776,7 @@
     });
     const gerarRitmos = raiz.querySelector('#pl-gerar-ritmos');
     if (gerarRitmos) gerarRitmos.addEventListener('click', function () {
-      abrirGerarPlano();
+      abrirGerarPlanoComRotina();
     });
     const gerarAgenda = raiz.querySelector('#pl-gerar-agenda');
     if (gerarAgenda) gerarAgenda.addEventListener('click', gerarSemanaNaAgenda);
@@ -2697,8 +2976,8 @@
     return { semana: sem, hAlvo, itens };
   }
 
-  // materializa a distribuição como blocos na agenda da semana (regenerável)
-  function gerarSemanaNaAgenda() {
+  // Versão antiga mantida apenas como referência; a versão com rotina aparece abaixo.
+  function gerarSemanaNaAgendaLegado() {
     const dist = distribuicaoSemanal(agendaRef);
     if (!dist) { toast('Sem semana ativa no cronograma para gerar.', 'erro'); return; }
     const ini = dist.semana.inicio;
@@ -2735,6 +3014,122 @@
     agendaModo = 'semana';
     render();
     toast('Semana ' + dist.semana.semana + ' gerada na agenda — ajuste arrastando os blocos', 'sucesso');
+  }
+
+  function dividirBlocosMinutos(totalMin, minBloco, maxBloco) {
+    let restante = Math.max(5, Math.round(totalMin / 5) * 5);
+    const partes = [];
+    maxBloco = Math.max(5, Math.round(maxBloco / 5) * 5);
+    minBloco = Math.max(5, Math.round(minBloco / 5) * 5);
+    while (restante > maxBloco) {
+      partes.push(maxBloco);
+      restante -= maxBloco;
+    }
+    if (restante > 0) partes.push(restante);
+    if (partes.length > 1 && partes[partes.length - 1] < minBloco) {
+      partes[partes.length - 2] += partes.pop();
+    }
+    return partes;
+  }
+
+  function ordenarTarefasIntercaladas(filas) {
+    const ativas = filas.filter(function (f) { return f.tarefas.length > 0; });
+    const saida = [];
+    let ultimoId = '';
+    let ultimoGrupo = '';
+    while (ativas.some(function (f) { return f.tarefas.length > 0; })) {
+      let idx = ativas.findIndex(function (f) {
+        return f.tarefas.length > 0 && f.disciplina.id !== ultimoId && f.grupo !== ultimoGrupo;
+      });
+      if (idx < 0) idx = ativas.findIndex(function (f) { return f.tarefas.length > 0 && f.disciplina.id !== ultimoId; });
+      if (idx < 0) idx = ativas.findIndex(function (f) { return f.tarefas.length > 0; });
+      const fila = ativas[idx];
+      const tarefa = fila.tarefas.shift();
+      saida.push(tarefa);
+      ultimoId = fila.disciplina.id;
+      ultimoGrupo = fila.grupo;
+    }
+    return saida;
+  }
+
+  function gerarSemanaNaAgenda() {
+    const dist = distribuicaoSemanal(agendaRef);
+    if (!dist) { toast('Sem semana ativa no cronograma para gerar.', 'erro'); return; }
+    const rotina = rotinaEstudosAtual();
+    const diasAtivos = ROTINA_DIAS.filter(function (d) {
+      return rotina.dias[d.id] && rotina.dias[d.id].ativo && rotina.dias[d.id].minutos > 0;
+    }).sort(function (a, b) { return a.offset - b.offset; });
+    if (diasAtivos.length === 0) { toast('Defina ao menos um dia de estudo na rotina.', 'erro'); return; }
+
+    const ini = dist.semana.inicio;
+    const fim = D.addDias(ini, 7);
+    state.agenda = state.agenda.filter(function (a) {
+      return !(a.gerado && a.data >= ini && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId));
+    });
+
+    const minBloco = Math.max(5, rotina.minBloco || 45);
+    const maxBloco = Math.max(minBloco, rotina.maxBloco || 60);
+    const filas = dist.itens.map(function (item) {
+      const teoria = item.blocos.filter(function (b) { return b.tipo === 'teoria'; })[0];
+      const pratica = item.blocos.filter(function (b) { return b.tipo !== 'teoria'; })[0];
+      const partes = [];
+      if (teoria && pratica) {
+        partes.push({ b: teoria, min: item.horas * 60 * 0.6 });
+        partes.push({ b: pratica, min: item.horas * 60 * 0.4 });
+      } else {
+        partes.push({ b: teoria || pratica, min: item.horas * 60 });
+      }
+      const tarefas = [];
+      partes.forEach(function (p) {
+        if (!p.b) return;
+        dividirBlocosMinutos(p.min, minBloco, maxBloco).forEach(function (dur) {
+          tarefas.push({ disciplina: item.disciplina, bloco: p.b, duracaoMin: dur });
+        });
+      });
+      return { disciplina: item.disciplina, grupo: grupoCognitivoDisciplina(item.disciplina), tarefas: tarefas };
+    });
+    const tarefas = ordenarTarefasIntercaladas(filas);
+    const slots = diasAtivos.map(function (d) {
+      const cfg = rotina.dias[d.id];
+      return { data: D.addDias(ini, d.offset), cursor: horaParaMin(cfg.inicio || '09:00'), restante: cfg.minutos || 0 };
+    });
+    let slotIdx = 0;
+    let pendentes = 0;
+    tarefas.forEach(function (tarefa) {
+      while (slotIdx < slots.length && slots[slotIdx].restante < Math.min(minBloco, tarefa.duracaoMin)) slotIdx++;
+      if (slotIdx >= slots.length) { pendentes += tarefa.duracaoMin; return; }
+      const slot = slots[slotIdx];
+      if (tarefa.duracaoMin > slot.restante && slot.restante >= minBloco) {
+        pendentes += tarefa.duracaoMin - slot.restante;
+        tarefa.duracaoMin = slot.restante;
+      } else if (tarefa.duracaoMin > slot.restante) {
+        slotIdx++;
+        if (slotIdx >= slots.length || tarefa.duracaoMin > slots[slotIdx].restante) { pendentes += tarefa.duracaoMin; return; }
+      }
+      const alvo = slots[slotIdx];
+      const inicioMin = alvo.cursor;
+      const fimMin = alvo.cursor + tarefa.duracaoMin;
+      const topico = tarefa.bloco.topico ? D.topicoPorId(state, tarefa.bloco.topico) : null;
+      state.agenda.push({
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
+        data: alvo.data, disciplinaId: tarefa.disciplina.id,
+        topicoId: tarefa.bloco.topico || null,
+        duracaoMin: tarefa.duracaoMin,
+        horaInicio: minutosParaHora(inicioMin),
+        horaFim: minutosParaHora(fimMin),
+        obs: tarefa.bloco.tipo === 'teoria' ? 'teoria' : tarefa.bloco.tipo,
+        feito: topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
+        gerado: true
+      });
+      alvo.cursor = fimMin;
+      alvo.restante -= tarefa.duracaoMin;
+    });
+    salvar();
+    agendaRef = ini;
+    agendaModo = 'semana';
+    render();
+    const extra = pendentes > 0 ? ' · ' + D.formatarMin(pendentes) + ' ficaram sem horário' : '';
+    toast('Semana ' + dist.semana.semana + ' gerada respeitando sua rotina' + extra, pendentes > 0 ? 'erro' : 'sucesso');
   }
 
   function abrirPerfilPlano(planoId) {
@@ -2970,6 +3365,8 @@
 
   const botaoTema = document.getElementById('botao-tema');
   if (botaoTema) botaoTema.addEventListener('click', alternarTema);
+  const botaoTimerRapido = document.getElementById('botao-timer-rapido');
+  if (botaoTimerRapido) botaoTimerRapido.addEventListener('click', function () { location.hash = '#timer'; });
 
   window.Timer.aoAtualizar(tratarTickTimer);
 
