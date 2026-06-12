@@ -30,6 +30,18 @@ Documentos-irmãos: [plano-projeto-plataforma-estudos.md](plano-projeto-platafor
 
 ## Entradas
 
+### 12/06/2026 (noite, parte 3) — editais como única porta de entrada dos planos
+- **Planejamento ganhou o card "Editais disponíveis"**: todo edital cadastrado
+  aparece lá com "Criar plano personalizado" (ou etiqueta "plano criado ✓" se já
+  existir plano com o mesmo nome) — o usuário escolhe se cria ou não.
+- **Catálogo de editais populares removido por completo** (modal do Planejamento,
+  rota #planos inteira e os 4 JSONs de catálogo em `data/`).
+- **Importação de plano por arquivo removida** (cards de import em Configurações e
+  no modal do Planejamento, com todo o código morto): planos agora nascem APENAS
+  de editais esquematizados (cadastro em Configurações — futura área do admin) ou
+  de plano manual vazio.
+- Cache v=20260612-editais2 (sw v9). Verificado no preview com estado restaurado.
+
 ### 12/06/2026 (noite, parte 2) — skill renomeada e edital TRF3 esquematizado
 - **Skill `treinador-concursos` → `editais-esquematizados`** (pasta `skill/` e zip
   `.skill` reempacotado): novo fluxo enxuto — recebe um edital, devolve o edital

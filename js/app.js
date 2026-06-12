@@ -633,7 +633,7 @@
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
         '<strong>Bem-vindo aos seus estudos</strong>' +
-        'Importe o JSON gerado pelo Claude (skill editais-esquematizados) ou monte sua semana manualmente no Planejamento.' +
+        'Escolha um edital disponível no Planejamento para o sistema gerar seu plano, ou monte sua semana manualmente.' +
         '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap"><a class="botao" href="#ajustes">Importar plano</a>' +
         '<a class="botao botao-secundario" href="#planejamento">Planejar manualmente</a></p>' +
         '</div></div>';
@@ -1608,15 +1608,6 @@
         '</div>';
     }
 
-    html += '<div class="card"><h3>' + (state.plano ? 'Atualizar plano' : 'Importar plano') + '</h3>' +
-      '<p style="font-size:0.88rem;color:var(--grafite)">Cole o JSON gerado pela skill editais-esquematizados ou envie um arquivo .json, .xlsx ou .csv. ' +
-      (state.plano ? 'Reimportar <strong>preserva todo o histórico</strong> de sessões, revisões e simulados (os tópicos são casados pelo ID).' : '') + '</p>' +
-      '<input type="file" id="imp-arquivo" accept=".json,.xlsx,.csv,application/json,text/csv" style="margin-top:0.5rem">' +
-      '<label for="imp-texto">ou cole o JSON aqui</label>' +
-      '<textarea id="imp-texto" placeholder=\'{"versao": 1, "plano": { ... }}\'></textarea>' +
-      '<div class="modal-acoes" style="justify-content:flex-start"><button id="imp-validar">Validar e visualizar</button></div>' +
-      '<div id="imp-preview"></div></div>';
-
     html += editaisEsquematizadosHtml();
 
     const syncAtual = statusSincronizacao();
@@ -1780,38 +1771,6 @@
     });
   }
 
-  function mostrarPreviewImportacao(raiz, json) {
-    const prev = raiz.querySelector('#imp-preview');
-    const v = D.validarPlano(json);
-    if (!v.ok) {
-      prev.innerHTML = '<div class="aviso aviso-erro" style="margin-top:1rem"><strong>O JSON tem problemas:</strong><ul>' +
-        v.erros.slice(0, 8).map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') +
-        (v.erros.length > 8 ? '<li>… e mais ' + (v.erros.length - 8) + ' erro(s)</li>' : '') + '</ul></div>';
-      return;
-    }
-    prev.innerHTML = '<div class="aviso aviso-info" style="margin-top:1rem">' +
-      '<strong>Pronto para importar:</strong> ' + esc(v.resumo.concurso) + ' (' + esc(v.resumo.banca || 'banca não informada') + ') — ' +
-      v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos, ' + v.resumo.semanas + ' semanas de cronograma.' +
-      '</div><div class="modal-acoes" style="justify-content:flex-start">' +
-      '<button id="imp-novo">Adicionar como novo plano</button>' +
-      (state.plano ? '<button class="botao-secundario" id="imp-atualizar">Atualizar o plano ativo (preserva histórico)</button>' : '') +
-      '</div>';
-    prev.querySelector('#imp-novo').addEventListener('click', function () {
-      adicionarPlano(json);
-      aplicarPlanosDuracaoAoAtivo(true);
-      toast('Plano adicionado e ativado: ' + v.resumo.topicos + ' tópicos', 'sucesso');
-      location.hash = '#planejamento';
-      render();
-    });
-    const btnAtu = prev.querySelector('#imp-atualizar');
-    if (btnAtu) btnAtu.addEventListener('click', function () {
-      atualizarPlanoAtivo(json);
-      toast('Plano ativo atualizado — histórico preservado', 'sucesso');
-      location.hash = '#hoje';
-      render();
-    });
-  }
-
   // cria uma entrada nova em state.planos a partir do JSON (status zerados) e ativa
   function adicionarPlano(json) {
     const base = D.mesclarPlano({ plano: null, disciplinas: [], sessoes: [], revisoes: [], simulados: [], config: {} }, json);
@@ -1828,28 +1787,6 @@
     editalAbertas = new Set();
     salvar();
     return entrada;
-  }
-
-  // reimporta por cima do plano ativo (RN08: casa por ID e preserva histórico)
-  function atualizarPlanoAtivo(json) {
-    const contexto = {
-      plano: state.plano,
-      disciplinas: state.disciplinas,
-      sessoes: D.sessoesDoPlano(state),
-      revisoes: doAtivo(state.revisoes),
-      simulados: doAtivo(state.simulados),
-      config: state.config
-    };
-    const novo = D.mesclarPlano(contexto, json);
-    const entrada = state.planos.find(function (p) { return p.id === state.planoAtivoId; });
-    if (!entrada) return;
-    entrada.plano = novo.plano;
-    entrada.disciplinas = novo.disciplinas;
-    entrada.cronogramas = novo.cronogramas;
-    entrada.links = novo.links || [];
-    window.Store.hidratar(state);
-    editalAbertas = new Set();
-    salvar();
   }
 
   // disciplinas manuais precisam de um plano para morar
@@ -1922,47 +1859,6 @@
       window.FirebaseSync.logout().catch(function () {
         toast('Não consegui sair do Firebase.', 'erro');
       });
-    });
-
-    raiz.querySelector('#imp-validar').addEventListener('click', function () {
-      const texto = raiz.querySelector('#imp-texto').value.trim();
-      if (!texto) {
-        raiz.querySelector('#imp-preview').innerHTML = '<div class="aviso aviso-erro" style="margin-top:1rem">Cole o JSON ou escolha um arquivo primeiro.</div>';
-        return;
-      }
-      let json;
-      try { json = JSON.parse(texto); }
-      catch (e) {
-        raiz.querySelector('#imp-preview').innerHTML = '<div class="aviso aviso-erro" style="margin-top:1rem">JSON inválido: ' + esc(e.message) + '</div>';
-        return;
-      }
-      mostrarPreviewImportacao(raiz, json);
-    });
-
-    raiz.querySelector('#imp-arquivo').addEventListener('change', async function (e) {
-      const arq = e.target.files[0];
-      if (!arq) return;
-      const nome = arq.name.replace(/\.[^.]+$/, '');
-      try {
-        if (/\.xlsx$/i.test(arq.name)) {
-          if (!window.XLSX) { toast('Leitor de Excel indisponível. Salve como CSV ou JSON.', 'erro'); return; }
-          const wb = window.XLSX.read(await lerArquivo(arq, true), { type: 'array' });
-          const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-          mostrarPreviewImportacao(raiz, planoJsonDeLinhas(rows, nome));
-          return;
-        }
-        if (/\.csv$/i.test(arq.name)) {
-          mostrarPreviewImportacao(raiz, planoJsonDeLinhas(parseCsv(await lerArquivo(arq, false)), nome));
-          return;
-        }
-        const texto = await lerArquivo(arq, false);
-        raiz.querySelector('#imp-texto').value = texto;
-        let json = JSON.parse(texto);
-        if (Array.isArray(json)) json = planoJsonDeLinhas(json, nome);
-        mostrarPreviewImportacao(raiz, json);
-      } catch (err) {
-        raiz.querySelector('#imp-preview').innerHTML = '<div class="aviso aviso-erro" style="margin-top:1rem">Não consegui ler o arquivo: ' + esc(err.message) + '</div>';
-      }
     });
 
     raiz.querySelector('#bk-exportar').addEventListener('click', function () {
@@ -2257,7 +2153,7 @@
   function planoAtualHtml() {
     if (!state.plano) {
       return '<div class="card planejamento-card plano-atual-card"><div class="card-kpi-rotulo">Plano atual</div>' +
-        '<h3>Sem plano ativo</h3><p class="sub">Crie um plano manual, importe JSON/Excel ou adicione um edital do catálogo.</p>' +
+        '<h3>Sem plano ativo</h3><p class="sub">Escolha um edital disponível abaixo e o sistema gera seu plano personalizado — ou crie um plano manual.</p>' +
         '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
     }
     const ritmos = ritmosDisponiveis();
@@ -2310,66 +2206,24 @@
     return html;
   }
 
-  function importacaoPlanejamentoHtml() {
-    return '<div class="card planejamento-card importar-plano-card"><div class="card-kpi-rotulo">Adicionar plano</div>' +
-      '<h3>Manual, JSON ou Excel</h3>' +
-      '<div class="grade-2"><div><label for="pl-arquivo">Arquivo</label>' +
-      '<input type="file" id="pl-arquivo" accept=".json,.csv,.xlsx,application/json,text/csv"></div>' +
-      '<div><label for="pl-nome-import">Nome do plano</label><input id="pl-nome-import" type="text" placeholder="Ex.: INSS 2027"></div></div>' +
-      '<label for="pl-json">Ou cole um JSON</label><textarea id="pl-json" placeholder=\'{"versao":1,"plano":{...}}\'></textarea>' +
-      '<div class="compact-actions"><button class="botao-mini" id="pl-importar">Adicionar plano</button>' +
-      '<button class="botao-mini botao-quieto" id="pl-em-branco-2">Plano manual vazio</button></div>' +
-      '<p class="sub">Planilhas podem usar colunas como disciplina, sigla, tópico, incidência, prioridade, horas e peso.</p></div>';
-  }
-
-  function catalogoPlanejamentoHtml() {
-    let editais = '';
-    if (state.editais.length > 0) {
-      editais = '<div class="card-kpi-rotulo" style="margin-top:0.75rem">Editais esquematizados</div>' +
-        state.editais.map(function (e) {
-          return '<div class="fila-item catalogo-item"><span class="bolha bolha-pendente"></span>' +
-            '<div class="fila-info"><div class="fila-titulo">' + esc(e.titulo) + '</div>' +
-            '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + contarTopicosEdital(e) + ' tópicos · corte ' + (e.notaCorte || 70) + '%</div></div>' +
-            '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano</button></div>';
-        }).join('');
-    }
-    return '<div class="card planejamento-card catalogo-card"><div class="card-kpi-rotulo">Catálogo</div>' +
-      '<h3>Editais populares editáveis</h3>' +
-      '<div id="catalogo-lista"><div class="estado-vazio" style="padding:1rem"><span class="bolha bolha-carregando bolha-pendente"></span><br>Carregando catálogo…</div></div>' +
-      editais + '</div>';
-  }
-
-  function carregarCatalogoPlanejamento(raiz) {
-    const alvoCatalogo = raiz.querySelector('#catalogo-lista');
-    if (!alvoCatalogo) return;
-    fetch('data/catalogo.json').then(function (r) { return r.json(); }).then(function (catalogo) {
-      alvoCatalogo.innerHTML = catalogo.map(function (c, i) {
-        const jaTem = state.planos.some(function (p) { return p.plano.concurso === c.concurso; });
-        return '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
-          '<div class="fila-info"><div class="fila-titulo">' + esc(c.titulo) + '</div>' +
-          '<div class="fila-sub">' + esc(c.descricao) + '</div></div>' +
-          (jaTem ? '<span class="etiqueta etiqueta-feito">na sua lista ✓</span>'
-            : '<button class="botao-mini" data-cat="' + i + '">Adicionar</button>') +
-          '</div>';
-      }).join('');
-      alvoCatalogo.querySelectorAll('[data-cat]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          const c = catalogo[parseInt(b.getAttribute('data-cat'), 10)];
-          b.disabled = true;
-          fetch(c.arquivo).then(function (r) { return r.json(); }).then(function (json) {
-            const v = D.validarPlano(json);
-            if (!v.ok) { toast('Plano do catálogo inválido: ' + v.erros[0], 'erro'); return; }
-            adicionarPlano(json);
-            aplicarPlanosDuracaoAoAtivo(true);
-            fecharModal();
-            render();
-            toast('Plano adicionado: ' + v.resumo.concurso, 'sucesso');
-          }).catch(function () { toast('Não consegui carregar o plano do catálogo.', 'erro'); b.disabled = false; });
-        });
-      });
-    }).catch(function () {
-      alvoCatalogo.innerHTML = '<p class="sub">Catálogo indisponível offline.</p>';
+  // editais cadastrados pelo admin, exibidos no Planejamento: o usuário escolhe
+  // se quer criar um plano personalizado a partir de cada um
+  function editaisDisponiveisHtml() {
+    if (state.editais.length === 0) return '';
+    let html = '<div class="card planejamento-card editais-card"><div class="card-kpi-rotulo">Editais disponíveis</div>' +
+      '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>';
+    state.editais.forEach(function (e) {
+      const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
+      html += '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
+        '<div class="fila-info"><div class="fila-titulo">' + esc(e.titulo) + '</div>' +
+        '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
+        contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</div></div>' +
+        (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado ✓</span>'
+          : '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano personalizado</button>') +
+        '</div>';
     });
+    html += '</div>';
+    return html;
   }
 
   function abrirConfiguracoesPlanejamento() {
@@ -2379,10 +2233,12 @@
       '<div class="compact-actions"><button class="botao-mini botao-perigo" id="cfg-excluir-plano">Excluir plano atual</button></div></div>' : '';
     const m = abrirModal(
       '<h3>Configurações do planejamento</h3>' +
-      '<p class="sub">Importe, crie ou remova planos sem sair do calendário.</p>' +
+      '<p class="sub">Os planos nascem dos editais disponíveis na tela de Planejamento. Aqui você cria um plano manual ou remove o atual.</p>' +
       '<div class="planejamento-config-panel modal-config-panel">' +
-      importacaoPlanejamentoHtml() +
-      catalogoPlanejamentoHtml() +
+      '<div class="card planejamento-card"><div class="card-kpi-rotulo">Plano manual</div>' +
+      '<h3>Estudos livres</h3>' +
+      '<p class="sub">Crie um plano vazio para organizar disciplinas próprias, sem edital.</p>' +
+      '<div class="compact-actions"><button class="botao-mini botao-secundario" id="pl-em-branco-2">Criar plano manual</button></div></div>' +
       risco +
       '</div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="cfg-fechar">Fechar</button></div>'
@@ -2391,17 +2247,11 @@
     m.querySelector('#cfg-fechar').addEventListener('click', fecharModal);
     const emBranco = m.querySelector('#pl-em-branco-2');
     if (emBranco) emBranco.addEventListener('click', function () { fecharModal(); criarPlanoManualComPrompt(); });
-    const importar = m.querySelector('#pl-importar');
-    if (importar) importar.addEventListener('click', function () { importarPlanoPeloPlanejamento(m); });
     const excluir = m.querySelector('#cfg-excluir-plano');
     if (excluir) excluir.addEventListener('click', function () {
       const id = state.planoAtivoId;
       if (id && excluirPlano(id, true)) fecharModal();
     });
-    m.querySelectorAll('[data-ed-plano]').forEach(function (b) {
-      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-ed-plano')); });
-    });
-    carregarCatalogoPlanejamento(m);
   }
 
   function criarPlanoManual(nome) {
@@ -2836,39 +2686,6 @@
     });
   }
 
-  async function importarPlanoPeloPlanejamento(raiz) {
-    const arquivo = raiz.querySelector('#pl-arquivo');
-    const textoEl = raiz.querySelector('#pl-json');
-    const nomeEl = raiz.querySelector('#pl-nome-import');
-    const file = arquivo && arquivo.files && arquivo.files[0];
-    const nome = (nomeEl && nomeEl.value.trim()) || (file ? file.name.replace(/\.[^.]+$/, '') : 'Plano importado');
-    let json = null;
-    try {
-      if (file && /\.xlsx$/i.test(file.name)) {
-        if (!window.XLSX) { toast('Leitor de Excel indisponível. Salve como CSV ou JSON.', 'erro'); return; }
-        const wb = window.XLSX.read(await lerArquivo(file, true), { type: 'array' });
-        const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-        json = planoJsonDeLinhas(rows, nome);
-      } else if (file && /\.csv$/i.test(file.name)) {
-        json = planoJsonDeLinhas(parseCsv(await lerArquivo(file, false)), nome);
-      } else {
-        const texto = file ? await lerArquivo(file, false) : textoEl.value.trim();
-        json = JSON.parse(texto);
-        if (Array.isArray(json)) json = planoJsonDeLinhas(json, nome);
-      }
-    } catch (e) {
-      toast('Não consegui ler o plano: ' + e.message, 'erro');
-      return;
-    }
-    const v = D.validarPlano(json);
-    if (!v.ok) { toast('Plano inválido: ' + v.erros[0], 'erro'); return; }
-    adicionarPlano(json);
-    aplicarPlanosDuracaoAoAtivo(true);
-    fecharModal();
-    render();
-    toast('Plano adicionado: ' + v.resumo.concurso, 'sucesso');
-  }
-
   function telaPlanejamento() {
     const hoje = D.hojeISO();
     // plano com cronograma mas calendário vazio (ex.: importado antes da
@@ -2879,7 +2696,7 @@
       if (sincronizarAgendaComCronograma() > 0) salvar();
     }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
-      '<p class="sub">Plano atual, editais cadastrados e agenda no mesmo lugar.</p></div>' +
+      '<p class="sub">Plano atual, editais disponíveis e agenda no mesmo lugar.</p></div>' +
       '<div class="cab-acoes"><button class="botao-quieto" id="pl-config">⚙ Configurações</button>' +
       '<button class="botao-quieto" id="pl-nova-disc">+ Nova disciplina</button></div></div>';
 
@@ -2888,9 +2705,11 @@
       planosCadastradosHtml() +
       '</div>';
 
+    html += editaisDisponiveisHtml();
+
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
-        '<strong>Nenhuma disciplina ainda</strong>Crie uma disciplina manual ou importe um plano para começar a planejar.' +
+        '<strong>Nenhuma disciplina ainda</strong>Escolha um edital disponível acima para o sistema gerar seu plano, ou crie uma disciplina manual.' +
         '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
         '<button class="botao" id="pl-criar-disc">Criar disciplina</button>' +
         '<button class="botao botao-secundario" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
@@ -3008,8 +2827,9 @@
     if (antecipar && discAjuste) antecipar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, -1); });
     if (atrasar && discAjuste) atrasar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, 1); });
 
-    const importar = raiz.querySelector('#pl-importar');
-    if (importar) importar.addEventListener('click', function () { importarPlanoPeloPlanejamento(raiz); });
+    raiz.querySelectorAll('[data-ed-plano]').forEach(function (b) {
+      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-ed-plano')); });
+    });
 
     raiz.querySelectorAll('[data-pl-ativar]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -3032,37 +2852,6 @@
         toast('Plano excluído');
       });
     });
-
-    const alvoCatalogo = raiz.querySelector('#catalogo-lista');
-    if (alvoCatalogo) {
-      fetch('data/catalogo.json').then(function (r) { return r.json(); }).then(function (catalogo) {
-        alvoCatalogo.innerHTML = catalogo.map(function (c, i) {
-          const jaTem = state.planos.some(function (p) { return p.plano.concurso === c.concurso; });
-          return '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
-            '<div class="fila-info"><div class="fila-titulo">' + esc(c.titulo) + '</div>' +
-            '<div class="fila-sub">' + esc(c.descricao) + '</div></div>' +
-            (jaTem ? '<span class="etiqueta etiqueta-feito">na sua lista ✓</span>'
-              : '<button class="botao-mini" data-cat="' + i + '">Adicionar</button>') +
-            '</div>';
-        }).join('');
-        alvoCatalogo.querySelectorAll('[data-cat]').forEach(function (b) {
-          b.addEventListener('click', function () {
-            const c = catalogo[parseInt(b.getAttribute('data-cat'), 10)];
-            b.disabled = true;
-            fetch(c.arquivo).then(function (r) { return r.json(); }).then(function (json) {
-              const v = D.validarPlano(json);
-              if (!v.ok) { toast('Plano do catálogo inválido: ' + v.erros[0], 'erro'); return; }
-              adicionarPlano(json);
-              aplicarPlanosDuracaoAoAtivo(true);
-              render();
-              toast('Plano adicionado: ' + v.resumo.concurso, 'sucesso');
-            }).catch(function () { toast('Não consegui carregar o plano do catálogo.', 'erro'); b.disabled = false; });
-          });
-        });
-      }).catch(function () {
-        alvoCatalogo.innerHTML = '<p class="sub">Catálogo indisponível offline.</p>';
-      });
-    }
 
     const ant = raiz.querySelector('#pl-ant');
     if (ant) ant.addEventListener('click', function () {
@@ -3400,110 +3189,6 @@
     });
   }
 
-  function telaPlanos() {
-    let html = '<div class="cab-pagina"><div><h1>Planos</h1>' +
-      '<p class="sub">Guarde um plano por concurso e alterne quando quiser — o histórico de cada um fica separado.</p></div>' +
-      '<a class="botao-secundario botao" href="#ajustes">Importar JSON</a></div>';
-
-    html += '<div class="linha-cards" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">';
-    state.planos.forEach(function (p) {
-      const ativo = p.id === state.planoAtivoId;
-      const nTop = p.disciplinas.reduce(function (n, d) { return n + d.topicos.filter(function (t) { return !t.orfao; }).length; }, 0);
-      const nSes = state.sessoes.filter(function (s) { return s.planoId === p.id || (!s.planoId && ativo); }).length;
-      html += '<div class="card card-kpi" style="min-height:170px">' +
-        '<div><div class="card-kpi-rotulo">' + esc(p.plano.banca || 'plano pessoal') +
-        (ativo ? ' · <span style="color:var(--correto)">ATIVO</span>' : '') + '</div>' +
-        '<div style="font-weight:700;font-size:1.02rem;line-height:1.3;margin:0.25rem 0">' + esc(p.plano.concurso) + '</div>' +
-        '<div class="card-kpi-extra">' + p.disciplinas.length + ' disciplinas · ' + nTop + ' tópicos · ' + nSes + ' sessões' +
-        (p.plano.meta && p.plano.meta.corte_pct ? ' · meta ' + p.plano.meta.corte_pct + '%' : '') + '</div></div>' +
-        '<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem">' +
-        (ativo ? '' : '<button class="botao-mini" data-pl-ativar="' + esc(p.id) + '">Ativar</button>') +
-        '<button class="botao-mini botao-quieto" data-pl-perfil="' + esc(p.id) + '">Ajustar ao meu perfil</button>' +
-        '<button class="botao-mini botao-quieto" data-pl-excluir="' + esc(p.id) + '" style="color:var(--errado)">Excluir</button>' +
-        '</div></div>';
-    });
-    // card criar novo
-    html += '<div class="card card-kpi card-quieto" style="min-height:170px;border-style:dashed;align-items:center;justify-content:center;text-align:center">' +
-      '<div><div style="font-weight:700;margin-bottom:0.35rem">Criar novo plano</div>' +
-      '<div class="card-kpi-extra" style="margin-bottom:0.75rem">do catálogo abaixo, importando um JSON da skill, ou em branco</div>' +
-      '<button class="botao-mini botao-secundario" id="pl-em-branco">Plano em branco</button></div></div>';
-    html += '</div>';
-
-    html += '<div class="card"><h3>Catálogo incluso no sistema</h3>' +
-      '<p style="font-size:0.85rem;color:var(--grafite)">Planos prontos que acompanham o app — um clique e ele entra na sua lista.</p>' +
-      '<div id="catalogo-lista"><div class="estado-vazio" style="padding:1rem"><span class="bolha bolha-carregando bolha-pendente"></span><br>Carregando catálogo…</div></div></div>';
-    return html;
-  }
-
-  function ligarPlanos(raiz) {
-    raiz.querySelectorAll('[data-pl-ativar]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        window.Store.ativarPlano(state, b.getAttribute('data-pl-ativar'));
-        editalAbertas = new Set();
-        salvar(); render();
-        toast('Plano ativado: ' + state.plano.concurso, 'sucesso');
-      });
-    });
-    raiz.querySelectorAll('[data-pl-perfil]').forEach(function (b) {
-      b.addEventListener('click', function () { abrirPerfilPlano(b.getAttribute('data-pl-perfil')); });
-    });
-    raiz.querySelectorAll('[data-pl-excluir]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        const p = state.planos.find(function (x) { return x.id === b.getAttribute('data-pl-excluir'); });
-        if (!p) return;
-        if (!confirm('Excluir o plano "' + p.plano.concurso + '"? As sessões registradas nele ficam guardadas, mas deixam de aparecer.')) return;
-        window.Store.removerPlano(state, p.id);
-        salvar(); render();
-        toast('Plano excluído');
-      });
-    });
-    const emBranco = raiz.querySelector('#pl-em-branco');
-    if (emBranco) emBranco.addEventListener('click', function () {
-      const nome = prompt('Nome do plano (ex.: INSS 2027, Estudos livres):', 'Meus estudos');
-      if (!nome) return;
-      state.planos.push({
-        id: window.Store.novoId('pln'), criadoEm: D.hojeISO(),
-        plano: { concurso: nome.trim(), banca: '', cota: null, meta: { corte_pct: 70 }, radar: null, ritmos: null, ritmoAtivo: 'sustentavel', gerado_em: null },
-        disciplinas: [], cronogramas: { sustentavel: [], hardcore: [] }, links: []
-      });
-      window.Store.ativarPlano(state, state.planos[state.planos.length - 1].id);
-      salvar(); render();
-      toast('Plano "' + nome.trim() + '" criado e ativado — crie as disciplinas no Planejamento', 'sucesso');
-    });
-
-    // catálogo incluso (data/catalogo.json)
-    const alvo = raiz.querySelector('#catalogo-lista');
-    if (alvo) {
-      fetch('data/catalogo.json').then(function (r) { return r.json(); }).then(function (catalogo) {
-        alvo.innerHTML = catalogo.map(function (c, i) {
-          const jaTem = state.planos.some(function (p) { return p.plano.concurso === c.concurso; });
-          return '<div class="fila-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
-            '<div class="fila-info"><div class="fila-titulo">' + esc(c.titulo) + '</div>' +
-            '<div class="fila-sub">' + esc(c.descricao) + '</div></div>' +
-            (jaTem ? '<span class="etiqueta etiqueta-feito">na sua lista ✓</span>'
-              : '<button class="botao-mini" data-cat="' + i + '">Adicionar</button>') +
-            '</div>';
-        }).join('');
-        alvo.querySelectorAll('[data-cat]').forEach(function (b) {
-          b.addEventListener('click', function () {
-            const c = catalogo[parseInt(b.getAttribute('data-cat'), 10)];
-            b.disabled = true;
-            fetch(c.arquivo).then(function (r) { return r.json(); }).then(function (json) {
-              const v = D.validarPlano(json);
-              if (!v.ok) { toast('Plano do catálogo inválido: ' + v.erros[0], 'erro'); return; }
-              adicionarPlano(json);
-              aplicarPlanosDuracaoAoAtivo(true);
-              render();
-              toast('Plano adicionado e ativado: ' + v.resumo.concurso, 'sucesso');
-            }).catch(function () { toast('Não consegui carregar o plano do catálogo (offline?).', 'erro'); b.disabled = false; });
-          });
-        });
-      }).catch(function () {
-        alvo.innerHTML = '<p style="font-size:0.85rem;color:var(--grafite)">Catálogo indisponível offline.</p>';
-      });
-    }
-  }
-
   // ---------------- TELA: Mais (atalhos no celular) ----------------
   function telaMais() {
     const itens = [
@@ -3556,7 +3241,6 @@
     disciplina: { render: telaDisciplinaDetalhe, ligar: ligarDisciplinaDetalhe },
     historico: { render: telaHistorico, ligar: ligarHistorico },
     ajustes: { render: telaAjustes, ligar: ligarAjustes },
-    planos: { render: telaPlanos, ligar: ligarPlanos },
     mais: { render: telaMais, ligar: function () {} }
   };
 
