@@ -12,6 +12,9 @@ cronograma em duas velocidades, registro de sessões com timer, revisões autom�
 1. **Abrir o app**
    - Local: `powershell -ExecutionPolicy Bypass -File tools/servidor.ps1` e acesse
      `http://localhost:8123/` (ou publique a pasta no GitHub Pages).
+   - No celular, abra o endereço de rede mostrado pelo servidor (algo como
+     `http://192.168.x.x:8123/`) enquanto estiver no mesmo Wi-Fi. Assim PC e celular
+     usam `/api/sync` e enxergam o mesmo histórico.
    - No celular, use "Adicionar à tela inicial" (PWA instalável, abre offline).
 2. **Importar o plano** (tela *Plano e backup*): cole ou envie o JSON gerado pela
    skill — peça no Claude: *"exporta meu plano TRF3 em JSON para o app"*.
@@ -20,8 +23,11 @@ cronograma em duas velocidades, registro de sessões com timer, revisões autom�
 3. **Operar o dia** (tela *Hoje*): a fila vem pronta — revisões vencidas → blocos da
    semana → tópicos reabertos. Toque em **Timer** para cronometrar (cronômetro ou
    pomodoro 25/5) ou em **Registrar** para lançar direto (≤3 toques).
-4. **Backup semanal**: os dados vivem no `localStorage` deste navegador. O app avisa
+4. **Backup semanal**: a sincronização local mantém os aparelhos alinhados quando o
+   servidor está rodando, mas o backup continua sendo a cópia de segurança. O app avisa
    quando o backup passa de 7 dias — exporte o `.json` em *Plano e backup*.
+5. **Ferramentas de apoio**: em *Plano e backup*, abra Notion para organizar notas e
+   NotebookLM para conversar com PDFs, aulas, questões e resumos do curso.
 
 ## Regras de negócio implementadas (domain.js)
 
@@ -42,10 +48,11 @@ cronograma em duas velocidades, registro de sessões com timer, revisões autom�
 index.html          shell único (SPA por hash)
 manifest.json, sw.js, icons/   PWA
 css/styles.css      tokens do brief (papel/tinta/caneta, IBM Plex, bolhas ○◐●)
-js/store.js         localStorage: schema, migrations, export/import (trocar p/ Supabase no futuro)
+js/store.js         localStorage: schema, migrations, export/import
+js/sync.js          sincroniza PC/celular via /api/sync do servidor local
 js/domain.js        RN01–RN08 puras (testáveis sem DOM)
 js/app.js           roteamento + telas
-js/timer.js         cronômetro/pomodoro com recuperação de sessão
+js/timer.js         cronômetro/pomodoro com recuperação, limite e alerta
 js/charts.js        2 gráficos (Chart.js via CDN)
 js/frases.js        frase do dia (determinística por data)
 data/exemplo-trf3.json   plano real TRF3 no contrato JSON v1
@@ -60,6 +67,6 @@ tópico — é assim que o histórico sobrevive à reimportação.
 
 ## Fora do escopo da v1
 
-Login/multiusuário, sincronização entre dispositivos, flashcards (Anki cobre),
+Login/multiusuário em nuvem, sincronização entre usuários, flashcards completos (Anki cobre),
 geração de questões, notificações push, features sociais.
 Plano completo do projeto: [plano-projeto-plataforma-estudos.md](plano-projeto-plataforma-estudos.md).

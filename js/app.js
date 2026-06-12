@@ -7,9 +7,13 @@
   'use strict';
 
   const D = window.Dominio;
+  const TITULO_PADRAO = document.title;
   let state = window.Store.carregar();
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   let editalAbertas = new Set();  // disciplinas expandidas no edital
+  let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
+  let pintarTimerAtual = null;
+  let audioCtx = null;
 
   // ---------------- utilidades de UI ----------------
   function esc(s) {
@@ -18,7 +22,11 @@
     });
   }
 
-  function salvar() { window.Store.salvar(state); }
+  function salvar(opcoes) {
+    opcoes = opcoes || {};
+    window.Store.salvar(state, opcoes);
+    if (window.Sync && opcoes.sincronizar !== false) window.Sync.agendarEnvio(state);
+  }
 
   function toast(msg, tipo) {
     const raiz = document.getElementById('toast-raiz');
@@ -39,6 +47,70 @@
   }
 
   function fecharModal() { document.getElementById('modal-raiz').innerHTML = ''; }
+
+  function prepararAudio() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) {}
+  }
+
+  function tocarAlarme() {
+    prepararAudio();
+    if (navigator.vibrate) navigator.vibrate([180, 80, 180]);
+    if (!audioCtx) return;
+    const agora = audioCtx.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const osc = audioCtx.createOscillator();
+      const ganho = audioCtx.createGain();
+      const t = agora + i * 0.28;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t);
+      ganho.gain.setValueAtTime(0.001, t);
+      ganho.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+      ganho.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(ganho).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.2);
+    }
+  }
+
+  function pedirNotificacaoSePossivel(limiteMin) {
+    if (!limiteMin || !('Notification' in window) || Notification.permission !== 'default') return;
+    Notification.requestPermission().catch(function () {});
+  }
+
+  function atualizarTituloTimer(e) {
+    if (!e) {
+      document.title = TITULO_PADRAO;
+      return;
+    }
+    if (e.limiteAvisado && e.limiteRestanteMs === 0) {
+      document.title = 'Tempo maximo atingido · Estudos';
+      return;
+    }
+    const ms = e.modo === 'pomodoro' ? e.pomoRestanteMs : e.decorridoMs;
+    document.title = window.Timer.formatar(ms) + (e.rodando ? ' · Estudos' : ' pausado · Estudos');
+  }
+
+  function avisarLimiteTimer(e) {
+    tocarAlarme();
+    toast('Tempo máximo atingido: ' + e.limiteMin + ' min.', 'sucesso');
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Tempo máximo atingido', {
+        body: nomeTopicoCompleto(e.topicoId),
+        icon: 'icons/icone-192.png'
+      });
+    }
+  }
+
+  function tratarTickTimer(e) {
+    atualizarTituloTimer(e);
+    if (e && e.limiteAtingido) avisarLimiteTimer(e);
+    if (pintarTimerAtual && location.hash.replace('#', '') === 'timer') pintarTimerAtual(e);
+  }
 
   function confete() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -272,16 +344,18 @@
     const resumoDia = pendentes.length === 0 ? 'Tudo em dia por hoje.' :
       nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
 
-    let html = '<div class="cab-pagina"><div><h1>' + saudacao + '</h1>' +
+    let html = '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacao + '</h1>' +
       '<p class="sub">' + resumoDia + '</p></div>' +
       '<button class="botao-secundario" id="btn-registrar-livre">Registrar sessão</button></div>';
 
     // aviso de backup (risco localStorage)
     const diasBackup = window.Store.diasDesdeBackup(state);
     if (window.Store.temDados(state) && (diasBackup === null || diasBackup > 7)) {
+      const syncOk = syncStatus && syncStatus.estado === 'sincronizado';
       html += '<div class="aviso aviso-alerta">' +
         (diasBackup === null ? 'Você ainda não fez nenhum backup.' : 'Seu último backup foi há ' + diasBackup + ' dias.') +
-        ' Os dados vivem só neste navegador — <a href="#ajustes">exporte um backup</a>.</div>';
+        (syncOk ? ' Sincronização ativa, mas o backup ainda é sua cópia de segurança — ' : ' Os dados ainda estão só neste navegador — ') +
+        '<a href="#ajustes">exporte um backup</a>.</div>';
     }
 
     html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
@@ -399,7 +473,9 @@
         '<div><label for="timer-topico">Tópico</label><select id="timer-topico"></select></div></div>' +
         '<div style="margin-top:1rem"><span class="seletor-modo">' +
         '<button type="button" data-modo="cronometro" class="ativo">Cronômetro</button>' +
-        '<button type="button" data-modo="pomodoro">Pomodoro 25/5</button></span></div>';
+        '<button type="button" data-modo="pomodoro">Pomodoro 25/5</button></span></div>' +
+        '<div class="timer-limite"><label for="timer-limite">Tempo máximo (min)</label>' +
+        '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>';
     } else {
       selecao = '<p style="color:#B9BBC1;font-size:0.92rem">' + esc(nomeTopicoCompleto(ativo.topicoId)) + '</p>';
     }
@@ -416,6 +492,7 @@
     const display = raiz.querySelector('#timer-display');
     const info = raiz.querySelector('#timer-info');
     const acoes = raiz.querySelector('#timer-acoes');
+    const limiteInput = raiz.querySelector('#timer-limite');
     let modoEscolhido = 'cronometro';
 
     const selDisc = raiz.querySelector('#timer-disc');
@@ -448,8 +525,14 @@
         } else {
           info.textContent = e.rodando ? 'Estudando' : 'Pausado';
         }
+        if (e.limiteMin) {
+          info.textContent += e.limiteRestanteMs > 0
+            ? ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs)
+            : ' · limite atingido';
+        }
       }
       if (e.pomoTrocouFase) toast(e.pomoFase === 'foco' ? 'Pausa encerrada — de volta ao foco' : 'Foco concluído — 5 min de pausa', 'sucesso');
+      atualizarTituloTimer(e);
     }
 
     function botoes() {
@@ -458,7 +541,14 @@
         acoes.innerHTML = '<button id="t-iniciar">Iniciar estudo</button>';
         acoes.querySelector('#t-iniciar').addEventListener('click', function () {
           if (!selTop || !selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
-          window.Timer.iniciar(selTop.value, modoEscolhido);
+          const limiteMin = limiteInput && limiteInput.value ? parseInt(limiteInput.value, 10) : null;
+          if (limiteInput && limiteInput.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) {
+            toast('Informe um tempo máximo entre 1 e 720 minutos.', 'erro');
+            return;
+          }
+          prepararAudio();
+          pedirNotificacaoSePossivel(limiteMin);
+          window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin });
           timerPreselecao = null;
           render();
         });
@@ -474,9 +564,10 @@
       const bp = acoes.querySelector('#t-pausar');
       if (bp) bp.addEventListener('click', function () { window.Timer.pausar(); botoes(); pintar(window.Timer.estado()); });
       const br = acoes.querySelector('#t-retomar');
-      if (br) br.addEventListener('click', function () { window.Timer.retomar(); botoes(); });
+      if (br) br.addEventListener('click', function () { prepararAudio(); window.Timer.retomar(); botoes(); pintar(window.Timer.estado()); });
       acoes.querySelector('#t-finalizar').addEventListener('click', function () {
         const fim = window.Timer.finalizar();
+        atualizarTituloTimer(null);
         abrirRegistro({
           topicoId: fim.topicoId,
           duracaoMin: Math.max(1, fim.decorridoMin),
@@ -486,15 +577,13 @@
         render();
       });
       acoes.querySelector('#t-descartar').addEventListener('click', function () {
-        if (confirm('Descartar o tempo cronometrado sem registrar?')) { window.Timer.descartar(); render(); }
+        if (confirm('Descartar o tempo cronometrado sem registrar?')) { window.Timer.descartar(); atualizarTituloTimer(null); render(); }
       });
     }
 
+    pintarTimerAtual = pintar;
     botoes();
     pintar(window.Timer.estado());
-    window.Timer.aoAtualizar(function (e) {
-      if (location.hash.replace('#', '') === 'timer') pintar(e);
-    });
   }
 
   // ---------------- TELA: Revisões (F4) ----------------
@@ -951,9 +1040,22 @@
       '<div class="modal-acoes" style="justify-content:flex-start"><button id="imp-validar">Validar e visualizar</button></div>' +
       '<div id="imp-preview"></div></div>';
 
+    html += '<h2>Ferramentas gratuitas de apoio</h2><div class="linha-cards">' +
+      '<a class="card ferramenta-card" href="https://www.notion.com/" target="_blank" rel="noopener">' +
+      '<strong>Notion</strong><span>Criação, organização e revisão das suas próprias anotações.</span><span class="ferramenta-acao">Abrir Notion</span></a>' +
+      '<a class="card ferramenta-card" href="https://notebooklm.google.com/" target="_blank" rel="noopener">' +
+      '<strong>NotebookLM</strong><span>Converse com PDFs, aulas, questões e resumos do curso.</span><span class="ferramenta-acao">Abrir NotebookLM</span></a>' +
+      '</div>';
+
+    const syncTexto = syncStatus && syncStatus.texto ? syncStatus.texto : 'Verificando sincronização';
+    html += '<div class="card"><h3>Sincronização entre aparelhos</h3>' +
+      '<p style="font-size:0.88rem;color:var(--grafite)">Status: <strong id="sync-status">' + esc(syncTexto) + '</strong></p>' +
+      (syncStatus && syncStatus.endpoint ? '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">' + esc(syncStatus.endpoint) + '</span></p>' : '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">servidor local não detectado</span></p>') +
+      '<div class="modal-acoes" style="justify-content:flex-start"><button class="botao-secundario" id="sync-agora">Sincronizar agora</button></div></div>';
+
     const diasBackup = window.Store.diasDesdeBackup(state);
     html += '<div class="card"><h3>Backup dos dados</h3>' +
-      '<p style="font-size:0.88rem;color:var(--grafite)">Os dados vivem no localStorage deste navegador. Exporte um arquivo .json por segurança' +
+      '<p style="font-size:0.88rem;color:var(--grafite)">Exporte um arquivo .json por segurança' +
       (diasBackup !== null ? ' — último backup: há ' + diasBackup + ' dia(s)' : ' — nenhum backup feito ainda') + '.</p>' +
       '<div class="modal-acoes" style="justify-content:flex-start">' +
       '<button id="bk-exportar">Exportar backup</button>' +
@@ -1002,6 +1104,16 @@
       salvar();
       toast('Meta de questões atualizada', 'sucesso');
     });
+    const syncAgora = raiz.querySelector('#sync-agora');
+    if (syncAgora) syncAgora.addEventListener('click', function () {
+      if (!window.Sync) { toast('Sincronização indisponível neste navegador.', 'erro'); return; }
+      syncAgora.disabled = true;
+      window.Sync.sincronizarAgora({ silencioso: false }).finally(function () {
+        syncAgora.disabled = false;
+        syncStatus = window.Sync.status();
+        atualizarSyncUi();
+      });
+    });
 
     raiz.querySelector('#imp-validar').addEventListener('click', function () {
       const texto = raiz.querySelector('#imp-texto').value.trim();
@@ -1037,6 +1149,7 @@
 
     raiz.querySelector('#bk-exportar').addEventListener('click', function () {
       window.Store.exportarBackup(state);
+      if (window.Sync) window.Sync.agendarEnvio(state);
       toast('Backup exportado', 'sucesso');
       render();
     });
@@ -1047,7 +1160,12 @@
       const leitor = new FileReader();
       leitor.onload = function () {
         const r = window.Store.importarBackup(leitor.result);
-        if (r.ok) { state = r.state; toast('Backup restaurado', 'sucesso'); render(); }
+        if (r.ok) {
+          state = r.state;
+          if (window.Sync) window.Sync.agendarEnvio(state);
+          toast('Backup restaurado', 'sucesso');
+          render();
+        }
         else toast(r.erro, 'erro');
       };
       leitor.readAsText(arq);
@@ -1057,6 +1175,7 @@
       if (!confirm('Apagar TODOS os dados (plano, sessões, revisões, simulados)? Esta ação não tem volta.')) return;
       if (!confirm('Última confirmação: você exportou um backup antes?')) return;
       state = window.Store.estadoVazio();
+      state.config.apagadoEm = new Date().toISOString();
       salvar(); render();
       toast('Dados apagados');
     });
@@ -1068,6 +1187,7 @@
       ['#edital', 'Edital verticalizado', 'progresso ○◐● e incidência por tópico'],
       ['#simulados', 'Simulados', 'gabarito × meta de corte'],
       ['#historico', 'Histórico', 'todas as sessões registradas'],
+      ['#ajustes', 'Ferramentas de apoio', 'Notion e NotebookLM para estudar melhor'],
       ['#ajustes', 'Plano e backup', 'importar plano, exportar dados']
     ];
     return '<h1>Mais</h1><div class="card card-quieto">' +
@@ -1111,23 +1231,53 @@
     if (badgeM) badgeM.classList.toggle('oculto', nVencidas === 0);
   }
 
+  function atualizarSyncUi() {
+    const el = document.getElementById('sync-status');
+    if (el && syncStatus) el.textContent = syncStatus.texto;
+    const ep = document.getElementById('sync-endpoint');
+    if (ep && syncStatus && syncStatus.endpoint) ep.textContent = syncStatus.endpoint;
+  }
+
   function render() {
     const rota = rotaAtual();
     const tela = telas[rota];
     const conteudo = document.getElementById('conteudo');
+    if (rota !== 'timer') pintarTimerAtual = null;
     conteudo.innerHTML = tela.render();
     tela.ligar(conteudo);
     atualizarNav(rota);
+    atualizarSyncUi();
   }
 
   // ---------------- inicialização ----------------
   window.addEventListener('hashchange', function () { fecharModal(); render(); });
+
+  window.Timer.aoAtualizar(tratarTickTimer);
 
   const recuperado = window.Timer.recuperar();
   if (recuperado) {
     toast('Timer recuperado — sua sessão de ' + window.Timer.formatar(recuperado.decorridoMs) + ' continua valendo.', 'sucesso');
     if (!location.hash || location.hash === '#hoje') location.hash = '#timer';
   }
+  const estadoInicialTimer = window.Timer.estado();
+  atualizarTituloTimer(estadoInicialTimer);
+  if (estadoInicialTimer && estadoInicialTimer.limiteAtingido) avisarLimiteTimer(estadoInicialTimer);
 
   render();
+
+  if (window.Sync) {
+    window.Sync.iniciar({
+      obterEstado: function () { return state; },
+      aplicarEstado: function (novoState, silencioso) {
+        state = novoState;
+        window.Store.salvar(state, { marcarAlterado: false });
+        render();
+        if (!silencioso) toast('Dados sincronizados', 'sucesso');
+      },
+      aoStatus: function (novoStatus) {
+        syncStatus = novoStatus;
+        atualizarSyncUi();
+      }
+    });
+  }
 })();

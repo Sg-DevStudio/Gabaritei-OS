@@ -192,7 +192,7 @@ nada de lorem ipsum.*
 | Frases motivacionais | ✅ frase do dia no Home (curadoria própria, foco concurso/disciplina) | | |
 
 ### 4.8 Fora do escopo (v1)
-Login/multiusuário · sincronização automática entre dispositivos · flashcards (Anki
+Login/multiusuário em nuvem · sincronização entre usuários · flashcards completos (Anki
 cobre) · geração de questões · notificações push · app nativo · qualquer feature
 social. **Escopo não escrito aqui não entra sem revisar este documento.**
 
@@ -270,7 +270,7 @@ registrada"). Nada de "Potencialize seus estudos".
 | Risco | Mitigação |
 |---|---|
 | Construir a ferramenta comer o tempo de estudo (o objetivo é o TRF3, não o app) | Timebox: MVP em **2 fins de semana**; o que não couber vai para "Depois" sem discussão |
-| Perda de dados no localStorage (limpar cache do navegador apaga tudo) | Export JSON com 1 clique + lembrete semanal de backup; avaliar File System Access API |
+| Perda de dados no localStorage (limpar cache do navegador apaga tudo) | Sync local quando o servidor está rodando + export JSON com 1 clique + lembrete semanal de backup |
 | Plano da skill mudar de formato e quebrar a importação | Versionar o contrato JSON (`"versao": 1`) nos dois lados |
 | Recriar o Anki por tentação | Proibido na constituição — flashcard é do Anki |
 
@@ -282,7 +282,7 @@ registrada"). Nada de "Potencialize seus estudos".
 | Camada | Tecnologia | Justificativa |
 |---|---|---|
 | Frontend | HTML/CSS/JS puro, sem framework e sem build | Constituição; padrão dominado (Dashboard Financeiro); deploy = push |
-| Dados | `localStorage` com camada `store.js` (CRUD + migrations + export/import) | Isolar o storage permite migrar p/ Supabase trocando 1 arquivo |
+| Dados | `localStorage` com camada `store.js` + sincronização local opcional via `/api/sync` | Isolar o storage permite migrar p/ Supabase; sync local resolve PC/celular no uso pessoal |
 | Gráficos | Chart.js via CDN | Já dominada; leve |
 | PWA | `manifest.json` + service worker (cache estático) | Instalável no celular; abre offline |
 | Hospedagem | GitHub Pages (`samuelgomes01`) | Grátis; padrão existente |
@@ -296,12 +296,14 @@ estudos-app/
 ├── css/styles.css      # tokens do brief (paleta, tipos) no topo como variáveis
 ├── js/
 │   ├── store.js        # localStorage: schema, CRUD, migrations, export/import JSON
+│   ├── sync.js         # sincronização local PC/celular via /api/sync
 │   ├── domain.js       # RN01–RN08 puras (testáveis sem DOM)
 │   ├── app.js          # roteamento + renderização das telas
-│   ├── timer.js        # cronômetro/pomodoro + recuperação de sessão
+│   ├── timer.js        # cronômetro/pomodoro + recuperação, limite e alerta
 │   ├── charts.js       # gráficos
 │   └── frases.js       # frase do dia (array curado, rotação determinística por data)
-└── data/exemplo-trf3.json   # plano real exportado pela skill (dado de exemplo vivo)
+├── data/exemplo-trf3.json   # plano real exportado pela skill (dado de exemplo vivo)
+└── tools/servidor.ps1       # servidor local estático + API /api/sync para uso na rede
 ```
 
 ### Decisões técnicas
@@ -310,6 +312,8 @@ estudos-app/
 | RNs isoladas em `domain.js` puro | lógica espalhada nas telas | Testável; migração futura leva as regras intactas |
 | SPA por hash, sem router lib | múltiplas páginas | PWA simples, sem dependência |
 | Timer persiste `inicioEm` no localStorage a cada tick | só em memória | F1 caminho infeliz: fechar navegador não perde a sessão |
+| Sync local via servidor PowerShell | login/Supabase já na v1 | Resolve PC/celular no mesmo Wi-Fi sem conta, custo ou backend externo |
+| Timer atualiza título da aba + alerta | manter aviso só dentro da tela | Ajuda quando o usuário estuda com outra aba aberta e define tempo máximo |
 | Frase do dia determinística (índice = dia do ano % n) | aleatória | Mesma frase o dia todo em qualquer dispositivo |
 
 ### Riscos técnicos
@@ -343,6 +347,12 @@ estudos-app/
 - [x] T011 — Frase do dia + countdown/janela da prova (do radar) → *verificado: janela jan–jun/2027 exibida com confiança e data de reavaliação*
 - [x] T012 — Checklist de entrega da metodologia: fluxos ponta a ponta nas DUAS plataformas, caminhos infelizes, estados vazio/carregando/erro, formatos BR → *verificado: F1–F4 executados em 375px e 1280px, zero erros no console*
 
+**Onda 5 — Pós-MVP: sincronização, timer e experiência**
+- [x] T013 — Sincronização local PC/celular: servidor local expõe `/api/sync`, `js/sync.js` sincroniza o estado quando o app roda na mesma rede, tela *Plano e backup* mostra status e o service worker não cacheia a API.
+- [x] T014 — Timer com presença no navegador: título da aba acompanha a contagem, campo opcional de tempo máximo, aviso sonoro/vibração e notificação quando o limite é atingido.
+- [x] T015 — Modernização visual geral: tokens refinados, navegação mais polida, cards/KPIs mais agradáveis, fila do dia mais legível, timer escuro mais premium, modais/toasts/inputs/tabelas com acabamento melhor e mobile mais confortável.
+- [x] T016 — Apoio ao estudo: curadoria ampliada de frases motivacionais com pensadores variados e seção de links gratuitos para Notion e NotebookLM, deixando integração futura mapeada.
+
 **Dependências:** T002→T003→T004; T005,T006 dependem de T002; T007,T008 dependem de T006; Onda 4 depende das anteriores.
 
 ---
@@ -357,7 +367,7 @@ estudos-app/
 
 ---
 
-## 11. Status das fases (atualizado em 10/06/2026)
+## 11. Status das fases (atualizado em 12/06/2026)
 
 1. ~~Constituição~~ ✅ PWA + localStorage, pessoal sem login, frases motivacionais na v1.
 2. ~~Brief de design~~ ✅ aprovado com ajuste "convidativo" e exigência das duas plataformas (seção 6).
@@ -367,6 +377,7 @@ estudos-app/
    em 11/06/2026 (ver checkboxes da seção 9). O `data/exemplo-trf3.json` foi gerado no
    contrato v1 (10 disciplinas, 288 tópicos, cronogramas sustentável 28 sem. e hardcore
    17 sem.) — substituível a qualquer momento pelo export real da skill.
-6. **[PRÓXIMO] Publicação:** criar repositório e publicar no GitHub Pages
+6. ~~Pós-MVP: sincronização local, timer com alerta, modernização visual e ferramentas de apoio~~ ✅ concluído em 12/06/2026 (ver Onda 5).
+7. **[PRÓXIMO] Publicação:** criar repositório e publicar no GitHub Pages
    (`samuelgomes01`); depois, usar no dia a dia e validar na própria rotina
    (estratégia da Constituição).

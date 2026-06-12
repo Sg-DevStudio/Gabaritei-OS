@@ -10,7 +10,7 @@
   const POMO_FOCO_MIN = 25;
   const POMO_PAUSA_MIN = 5;
 
-  let interno = null;     // {topicoId, modo, inicioEm, acumuladoMs, rodando, pomoFase, pomoCiclos}
+  let interno = null;     // {topicoId, modo, inicioEm, acumuladoMs, rodando, pomoFase, pomoCiclos, limiteMin}
   let intervalo = null;
   let aoTick = null;      // callback(estado)
 
@@ -36,6 +36,19 @@
       decorridoMs: ms,
       decorridoMin: Math.floor(ms / 60000)
     };
+    if (interno.limiteMin) {
+      const limiteMs = interno.limiteMin * 60000;
+      e.limiteMin = interno.limiteMin;
+      e.limiteMs = limiteMs;
+      e.limiteRestanteMs = Math.max(0, limiteMs - ms);
+      e.limiteAvisado = !!interno.limiteAvisadoEm;
+      if (interno.rodando && ms >= limiteMs && !interno.limiteAvisadoEm) {
+        interno.limiteAvisadoEm = Date.now();
+        persistir();
+        e.limiteAtingido = true;
+        e.limiteAvisado = true;
+      }
+    }
     if (interno.modo === 'pomodoro') {
       const faseMs = (interno.pomoFase === 'foco' ? POMO_FOCO_MIN : POMO_PAUSA_MIN) * 60000;
       const nestaFase = ms - interno.pomoFaseInicioMs;
@@ -64,7 +77,9 @@
     }, 1000);
   }
 
-  function iniciar(topicoId, modo) {
+  function iniciar(topicoId, modo, opcoes) {
+    opcoes = opcoes || {};
+    const limiteMin = parseInt(opcoes.limiteMin, 10);
     interno = {
       topicoId: topicoId || null,
       modo: modo || 'cronometro',
@@ -73,7 +88,9 @@
       rodando: true,
       pomoFase: 'foco',
       pomoCiclos: 0,
-      pomoFaseInicioMs: 0
+      pomoFaseInicioMs: 0,
+      limiteMin: limiteMin > 0 ? limiteMin : null,
+      limiteAvisadoEm: null
     };
     persistir();
     ligarRelogio();

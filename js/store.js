@@ -8,7 +8,12 @@
   const CHAVE = 'estudos.v1';
   const VERSAO_SCHEMA = 1;
 
+  function agoraISO() {
+    return new Date().toISOString();
+  }
+
   function estadoVazio() {
+    const agora = agoraISO();
     return {
       versao: VERSAO_SCHEMA,
       plano: null,
@@ -18,7 +23,7 @@
       sessoes: [],   // {id, data, topicoId, tipo, duracaoMin, qFeitas, qCertas, obs}
       revisoes: [],  // {id, topicoId, tipo, dataAgendada, dataConcluida, resultadoPct}
       simulados: [], // {id, data, tipo, acertos:[{disciplinaId, certas, total}]}
-      config: { ultimoBackup: null, metaQuestoesSemana: 100 }
+      config: { ultimoBackup: null, metaQuestoesSemana: 100, criadoEm: agora, atualizadoEm: agora }
     };
   }
 
@@ -26,6 +31,10 @@
     // ponto único para migrações de schema futuras
     if (!state.versao) state.versao = VERSAO_SCHEMA;
     if (!state.config) state.config = { ultimoBackup: null, metaQuestoesSemana: 100 };
+    if (!state.config.criadoEm) state.config.criadoEm = agoraISO();
+    if (!state.config.atualizadoEm) state.config.atualizadoEm = state.config.criadoEm;
+    if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
+    if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.cronogramas) state.cronogramas = { sustentavel: [], hardcore: [] };
     if (!state.sessoes) state.sessoes = [];
     if (!state.revisoes) state.revisoes = [];
@@ -45,7 +54,10 @@
     }
   }
 
-  function salvar(state) {
+  function salvar(state, opcoes) {
+    opcoes = opcoes || {};
+    migrar(state);
+    if (opcoes.marcarAlterado !== false) state.config.atualizadoEm = agoraISO();
     localStorage.setItem(CHAVE, JSON.stringify(state));
   }
 
@@ -89,5 +101,5 @@
     return state.plano !== null || state.sessoes.length > 0;
   }
 
-  window.Store = { carregar, salvar, estadoVazio, novoId, exportarBackup, importarBackup, diasDesdeBackup, temDados };
+  window.Store = { carregar, salvar, estadoVazio, normalizar: migrar, novoId, exportarBackup, importarBackup, diasDesdeBackup, temDados };
 })();

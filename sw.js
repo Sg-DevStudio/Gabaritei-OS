@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v1';
+const CACHE = 'estudos-v3';
 const ESTATICOS = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const ESTATICOS = [
   './js/frases.js',
   './js/domain.js',
   './js/store.js',
+  './js/sync.js',
   './js/timer.js',
   './js/charts.js',
   './js/app.js',
@@ -29,6 +30,11 @@ self.addEventListener('activate', (e) => {
 /* Estratégia: rede primeiro com fallback para cache (estáticos sempre frescos online, app abre offline) */
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.pathname.endsWith('/api/sync')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
   e.respondWith(
     fetch(e.request)
       .then((resp) => {
