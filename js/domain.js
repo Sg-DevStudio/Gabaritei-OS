@@ -1,0 +1,436 @@
+/* ============================================================
+   domain.js — Regras de negócio RN01–RN08 (funções puras, sem DOM)
+   Mantê-las aqui permite testar e, no futuro, migrar para
+   Supabase levando as regras intactas.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  // ---------- Datas (sempre fuso local, formato interno AAAA-MM-DD) ----------
+  function hojeISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function addDias(iso, n) {
+    const [a, m, d] = iso.split('-').map(Number);
+    const dt = new Date(a, m - 1, d + n);
+    return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  }
+
+  function diffDias(isoA, isoB) { // isoB - isoA em dias
+    const [a1, m1, d1] = isoA.split('-').map(Number);
+    const [a2, m2, d2] = isoB.split('-').map(Number);
+    return Math.round((new Date(a2, m2 - 1, d2) - new Date(a1, m1 - 1, d1)) / 86400000);
+  }
+
+  function formatarDataBR(iso) {
+    if (!iso) return '—';
+    const [a, m, d] = iso.split('-');
+    return d + '/' + m + '/' + a;
+  }
+
+  function formatarMesBR(aaaaMM) {
+    if (!aaaaMM) return '—';
+    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const [a, m] = aaaaMM.split('-').map(Number);
+    return meses[m - 1] + '/' + a;
+  }
+
+  function segundaDaSemana(iso) {
+    const [a, m, d] = iso.split('-').map(Number);
+    const dt = new Date(a, m - 1, d);
+    const dia = dt.getDay(); // 0=dom
+    const recuo = dia === 0 ? 6 : dia - 1;
+    return addDias(iso, -recuo);
+  }
+
+  function formatarMin(min) {
+    const h = Math.floor(min / 60), m = Math.round(min % 60);
+    if (h === 0) return m + 'min';
+    return h + 'h' + (m > 0 ? String(m).padStart(2, '0') : '');
+  }
+
+  // ---------- Buscas no estado ----------
+  function topicoPorId(state, id) {
+    for (const d of state.disciplinas) {
+      const t = d.topicos.find((t) => t.id === id);
+      if (t) return t;
+    }
+    return null;
+  }
+
+  function disciplinaDoTopico(state, topicoId) {
+    return state.disciplinas.find((d) => d.topicos.some((t) => t.id === topicoId)) || null;
+  }
+
+  function disciplinaPorId(state, id) {
+    return state.disciplinas.find((d) => d.id === id) || null;
+  }
+
+  // ---------- RN01 — Teoria concluída agenda revisões 24h/7d/30d ----------
+  function agendarRevisoes(topicoId, dataBaseISO) {
+    return [
+      { id: 'rev-' + topicoId + '-24h-' + dataBaseISO, topicoId, tipo: '24h', dataAgendada: addDias(dataBaseISO, 1), dataConcluida: null, resultadoPct: null },
+      { id: 'rev-' + topicoId + '-7d-' + dataBaseISO, topicoId, tipo: '7d', dataAgendada: addDias(dataBaseISO, 7), dataConcluida: null, resultadoPct: null },
+      { id: 'rev-' + topicoId + '-30d-' + dataBaseISO, topicoId, tipo: '30d', dataAgendada: addDias(dataBaseISO, 30), dataConcluida: null, resultadoPct: null }
+    ];
+  }
+
+  // ---------- RN02 — Desempenho acumulado ----------
+  function desempenhoTopico(sessoes, topicoId) {
+    let feitas = 0, certas = 0;
+    for (const s of sessoes) {
+      if (s.topicoId === topicoId && s.qFeitas > 0) { feitas += s.qFeitas; certas += s.qCertas; }
+    }
+    return { feitas, certas, pct: feitas > 0 ? Math.round((certas / feitas) * 100) : null };
+  }
+
+  function desempenhoDisciplina(state, disciplina) {
+    // média ponderada pela incidência, só entre tópicos com registro
+    let somaPesos = 0, soma = 0;
+    for (const t of disciplina.topicos) {
+      const d = desempenhoTopico(state.sessoes, t.id);
+      if (d.pct !== null) {
+        const peso = t.incidencia_pct || 1;
+        soma += d.pct * peso;
+        somaPesos += peso;
+      }
+    }
+    return somaPesos > 0 ? Math.round(soma / somaPesos) : null;
+  }
+
+  function desempenhoGeral(state) {
+    let soma = 0, somaPesos = 0;
+    for (const d of state.disciplinas) {
+      const pct = desempenhoDisciplina(state, d);
+      if (pct !== null) { soma += pct * (d.peso || 1); somaPesos += (d.peso || 1); }
+    }
+    return somaPesos > 0 ? Math.round(soma / somaPesos) : null;
+  }
+
+  // ---------- RN03 — Revisão de 30d com <70% reabre o tópico ----------
+  function revisaoReabreTopico(revisao, resultadoPct) {
+    return revisao.tipo === '30d' && resultadoPct !== null && resultadoPct < 70;
+  }
+
+  // ---------- RN04 — Streak (dia conta com ≥1 sessão) ----------
+  function streak(sessoes, hoje) {
+    const dias = new Set(sessoes.map((s) => s.data));
+    let atual = 0;
+    let cursor = dias.has(hoje) ? hoje : addDias(hoje, -1);
+    while (dias.has(cursor)) { atual++; cursor = addDias(cursor, -1); }
+
+    let recorde = 0;
+    const ordenados = [...dias].sort();
+    let corrida = 0, anterior = null;
+    for (const dia of ordenados) {
+      corrida = (anterior !== null && diffDias(anterior, dia) === 1) ? corrida + 1 : 1;
+      if (corrida > recorde) recorde = corrida;
+      anterior = dia;
+    }
+    return { atual, recorde: Math.max(recorde, atual) };
+  }
+
+  // ---------- RN05 — Semáforo contra a meta de corte ----------
+  function semaforo(pct, metaPct) {
+    if (pct === null || pct === undefined) return null;
+    if (pct >= metaPct) return 'verde';
+    if (pct >= metaPct - 10) return 'amarelo';
+    return 'vermelho';
+  }
+
+  // ---------- Cronograma ----------
+  function cronogramaAtivo(state) {
+    if (!state.plano) return [];
+    const ritmo = state.plano.ritmoAtivo || 'sustentavel';
+    return (state.cronogramas && state.cronogramas[ritmo]) || [];
+  }
+
+  function semanaCorrente(state, hoje) {
+    const cron = cronogramaAtivo(state);
+    if (cron.length === 0) return null;
+    for (const sem of cron) {
+      if (hoje >= sem.inicio && hoje < addDias(sem.inicio, 7)) return sem;
+    }
+    if (hoje < cron[0].inicio) return { futura: true, proxima: cron[0] };
+    return { encerrado: true, ultima: cron[cron.length - 1] };
+  }
+
+  // Um bloco conta como "feito" se há sessão do mesmo tópico e tipo na semana corrente
+  function blocoFeito(state, bloco, inicioSemana) {
+    const fim = addDias(inicioSemana, 7);
+    const tipoSessao = bloco.tipo === 'questoes' ? 'questoes' : bloco.tipo === 'teoria' ? 'teoria' : null;
+    return state.sessoes.some((s) =>
+      s.topicoId === bloco.topico && s.data >= inicioSemana && s.data < fim &&
+      (tipoSessao === null || s.tipo === tipoSessao)
+    );
+  }
+
+  // ---------- RN06 — Fila do dia: revisões vencidas → blocos da semana → reabertos ----------
+  function filaHoje(state, hoje) {
+    const fila = [];
+
+    const vencidas = state.revisoes
+      .filter((r) => !r.dataConcluida && r.dataAgendada <= hoje && topicoPorId(state, r.topicoId))
+      .sort((a, b) => a.dataAgendada.localeCompare(b.dataAgendada));
+    for (const r of vencidas) fila.push({ categoria: 'revisao', topicoId: r.topicoId, revisao: r });
+
+    const sem = semanaCorrente(state, hoje);
+    if (sem && !sem.futura && !sem.encerrado) {
+      for (const b of sem.blocos) {
+        if (!topicoPorId(state, b.topico)) continue;
+        fila.push({
+          categoria: 'bloco', topicoId: b.topico, tipoBloco: b.tipo,
+          semana: sem.semana, feito: blocoFeito(state, b, sem.inicio)
+        });
+      }
+    }
+
+    const jaListados = new Set(fila.map((i) => i.topicoId + '|' + i.categoria));
+    for (const d of state.disciplinas) {
+      for (const t of d.topicos) {
+        if (t.reaberto && !jaListados.has(t.id + '|reaberto')) {
+          fila.push({ categoria: 'reaberto', topicoId: t.id });
+        }
+      }
+    }
+    return fila;
+  }
+
+  // ---------- RN07 — Sugestão de reestudo (>50% de erro) ----------
+  function sugerirReestudo(qFeitas, qCertas) {
+    return qFeitas > 0 && (qFeitas - qCertas) / qFeitas > 0.5;
+  }
+
+  // ---------- Validação do JSON do plano (contrato v1) ----------
+  function validarPlano(json) {
+    const erros = [];
+    if (!json || typeof json !== 'object') { erros.push('O conteúdo não é um objeto JSON.'); return { ok: false, erros }; }
+    if (json.versao !== 1) erros.push('Campo "versao": esperado 1, recebido ' + JSON.stringify(json.versao) + '.');
+    if (!json.plano || typeof json.plano !== 'object') erros.push('Campo "plano" ausente ou inválido.');
+    else {
+      if (!json.plano.concurso) erros.push('Campo "plano.concurso" é obrigatório.');
+      if (!json.plano.meta || typeof json.plano.meta.corte_pct !== 'number') erros.push('Campo "plano.meta.corte_pct" deve ser um número.');
+    }
+    if (!Array.isArray(json.disciplinas) || json.disciplinas.length === 0) {
+      erros.push('Campo "disciplinas" deve ser uma lista com ao menos 1 disciplina.');
+    } else {
+      const idsTopicos = new Set();
+      json.disciplinas.forEach(function (d, i) {
+        const ref = 'disciplinas[' + i + ']';
+        if (!d.id) erros.push(ref + '.id é obrigatório.');
+        if (!d.nome) erros.push(ref + '.nome é obrigatório.');
+        if (!Array.isArray(d.topicos) || d.topicos.length === 0) erros.push(ref + '.topicos deve ter ao menos 1 tópico.');
+        else d.topicos.forEach(function (t, j) {
+          const refT = ref + '.topicos[' + j + ']';
+          if (!t.id) erros.push(refT + '.id é obrigatório.');
+          else if (idsTopicos.has(t.id)) erros.push(refT + '.id duplicado: ' + t.id);
+          else idsTopicos.add(t.id);
+          if (!t.nome) erros.push(refT + '.nome é obrigatório.');
+          if (typeof t.incidencia_pct !== 'number') erros.push(refT + '.incidencia_pct deve ser um número.');
+        });
+      });
+      if (json.cronograma) {
+        ['sustentavel', 'hardcore'].forEach(function (ritmo) {
+          (json.cronograma[ritmo] || []).forEach(function (sem, i) {
+            (sem.blocos || []).forEach(function (b, j) {
+              if (b.topico && !idsTopicos.has(b.topico)) {
+                erros.push('cronograma.' + ritmo + '[' + i + '].blocos[' + j + ']: tópico "' + b.topico + '" não existe em disciplinas.');
+              }
+            });
+          });
+        });
+      }
+    }
+    const totalTopicos = Array.isArray(json.disciplinas)
+      ? json.disciplinas.reduce(function (n, d) { return n + ((d.topicos || []).length); }, 0) : 0;
+    return {
+      ok: erros.length === 0,
+      erros,
+      resumo: {
+        concurso: json.plano && json.plano.concurso,
+        banca: json.plano && json.plano.banca,
+        disciplinas: Array.isArray(json.disciplinas) ? json.disciplinas.length : 0,
+        topicos: totalTopicos,
+        semanas: json.cronograma && json.cronograma.sustentavel ? json.cronograma.sustentavel.length : 0
+      }
+    };
+  }
+
+  // ---------- RN08 — Reimportar plano preserva todo o histórico ----------
+  function mesclarPlano(stateAtual, json) {
+    const statusAntigo = {};
+    const nomesAntigos = {};
+    (stateAtual.disciplinas || []).forEach(function (d) {
+      d.topicos.forEach(function (t) {
+        statusAntigo[t.id] = { status: t.status, reaberto: !!t.reaberto };
+        nomesAntigos[t.id] = { nome: t.nome, disciplinaId: d.id, disciplinaNome: d.nome, cor: d.cor };
+      });
+    });
+
+    const disciplinas = json.disciplinas.map(function (d) {
+      return {
+        id: d.id, nome: d.nome, cor: d.cor || '#9A9DA3', peso: d.peso || 1,
+        base_teorica: d.base_teorica || 'pdf',
+        topicos: d.topicos.map(function (t) {
+          const antigo = statusAntigo[t.id];
+          return {
+            id: t.id, nome: t.nome,
+            incidencia_pct: t.incidencia_pct, prioridade: t.prioridade || 2,
+            horas_estimadas: t.horas_estimadas || 2, semana_sugerida: t.semana_sugerida || null,
+            status: antigo ? antigo.status : 'pendente',
+            reaberto: antigo ? antigo.reaberto : false,
+            orfao: false
+          };
+        })
+      };
+    });
+
+    // Tópicos com histórico que sumiram do plano novo: manter como órfãos (nunca apagar registro)
+    const idsNovos = new Set();
+    disciplinas.forEach(function (d) { d.topicos.forEach(function (t) { idsNovos.add(t.id); }); });
+    const idsComHistorico = new Set();
+    (stateAtual.sessoes || []).forEach(function (s) { idsComHistorico.add(s.topicoId); });
+    (stateAtual.revisoes || []).forEach(function (r) { idsComHistorico.add(r.topicoId); });
+
+    idsComHistorico.forEach(function (id) {
+      if (idsNovos.has(id) || !nomesAntigos[id]) return;
+      const info = nomesAntigos[id];
+      let disc = disciplinas.find(function (d) { return d.id === info.disciplinaId; });
+      if (!disc) {
+        disc = disciplinas.find(function (d) { return d.id === 'ORF'; });
+        if (!disc) {
+          disc = { id: 'ORF', nome: 'Tópicos órfãos (planos anteriores)', cor: '#9A9DA3', peso: 0, base_teorica: 'pdf', topicos: [] };
+          disciplinas.push(disc);
+        }
+      }
+      const antigo = statusAntigo[id] || {};
+      disc.topicos.push({
+        id: id, nome: info.nome, incidencia_pct: 0, prioridade: 3, horas_estimadas: 0,
+        semana_sugerida: null, status: antigo.status || 'pendente', reaberto: false, orfao: true
+      });
+    });
+
+    return {
+      versao: 1,
+      plano: {
+        concurso: json.plano.concurso,
+        banca: json.plano.banca || '',
+        cota: json.plano.cota || null,
+        meta: json.plano.meta,
+        radar: json.plano.radar || null,
+        ritmos: json.plano.ritmos || null,
+        ritmoAtivo: (stateAtual.plano && stateAtual.plano.ritmoAtivo) ||
+          (json.plano.ritmos && json.plano.ritmos.ativo) || 'sustentavel',
+        gerado_em: json.gerado_em || null
+      },
+      disciplinas,
+      cronogramas: {
+        sustentavel: (json.cronograma && json.cronograma.sustentavel) || [],
+        hardcore: (json.cronograma && json.cronograma.hardcore) || []
+      },
+      links: json.links || [],
+      sessoes: stateAtual.sessoes || [],
+      revisoes: stateAtual.revisoes || [],
+      simulados: stateAtual.simulados || [],
+      config: stateAtual.config || {}
+    };
+  }
+
+  // ---------- Metas da semana ----------
+  function metaSemanal(state, hoje) {
+    const inicio = segundaDaSemana(hoje);
+    const fim = addDias(inicio, 7);
+    let minutos = 0, qFeitas = 0, qCertas = 0;
+    for (const s of state.sessoes) {
+      if (s.data >= inicio && s.data < fim) {
+        minutos += s.duracaoMin || 0;
+        qFeitas += s.qFeitas || 0;
+        qCertas += s.qCertas || 0;
+      }
+    }
+    let horasAlvo = 0;
+    if (state.plano && state.plano.ritmos) {
+      const r = state.plano.ritmos[state.plano.ritmoAtivo || 'sustentavel'];
+      horasAlvo = r ? (r.h_semana || r.h_semana_exigidas || 0) : 0;
+    }
+    const questoesAlvo = (state.config && state.config.metaQuestoesSemana) || 100;
+    return { inicio, minutos, qFeitas, qCertas, horasAlvo, questoesAlvo };
+  }
+
+  // ---------- Progresso do edital ----------
+  function progressoEdital(state) {
+    let total = 0, concluidos = 0;
+    for (const d of state.disciplinas) {
+      for (const t of d.topicos) {
+        if (t.orfao) continue;
+        total++;
+        if (t.status === 'teoria_concluida' || t.status === 'dominado') concluidos++;
+      }
+    }
+    return { total, concluidos, pct: total > 0 ? Math.round((concluidos / total) * 100) : 0 };
+  }
+
+  function progressoDisciplina(disciplina) {
+    const tops = disciplina.topicos.filter(function (t) { return !t.orfao; });
+    const conc = tops.filter(function (t) { return t.status === 'teoria_concluida' || t.status === 'dominado'; }).length;
+    return { total: tops.length, concluidos: conc, pct: tops.length > 0 ? Math.round((conc / tops.length) * 100) : 0 };
+  }
+
+  // ---------- Heatmap de constância (minutos por dia) ----------
+  function heatmapDias(sessoes, hoje, nDias) {
+    const porDia = {};
+    for (const s of sessoes) porDia[s.data] = (porDia[s.data] || 0) + (s.duracaoMin || 0);
+    const dias = [];
+    for (let i = nDias - 1; i >= 0; i--) {
+      const d = addDias(hoje, -i);
+      dias.push({ data: d, minutos: porDia[d] || 0 });
+    }
+    return dias;
+  }
+
+  // ---------- Série semanal para gráficos ----------
+  function serieSemanal(state, hoje, nSemanas) {
+    const serie = [];
+    const inicioAtual = segundaDaSemana(hoje);
+    for (let i = nSemanas - 1; i >= 0; i--) {
+      const ini = addDias(inicioAtual, -7 * i);
+      const fim = addDias(ini, 7);
+      let minutos = 0, feitas = 0, certas = 0;
+      for (const s of state.sessoes) {
+        if (s.data >= ini && s.data < fim) {
+          minutos += s.duracaoMin || 0; feitas += s.qFeitas || 0; certas += s.qCertas || 0;
+        }
+      }
+      serie.push({ inicio: ini, horas: Math.round((minutos / 60) * 10) / 10, qFeitas: feitas, pct: feitas > 0 ? Math.round((certas / feitas) * 100) : null });
+    }
+    return serie;
+  }
+
+  // ---------- Piores tópicos (para simulado → fila, F3) ----------
+  function pioresTopicos(state, n) {
+    const lista = [];
+    for (const d of state.disciplinas) {
+      for (const t of d.topicos) {
+        if (t.orfao) continue;
+        const desemp = desempenhoTopico(state.sessoes, t.id);
+        if (desemp.pct !== null && desemp.feitas >= 5) {
+          lista.push({ topico: t, disciplina: d, pct: desemp.pct, feitas: desemp.feitas });
+        }
+      }
+    }
+    lista.sort(function (a, b) { return a.pct - b.pct; });
+    return lista.slice(0, n);
+  }
+
+  window.Dominio = {
+    hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
+    topicoPorId, disciplinaDoTopico, disciplinaPorId,
+    agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
+    revisaoReabreTopico, streak, semaforo,
+    cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
+    validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
+    heatmapDias, serieSemanal, pioresTopicos
+  };
+})();

@@ -1,0 +1,312 @@
+C|concurso|TRF3 — Técnico Judiciário, Área Administrativa
+C|banca|FCC
+C|cota|negros
+C|corte_fonte|lista de classificação FCC 2024 — último nomeado (cota)
+C|marco_anki|Montar decks Anki das disciplinas iniciadas
+C|marco_parcial|Simulado parcial da disciplina mais adiantada
+C|marco_total|Simulado total no horário previsto da prova
+C|marco_final|Revisão geral da semana + simulado total de fechamento
+C|link1_titulo|Tec Concursos — banco de questões (filtrar por TRF3/FCC)
+C|link1_url|https://www.tecconcursos.com.br/
+C|link1_custo|pago
+C|link2_titulo|Qconcursos — questões da banca FCC
+C|link2_url|https://www.qconcursos.com/
+C|link2_custo|freemium
+D|POR|Língua Portuguesa|#2148C0|2|pdf
+T|15|1|Compreensão e interpretação de textos
+T|3|2|Tipologia e gêneros textuais
+T|4|2|Coesão e coerência textual
+T|3|2|Ortografia oficial
+T|3|2|Acentuação gráfica
+T|3|3|Classes de palavras — substantivo, adjetivo, artigo e numeral
+T|4|1|Classes de palavras — verbo (flexão, tempos e modos)
+T|4|1|Classes de palavras — pronome (emprego e formas de tratamento)
+T|4|2|Conjunções e preposições — relações de sentido
+T|3|2|Sintaxe — termos essenciais e integrantes da oração
+T|4|1|Sintaxe — período composto: coordenação e subordinação
+T|5|1|Concordância verbal
+T|4|2|Concordância nominal
+T|4|1|Regência verbal e nominal
+T|4|1|Crase
+T|5|1|Pontuação
+T|2|2|Semântica — sinonímia, antonímia e polissemia
+T|2|3|Denotação, conotação e figuras de linguagem
+T|4|1|Reescrita e equivalência de estruturas
+T|2|3|Discurso direto, indireto e indireto livre
+T|1|3|Funções da linguagem
+T|1|3|Variação linguística
+T|2|3|Formação de palavras
+T|3|2|Colocação pronominal
+T|2|2|Vozes verbais e transformação de estruturas
+T|2|2|Paralelismo sintático e semântico
+T|1|3|Intertextualidade
+T|2|3|Redação oficial — linguagem e padrão ofício
+T|2|3|Termos acessórios, aposto e vocativo
+T|2|3|Orações reduzidas
+D|RLM|Raciocínio Lógico-Matemático|#6B4FA3|1|video
+T|7|1|Lógica proposicional — proposições e conectivos
+T|5|1|Tabelas-verdade
+T|7|1|Equivalências lógicas
+T|7|1|Negação de proposições compostas
+T|5|1|Argumentação lógica e validade de argumentos
+T|4|1|Quantificadores — todo, algum e nenhum
+T|4|2|Diagramas lógicos e teoria dos conjuntos
+T|4|2|Problemas de verdades e mentiras (associação lógica)
+T|4|2|Sequências e reconhecimento de padrões
+T|2|3|Orientação espacial e temporal
+T|3|2|Conjuntos numéricos e operações fundamentais
+T|2|3|MMC e MDC em problemas
+T|4|2|Razão e proporção
+T|5|1|Regra de três simples e composta
+T|5|1|Porcentagem
+T|3|2|Juros simples e compostos
+T|3|2|Equações de 1º e 2º graus
+T|2|3|Sistemas de equações
+T|4|2|Análise combinatória
+T|4|2|Probabilidade
+T|2|3|Medidas e grandezas — conversões
+T|2|3|Frações e números decimais
+T|4|2|Problemas aritméticos diversos (estilo FCC)
+T|3|3|Geometria básica — áreas e perímetros
+D|INF|Noções de Informática|#0E7490|1|video
+T|5|2|Windows 10/11 — conceitos e operação
+T|4|2|Explorador de Arquivos e gerenciamento de pastas
+T|6|1|Microsoft Word — edição e formatação
+T|3|2|Microsoft Word — tabelas, revisão e mala direta
+T|9|1|Microsoft Excel — fórmulas e funções
+T|4|1|Microsoft Excel — gráficos, classificação e filtros
+T|2|3|Microsoft PowerPoint — apresentações
+T|4|2|LibreOffice Writer e Calc
+T|4|2|Internet e intranet — conceitos
+T|5|1|Navegadores (Chrome, Edge e Firefox)
+T|5|1|Correio eletrônico e Microsoft Outlook
+T|2|3|Ferramentas de busca e pesquisa avançada
+T|4|2|Computação em nuvem (cloud computing)
+T|3|2|Redes de computadores — conceitos básicos
+T|6|1|Segurança da informação — princípios
+T|6|1|Malwares, phishing e golpes digitais
+T|3|2|Backup e cópias de segurança
+T|3|2|Criptografia e certificação digital
+T|3|3|Hardware — componentes do computador
+T|2|3|Periféricos e dispositivos de armazenamento
+T|2|3|Sistemas de arquivos e extensões
+T|3|2|Teletrabalho e ferramentas colaborativas (Teams)
+T|4|2|Processo Judicial Eletrônico (PJe) — noções
+T|1|3|Impressão e digitalização de documentos
+T|2|3|Atalhos de teclado no Windows e Office
+T|3|3|Inteligência artificial generativa — noções e uso seguro
+D|ADM|Direito Administrativo|#1E7D46|2|pdf
+T|5|1|Princípios da Administração Pública
+T|6|1|Organização administrativa — administração direta e indireta
+T|3|2|Autarquias e fundações públicas
+T|3|2|Empresas públicas e sociedades de economia mista
+T|2|3|Terceiro setor — OS, OSCIP e entidades de apoio
+T|5|1|Poderes administrativos
+T|2|2|Abuso de poder — excesso e desvio
+T|5|1|Atos administrativos — conceito, atributos e perfeição
+T|4|1|Atos administrativos — elementos e requisitos de validade
+T|4|1|Atos administrativos — classificação e espécies
+T|4|1|Extinção dos atos — anulação, revogação e convalidação
+T|2|2|Discricionariedade e vinculação
+T|4|1|Licitações (Lei 14.133/2021) — princípios e âmbito de aplicação
+T|4|1|Licitações — modalidades e critérios de julgamento
+T|4|1|Licitações — contratação direta: dispensa e inexigibilidade
+T|3|2|Licitações — fases do procedimento
+T|4|1|Contratos administrativos — características e cláusulas exorbitantes
+T|3|2|Contratos administrativos — alteração, extinção e sanções
+T|3|2|Serviços públicos — conceito, princípios e classificação
+T|2|2|Concessão, permissão e autorização de serviços
+T|4|1|Agentes públicos — espécies e classificação
+T|5|1|Responsabilidade civil do Estado
+T|4|1|Controle da Administração Pública
+T|2|2|Controle externo — Tribunais de Contas
+T|4|1|Improbidade administrativa (Lei 8.429/1992 atualizada)
+T|4|1|Processo administrativo federal (Lei 9.784/1999)
+T|1|3|LINDB — segurança jurídica nas decisões públicas
+T|3|2|Bens públicos — classificação e regime
+T|2|3|Intervenção do Estado na propriedade privada
+T|2|3|Desapropriação — espécies e procedimento
+T|2|2|LGPD na Administração Pública
+T|3|2|Lei de Acesso à Informação (Lei 12.527/2011)
+T|1|3|Governança pública (Decreto 9.203/2017)
+T|1|3|Convênios e instrumentos de parceria
+T|2|2|Regime jurídico-administrativo — supremacia e indisponibilidade
+T|1|3|Súmulas e jurisprudência administrativa essenciais
+D|CON|Direito Constitucional|#A85B00|2|pdf
+T|2|2|Constituição — conceito, classificação e elementos
+T|2|2|Poder constituinte originário e derivado
+T|4|1|Princípios fundamentais (arts. 1º a 4º)
+T|11|1|Direitos e deveres individuais e coletivos (art. 5º)
+T|5|1|Remédios constitucionais — HC, HD, MI, MS e ação popular
+T|4|1|Direitos sociais (arts. 6º a 11)
+T|3|2|Nacionalidade
+T|4|1|Direitos políticos
+T|1|3|Partidos políticos
+T|3|1|Organização do Estado — União, estados, DF e municípios
+T|4|1|Repartição de competências
+T|7|1|Administração pública na Constituição (arts. 37 a 41)
+T|4|1|Servidores públicos — regras constitucionais
+T|3|2|Poder Legislativo — estrutura e atribuições
+T|4|1|Processo legislativo
+T|2|2|Comissões parlamentares e CPI
+T|3|2|Poder Executivo — atribuições e responsabilidade
+T|4|1|Poder Judiciário — disposições gerais e garantias
+T|3|2|STF e STJ — composição e competências
+T|5|1|Justiça Federal — TRFs e juízes federais
+T|3|2|Conselho Nacional de Justiça (CNJ)
+T|3|2|Funções essenciais à justiça — MP, advocacia pública e defensoria
+T|3|2|Controle de constitucionalidade — noções gerais
+T|2|3|ADI, ADC e ADPF
+T|1|3|Defesa do Estado — estado de defesa e estado de sítio
+T|2|3|Ordem social — seguridade social
+T|1|3|Educação e cultura na Constituição
+T|2|3|Tributação e orçamento — noções constitucionais
+T|2|2|Emendas constitucionais — limites e cláusulas pétreas
+T|2|2|Hierarquia das normas e tratados internacionais
+T|1|3|Súmulas vinculantes
+T|1|3|Intervenção federal
+T|2|3|Precatórios (art. 100)
+T|3|2|Aplicabilidade das normas constitucionais
+D|LEG|Lei 8.112/1990 e Legislação de Pessoal|#99357F|2|pdf
+T|7|1|Provimento — formas e requisitos
+T|6|1|Nomeação, posse e exercício
+T|5|1|Estágio probatório e estabilidade
+T|5|1|Vacância — exoneração, demissão e demais hipóteses
+T|4|2|Remoção e redistribuição
+T|2|3|Substituição
+T|4|2|Vencimento e remuneração
+T|5|1|Vantagens — indenizações, gratificações e adicionais
+T|2|3|Diárias, ajuda de custo e auxílio-transporte
+T|3|2|Férias
+T|5|1|Licenças — espécies e regras
+T|4|2|Afastamentos
+T|2|3|Concessões e contagem de tempo de serviço
+T|2|3|Direito de petição
+T|5|1|Deveres do servidor (art. 116)
+T|5|1|Proibições (art. 117)
+T|3|2|Acumulação de cargos públicos
+T|4|1|Responsabilidade civil, penal e administrativa
+T|5|1|Penalidades disciplinares
+T|5|1|Processo administrativo disciplinar (PAD)
+T|2|2|Sindicância
+T|3|2|Seguridade social do servidor — benefícios
+T|2|3|Regime próprio de previdência (RPPS) — noções
+T|4|2|Lei 11.416/2006 — carreiras dos servidores do Judiciário federal
+D|APU|Administração Pública e Gestão|#2F6F6A|2|pdf
+T|5|1|Evolução da administração pública — patrimonialista, burocrática e gerencial
+T|5|1|Governabilidade, governança e accountability
+T|3|2|Excelência nos serviços públicos
+T|4|2|Gestão por resultados
+T|5|1|Planejamento estratégico — conceitos e etapas
+T|3|2|Missão, visão, valores e diagnóstico organizacional
+T|3|2|Análise SWOT
+T|4|1|Balanced Scorecard (BSC)
+T|5|1|Indicadores de desempenho
+T|5|1|Gestão de projetos — fundamentos
+T|3|2|PMBOK — grupos de processos e áreas de conhecimento
+T|3|2|Metodologias ágeis — Scrum e Kanban
+T|5|1|Gestão de processos (BPM)
+T|4|2|Mapeamento e melhoria de processos
+T|4|2|Gestão da qualidade — ferramentas
+T|3|2|Ciclo PDCA
+T|4|1|Gestão de pessoas — conceitos e objetivos
+T|5|1|Gestão por competências
+T|4|2|Liderança e motivação
+T|3|2|Avaliação de desempenho
+T|3|2|Clima e cultura organizacional
+T|2|3|Comunicação organizacional
+T|4|2|Estrutura organizacional — tipos e características
+T|2|3|Departamentalização
+T|2|3|Centralização, descentralização e delegação
+T|2|3|Processo decisório
+T|4|1|Gestão de riscos — COSO e ISO 31000
+T|2|3|Inovação no setor público
+T|2|3|Gestão do conhecimento
+T|2|3|Transformação digital no governo
+D|AFO|Administração Financeira e Orçamentária|#8C2F39|2|pdf
+T|7|1|Orçamento público — conceitos e princípios orçamentários
+T|5|1|Plano Plurianual (PPA)
+T|5|1|Lei de Diretrizes Orçamentárias (LDO)
+T|5|1|Lei Orçamentária Anual (LOA)
+T|4|1|Ciclo orçamentário e processo legislativo do orçamento
+T|5|1|Créditos adicionais — suplementares, especiais e extraordinários
+T|5|1|Receita pública — conceito e classificações
+T|3|2|Estágios da receita
+T|5|1|Despesa pública — classificações
+T|6|1|Estágios da despesa — empenho, liquidação e pagamento
+T|4|1|Restos a pagar
+T|2|2|Despesas de exercícios anteriores
+T|3|2|Suprimento de fundos
+T|3|2|Programação e execução orçamentária e financeira
+T|2|3|Descentralização de créditos
+T|5|1|Lei de Responsabilidade Fiscal — disposições gerais
+T|4|1|LRF — despesa com pessoal: limites e controle
+T|3|2|LRF — transparência, controle e fiscalização
+T|4|2|Lei 4.320/1964 — noções gerais
+T|3|2|Vedações constitucionais em matéria orçamentária
+T|2|2|Princípios orçamentários na Constituição
+T|2|3|Orçamento-programa
+T|3|2|SIAFI — noções
+T|1|3|Conta única do Tesouro Nacional
+T|2|3|Transferências voluntárias
+T|1|3|Renúncia de receita
+T|2|3|Dívida pública e endividamento — noções
+T|1|3|Emendas parlamentares ao orçamento
+D|MAT|Administração de Materiais e Patrimônio|#5B6B2F|1|pdf
+T|4|2|Gestão de materiais — conceitos e objetivos
+T|5|1|Classificação de materiais
+T|3|2|Especificação e catalogação de materiais
+T|5|1|Gestão de estoques — conceitos e funções
+T|5|1|Curva ABC
+T|4|2|Lote econômico de compra e ponto de pedido
+T|3|2|Estoque de segurança
+T|5|1|Inventário de materiais
+T|5|1|Avaliação de estoques — PEPS, UEPS e custo médio
+T|4|2|Compras públicas — função e ciclo de compras
+T|3|2|Pesquisa de preços
+T|4|1|Sistema de Registro de Preços (SRP)
+T|4|2|Recebimento e aceitação de materiais
+T|3|2|Armazenagem e movimentação de materiais
+T|2|3|Distribuição de materiais
+T|5|1|Gestão patrimonial — tombamento e controle
+T|3|2|Movimentação e baixa de bens
+T|4|1|Inventário patrimonial
+T|3|2|Responsabilidade pela guarda de bens
+T|3|2|Desfazimento de bens (Decreto 9.373/2018)
+T|3|2|Almoxarifado — organização e rotinas
+T|2|3|Logística pública — conceitos
+T|2|3|Cadeia de suprimentos (SCM)
+T|2|3|Just in time
+T|3|2|Gestão de contratos de fornecimento
+T|4|1|Fiscalização e gestão de contratos
+T|3|2|Sustentabilidade nas compras públicas
+T|3|2|Material de consumo × material permanente
+T|2|3|Indicadores de gestão de materiais
+T|2|3|Sistemas informatizados de gestão de material
+D|ETI|Ética, Sustentabilidade e Acessibilidade|#6D4C41|1|pdf
+T|4|2|Ética e moral — conceitos fundamentais
+T|8|1|Código de Ética do Servidor Federal (Decreto 1.171/1994)
+T|4|2|Comissões de ética — funcionamento
+T|4|2|Código de Conduta da Justiça Federal
+T|4|1|Nepotismo — Súmula Vinculante 13
+T|5|1|Conflito de interesses (Lei 12.813/2013)
+T|5|1|Assédio moral e sexual — prevenção e enfrentamento
+T|3|2|Integridade pública e programas de compliance
+T|5|1|Agenda 2030 e Objetivos de Desenvolvimento Sustentável
+T|4|2|Sustentabilidade no Poder Judiciário (Resolução CNJ 400/2021)
+T|4|2|Plano de Logística Sustentável (PLS)
+T|6|1|Lei Brasileira de Inclusão (Lei 13.146/2015)
+T|3|2|Acessibilidade no Judiciário (Resolução CNJ 401/2021)
+T|3|2|Inclusão de pessoas com deficiência no trabalho
+T|4|2|Estatuto da Igualdade Racial (Lei 12.288/2010)
+T|3|2|Ações afirmativas e cotas em concursos públicos
+T|3|2|Direitos humanos — noções gerais
+T|2|3|Pacto do Judiciário pelos Direitos Humanos
+T|2|3|Linguagem simples e comunicação inclusiva
+T|4|1|LGPD aplicada à proteção de dados pessoais
+T|3|2|Transparência e controle social
+T|3|2|Prevenção e combate à corrupção
+T|2|3|Diversidade e equidade institucional
+T|2|3|Saúde mental e qualidade de vida no trabalho
+T|2|3|Responsabilidade socioambiental
+T|2|3|Política Nacional de Resíduos Sólidos — noções

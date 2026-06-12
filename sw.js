@@ -1,0 +1,43 @@
+/* Service worker — cache de estáticos (o app funciona 100% sem ele) */
+const CACHE = 'estudos-v1';
+const ESTATICOS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './css/styles.css',
+  './js/frases.js',
+  './js/domain.js',
+  './js/store.js',
+  './js/timer.js',
+  './js/charts.js',
+  './js/app.js',
+  './icons/icone.svg'
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ESTATICOS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys()
+      .then((chaves) => Promise.all(chaves.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+/* Estratégia: rede primeiro com fallback para cache (estáticos sempre frescos online, app abre offline) */
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request)
+      .then((resp) => {
+        const copia = resp.clone();
+        if (resp.ok && e.request.url.startsWith(self.location.origin)) {
+          caches.open(CACHE).then((c) => c.put(e.request, copia));
+        }
+        return resp;
+      })
+      .catch(() => caches.match(e.request))
+  );
+});

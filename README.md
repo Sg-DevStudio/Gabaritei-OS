@@ -1,0 +1,65 @@
+# Estudos — Plataforma de Gestão de Estudos para Concursos
+
+Sistema pessoal (PWA) que operacionaliza o plano gerado pela skill `treinador-concursos`:
+cronograma em duas velocidades, registro de sessões com timer, revisões automáticas
+24h/7d/30d, simulados comparados com a nota de corte e estatísticas de constância.
+
+> Posicionamento: o Estudei organiza o SEU esforço; este sistema organiza o seu
+> esforço **contra o concurso real** — o que cai, quanto precisa acertar e até quando.
+
+## Como usar
+
+1. **Abrir o app**
+   - Local: `powershell -ExecutionPolicy Bypass -File tools/servidor.ps1` e acesse
+     `http://localhost:8123/` (ou publique a pasta no GitHub Pages).
+   - No celular, use "Adicionar à tela inicial" (PWA instalável, abre offline).
+2. **Importar o plano** (tela *Plano e backup*): cole ou envie o JSON gerado pela
+   skill — peça no Claude: *"exporta meu plano TRF3 em JSON para o app"*.
+   O arquivo [data/exemplo-trf3.json](data/exemplo-trf3.json) (TRF3 Técnico, FCC,
+   10 disciplinas, 288 tópicos) já está pronto para testar.
+3. **Operar o dia** (tela *Hoje*): a fila vem pronta — revisões vencidas → blocos da
+   semana → tópicos reabertos. Toque em **Timer** para cronometrar (cronômetro ou
+   pomodoro 25/5) ou em **Registrar** para lançar direto (≤3 toques).
+4. **Backup semanal**: os dados vivem no `localStorage` deste navegador. O app avisa
+   quando o backup passa de 7 dias — exporte o `.json` em *Plano e backup*.
+
+## Regras de negócio implementadas (domain.js)
+
+| RN | Regra |
+|----|-------|
+| RN01 | Teoria concluída agenda revisões em +1d, +7d e +30d |
+| RN02 | Desempenho = acertos ÷ feitas acumulado; disciplina pondera pela incidência |
+| RN03 | Revisão de 30d com <70% reabre o tópico e o devolve à fila |
+| RN04 | Streak: dia conta com ≥1 sessão; atual + recorde (heatmap de bolhas) |
+| RN05 | Semáforo: verde ≥ meta · amarelo ≥ meta−10pp · vermelho abaixo |
+| RN06 | Fila do dia ordena: revisões vencidas → blocos da semana → reabertos |
+| RN07 | Sessão com >50% de erro sugere reestudo (o usuário decide) |
+| RN08 | Reimportar plano preserva todo o histórico; tópico removido vira órfão |
+
+## Estrutura
+
+```
+index.html          shell único (SPA por hash)
+manifest.json, sw.js, icons/   PWA
+css/styles.css      tokens do brief (papel/tinta/caneta, IBM Plex, bolhas ○◐●)
+js/store.js         localStorage: schema, migrations, export/import (trocar p/ Supabase no futuro)
+js/domain.js        RN01–RN08 puras (testáveis sem DOM)
+js/app.js           roteamento + telas
+js/timer.js         cronômetro/pomodoro com recuperação de sessão
+js/charts.js        2 gráficos (Chart.js via CDN)
+js/frases.js        frase do dia (determinística por data)
+data/exemplo-trf3.json   plano real TRF3 no contrato JSON v1
+tools/              gerador do JSON de exemplo + servidor local de desenvolvimento
+```
+
+## Contrato JSON (v1)
+
+O formato de importação é o de `references/contrato-json.md` da skill
+`treinador-concursos` (`versao: 1`). Atualizações do plano usam os mesmos IDs de
+tópico — é assim que o histórico sobrevive à reimportação.
+
+## Fora do escopo da v1
+
+Login/multiusuário, sincronização entre dispositivos, flashcards (Anki cobre),
+geração de questões, notificações push, features sociais.
+Plano completo do projeto: [plano-projeto-plataforma-estudos.md](plano-projeto-plataforma-estudos.md).
