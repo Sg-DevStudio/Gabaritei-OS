@@ -1,7 +1,8 @@
 # Estudos — Plataforma de Gestão de Estudos para Concursos
 
-Sistema pessoal (PWA) que operacionaliza o plano gerado pela skill `treinador-concursos`:
-cronograma em duas velocidades, registro de sessões com timer, revisões automáticas
+Sistema pessoal (PWA) que gera planos de estudos personalizados a partir de editais
+esquematizados (produzidos pela skill `editais-esquematizados`): cronograma e
+calendário automáticos, registro de sessões com timer, revisões automáticas
 24h/7d/30d, simulados comparados com a nota de corte e estatísticas de constância.
 
 > Posicionamento: o Estudei organiza o SEU esforço; este sistema organiza o seu
@@ -85,9 +86,10 @@ tools/              gerador do JSON de exemplo + servidor local de desenvolvimen
 
 ## Contrato JSON (v1)
 
-O formato de importação é o de `references/contrato-json.md` da skill
-`treinador-concursos` (`versao: 1`). Atualizações do plano usam os mesmos IDs de
-tópico — é assim que o histórico sobrevive à reimportação.
+Editais esquematizados seguem `references/contrato-edital.md` e planos completos
+seguem `references/contrato-json.md` da skill `editais-esquematizados`
+(`versao: 1`). Atualizações usam os mesmos IDs de tópico — é assim que o
+histórico sobrevive à reimportação.
 
 ## Fora do escopo da v1
 

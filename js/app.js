@@ -633,7 +633,7 @@
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
         '<strong>Bem-vindo aos seus estudos</strong>' +
-        'Importe o JSON gerado pelo Claude (skill treinador-concursos) ou monte sua semana manualmente no Planejamento.' +
+        'Importe o JSON gerado pelo Claude (skill editais-esquematizados) ou monte sua semana manualmente no Planejamento.' +
         '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap"><a class="botao" href="#ajustes">Importar plano</a>' +
         '<a class="botao botao-secundario" href="#planejamento">Planejar manualmente</a></p>' +
         '</div></div>';
@@ -1609,7 +1609,7 @@
     }
 
     html += '<div class="card"><h3>' + (state.plano ? 'Atualizar plano' : 'Importar plano') + '</h3>' +
-      '<p style="font-size:0.88rem;color:var(--grafite)">Cole o JSON gerado pela skill treinador-concursos ou envie um arquivo .json, .xlsx ou .csv. ' +
+      '<p style="font-size:0.88rem;color:var(--grafite)">Cole o JSON gerado pela skill editais-esquematizados ou envie um arquivo .json, .xlsx ou .csv. ' +
       (state.plano ? 'Reimportar <strong>preserva todo o histórico</strong> de sessões, revisões e simulados (os tópicos são casados pelo ID).' : '') + '</p>' +
       '<input type="file" id="imp-arquivo" accept=".json,.xlsx,.csv,application/json,text/csv" style="margin-top:0.5rem">' +
       '<label for="imp-texto">ou cole o JSON aqui</label>' +

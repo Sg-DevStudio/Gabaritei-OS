@@ -30,6 +30,20 @@ Documentos-irmãos: [plano-projeto-plataforma-estudos.md](plano-projeto-platafor
 
 ## Entradas
 
+### 12/06/2026 (noite, parte 2) — skill renomeada e edital TRF3 esquematizado
+- **Skill `treinador-concursos` → `editais-esquematizados`** (pasta `skill/` e zip
+  `.skill` reempacotado): novo fluxo enxuto — recebe um edital, devolve o edital
+  esquematizado (JSON/Excel) com tópicos em ordem pedagógica, incidência da banca e
+  horas estimadas, mais nota de corte do último NOMEADO (ampla E cota de negros).
+  Cronograma deixou de ser função da skill — o app gera. Novo contrato em
+  `references/contrato-edital.md`; contrato de plano completo mantido como legado.
+- **`data/edital-trf3-tjaa-2024.json`**: edital esquematizado do TRF3 TJAA (9
+  disciplinas, 50 tópicos) extraído do plano curado + notas de corte reais do
+  Blueprint (nomeações até mai/2026): Seção SP ampla 16,80 (84%) / negros 15,60
+  (78%); Sede ampla 15,90 / negros 14,65; MS ampla 15,82 / negros 15,78. Validado
+  no `validarPlano` do app — pronto para upload na seção Editais esquematizados.
+- Textos do app e README atualizados para a skill nova (cache v=20260612-editais).
+
 ### 12/06/2026 (noite) — topbar fixo, calendário automático e editais esquematizados
 - **Menu superior fixo** (desktop e mobile): modo escuro, Configurações (engrenagem)
   e Perfil (modal com nome e conta). O botão de tema deixou de ser flutuante.
