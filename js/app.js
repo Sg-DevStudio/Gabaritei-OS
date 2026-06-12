@@ -1626,13 +1626,6 @@
       '<button class="botao-quieto" id="fb-logout">Sair</button>' +
       '</div></div>';
 
-    html += '<div class="card card-quieto"><h3>Exportar / restaurar dados</h3>' +
-      '<p style="font-size:0.88rem;color:var(--grafite)">Seus dados ficam guardados na nuvem pela sincronização do Firebase. Exportar um .json é opcional (ex.: migrar ou inspecionar os dados).</p>' +
-      '<div class="modal-acoes" style="justify-content:flex-start">' +
-      '<button class="botao-quieto" id="bk-exportar">Exportar .json</button>' +
-      '<label class="botao botao-quieto" style="margin:0">Restaurar de um .json<input type="file" id="bk-importar" accept=".json" style="display:none"></label>' +
-      '</div></div>';
-
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
       '<button class="botao-perigo botao-mini" id="zr-limpar">Apagar todos os dados</button></div>';
     return html;
@@ -1859,32 +1852,6 @@
       window.FirebaseSync.logout().catch(function () {
         toast('Não consegui sair do Firebase.', 'erro');
       });
-    });
-
-    raiz.querySelector('#bk-exportar').addEventListener('click', function () {
-      window.Store.exportarBackup(state);
-      if (window.Sync) window.Sync.agendarEnvio(state);
-      if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
-      toast('Backup exportado', 'sucesso');
-      render();
-    });
-
-    raiz.querySelector('#bk-importar').addEventListener('change', function (e) {
-      const arq = e.target.files[0];
-      if (!arq) return;
-      const leitor = new FileReader();
-      leitor.onload = function () {
-        const r = window.Store.importarBackup(leitor.result);
-        if (r.ok) {
-          state = r.state;
-          if (window.Sync) window.Sync.agendarEnvio(state);
-          if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
-          toast('Backup restaurado', 'sucesso');
-          render();
-        }
-        else toast(r.erro, 'erro');
-      };
-      leitor.readAsText(arq);
     });
 
     ligarEditaisEsquematizados(raiz);

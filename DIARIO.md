@@ -30,6 +30,13 @@ Documentos-irmãos: [plano-projeto-plataforma-estudos.md](plano-projeto-platafor
 
 ## Entradas
 
+### 12/06/2026 (noite, parte 4) — limpeza de Configurações e ícone de engrenagem
+- Removido o card "Exportar / restaurar dados" (a nuvem do Firebase/sync já cobre);
+  Zona de risco e Sincronização permanecem.
+- Ícone de Configurações do menu superior trocado: era um "sol de raios" (confundia
+  com o modo claro/escuro), agora é engrenagem dentada (path Material preenchido).
+- Cache v=20260612-editais3 (sw v10).
+
 ### 12/06/2026 (noite, parte 3) — editais como única porta de entrada dos planos
 - **Planejamento ganhou o card "Editais disponíveis"**: todo edital cadastrado
   aparece lá com "Criar plano personalizado" (ou etiqueta "plano criado ✓" se já
