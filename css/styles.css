@@ -44,6 +44,7 @@
   --sombra-suave: 0 6px 18px rgba(23, 24, 28, 0.06);
   --sidebar-larg: 240px;
   --abas-alt: 68px;
+  --topbar-alt: 52px;
 
   /* sidebar tem identidade própria, igual nos dois temas */
   --sb-fundo: linear-gradient(180deg, #16203C 0%, #101522 100%);
@@ -206,16 +207,58 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
   flex: 1;
   min-width: 0;
   width: 100%;
-  padding: 2rem clamp(1.1rem, 3vw, 2.4rem) 3.25rem;
+  padding: calc(var(--topbar-alt) + 1.4rem) clamp(1.1rem, 3vw, 2.4rem) 3.25rem;
   max-width: none;
 }
+
+/* Menu superior fixo: tema, configurações e perfil */
+#topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-larg);
+  height: var(--topbar-alt);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 clamp(1.1rem, 3vw, 2.4rem);
+  background: var(--vidro);
+  border-bottom: 1px solid var(--linha);
+  backdrop-filter: blur(14px);
+  z-index: 80;
+}
+
+.topbar-acoes { display: flex; align-items: center; gap: 0.5rem; }
+
+.topbar-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--tinta);
+  box-shadow: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.topbar-botao:hover { background: var(--papel-elevado); border-color: var(--linha); filter: none; }
+.topbar-botao.ativo { background: var(--papel-elevado); border-color: var(--linha); color: var(--caneta); }
+.topbar-botao svg { width: 20px; height: 20px; }
 
 #abas { display: none; }
 
 @media (max-width: 760px) {
   #sidebar { display: none; }
 
-  #conteudo { padding: 1rem 1rem calc(var(--abas-alt) + 1.4rem); }
+  #topbar { left: 0; padding: 0 1rem; }
+
+  #conteudo { padding: calc(var(--topbar-alt) + 0.85rem) 1rem calc(var(--abas-alt) + 1.4rem); }
 
   #abas {
     display: flex;
@@ -370,7 +413,6 @@ button:disabled { background: var(--grafite-claro); color: var(--grafite); curso
 html[data-tema="escuro"] .ic-tema-lua { display: none; }
 html[data-tema="escuro"] .ic-tema-sol { display: block; }
 @media (max-width: 760px) {
-  .botao-flutuante { top: 0.8rem; }
   .botao-timer-rapido { top: auto; bottom: calc(var(--abas-alt) + 1rem + env(safe-area-inset-bottom)); }
 }
 

@@ -30,6 +30,24 @@ Documentos-irmãos: [plano-projeto-plataforma-estudos.md](plano-projeto-platafor
 
 ## Entradas
 
+### 12/06/2026 (noite) — topbar fixo, calendário automático e editais esquematizados
+- **Menu superior fixo** (desktop e mobile): modo escuro, Configurações (engrenagem)
+  e Perfil (modal com nome e conta). O botão de tema deixou de ser flutuante.
+- **Aba "Plano e dados" virou "Configurações"**: removidos os cards de ferramentas
+  gratuitas e os links do plano (já existem na tela Hoje); a importação agora aceita
+  .xlsx e .csv além de JSON.
+- **Calendário do Planejamento preenche sozinho**: ao importar um plano ou gerar o
+  cronograma, todas as semanas viram blocos na agenda (semanal e mensal). Planos
+  antigos com cronograma e agenda vazia são preenchidos na primeira visita à aba.
+- **Histórico separado do plano**: alternância "Plano de estudos" × "Site inteiro"
+  (com coluna do plano de origem de cada sessão).
+- **Editais esquematizados** (em Configurações; no futuro, só para admin): cadastro
+  de editais com tópicos detalhados, banca e nota de corte estimada (JSON/Excel/CSV);
+  botão "Criar plano personalizado" gera o plano com a meta de corte do edital e abre
+  o ajuste de rotina. Os editais também aparecem no catálogo do Planejamento.
+- Verificado no preview (desktop e 375px): zero erros de console; ciclo completo
+  cadastrar edital → criar plano → calendário preenchido → excluir testado e limpo.
+
 ### 12/06/2026 (tarde) — planejamento manual, visual novo e plano incremental
 - **Skill atualizada** (v2 no repo, `skill/` + `.skill` reempacotado): sem links de
   plataformas nos entregáveis; edição de plano via JSON (round-trip preservando IDs);

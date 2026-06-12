@@ -1496,22 +1496,55 @@
 
   // ---------------- TELA: Histórico ----------------
   let historicoLimite = 50;
+  let historicoEscopo = 'plano'; // 'plano' = só o plano ativo | 'site' = tudo registrado no site
+
+  // procura o tópico em todos os planos (para o histórico do site inteiro)
+  function infoTopicoGlobal(topicoId) {
+    for (let i = 0; i < state.planos.length; i++) {
+      const p = state.planos[i];
+      for (let j = 0; j < p.disciplinas.length; j++) {
+        const d = p.disciplinas[j];
+        const t = d.topicos.find(function (x) { return x.id === topicoId; });
+        if (t) return { topico: t, disciplina: d, entrada: p };
+      }
+    }
+    return null;
+  }
+
+  function nomePlanoDaSessao(s) {
+    const id = s.planoId || state.planoAtivoId;
+    const p = state.planos.find(function (x) { return x.id === id; });
+    return p ? p.plano.concurso : 'Plano removido';
+  }
+
   function telaHistorico() {
-    if (state.sessoes.length === 0) {
-      return '<h1>Histórico</h1><div class="card"><div class="estado-vazio">' +
-        '<span class="bolha bolha-pendente"></span><strong>Nenhuma sessão registrada</strong>' +
+    const doSite = historicoEscopo === 'site';
+    const lista = doSite ? state.sessoes : D.sessoesDoPlano(state);
+    let html = '<div class="cab-pagina"><div><h1>Histórico</h1><p class="sub">' +
+      lista.length + (doSite ? ' sessões em todo o site' : ' sessões deste plano') + '</p></div>' +
+      '<div class="cab-acoes">' +
+      '<button class="botao-mini ' + (doSite ? 'botao-quieto' : '') + '" data-hist-escopo="plano">Plano de estudos</button>' +
+      '<button class="botao-mini ' + (doSite ? '' : 'botao-quieto') + '" data-hist-escopo="site">Site inteiro</button>' +
+      '</div></div>';
+    if (lista.length === 0) {
+      return html + '<div class="card"><div class="estado-vazio">' +
+        '<span class="bolha bolha-pendente"></span><strong>Nenhuma sessão registrada' + (doSite ? '' : ' neste plano') + '</strong>' +
         'Cada sessão registrada (timer ou manual) aparece aqui.</div></div>';
     }
-    const ordenadas = [...D.sessoesDoPlano(state)].sort(function (a, b) { return b.data.localeCompare(a.data) || b.id.localeCompare(a.id); });
+    const ordenadas = [...lista].sort(function (a, b) { return b.data.localeCompare(a.data) || b.id.localeCompare(a.id); });
     const visiveis = ordenadas.slice(0, historicoLimite);
-    let html = '<div class="cab-pagina"><div><h1>Histórico</h1><p class="sub">' + ordenadas.length + ' sessões deste plano</p></div></div>' +
-      '<div class="card" style="overflow-x:auto"><table><thead><tr>' +
-      '<th>Data</th><th>Tópico</th><th>Tipo</th><th class="num">Tempo</th><th class="num">Questões</th><th></th></tr></thead><tbody>';
+    html += '<div class="card" style="overflow-x:auto"><table><thead><tr>' +
+      '<th>Data</th><th>Tópico</th>' + (doSite ? '<th>Plano</th>' : '') + '<th>Tipo</th><th class="num">Tempo</th><th class="num">Questões</th><th></th></tr></thead><tbody>';
     visiveis.forEach(function (s) {
-      const d = D.disciplinaDoTopico(state, s.topicoId);
-      const t = D.topicoPorId(state, s.topicoId);
+      let d = D.disciplinaDoTopico(state, s.topicoId);
+      let t = D.topicoPorId(state, s.topicoId);
+      if (doSite && (!d || !t)) {
+        const info = infoTopicoGlobal(s.topicoId);
+        if (info) { d = info.disciplina; t = info.topico; }
+      }
       html += '<tr><td class="num" style="white-space:nowrap">' + D.formatarDataBR(s.data) + '</td>' +
         '<td>' + (d ? tagDisc(d) + ' ' : '') + esc(t ? t.nome : s.topicoId) + (s.obs ? '<div style="font-size:0.75rem;color:var(--grafite)">' + esc(s.obs) + '</div>' : '') + '</td>' +
+        (doSite ? '<td style="font-size:0.8rem">' + esc(nomePlanoDaSessao(s)) + '</td>' : '') +
         '<td>' + esc(s.tipo) + '</td>' +
         '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td>' +
         '<td class="num">' + (s.qFeitas > 0 ? s.qCertas + '/' + s.qFeitas : '—') + '</td>' +
@@ -1526,6 +1559,13 @@
   }
 
   function ligarHistorico(raiz) {
+    raiz.querySelectorAll('[data-hist-escopo]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        historicoEscopo = b.getAttribute('data-hist-escopo');
+        historicoLimite = 50;
+        render();
+      });
+    });
     const mais = raiz.querySelector('#hist-mais');
     if (mais) mais.addEventListener('click', function () { historicoLimite += 50; render(); });
     raiz.querySelectorAll('[data-excluir]').forEach(function (b) {
@@ -1538,9 +1578,9 @@
     });
   }
 
-  // ---------------- TELA: Plano e backup (F2) ----------------
+  // ---------------- TELA: Configurações (F2) ----------------
   function telaAjustes() {
-    let html = '<h1>Plano e dados</h1>';
+    let html = '<h1>Configurações</h1>';
 
     html += '<div class="card"><h3>Preferências</h3>' +
       '<label for="aj-nome-usuario">Seu nome na tela Hoje</label>' +
@@ -1566,31 +1606,18 @@
         '<label for="aj-meta-q">Meta de questões por semana</label>' +
         '<input id="aj-meta-q" type="number" min="0" max="2000" value="' + (state.config.metaQuestoesSemana || 100) + '" style="max-width:160px">' +
         '</div>';
-
-      if (state.links && state.links.length > 0) {
-        html += '<div class="card"><h3>Links do plano</h3><ul class="lista-limpa">' +
-          state.links.map(function (l) {
-            return '<li style="padding:0.25rem 0"><a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.titulo) + '</a>' +
-              (l.custo ? ' <span style="font-size:0.75rem;color:var(--grafite)">(' + esc(l.custo) + ')</span>' : '') + '</li>';
-          }).join('') + '</ul></div>';
-      }
     }
 
     html += '<div class="card"><h3>' + (state.plano ? 'Atualizar plano' : 'Importar plano') + '</h3>' +
-      '<p style="font-size:0.88rem;color:var(--grafite)">Cole o JSON gerado pela skill treinador-concursos ou envie o arquivo .json. ' +
+      '<p style="font-size:0.88rem;color:var(--grafite)">Cole o JSON gerado pela skill treinador-concursos ou envie um arquivo .json, .xlsx ou .csv. ' +
       (state.plano ? 'Reimportar <strong>preserva todo o histórico</strong> de sessões, revisões e simulados (os tópicos são casados pelo ID).' : '') + '</p>' +
-      '<input type="file" id="imp-arquivo" accept=".json,application/json" style="margin-top:0.5rem">' +
+      '<input type="file" id="imp-arquivo" accept=".json,.xlsx,.csv,application/json,text/csv" style="margin-top:0.5rem">' +
       '<label for="imp-texto">ou cole o JSON aqui</label>' +
       '<textarea id="imp-texto" placeholder=\'{"versao": 1, "plano": { ... }}\'></textarea>' +
       '<div class="modal-acoes" style="justify-content:flex-start"><button id="imp-validar">Validar e visualizar</button></div>' +
       '<div id="imp-preview"></div></div>';
 
-    html += '<h2>Ferramentas gratuitas de apoio</h2><div class="linha-cards">' +
-      '<a class="card ferramenta-card" href="https://www.notion.com/" target="_blank" rel="noopener">' +
-      '<strong>Notion</strong><span>Criação, organização e revisão das suas próprias anotações.</span><span class="ferramenta-acao">Abrir Notion</span></a>' +
-      '<a class="card ferramenta-card" href="https://notebooklm.google.com/" target="_blank" rel="noopener">' +
-      '<strong>NotebookLM</strong><span>Converse com PDFs, aulas, questões e resumos do curso.</span><span class="ferramenta-acao">Abrir NotebookLM</span></a>' +
-      '</div>';
+    html += editaisEsquematizadosHtml();
 
     const syncAtual = statusSincronizacao();
     const syncTexto = syncAtual && syncAtual.texto ? syncAtual.texto : 'Verificando sincronização';
@@ -1618,6 +1645,139 @@
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
       '<button class="botao-perigo botao-mini" id="zr-limpar">Apagar todos os dados</button></div>';
     return html;
+  }
+
+  // ---------------- Editais esquematizados (base para planos personalizados) ----------------
+  function contarTopicosEdital(e) {
+    return (e.disciplinas || []).reduce(function (n, d) { return n + (d.topicos || []).length; }, 0);
+  }
+
+  function editaisEsquematizadosHtml() {
+    let html = '<div class="card"><h3>Editais esquematizados</h3>' +
+      '<p style="font-size:0.88rem;color:var(--grafite)">Cadastre editais com os tópicos mais frequentes e a nota de corte estimada do último concurso. ' +
+      'A partir deles o sistema gera planos de estudos personalizados na aba Planejamento. ' +
+      '<em>Futuramente esta área ficará visível apenas para o perfil admin.</em></p>';
+
+    if (state.editais.length > 0) {
+      html += '<div class="planos-grade" style="margin:0.75rem 0">';
+      state.editais.forEach(function (e) {
+        html += '<div class="plano-mini">' +
+          '<div class="plano-mini-top"><strong>' + esc(e.titulo) + '</strong></div>' +
+          '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
+          contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</p>' +
+          '<div class="compact-actions">' +
+          '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano personalizado</button>' +
+          '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button></div></div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<p class="sub" style="margin:0.5rem 0">Nenhum edital cadastrado ainda.</p>';
+    }
+
+    html += '<details style="margin-top:0.5rem"><summary style="cursor:pointer;font-weight:700;font-size:0.9rem">Cadastrar novo edital</summary>' +
+      '<div class="grade-2" style="margin-top:0.5rem">' +
+      '<div><label for="ed-titulo">Nome do edital</label><input id="ed-titulo" type="text" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
+      '<div><label for="ed-banca">Banca</label><input id="ed-banca" type="text" placeholder="Ex.: FCC"></div></div>' +
+      '<label for="ed-corte">Nota de corte estimada do último edital (%)</label>' +
+      '<input id="ed-corte" type="number" min="0" max="100" value="70" style="max-width:160px">' +
+      '<label for="ed-arquivo">Tópicos detalhados (arquivo .json, .xlsx ou .csv)</label>' +
+      '<input type="file" id="ed-arquivo" accept=".json,.xlsx,.csv,application/json,text/csv">' +
+      '<label for="ed-json">ou cole o JSON com as disciplinas</label>' +
+      '<textarea id="ed-json" placeholder=\'{"disciplinas":[{"id":"POR","nome":"Português","topicos":[...]}]}\'></textarea>' +
+      '<div class="modal-acoes" style="justify-content:flex-start"><button id="ed-cadastrar">Cadastrar edital</button></div>' +
+      '</details></div>';
+    return html;
+  }
+
+  // aceita o contrato completo ({disciplinas:[...]}), uma lista de disciplinas ou linhas de planilha
+  function disciplinasDeEntradaEdital(json, titulo) {
+    if (Array.isArray(json)) {
+      if (json.length > 0 && json[0] && json[0].topicos) return json;          // lista de disciplinas
+      return planoJsonDeLinhas(json, titulo).disciplinas;                       // linhas de planilha
+    }
+    if (json && Array.isArray(json.disciplinas)) return json.disciplinas;
+    return [];
+  }
+
+  async function cadastrarEditalEsquematizado(raiz) {
+    const titulo = (raiz.querySelector('#ed-titulo').value || '').trim();
+    if (!titulo) { toast('Dê um nome ao edital.', 'erro'); return; }
+    const banca = (raiz.querySelector('#ed-banca').value || '').trim();
+    const corte = Math.max(0, Math.min(100, parseInt(raiz.querySelector('#ed-corte').value, 10) || 70));
+    const arquivoEl = raiz.querySelector('#ed-arquivo');
+    const file = arquivoEl && arquivoEl.files && arquivoEl.files[0];
+    let disciplinas = [];
+    try {
+      if (file && /\.xlsx$/i.test(file.name)) {
+        if (!window.XLSX) { toast('Leitor de Excel indisponível. Salve como CSV ou JSON.', 'erro'); return; }
+        const wb = window.XLSX.read(await lerArquivo(file, true), { type: 'array' });
+        const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+        disciplinas = planoJsonDeLinhas(rows, titulo).disciplinas;
+      } else if (file && /\.csv$/i.test(file.name)) {
+        disciplinas = planoJsonDeLinhas(parseCsv(await lerArquivo(file, false)), titulo).disciplinas;
+      } else {
+        const texto = file ? await lerArquivo(file, false) : (raiz.querySelector('#ed-json').value || '').trim();
+        if (!texto) { toast('Envie um arquivo ou cole o JSON com as disciplinas.', 'erro'); return; }
+        disciplinas = disciplinasDeEntradaEdital(JSON.parse(texto), titulo);
+      }
+    } catch (e) {
+      toast('Não consegui ler o edital: ' + e.message, 'erro');
+      return;
+    }
+    const teste = { versao: 1, plano: { concurso: titulo, banca: banca, meta: { corte_pct: corte } }, disciplinas: disciplinas };
+    const v = D.validarPlano(teste);
+    if (!v.ok) { toast('Edital inválido: ' + v.erros[0], 'erro'); return; }
+    state.editais.push({
+      id: window.Store.novoId('edt'),
+      titulo: titulo,
+      banca: banca,
+      notaCorte: corte,
+      criadoEm: D.hojeISO(),
+      disciplinas: disciplinas
+    });
+    salvar();
+    render();
+    toast('Edital cadastrado: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
+  }
+
+  // gera um plano de estudos personalizado a partir de um edital cadastrado
+  function criarPlanoDeEdital(editalId) {
+    const e = state.editais.find(function (x) { return x.id === editalId; });
+    if (!e) return;
+    const json = {
+      versao: 1,
+      gerado_em: D.hojeISO(),
+      plano: { concurso: e.titulo, banca: e.banca || '', meta: { corte_pct: e.notaCorte || 70 }, radar: null, ritmos: null },
+      disciplinas: e.disciplinas,
+      cronograma: {}
+    };
+    const v = D.validarPlano(json);
+    if (!v.ok) { toast('Edital inválido: ' + v.erros[0], 'erro'); return; }
+    adicionarPlano(json);
+    aplicarPlanosDuracaoAoAtivo(true);
+    toast('Plano criado a partir do edital — ajuste sua rotina para personalizar', 'sucesso');
+    // pushState não dispara hashchange (que fecharia o modal de rotina abaixo)
+    if (location.hash !== '#planejamento') history.pushState(null, '', '#planejamento');
+    render();
+    abrirGerarPlanoComRotina();
+  }
+
+  function ligarEditaisEsquematizados(raiz) {
+    const cadastrar = raiz.querySelector('#ed-cadastrar');
+    if (cadastrar) cadastrar.addEventListener('click', function () { cadastrarEditalEsquematizado(raiz); });
+    raiz.querySelectorAll('[data-ed-plano]').forEach(function (b) {
+      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-ed-plano')); });
+    });
+    raiz.querySelectorAll('[data-ed-excluir]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const e = state.editais.find(function (x) { return x.id === b.getAttribute('data-ed-excluir'); });
+        if (!e) return;
+        if (!confirm('Excluir o edital "' + e.titulo + '"? Os planos já criados a partir dele continuam existindo.')) return;
+        state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
+        salvar(); render();
+        toast('Edital excluído');
+      });
+    });
   }
 
   function mostrarPreviewImportacao(raiz, json) {
@@ -1779,21 +1939,30 @@
       mostrarPreviewImportacao(raiz, json);
     });
 
-    raiz.querySelector('#imp-arquivo').addEventListener('change', function (e) {
+    raiz.querySelector('#imp-arquivo').addEventListener('change', async function (e) {
       const arq = e.target.files[0];
       if (!arq) return;
-      const leitor = new FileReader();
-      leitor.onload = function () {
-        raiz.querySelector('#imp-texto').value = leitor.result;
-        let json;
-        try { json = JSON.parse(leitor.result); }
-        catch (err) {
-          raiz.querySelector('#imp-preview').innerHTML = '<div class="aviso aviso-erro" style="margin-top:1rem">O arquivo não é um JSON válido: ' + esc(err.message) + '</div>';
+      const nome = arq.name.replace(/\.[^.]+$/, '');
+      try {
+        if (/\.xlsx$/i.test(arq.name)) {
+          if (!window.XLSX) { toast('Leitor de Excel indisponível. Salve como CSV ou JSON.', 'erro'); return; }
+          const wb = window.XLSX.read(await lerArquivo(arq, true), { type: 'array' });
+          const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+          mostrarPreviewImportacao(raiz, planoJsonDeLinhas(rows, nome));
           return;
         }
+        if (/\.csv$/i.test(arq.name)) {
+          mostrarPreviewImportacao(raiz, planoJsonDeLinhas(parseCsv(await lerArquivo(arq, false)), nome));
+          return;
+        }
+        const texto = await lerArquivo(arq, false);
+        raiz.querySelector('#imp-texto').value = texto;
+        let json = JSON.parse(texto);
+        if (Array.isArray(json)) json = planoJsonDeLinhas(json, nome);
         mostrarPreviewImportacao(raiz, json);
-      };
-      leitor.readAsText(arq);
+      } catch (err) {
+        raiz.querySelector('#imp-preview').innerHTML = '<div class="aviso aviso-erro" style="margin-top:1rem">Não consegui ler o arquivo: ' + esc(err.message) + '</div>';
+      }
     });
 
     raiz.querySelector('#bk-exportar').addEventListener('click', function () {
@@ -1821,6 +1990,8 @@
       };
       leitor.readAsText(arq);
     });
+
+    ligarEditaisEsquematizados(raiz);
 
     raiz.querySelector('#zr-limpar').addEventListener('click', function () {
       if (!confirm('Apagar TODOS os dados (plano, sessões, revisões, simulados)? Esta ação não tem volta.')) return;
@@ -2152,9 +2323,20 @@
   }
 
   function catalogoPlanejamentoHtml() {
+    let editais = '';
+    if (state.editais.length > 0) {
+      editais = '<div class="card-kpi-rotulo" style="margin-top:0.75rem">Editais esquematizados</div>' +
+        state.editais.map(function (e) {
+          return '<div class="fila-item catalogo-item"><span class="bolha bolha-pendente"></span>' +
+            '<div class="fila-info"><div class="fila-titulo">' + esc(e.titulo) + '</div>' +
+            '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + contarTopicosEdital(e) + ' tópicos · corte ' + (e.notaCorte || 70) + '%</div></div>' +
+            '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano</button></div>';
+        }).join('');
+    }
     return '<div class="card planejamento-card catalogo-card"><div class="card-kpi-rotulo">Catálogo</div>' +
       '<h3>Editais populares editáveis</h3>' +
-      '<div id="catalogo-lista"><div class="estado-vazio" style="padding:1rem"><span class="bolha bolha-carregando bolha-pendente"></span><br>Carregando catálogo…</div></div></div>';
+      '<div id="catalogo-lista"><div class="estado-vazio" style="padding:1rem"><span class="bolha bolha-carregando bolha-pendente"></span><br>Carregando catálogo…</div></div>' +
+      editais + '</div>';
   }
 
   function carregarCatalogoPlanejamento(raiz) {
@@ -2215,6 +2397,9 @@
     if (excluir) excluir.addEventListener('click', function () {
       const id = state.planoAtivoId;
       if (id && excluirPlano(id, true)) fecharModal();
+    });
+    m.querySelectorAll('[data-ed-plano]').forEach(function (b) {
+      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-ed-plano')); });
     });
     carregarCatalogoPlanejamento(m);
   }
@@ -2399,6 +2584,7 @@
     entrada.plano.ritmoAtivo = chave;
     entrada.plano.gerado_em = D.hojeISO();
     window.Store.hidratar(state);
+    sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
     salvar();
     if (!silencioso) toast('Plano de ' + meses + ' meses gerado e ativado', 'sucesso');
     return true;
@@ -2439,7 +2625,8 @@
       const cron = D.cronogramaAtivo(state);
       agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
       agendaModo = 'semana';
-      gerarSemanaNaAgenda();
+      render();
+      toast('Plano gerado — o calendário foi preenchido com todas as semanas', 'sucesso');
     });
   }
 
@@ -2540,7 +2727,8 @@
       const cron = D.cronogramaAtivo(state);
       agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
       agendaModo = 'semana';
-      gerarSemanaNaAgenda();
+      render();
+      toast('Plano gerado respeitando sua rotina — o calendário foi preenchido', 'sucesso');
     });
   }
 
@@ -2683,6 +2871,13 @@
 
   function telaPlanejamento() {
     const hoje = D.hojeISO();
+    // plano com cronograma mas calendário vazio (ex.: importado antes da
+    // sincronização automática): preenche a agenda uma única vez
+    const cronAtivo = D.cronogramaAtivo(state);
+    if (cronAtivo && cronAtivo.length > 0 &&
+      !state.agenda.some(function (a) { return a.gerado && (!a.planoId || a.planoId === state.planoAtivoId); })) {
+      if (sincronizarAgendaComCronograma() > 0) salvar();
+    }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
       '<p class="sub">Plano atual, editais cadastrados e agenda no mesmo lugar.</p></div>' +
       '<div class="cab-acoes"><button class="botao-quieto" id="pl-config">⚙ Configurações</button>' +
@@ -3077,14 +3272,16 @@
     return saida;
   }
 
-  function gerarSemanaNaAgenda() {
-    const dist = distribuicaoSemanal(agendaRef);
-    if (!dist) { toast('Sem semana ativa no cronograma para gerar.', 'erro'); return; }
+  // núcleo da geração: preenche a agenda de UMA semana a partir do cronograma
+  // (sem toast/salvar/render — quem chama decide). Retorna null se não houver semana.
+  function gerarBlocosSemanaAgenda(refInicio) {
+    const dist = distribuicaoSemanal(refInicio);
+    if (!dist) return null;
     const rotina = rotinaEstudosAtual();
     const diasAtivos = ROTINA_DIAS.filter(function (d) {
       return rotina.dias[d.id] && rotina.dias[d.id].ativo && rotina.dias[d.id].minutos > 0;
     }).sort(function (a, b) { return a.offset - b.offset; });
-    if (diasAtivos.length === 0) { toast('Defina ao menos um dia de estudo na rotina.', 'erro'); return; }
+    if (diasAtivos.length === 0) return null;
 
     const ini = dist.semana.inicio;
     const fim = D.addDias(ini, 7);
@@ -3144,12 +3341,31 @@
       });
       alvo.restante -= tarefa.duracaoMin;
     });
+    return { semana: dist.semana, inicio: ini, pendentes: pendentes };
+  }
+
+  function gerarSemanaNaAgenda() {
+    const r = gerarBlocosSemanaAgenda(agendaRef);
+    if (!r) { toast('Sem semana ativa no cronograma para gerar (ou rotina sem dias de estudo).', 'erro'); return; }
     salvar();
-    agendaRef = ini;
+    agendaRef = r.inicio;
     agendaModo = 'semana';
     render();
-    const extra = pendentes > 0 ? ' · ' + D.formatarMin(pendentes) + ' ficaram sem encaixe' : '';
-    toast('Semana ' + dist.semana.semana + ' gerada respeitando sua rotina' + extra, pendentes > 0 ? 'erro' : 'sucesso');
+    const extra = r.pendentes > 0 ? ' · ' + D.formatarMin(r.pendentes) + ' ficaram sem encaixe' : '';
+    toast('Semana ' + r.semana.semana + ' gerada respeitando sua rotina' + extra, r.pendentes > 0 ? 'erro' : 'sucesso');
+  }
+
+  // preenche o calendário inteiro (todas as semanas do cronograma ativo) — usado
+  // logo após importar um plano ou gerar o cronograma, para a aba Planejamento
+  // já aparecer com os tópicos no calendário semanal e mensal
+  function sincronizarAgendaComCronograma() {
+    const cron = D.cronogramaAtivo(state);
+    if (!cron || cron.length === 0) return 0;
+    let semanas = 0;
+    cron.forEach(function (sem) {
+      if (gerarBlocosSemanaAgenda(sem.inicio)) semanas++;
+    });
+    return semanas;
   }
 
   function abrirPerfilPlano(planoId) {
@@ -3294,15 +3510,38 @@
       ['#stats', 'Estatísticas', 'gráficos, tempo total e desempenho × meta'],
       ['#edital', 'Edital verticalizado', 'progresso ○◐● e incidência por tópico'],
       ['#simulados', 'Simulados', 'gabarito × meta de corte'],
-      ['#historico', 'Histórico', 'todas as sessões registradas'],
-      ['#ajustes', 'Ferramentas de apoio', 'Notion e NotebookLM para estudar melhor'],
-      ['#ajustes', 'Plano e dados', 'importar plano, sincronização e exportação']
+      ['#historico', 'Histórico', 'sessões do plano ativo ou do site inteiro'],
+      ['#ajustes', 'Configurações', 'planos, editais esquematizados, sincronização e dados']
     ];
     return '<h1>Mais</h1><div class="card card-quieto">' +
       itens.map(function (i) {
         return '<a href="' + i[0] + '" style="display:block;padding:0.85rem 0.25rem;border-bottom:1px solid var(--grafite-claro);text-decoration:none;color:var(--tinta)">' +
           '<strong style="color:var(--caneta)">' + i[1] + '</strong><br><span style="font-size:0.82rem;color:var(--grafite)">' + i[2] + '</span></a>';
       }).join('') + '</div>';
+  }
+
+  // ---------------- Perfil (menu superior) ----------------
+  function abrirPerfilUsuario() {
+    const atual = statusSincronizacao();
+    const email = atual && atual.usuario && atual.usuario.email ? atual.usuario.email : null;
+    const m = abrirModal(
+      '<h3>Perfil</h3>' +
+      '<label for="pf-nome">Seu nome na tela Hoje</label>' +
+      '<input id="pf-nome" type="text" maxlength="40" value="' + esc(state.config.nomeUsuario || nomeUsuario()) + '">' +
+      '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
+      (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
+      '<div class="modal-acoes" style="justify-content:space-between">' +
+      '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
+      '<button type="button" id="pf-salvar-nome">Salvar</button></div>'
+    );
+    m.querySelector('#pf-config').addEventListener('click', fecharModal);
+    m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
+      state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
+      salvar();
+      fecharModal();
+      render();
+      toast('Perfil atualizado', 'sucesso');
+    });
   }
 
   // ---------------- roteador ----------------
@@ -3385,6 +3624,8 @@
 
   const botaoTema = document.getElementById('botao-tema');
   if (botaoTema) botaoTema.addEventListener('click', alternarTema);
+  const botaoPerfil = document.getElementById('botao-perfil');
+  if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);
   const botaoTimerRapido = document.getElementById('botao-timer-rapido');
   if (botaoTimerRapido) botaoTimerRapido.addEventListener('click', function () { location.hash = '#timer'; });
 
