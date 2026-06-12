@@ -1848,17 +1848,6 @@
     { id: 'sab', label: 'SÁB', offset: 5, ativo: true, minutos: 180 }
   ];
 
-  function minutosParaHora(min) {
-    const total = ((Math.round(min) % 1440) + 1440) % 1440;
-    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
-  }
-
-  function horaParaMin(hora) {
-    const m = /^(\d{1,2}):(\d{2})$/.exec(String(hora || ''));
-    if (!m) return 9 * 60;
-    return Math.max(0, Math.min(1439, parseInt(m[1], 10) * 60 + parseInt(m[2], 10)));
-  }
-
   function parseHorasDia(valor) {
     const texto = String(valor || '').trim().replace(',', '.');
     const m = /^(\d{1,2}):(\d{2})$/.exec(texto);
@@ -1874,7 +1863,7 @@
   function rotinaPadrao() {
     const dias = {};
     ROTINA_DIAS.forEach(function (d) {
-      dias[d.id] = { ativo: d.ativo, inicio: '09:00', minutos: d.minutos };
+      dias[d.id] = { ativo: d.ativo, minutos: d.minutos };
     });
     return { dias: dias, minBloco: 45, maxBloco: 60 };
   }
@@ -2305,6 +2294,24 @@
     return state.planos.find(function (p) { return p.id === state.planoAtivoId; }) || null;
   }
 
+  function totalHorasEstimadasPlano(entrada) {
+    if (!entrada || !entrada.disciplinas) return 0;
+    return entrada.disciplinas.reduce(function (n, d) {
+      return n + (d.topicos || []).reduce(function (m, t) { return m + (t.horas_estimadas || 2); }, 0);
+    }, 0);
+  }
+
+  function horasIdeaisSemanaPlano(entrada, meses) {
+    const semanas = semanasPorMeses(meses);
+    const ideal = Math.ceil((totalHorasEstimadasPlano(entrada) * 1.8) / semanas);
+    return Math.max(4, ideal || 20);
+  }
+
+  function formatarHorasSemana(horas) {
+    const valor = Math.round(horas * 10) / 10;
+    return (Number.isInteger(valor) ? String(valor) : String(valor).replace('.', ',')) + 'h na semana';
+  }
+
   function gerarCronogramaHierarquico(disciplinas, semanas, opcoes) {
     opcoes = opcoes || {};
     const horasSemana = opcoes.horasSemana || 20;
@@ -2380,13 +2387,10 @@
       if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
       return false;
     }
-    const totalHoras = entrada.disciplinas.reduce(function (n, d) {
-      return n + d.topicos.reduce(function (m, t) { return m + (t.horas_estimadas || 2); }, 0);
-    }, 0);
     meses = meses === 3 || meses === 9 ? meses : 6;
     const semanas = semanasPorMeses(meses);
     const chave = 'plano_ativo';
-    const hSemana = Math.max(4, Math.round(horasSemana || Math.ceil((totalHoras * 1.8) / semanas) || 20));
+    const hSemana = Math.max(4, Math.round(horasSemana || horasIdeaisSemanaPlano(entrada, meses) || 20));
     entrada.cronogramas = {};
     entrada.plano.ritmos = entrada.plano.ritmos || {};
     entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana });
@@ -2449,6 +2453,8 @@
     const mesesAtual = atual && atual.meses ? atual.meses : 6;
     const rotina = rotinaEstudosAtual();
     const totalAtual = totalMinutosRotina(rotina);
+    const entrada = entradaPlanoAtivo();
+    const idealAtual = horasIdeaisSemanaPlano(entrada, mesesAtual);
     const optsMin = [25, 30, 45, 50, 60, 75, 90].map(function (v) {
       return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + v + 'min</option>';
     }).join('');
@@ -2456,11 +2462,10 @@
       return '<option value="' + v + '"' + (v === rotina.maxBloco ? ' selected' : '') + '>' + (v >= 60 ? (v / 60) + 'h' : v + 'min') + '</option>';
     }).join('');
     const diasHtml = ROTINA_DIAS.map(function (d) {
-      const cfg = rotina.dias[d.id] || { ativo: d.ativo, inicio: '09:00', minutos: d.minutos };
+      const cfg = rotina.dias[d.id] || { ativo: d.ativo, minutos: d.minutos };
       return '<label class="rotina-dia">' +
         '<input type="checkbox" data-rot-ativo="' + d.id + '"' + (cfg.ativo ? ' checked' : '') + '>' +
         '<span class="rotina-dia-badge">' + d.label + '</span>' +
-        '<input type="time" data-rot-inicio="' + d.id + '" value="' + esc(cfg.inicio || '09:00') + '" aria-label="Horário inicial de ' + d.label + '">' +
         '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
         '</label>';
     }).join('');
@@ -2472,7 +2477,9 @@
       [3, 6, 9].map(function (v) {
         return '<option value="' + v + '"' + (v === mesesAtual ? ' selected' : '') + '>' + v + ' meses</option>';
       }).join('') + '</select></div>' +
-      '<div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + (Math.round(totalAtual / 60 * 10) / 10) + 'h na semana</div></div></div>' +
+      '<div class="rotina-totais"><div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + formatarHorasSemana(totalAtual / 60) + '</div></div>' +
+      '<div><label>Total ideal</label><div class="rotina-total rotina-total-ideal" id="gp-total-ideal">' + formatarHorasSemana(idealAtual) + '</div></div></div></div>' +
+      '<p class="rotina-feedback" id="gp-feedback"></p>' +
       '<label>Quais dias e quantas horas pretende estudar?</label>' +
       '<div class="rotina-dias">' + diasHtml + '</div>' +
       '<label>Qual mínimo e máximo de tempo que deseja estudar uma mesma disciplina?</label>' +
@@ -2486,19 +2493,36 @@
       const cfg = { dias: {}, minBloco: parseInt(m.querySelector('#gp-min-bloco').value, 10), maxBloco: parseInt(m.querySelector('#gp-max-bloco').value, 10) };
       ROTINA_DIAS.forEach(function (d) {
         const ativo = m.querySelector('[data-rot-ativo="' + d.id + '"]').checked;
-        const inicio = m.querySelector('[data-rot-inicio="' + d.id + '"]').value || '09:00';
         const minutos = Math.max(0, Math.min(720, parseHorasDia(m.querySelector('[data-rot-horas="' + d.id + '"]').value)));
-        cfg.dias[d.id] = { ativo: ativo, inicio: inicio, minutos: minutos };
+        cfg.dias[d.id] = { ativo: ativo, minutos: minutos };
       });
       if (cfg.maxBloco < cfg.minBloco) cfg.maxBloco = cfg.minBloco;
       return cfg;
     }
     function atualizarTotal() {
-      const total = totalMinutosRotina(rotinaDoModal());
+      const total = totalMinutosRotina(rotinaDoModal()) / 60;
+      const meses = parseInt(m.querySelector('#gp-meses').value, 10);
+      const ideal = horasIdeaisSemanaPlano(entrada, meses);
+      const ok = total >= ideal;
       const el = m.querySelector('#gp-total');
-      if (el) el.textContent = (Math.round(total / 60 * 10) / 10) + 'h na semana';
+      const idealEl = m.querySelector('#gp-total-ideal');
+      const feedback = m.querySelector('#gp-feedback');
+      if (el) {
+        el.textContent = formatarHorasSemana(total);
+        el.classList.toggle('rotina-total-alerta', !ok);
+        el.classList.toggle('rotina-total-ok', ok);
+      }
+      if (idealEl) idealEl.textContent = formatarHorasSemana(ideal);
+      if (feedback) {
+        feedback.classList.toggle('alerta', !ok);
+        feedback.classList.toggle('ok', ok);
+        feedback.textContent = ok
+          ? 'Sua rotina está compatível para fechar o edital em ' + meses + ' meses.'
+          : 'Com a quantidade planejada, provavelmente não será possível fechar o edital em ' + meses + ' meses. Aumente as horas, escolha um prazo maior ou reduza o escopo.';
+      }
     }
-    m.querySelectorAll('[data-rot-ativo], [data-rot-inicio], [data-rot-horas], #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
+    atualizarTotal();
+    m.querySelectorAll('[data-rot-ativo], [data-rot-horas], #gp-meses, #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
       el.addEventListener('change', atualizarTotal);
       el.addEventListener('input', atualizarTotal);
     });
@@ -2507,8 +2531,9 @@
       e.preventDefault();
       const meses = parseInt(m.querySelector('#gp-meses').value, 10);
       const rotinaNova = rotinaDoModal();
-      const horas = Math.max(1, Math.round(totalMinutosRotina(rotinaNova) / 60));
-      if (horas < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); return; }
+      const totalMinutos = totalMinutosRotina(rotinaNova);
+      if (totalMinutos < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); return; }
+      const horas = Math.max(1, Math.round(totalMinutos / 60));
       state.config.rotinaEstudos = rotinaNova;
       if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true)) return;
       fecharModal();
@@ -3091,7 +3116,7 @@
     const tarefas = ordenarTarefasIntercaladas(filas);
     const slots = diasAtivos.map(function (d) {
       const cfg = rotina.dias[d.id];
-      return { data: D.addDias(ini, d.offset), cursor: horaParaMin(cfg.inicio || '09:00'), restante: cfg.minutos || 0 };
+      return { data: D.addDias(ini, d.offset), restante: cfg.minutos || 0 };
     });
     let slotIdx = 0;
     let pendentes = 0;
@@ -3107,28 +3132,23 @@
         if (slotIdx >= slots.length || tarefa.duracaoMin > slots[slotIdx].restante) { pendentes += tarefa.duracaoMin; return; }
       }
       const alvo = slots[slotIdx];
-      const inicioMin = alvo.cursor;
-      const fimMin = alvo.cursor + tarefa.duracaoMin;
       const topico = tarefa.bloco.topico ? D.topicoPorId(state, tarefa.bloco.topico) : null;
       state.agenda.push({
         id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
         data: alvo.data, disciplinaId: tarefa.disciplina.id,
         topicoId: tarefa.bloco.topico || null,
         duracaoMin: tarefa.duracaoMin,
-        horaInicio: minutosParaHora(inicioMin),
-        horaFim: minutosParaHora(fimMin),
         obs: tarefa.bloco.tipo === 'teoria' ? 'teoria' : tarefa.bloco.tipo,
         feito: topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
         gerado: true
       });
-      alvo.cursor = fimMin;
       alvo.restante -= tarefa.duracaoMin;
     });
     salvar();
     agendaRef = ini;
     agendaModo = 'semana';
     render();
-    const extra = pendentes > 0 ? ' · ' + D.formatarMin(pendentes) + ' ficaram sem horário' : '';
+    const extra = pendentes > 0 ? ' · ' + D.formatarMin(pendentes) + ' ficaram sem encaixe' : '';
     toast('Semana ' + dist.semana.semana + ' gerada respeitando sua rotina' + extra, pendentes > 0 ? 'erro' : 'sucesso');
   }
 
