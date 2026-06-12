@@ -407,16 +407,6 @@
       '<p class="sub">' + resumoDia + '</p></div>' +
       '<button class="botao-secundario" id="btn-registrar-livre">Registrar sessão</button></div>';
 
-    // aviso de backup (risco localStorage)
-    const diasBackup = window.Store.diasDesdeBackup(state);
-    if (window.Store.temDados(state) && (diasBackup === null || diasBackup > 7)) {
-      const syncOk = syncStatus && syncStatus.estado === 'sincronizado';
-      html += '<div class="aviso aviso-alerta">' +
-        (diasBackup === null ? 'Você ainda não fez nenhum backup.' : 'Seu último backup foi há ' + diasBackup + ' dias.') +
-        (syncOk ? ' Sincronização ativa, mas o backup ainda é sua cópia de segurança — ' : ' Os dados ainda estão só neste navegador — ') +
-        '<a href="#ajustes">exporte um backup</a>.</div>';
-    }
-
     html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
 
     // constância em destaque, centralizada (estilo GitHub)
@@ -1087,7 +1077,7 @@
 
   // ---------------- TELA: Plano e backup (F2) ----------------
   function telaAjustes() {
-    let html = '<h1>Plano e backup</h1>';
+    let html = '<h1>Plano e dados</h1>';
 
     if (state.plano) {
       const p = state.plano;
@@ -1150,13 +1140,11 @@
       '<button class="botao-quieto" id="fb-logout">Sair</button>' +
       '</div></div>';
 
-    const diasBackup = window.Store.diasDesdeBackup(state);
-    html += '<div class="card"><h3>Backup dos dados</h3>' +
-      '<p style="font-size:0.88rem;color:var(--grafite)">Exporte um arquivo .json por segurança' +
-      (diasBackup !== null ? ' — último backup: há ' + diasBackup + ' dia(s)' : ' — nenhum backup feito ainda') + '.</p>' +
+    html += '<div class="card card-quieto"><h3>Exportar / restaurar dados</h3>' +
+      '<p style="font-size:0.88rem;color:var(--grafite)">Seus dados ficam guardados na nuvem pela sincronização do Firebase. Exportar um .json é opcional (ex.: migrar ou inspecionar os dados).</p>' +
       '<div class="modal-acoes" style="justify-content:flex-start">' +
-      '<button id="bk-exportar">Exportar backup</button>' +
-      '<label class="botao botao-quieto" style="margin:0">Restaurar backup<input type="file" id="bk-importar" accept=".json" style="display:none"></label>' +
+      '<button class="botao-quieto" id="bk-exportar">Exportar .json</button>' +
+      '<label class="botao botao-quieto" style="margin:0">Restaurar de um .json<input type="file" id="bk-importar" accept=".json" style="display:none"></label>' +
       '</div></div>';
 
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
@@ -1298,7 +1286,7 @@
 
     raiz.querySelector('#zr-limpar').addEventListener('click', function () {
       if (!confirm('Apagar TODOS os dados (plano, sessões, revisões, simulados)? Esta ação não tem volta.')) return;
-      if (!confirm('Última confirmação: você exportou um backup antes?')) return;
+      if (!confirm('Última confirmação: isso também sobrescreve os dados sincronizados no Firebase. Continuar?')) return;
       state = window.Store.estadoVazio();
       state.config.apagadoEm = new Date().toISOString();
       salvar(); render();
@@ -1646,7 +1634,7 @@
       ['#simulados', 'Simulados', 'gabarito × meta de corte'],
       ['#historico', 'Histórico', 'todas as sessões registradas'],
       ['#ajustes', 'Ferramentas de apoio', 'Notion e NotebookLM para estudar melhor'],
-      ['#ajustes', 'Plano e backup', 'importar plano, exportar dados']
+      ['#ajustes', 'Plano e dados', 'importar plano, sincronização e exportação']
     ];
     return '<h1>Mais</h1><div class="card card-quieto">' +
       itens.map(function (i) {
