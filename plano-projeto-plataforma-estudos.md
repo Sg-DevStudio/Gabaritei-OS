@@ -282,7 +282,7 @@ registrada"). Nada de "Potencialize seus estudos".
 | Camada | Tecnologia | Justificativa |
 |---|---|---|
 | Frontend | HTML/CSS/JS puro, sem framework e sem build | Constituição; padrão dominado (Dashboard Financeiro); deploy = push |
-| Dados | `localStorage` com camada `store.js` + sincronização local opcional via `/api/sync` | Isolar o storage permite migrar p/ Supabase; sync local resolve PC/celular no uso pessoal |
+| Dados | `localStorage` com camada `store.js`, Firebase Auth + Firestore para nuvem e sincronização local opcional via `/api/sync` | Isolar o storage mantém o app simples/offline; Firebase resolve PC/celular no GitHub Pages; sync local fica como apoio de desenvolvimento |
 | Gráficos | Chart.js via CDN | Já dominada; leve |
 | PWA | `manifest.json` + service worker (cache estático) | Instalável no celular; abre offline |
 | Hospedagem | GitHub Pages (`samuelgomes01`) | Grátis; padrão existente |
@@ -297,6 +297,7 @@ estudos-app/
 ├── js/
 │   ├── store.js        # localStorage: schema, CRUD, migrations, export/import JSON
 │   ├── sync.js         # sincronização local PC/celular via /api/sync
+│   ├── firebase-sync.js # sincronização em nuvem via Firebase Auth + Firestore
 │   ├── domain.js       # RN01–RN08 puras (testáveis sem DOM)
 │   ├── app.js          # roteamento + renderização das telas
 │   ├── timer.js        # cronômetro/pomodoro + recuperação, limite e alerta
@@ -313,6 +314,7 @@ estudos-app/
 | SPA por hash, sem router lib | múltiplas páginas | PWA simples, sem dependência |
 | Timer persiste `inicioEm` no localStorage a cada tick | só em memória | F1 caminho infeliz: fechar navegador não perde a sessão |
 | Sync local via servidor PowerShell | login/Supabase já na v1 | Resolve PC/celular no mesmo Wi-Fi sem conta, custo ou backend externo |
+| Firebase Auth + Firestore para GitHub Pages | manter só `/api/sync` local | GitHub Pages é estático; Firebase permite o mesmo histórico no PC e celular com login Google |
 | Timer atualiza título da aba + alerta | manter aviso só dentro da tela | Ajuda quando o usuário estuda com outra aba aberta e define tempo máximo |
 | Frase do dia determinística (índice = dia do ano % n) | aleatória | Mesma frase o dia todo em qualquer dispositivo |
 
@@ -353,6 +355,11 @@ estudos-app/
 - [x] T015 — Modernização visual geral: tokens refinados, navegação mais polida, cards/KPIs mais agradáveis, fila do dia mais legível, timer escuro mais premium, modais/toasts/inputs/tabelas com acabamento melhor e mobile mais confortável.
 - [x] T016 — Apoio ao estudo: curadoria ampliada de frases motivacionais com pensadores variados e seção de links gratuitos para Notion e NotebookLM, deixando integração futura mapeada.
 
+**Onda 6 — Sincronização em nuvem**
+- [x] T017 — Firebase no app estático: `js/firebase-sync.js` inicializa o projeto `app-gestao-estudos`, autentica com Google e sincroniza o estado em `users/{uid}/state/current` no Firestore.
+- [x] T018 — Tela *Plano e backup* atualizada: botões de entrar/sair com Google, status da conta, sincronização manual e fallback para `/api/sync` local quando não houver login.
+- [ ] T019 — Console Firebase: habilitar provedor Google, criar Firestore Database, publicar regras por usuário e adicionar `samuelgomes01.github.io` nos domínios autorizados.
+
 **Dependências:** T002→T003→T004; T005,T006 dependem de T002; T007,T008 dependem de T006; Onda 4 depende das anteriores.
 
 ---
@@ -378,6 +385,5 @@ estudos-app/
    contrato v1 (10 disciplinas, 288 tópicos, cronogramas sustentável 28 sem. e hardcore
    17 sem.) — substituível a qualquer momento pelo export real da skill.
 6. ~~Pós-MVP: sincronização local, timer com alerta, modernização visual e ferramentas de apoio~~ ✅ concluído em 12/06/2026 (ver Onda 5).
-7. **[PRÓXIMO] Publicação:** criar repositório e publicar no GitHub Pages
-   (`samuelgomes01`); depois, usar no dia a dia e validar na própria rotina
-   (estratégia da Constituição).
+7. **Sincronização em nuvem:** código Firebase integrado ao app; falta concluir a configuração no Console Firebase (ver T019).
+8. **[PRÓXIMO] Publicação:** publicar a nova versão no GitHub Pages e validar login + sync no PC/celular.

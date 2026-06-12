@@ -12,6 +12,7 @@
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
+  let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
   let pintarTimerAtual = null;
   let audioCtx = null;
 
@@ -26,6 +27,12 @@
     opcoes = opcoes || {};
     window.Store.salvar(state, opcoes);
     if (window.Sync && opcoes.sincronizar !== false) window.Sync.agendarEnvio(state);
+    if (window.FirebaseSync && opcoes.sincronizar !== false) window.FirebaseSync.agendarEnvio(state);
+  }
+
+  function statusSincronizacao() {
+    if (firebaseStatus && firebaseStatus.estado !== 'carregando') return firebaseStatus;
+    return syncStatus;
   }
 
   function toast(msg, tipo) {
@@ -1047,11 +1054,21 @@
       '<strong>NotebookLM</strong><span>Converse com PDFs, aulas, questões e resumos do curso.</span><span class="ferramenta-acao">Abrir NotebookLM</span></a>' +
       '</div>';
 
-    const syncTexto = syncStatus && syncStatus.texto ? syncStatus.texto : 'Verificando sincronização';
+    const syncAtual = statusSincronizacao();
+    const syncTexto = syncAtual && syncAtual.texto ? syncAtual.texto : 'Verificando sincronização';
+    const syncFonte = syncAtual && syncAtual.fonte ? syncAtual.fonte : (syncStatus && syncStatus.endpoint ? syncStatus.endpoint : 'servidor local não detectado');
+    const contaSync = firebaseStatus && firebaseStatus.usuario && firebaseStatus.usuario.email
+      ? '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">' + esc(firebaseStatus.usuario.email) + '</strong></p>'
+      : '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">não conectada</strong></p>';
     html += '<div class="card"><h3>Sincronização entre aparelhos</h3>' +
       '<p style="font-size:0.88rem;color:var(--grafite)">Status: <strong id="sync-status">' + esc(syncTexto) + '</strong></p>' +
-      (syncStatus && syncStatus.endpoint ? '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">' + esc(syncStatus.endpoint) + '</span></p>' : '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">servidor local não detectado</span></p>') +
-      '<div class="modal-acoes" style="justify-content:flex-start"><button class="botao-secundario" id="sync-agora">Sincronizar agora</button></div></div>';
+      '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">' + esc(syncFonte) + '</span></p>' +
+      contaSync +
+      '<div class="modal-acoes" style="justify-content:flex-start">' +
+      '<button id="fb-login">Entrar com Google</button>' +
+      '<button class="botao-secundario" id="sync-agora">Sincronizar agora</button>' +
+      '<button class="botao-quieto" id="fb-logout">Sair</button>' +
+      '</div></div>';
 
     const diasBackup = window.Store.diasDesdeBackup(state);
     html += '<div class="card"><h3>Backup dos dados</h3>' +
@@ -1106,12 +1123,38 @@
     });
     const syncAgora = raiz.querySelector('#sync-agora');
     if (syncAgora) syncAgora.addEventListener('click', function () {
+      if (window.FirebaseSync && window.FirebaseSync.ativo()) {
+        syncAgora.disabled = true;
+        window.FirebaseSync.sincronizarAgora({ silencioso: false }).finally(function () {
+          syncAgora.disabled = false;
+          firebaseStatus = window.FirebaseSync.status();
+          atualizarSyncUi();
+        });
+        return;
+      }
       if (!window.Sync) { toast('Sincronização indisponível neste navegador.', 'erro'); return; }
       syncAgora.disabled = true;
       window.Sync.sincronizarAgora({ silencioso: false }).finally(function () {
         syncAgora.disabled = false;
         syncStatus = window.Sync.status();
         atualizarSyncUi();
+      });
+    });
+    const fbLogin = raiz.querySelector('#fb-login');
+    if (fbLogin) fbLogin.addEventListener('click', function () {
+      if (!window.FirebaseSync) { toast('Firebase ainda está carregando. Tente de novo em alguns segundos.', 'erro'); return; }
+      fbLogin.disabled = true;
+      window.FirebaseSync.login().catch(function () {
+        toast('Não consegui entrar com Google. Confira Auth e domínio autorizado no Firebase.', 'erro');
+      }).finally(function () {
+        fbLogin.disabled = false;
+      });
+    });
+    const fbLogout = raiz.querySelector('#fb-logout');
+    if (fbLogout) fbLogout.addEventListener('click', function () {
+      if (!window.FirebaseSync) return;
+      window.FirebaseSync.logout().catch(function () {
+        toast('Não consegui sair do Firebase.', 'erro');
       });
     });
 
@@ -1150,6 +1193,7 @@
     raiz.querySelector('#bk-exportar').addEventListener('click', function () {
       window.Store.exportarBackup(state);
       if (window.Sync) window.Sync.agendarEnvio(state);
+      if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
       toast('Backup exportado', 'sucesso');
       render();
     });
@@ -1163,6 +1207,7 @@
         if (r.ok) {
           state = r.state;
           if (window.Sync) window.Sync.agendarEnvio(state);
+          if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
           toast('Backup restaurado', 'sucesso');
           render();
         }
@@ -1232,10 +1277,18 @@
   }
 
   function atualizarSyncUi() {
+    const atual = statusSincronizacao();
     const el = document.getElementById('sync-status');
-    if (el && syncStatus) el.textContent = syncStatus.texto;
+    if (el && atual) el.textContent = atual.texto;
     const ep = document.getElementById('sync-endpoint');
-    if (ep && syncStatus && syncStatus.endpoint) ep.textContent = syncStatus.endpoint;
+    if (ep && atual) ep.textContent = atual.fonte || atual.endpoint || 'servidor local não detectado';
+    const conta = document.getElementById('sync-conta');
+    if (conta && atual) conta.textContent = atual.usuario && atual.usuario.email ? atual.usuario.email : 'não conectada';
+    const login = document.getElementById('fb-login');
+    const logout = document.getElementById('fb-logout');
+    const conectado = !!(atual && atual.usuario);
+    if (login) login.classList.toggle('oculto', conectado);
+    if (logout) logout.classList.toggle('oculto', !conectado);
   }
 
   function render() {
@@ -1265,19 +1318,39 @@
 
   render();
 
+  const opcoesSyncBase = {
+    obterEstado: function () { return state; },
+    aplicarEstado: function (novoState, silencioso) {
+      state = novoState;
+      window.Store.salvar(state, { marcarAlterado: false });
+      render();
+      if (!silencioso) toast('Dados sincronizados', 'sucesso');
+    }
+  };
+
   if (window.Sync) {
-    window.Sync.iniciar({
-      obterEstado: function () { return state; },
-      aplicarEstado: function (novoState, silencioso) {
-        state = novoState;
-        window.Store.salvar(state, { marcarAlterado: false });
-        render();
-        if (!silencioso) toast('Dados sincronizados', 'sucesso');
-      },
+    window.Sync.iniciar(Object.assign({}, opcoesSyncBase, {
       aoStatus: function (novoStatus) {
         syncStatus = novoStatus;
         atualizarSyncUi();
       }
-    });
+    }));
   }
+
+  function iniciarFirebaseSync() {
+    if (!window.FirebaseSync || iniciarFirebaseSync.iniciado) return;
+    iniciarFirebaseSync.iniciado = true;
+    firebaseStatus = window.FirebaseSync.status();
+    window.FirebaseSync.iniciar(Object.assign({}, opcoesSyncBase, {
+      aoStatus: function (novoStatus) {
+        const usuarioAntes = firebaseStatus && firebaseStatus.usuario ? firebaseStatus.usuario.email : null;
+        const usuarioDepois = novoStatus && novoStatus.usuario ? novoStatus.usuario.email : null;
+        firebaseStatus = novoStatus;
+        atualizarSyncUi();
+        if (rotaAtual() === 'ajustes' && usuarioAntes !== usuarioDepois) render();
+      }
+    }));
+  }
+  window.addEventListener('firebase-sync-ready', iniciarFirebaseSync);
+  iniciarFirebaseSync();
 })();
