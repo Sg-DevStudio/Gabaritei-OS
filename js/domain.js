@@ -167,7 +167,15 @@
   }
 
   // Um bloco conta como "feito" se há sessão do mesmo tópico e tipo na semana corrente
+  function chaveBlocoVinculado(inicioSemana, bloco) {
+    if (!inicioSemana || !bloco || !bloco.topico) return '';
+    return inicioSemana + '|' + bloco.topico + '|' + (bloco.tipo || 'teoria');
+  }
+
   function blocoFeito(state, bloco, inicioSemana) {
+    const vinculados = state.config && Array.isArray(state.config.blocosVinculados)
+      ? state.config.blocosVinculados : [];
+    if (vinculados.indexOf(chaveBlocoVinculado(inicioSemana, bloco)) >= 0) return true;
     const fim = addDias(inicioSemana, 7);
     const tipoSessao = bloco.tipo === 'questoes' ? 'questoes' : bloco.tipo === 'teoria' ? 'teoria' : null;
     return sessoesDoPlano(state).some((s) =>

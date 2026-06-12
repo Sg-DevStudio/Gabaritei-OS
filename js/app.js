@@ -16,6 +16,8 @@
   let pintarTimerAtual = null;
   let audioCtx = null;
   let ultimaRotaRender = null;
+  let planejamentoConfigAberta = false;
+  let disciplinaDetalheId = null;
 
   // ---------------- utilidades de UI ----------------
   function esc(s) {
@@ -243,6 +245,35 @@
       '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' +
       '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar data</button>' +
       '</div>';
+  }
+
+  function linksApoioHojeHtml() {
+    return '<div class="apoio-links">' +
+      '<a class="apoio-link" href="https://www.notion.so/login" target="_blank" rel="noopener">Notion</a>' +
+      '<a class="apoio-link" href="https://notebooklm.google.com/" target="_blank" rel="noopener">NotebookLM</a>' +
+      '</div>';
+  }
+
+  function chaveBlocoVinculado(inicioSemana, topicoId, tipo) {
+    return inicioSemana + '|' + topicoId + '|' + (tipo || 'teoria');
+  }
+
+  function vincularBlocoEstudado(topicoId, tipo, inicioSemana) {
+    const fim = D.addDias(inicioSemana, 7);
+    const sessao = D.sessoesDoPlano(state).find(function (s) {
+      return s.topicoId === topicoId && s.data >= inicioSemana && s.data < fim;
+    });
+    if (!sessao) {
+      toast('Não encontrei estudo anterior deste tópico nesta semana. Vou abrir o registro.', 'erro');
+      abrirRegistro({ topicoId: topicoId, tipo: tipo || 'teoria' });
+      return;
+    }
+    state.config.blocosVinculados = state.config.blocosVinculados || [];
+    const chave = chaveBlocoVinculado(inicioSemana, topicoId, tipo);
+    if (state.config.blocosVinculados.indexOf(chave) < 0) state.config.blocosVinculados.push(chave);
+    salvar();
+    render();
+    toast('Estudo de ' + D.formatarDataBR(sessao.data) + ' vinculado ao plano', 'sucesso');
   }
 
   function abrirEditarProva() {
@@ -491,6 +522,73 @@
     return html;
   }
 
+  function constanciaFaixaHtml(nDias) {
+    const hoje = D.hojeISO();
+    const dias = D.heatmapDias(D.sessoesDoPlano(state), hoje, nDias || 30);
+    const st = D.streak(D.sessoesDoPlano(state), hoje);
+    const inicio = dias.length ? dias[0].data : hoje;
+    const fim = dias.length ? dias[dias.length - 1].data : hoje;
+    return '<div class="constancia-faixa">' +
+      '<div class="constancia-faixa-topo"><div><div class="card-kpi-rotulo">Constância nos estudos</div>' +
+      '<p>Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia' : ' dias') + '</strong> sem falhar! Seu recorde é de <strong>' + st.recorde + (st.recorde === 1 ? ' dia' : ' dias') + '</strong>.</p></div>' +
+      '<div class="constancia-periodo"><button class="botao-mini botao-quieto" type="button" disabled>‹</button><span>' + D.formatarDataBR(inicio).slice(0, 5) + ' ~ ' + D.formatarDataBR(fim).slice(0, 5) + '</span><button class="botao-mini botao-quieto" type="button" disabled>›</button></div></div>' +
+      '<div class="constancia-trilho">' + dias.map(function (d) {
+        const fez = d.minutos > 0;
+        const classe = fez ? 'feito' : 'falha';
+        const simbolo = fez ? '✓' : '×';
+        return '<span class="constancia-dia constancia-' + classe + '" title="' + D.formatarDataBR(d.data) + ' — ' + D.formatarMin(d.minutos) + '">' + simbolo + '</span>';
+      }).join('') + '</div></div>';
+  }
+
+  function dadosPainelDisciplinas() {
+    return state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
+      const ids = new Set(d.topicos.map(function (t) { return t.id; }));
+      let minutos = 0, feitas = 0, certas = 0;
+      D.sessoesDoPlano(state).forEach(function (s) {
+        if (!ids.has(s.topicoId)) return;
+        minutos += s.duracaoMin || 0;
+        feitas += s.qFeitas || 0;
+        certas += s.qCertas || 0;
+      });
+      const progresso = D.progressoDisciplina(d);
+      const pct = feitas > 0 ? Math.round((certas / feitas) * 100) : null;
+      return {
+        id: d.id,
+        nome: d.nome,
+        cor: d.cor,
+        minutos: minutos,
+        tempo: minutos > 0 ? D.formatarMin(minutos) : '-',
+        certas: certas,
+        erros: Math.max(0, feitas - certas),
+        feitas: feitas,
+        pct: pct,
+        progresso: progresso.pct
+      };
+    }).sort(function (a, b) {
+      return b.minutos - a.minutos || b.feitas - a.feitas || a.nome.localeCompare(b.nome);
+    });
+  }
+
+  function painelDisciplinasHojeHtml() {
+    const linhas = dadosPainelDisciplinas();
+    if (linhas.length === 0) return '';
+    return '<div class="card painel-disciplinas-card"><div class="card-kpi-rotulo">Painel</div>' +
+      '<div class="painel-scroll"><table class="painel-disciplinas"><thead><tr>' +
+      '<th>Disciplinas</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
+      linhas.map(function (d) {
+        const pctClasse = d.pct === null ? 'neutro' : d.pct >= 70 ? 'bom' : d.pct >= 60 ? 'medio' : 'baixo';
+        return '<tr data-disc-detalhe="' + esc(d.id) + '" role="button" tabindex="0">' +
+          '<td><span class="disc-link" style="--disc-cor:' + esc(d.cor) + '">' + esc(d.nome) + '</span></td>' +
+          '<td class="num">' + d.tempo + '</td>' +
+          '<td class="num painel-acertos">' + d.certas + '</td>' +
+          '<td class="num painel-erros">' + d.erros + '</td>' +
+          '<td class="num">' + d.feitas + '</td>' +
+          '<td class="num"><span class="painel-pct painel-pct-' + pctClasse + '">' + (d.pct === null ? '0' : d.pct) + '</span></td>' +
+          '</tr>';
+      }).join('') +
+      '</tbody></table></div></div>';
+  }
+
   function telaHoje() {
     const hoje = D.hojeISO();
     const hora = new Date().getHours();
@@ -500,6 +598,7 @@
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
       return '<div class="cab-pagina"><div><h1>' + saudacaoCompleta(saudacao) + '</h1></div></div>' +
+        linksApoioHojeHtml() +
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
         '<strong>Bem-vindo aos seus estudos</strong>' +
@@ -529,6 +628,7 @@
       '<p class="sub">' + resumoDia + '</p></div>' +
       '<button class="botao-secundario" id="btn-registrar-livre">Registrar sessão</button></div>';
 
+    html += linksApoioHojeHtml();
     html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
 
     // constância em destaque, centralizada (estilo GitHub)
@@ -552,6 +652,8 @@
       '<div class="card-kpi-valor">' + (pctSemana === null ? '—' : pctSemana + '%') + '</div>' +
       '<div class="msg-coach">' + mensagemCoach(pctSemana, metaPct) + '</div></div>';
     html += '</div>';
+
+    html += painelDisciplinasHojeHtml();
 
     // fila do dia (RN06 + agenda manual)
     html += '<div class="card"><h3 style="margin-bottom:0.25rem">O que estudar hoje</h3>';
@@ -604,6 +706,7 @@
           sub = 'bloco da semana ' + item.semana;
           acoes = item.feito ? '' :
             '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
+            '<button class="botao-mini botao-quieto" data-acao="vincular-bloco" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '" data-inicio="' + esc(sem && sem.inicio ? sem.inicio : hoje) + '">Já estudei</button>' +
             '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '">Registrar</button>';
         } else {
           etiqueta = '<span class="etiqueta etiqueta-reaberto">Reaberto</span>';
@@ -632,6 +735,14 @@
     if (btn) btn.addEventListener('click', function () { abrirRegistro({}); });
     const provaEditar = raiz.querySelector('#prova-editar');
     if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
+    raiz.querySelectorAll('[data-disc-detalhe]').forEach(function (linha) {
+      const abrir = function () {
+        disciplinaDetalheId = linha.getAttribute('data-disc-detalhe');
+        location.hash = '#disciplina-' + encodeURIComponent(disciplinaDetalheId);
+      };
+      linha.addEventListener('click', abrir);
+      linha.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
     raiz.querySelectorAll('[data-acao]').forEach(function (el) {
       el.addEventListener('click', function () {
         const acao = el.getAttribute('data-acao');
@@ -640,6 +751,8 @@
           location.hash = '#timer';
         } else if (acao === 'registrar') {
           abrirRegistro({ topicoId: el.getAttribute('data-id'), tipo: el.getAttribute('data-tipo') || 'teoria' });
+        } else if (acao === 'vincular-bloco') {
+          vincularBlocoEstudado(el.getAttribute('data-id'), el.getAttribute('data-tipo') || 'teoria', el.getAttribute('data-inicio') || D.segundaDaSemana(D.hojeISO()));
         } else if (acao === 'concluir-revisao') {
           abrirConcluirRevisao(el.getAttribute('data-id'));
         } else if (acao === 'concluir-agenda' || acao === 'timer-agenda') {
@@ -688,7 +801,7 @@
 
     return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="tela-timer"><div class="timer-conteudo">' +
       selecao +
-      '<div class="timer-display" id="timer-display">' + (ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00') + '</div>' +
+      '<div class="timer-relogio-frame"><div class="timer-display" id="timer-display">' + (ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00') + '</div></div>' +
       '<div class="timer-modo-info" id="timer-info"></div>' +
       '<div class="timer-acoes" id="timer-acoes"></div>' +
       '</div></div></section>';
@@ -887,6 +1000,30 @@
   }
 
   // ---------------- TELA: Edital verticalizado ----------------
+  function comparativoPlanosHtml() {
+    if (!state.plano || state.planos.length < 2) return '';
+    const ativo = entradaPlanoAtivo();
+    if (!ativo) return '';
+    const nomesAtivo = new Set(ativo.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) { return d.nome.toLowerCase(); }));
+    const outros = state.planos.filter(function (p) { return p.id !== state.planoAtivoId; });
+    let comuns = 0, diferentes = 0, topicosDiferentes = 0;
+    outros.forEach(function (p) {
+      p.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).forEach(function (d) {
+        const nome = d.nome.toLowerCase();
+        if (nomesAtivo.has(nome)) {
+          comuns++;
+          const dAtivo = ativo.disciplinas.find(function (x) { return x.nome.toLowerCase() === nome; });
+          if (dAtivo && dAtivo.topicos.filter(function (t) { return !t.orfao; }).length !== d.topicos.filter(function (t) { return !t.orfao; }).length) topicosDiferentes++;
+        } else {
+          diferentes++;
+        }
+      });
+    });
+    return '<div class="card edital-contexto"><div><div class="card-kpi-rotulo">Comparação entre editais</div>' +
+      '<p><strong>' + esc(state.plano.concurso) + '</strong> está ativo. Entre os outros planos salvos, há ' + comuns + ' disciplinas com nomes parecidos, ' + diferentes + ' exclusivas e ' + topicosDiferentes + ' com quantidade de tópicos diferente.</p>' +
+      '<p class="sub">Mesmo quando o nome da disciplina é igual, confira os tópicos: o conteúdo cobrado pode mudar bastante.</p></div></div>';
+  }
+
   function telaEdital() {
     if (state.disciplinas.length === 0) {
       return '<h1>Edital</h1><div class="card"><div class="estado-vazio">' +
@@ -900,6 +1037,8 @@
     let html = '<div class="cab-pagina"><div><h1>Edital verticalizado</h1>' +
       '<p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos com teoria concluída (' + prog.pct + '%) · % = incidência nas últimas provas</p></div></div>';
 
+    html += '<div class="card edital-contexto"><div class="card-kpi-rotulo">Plano ativo</div><p><strong>' + esc(state.plano.concurso) + '</strong></p><p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos concluídos (' + prog.pct + '%). Percentual dos tópicos indica incidência estimada nas provas.</p></div>';
+    html += comparativoPlanosHtml();
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
     state.disciplinas.forEach(function (d) {
       const aberta = editalAbertas.has(d.id);
@@ -1175,8 +1314,7 @@
       '<div class="card-kpi-extra">recorde: ' + st.recorde + ' · edital: ' + prog.pct + '%</div></div>' +
       '</div>';
 
-    // heatmap de constância (estilo GitHub, 12 semanas)
-    html += '<div class="card"><h3 style="text-align:center">Constância (12 semanas)</h3>' + heatmapHtml(84, false) + '</div>';
+    html += '<div class="card">' + constanciaFaixaHtml(30) + '</div>';
 
     const horasDisc = dadosHorasPorDisciplina();
     const topicosDesempenho = dadosTopicosDesempenho();
@@ -1217,6 +1355,112 @@
       const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
       window.Graficos.topicosDesempenho(cTopicos, dadosTopicosDesempenho(), metaPct);
     }
+  }
+
+  // ---------------- TELA: Disciplina detalhada ----------------
+  function sessoesDaDisciplina(disciplina) {
+    const ids = new Set(disciplina.topicos.map(function (t) { return t.id; }));
+    return D.sessoesDoPlano(state).filter(function (s) { return ids.has(s.topicoId); })
+      .sort(function (a, b) { return b.data.localeCompare(a.data) || b.id.localeCompare(a.id); });
+  }
+
+  function metricasDisciplina(disciplina) {
+    const sessoes = sessoesDaDisciplina(disciplina);
+    let minutos = 0, feitas = 0, certas = 0;
+    sessoes.forEach(function (s) {
+      minutos += s.duracaoMin || 0;
+      feitas += s.qFeitas || 0;
+      certas += s.qCertas || 0;
+    });
+    const progresso = D.progressoDisciplina(disciplina);
+    return {
+      sessoes: sessoes,
+      minutos: minutos,
+      feitas: feitas,
+      certas: certas,
+      erros: Math.max(0, feitas - certas),
+      desempenho: feitas > 0 ? Math.round((certas / feitas) * 100) : null,
+      progresso: progresso
+    };
+  }
+
+  function telaDisciplinaDetalhe() {
+    const disc = D.disciplinaPorId(state, disciplinaDetalheId) || state.disciplinas.find(function (d) { return d.id !== 'ORF'; });
+    if (!disc) {
+      return '<h1>Disciplina</h1><div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhuma disciplina</strong>Crie ou importe um plano para ver os detalhes.</div></div>';
+    }
+    disciplinaDetalheId = disc.id;
+    const m = metricasDisciplina(disc);
+    const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
+    let html = '<div class="cab-pagina detalhe-disc-cab"><div><span class="rotulo-pagina">' + esc(state.plano ? state.plano.concurso : 'Plano manual') + '</span>' +
+      '<h1>' + esc(disc.nome) + '</h1><p class="sub">Edital verticalizado da disciplina, histórico e desempenho acumulado.</p></div>' +
+      '<div class="cab-acoes"><button class="botao-secundario" id="det-voltar">Voltar</button><button id="det-add">Adicionar estudo</button></div></div>';
+
+    html += '<div class="linha-cards detalhe-metricas">' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">Tempo de estudo</div><div class="card-kpi-valor">' + D.formatarMin(m.minutos) + '</div></div>' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">Desempenho</div><div class="card-kpi-extra"><span class="painel-acertos">' + m.certas + ' acertos</span><br><span class="painel-erros">' + m.erros + ' erros</span></div><div class="card-kpi-valor">' + (m.desempenho === null ? '—' : m.desempenho + '%') + '</div></div>' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">Progresso no edital</div><div class="card-kpi-extra">' + m.progresso.concluidos + ' tópicos concluídos<br>' + (m.progresso.total - m.progresso.concluidos) + ' pendentes</div><div class="card-kpi-valor">' + m.progresso.pct + '%</div></div>' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + m.feitas + '</div><div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
+      '</div>';
+
+    html += '<div class="card"><div class="card-kpi-rotulo">Histórico de registros</div>';
+    if (m.sessoes.length === 0) {
+      html += '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem registros nesta disciplina</strong>Use o botão Adicionar estudo para começar.</div>';
+    } else {
+      html += '<div class="painel-scroll"><table><thead><tr><th>Data</th><th>Categoria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">%</th><th>Tópico</th></tr></thead><tbody>' +
+        m.sessoes.slice(0, 12).map(function (s) {
+          const t = D.topicoPorId(state, s.topicoId);
+          const pct = s.qFeitas > 0 ? Math.round((s.qCertas / s.qFeitas) * 100) : null;
+          return '<tr><td class="num">' + D.formatarDataBR(s.data).slice(0, 8) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
+            '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td><td class="num painel-acertos">' + (s.qCertas || 0) + '</td>' +
+            '<td class="num painel-erros">' + Math.max(0, (s.qFeitas || 0) - (s.qCertas || 0)) + '</td>' +
+            '<td class="num">' + (pct === null ? '0' : pct) + '</td><td>' + esc(t ? t.nome : s.topicoId) + '</td></tr>';
+        }).join('') +
+        '</tbody></table></div>';
+    }
+    html += '</div>';
+
+    html += '<div class="card edital-disc-card"><div class="card-kpi-rotulo">Edital verticalizado</div>' +
+      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th><th class="num">Incid.</th></tr></thead><tbody>' +
+      disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
+        const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
+        const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
+        const erros = Math.max(0, dt.feitas - dt.certas);
+        return '<tr data-topico-detalhe="' + esc(t.id) + '" role="button" tabindex="0">' +
+          '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tópico">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
+          '<td class="num painel-acertos">' + dt.certas + '</td><td class="num painel-erros">' + erros + '</td>' +
+          '<td class="num">' + dt.feitas + '</td><td class="num"><span class="painel-pct painel-pct-' + (dt.pct === null ? 'neutro' : dt.pct >= metaPct ? 'bom' : dt.pct >= metaPct - 10 ? 'medio' : 'baixo') + '">' + (dt.pct === null ? '0' : dt.pct) + '</span></td>' +
+          '<td class="num">' + (t.incidencia_pct || 0) + '%</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+    return html;
+  }
+
+  function ligarDisciplinaDetalhe(raiz) {
+    const voltar = raiz.querySelector('#det-voltar');
+    if (voltar) voltar.addEventListener('click', function () { location.hash = '#hoje'; });
+    const add = raiz.querySelector('#det-add');
+    if (add) add.addEventListener('click', function () {
+      const disc = D.disciplinaPorId(state, disciplinaDetalheId);
+      const topico = disc && disc.topicos.find(function (t) { return !t.orfao; });
+      abrirRegistro({ topicoId: topico ? topico.id : null });
+    });
+    raiz.querySelectorAll('[data-topico-check]').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const t = D.topicoPorId(state, b.getAttribute('data-topico-check'));
+        if (!t) return;
+        const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
+        t.status = feito ? 'em_curso' : 'teoria_concluida';
+        if (!feito) agendarRevisoesSeNecessario(t.id);
+        salvar(); render();
+        toast(feito ? 'Tópico reaberto' : 'Tópico concluído', 'sucesso');
+      });
+    });
+    raiz.querySelectorAll('[data-topico-detalhe]').forEach(function (linha) {
+      const abrir = function () { abrirTopico(linha.getAttribute('data-topico-detalhe')); };
+      linha.addEventListener('click', abrir);
+      linha.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
   }
 
   // ---------------- TELA: Histórico ----------------
@@ -1720,11 +1964,12 @@
     const mapa = {
       sustentavel: 'Sustentável',
       hardcore: 'Hardcore',
+      plano_ativo: 'Plano gerado',
       plano_3m: '3 meses',
       plano_6m: '6 meses',
       plano_9m: '9 meses'
     };
-    const base = mapa[chave] || chave.replace(/_/g, ' ');
+    const base = chave === 'plano_ativo' && dados && dados.meses ? dados.meses + ' meses' : (mapa[chave] || chave.replace(/_/g, ' '));
     const horas = dados && (dados.h_semana || dados.h_semana_exigidas);
     return base + (horas ? ' · ' + horas + 'h/semana' : '');
   }
@@ -1771,7 +2016,7 @@
       (ritmos.length > 0 ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>' :
         '<p class="sub">Este plano ainda não tem cronograma gerado.</p>') +
       '<div class="compact-actions">' +
-      '<button class="botao-mini" id="pl-gerar-ritmos">Gerar 3 · 6 · 9 meses</button>' +
+      '<button class="botao-mini" id="pl-gerar-ritmos">Gerar plano de estudos</button>' +
       '<button class="botao-mini botao-secundario" id="pl-gerar-agenda">Mostrar semana no calendário</button>' +
       '<button class="botao-mini botao-quieto" id="pl-ajustar-perfil">Dificuldades</button></div>' +
       (optsDisc ? '<div class="ajuste-cronograma"><label for="pl-disc-ajuste">Ajustar disciplina no cronograma</label>' +
@@ -1839,7 +2084,40 @@
     toast('Plano "' + nome.trim() + '" criado', 'sucesso');
   }
 
-  function gerarCronogramaHierarquico(disciplinas, semanas) {
+  function grupoCognitivoDisciplina(d) {
+    const nome = (d.nome + ' ' + d.id).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (/portugues|lingua|redacao|texto|gramatica/.test(nome)) return 'linguagem';
+    if (/raciocinio|logico|matematica|estatistica|financeira|exatas/.test(nome)) return 'logica';
+    if (/direito|constitucional|administrativo|civil|penal|tributario|previdenciario|processual/.test(nome)) return 'direito';
+    if (/informatica|tecnologia|dados|sistemas/.test(nome)) return 'tecnologia';
+    return 'geral';
+  }
+
+  function alternarGrupos(lista, limite) {
+    const pool = lista.slice();
+    const escolhidos = [];
+    let ultimoGrupo = '';
+    while (pool.length > 0 && escolhidos.length < limite) {
+      let idx = pool.findIndex(function (x) { return x.grupo !== ultimoGrupo; });
+      if (idx < 0) idx = 0;
+      const item = pool.splice(idx, 1)[0];
+      escolhidos.push(item);
+      ultimoGrupo = item.grupo;
+    }
+    return escolhidos;
+  }
+
+  function semanasPorMeses(meses) {
+    return meses === 3 ? 13 : meses === 9 ? 39 : 26;
+  }
+
+  function entradaPlanoAtivo() {
+    return state.planos.find(function (p) { return p.id === state.planoAtivoId; }) || null;
+  }
+
+  function gerarCronogramaHierarquico(disciplinas, semanas, opcoes) {
+    opcoes = opcoes || {};
+    const horasSemana = opcoes.horasSemana || 20;
     const inicio = D.segundaDaSemana(D.hojeISO());
     const semanasCron = [];
     for (let i = 0; i < semanas; i++) {
@@ -1858,16 +2136,17 @@
       return {
         disciplina: d,
         idx,
+        grupo: grupoCognitivoDisciplina(d),
         topicos,
         cursor: 0,
-        score: (d.peso || 1) * 4 + incidencia / 20 + prioridade / Math.max(1, topicos.length),
+        score: (d.peso || 1) * 4 * multDificuldade(d) + incidencia / 20 + prioridade / Math.max(1, topicos.length),
         inicio: 1
       };
     }).filter(function (d) { return d.topicos.length > 0; }).sort(function (a, b) {
       return b.score - a.score || a.idx - b.idx;
     });
     docs.forEach(function (d, idx) {
-      d.inicio = idx < 4 ? 1 : Math.min(semanas, 2 + Math.floor((idx - 3) * semanas / Math.max(1, docs.length)));
+      d.inicio = idx < 3 ? 1 : Math.min(semanas, 2 + Math.floor((idx - 2) * semanas / Math.max(1, docs.length)));
     });
     const estudadosPorSemana = {};
     for (let s = 1; s <= semanas; s++) {
@@ -1880,8 +2159,11 @@
         const atrasoB = b.topicos[b.cursor] ? Math.max(0, s - b.topicos[b.cursor].sugerida) : 0;
         return (b.score + atrasoB) - (a.score + atrasoA);
       });
-      const limite = s < semanas * 0.72 ? 4 : 5;
-      ativos.slice(0, limite).forEach(function (d) {
+      const limiteMax = Math.max(3, Math.min(6, Math.round(horasSemana / 4)));
+      const passoRampa = Math.max(3, Math.round(semanas / Math.max(1, docs.length)));
+      const rampa = Math.min(limiteMax, 3 + Math.floor((s - 1) / passoRampa));
+      const limite = s < semanas * 0.72 ? rampa : Math.min(limiteMax, rampa + 1);
+      alternarGrupos(ativos, limite).forEach(function (d) {
         const item = d.topicos[d.cursor++];
         if (!item) return;
         const t = item.topico;
@@ -1902,8 +2184,8 @@
     return semanasCron;
   }
 
-  function aplicarPlanosDuracaoAoAtivo(silencioso) {
-    const entrada = state.planos.find(function (p) { return p.id === state.planoAtivoId; });
+  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso) {
+    const entrada = entradaPlanoAtivo();
     if (!entrada || entrada.disciplinas.length === 0) {
       if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
       return false;
@@ -1911,26 +2193,60 @@
     const totalHoras = entrada.disciplinas.reduce(function (n, d) {
       return n + d.topicos.reduce(function (m, t) { return m + (t.horas_estimadas || 2); }, 0);
     }, 0);
-    const defs = [
-      { chave: 'plano_3m', meses: 3, semanas: 13 },
-      { chave: 'plano_6m', meses: 6, semanas: 26 },
-      { chave: 'plano_9m', meses: 9, semanas: 39 }
-    ];
+    meses = meses === 3 || meses === 9 ? meses : 6;
+    const semanas = semanasPorMeses(meses);
+    const chave = 'plano_ativo';
+    const hSemana = Math.max(4, Math.round(horasSemana || Math.ceil((totalHoras * 1.8) / semanas) || 20));
+    entrada.cronogramas = {};
     entrada.plano.ritmos = entrada.plano.ritmos || {};
-    defs.forEach(function (def) {
-      entrada.cronogramas[def.chave] = gerarCronogramaHierarquico(entrada.disciplinas, def.semanas);
-      entrada.plano.ritmos[def.chave] = {
-        meses: def.meses,
-        semanas: def.semanas,
-        h_semana: Math.max(6, Math.ceil((totalHoras * 1.8) / def.semanas))
-      };
-    });
-    entrada.plano.ritmoAtivo = entrada.plano.ritmoAtivo && entrada.cronogramas[entrada.plano.ritmoAtivo] &&
-      entrada.cronogramas[entrada.plano.ritmoAtivo].length ? entrada.plano.ritmoAtivo : 'plano_6m';
+    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana });
+    entrada.plano.ritmos = {};
+    entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana };
+    entrada.plano.ritmoAtivo = chave;
+    entrada.plano.gerado_em = D.hojeISO();
     window.Store.hidratar(state);
     salvar();
-    if (!silencioso) toast('Planos de 3, 6 e 9 meses gerados', 'sucesso');
+    if (!silencioso) toast('Plano de ' + meses + ' meses gerado e ativado', 'sucesso');
     return true;
+  }
+
+  function aplicarPlanosDuracaoAoAtivo(silencioso) {
+    return aplicarPlanoDuracaoAoAtivo(6, null, silencioso);
+  }
+
+  function abrirGerarPlano() {
+    if (!state.plano || state.disciplinas.length === 0) {
+      toast('Crie ou importe disciplinas antes de gerar o plano.', 'erro');
+      return;
+    }
+    const ritmo = state.plano.ritmoAtivo;
+    const atual = state.plano.ritmos && ritmo ? state.plano.ritmos[ritmo] : null;
+    const mesesAtual = atual && atual.meses ? atual.meses : 6;
+    const horasAtual = atual && atual.h_semana ? atual.h_semana : (D.metaSemanal(state, D.hojeISO()).horasAlvo || 20);
+    const m = abrirModal(
+      '<h3>Gerar plano de estudos</h3>' +
+      '<p class="sub">Escolha uma duração. O sistema mantém apenas um cronograma ativo por plano e organiza as disciplinas de forma gradual.</p>' +
+      '<form id="form-gerar-plano">' +
+      '<div class="grade-2"><div><label for="gp-meses">Terminar edital em</label><select id="gp-meses">' +
+      [3, 6, 9].map(function (v) {
+        return '<option value="' + v + '"' + (v === mesesAtual ? ' selected' : '') + '>' + v + ' meses</option>';
+      }).join('') + '</select></div>' +
+      '<div><label for="gp-horas">Horas por semana</label><input id="gp-horas" type="number" min="4" max="80" value="' + esc(horasAtual) + '"></div></div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="gp-cancelar">Cancelar</button>' +
+      '<button type="submit">Gerar plano</button></div></form>'
+    );
+    m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#form-gerar-plano').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const meses = parseInt(m.querySelector('#gp-meses').value, 10);
+      const horas = Math.max(4, Math.min(80, parseInt(m.querySelector('#gp-horas').value, 10) || 20));
+      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true)) return;
+      fecharModal();
+      const cron = D.cronogramaAtivo(state);
+      agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
+      agendaModo = 'semana';
+      gerarSemanaNaAgenda();
+    });
   }
 
   function deslocarDisciplinaCronograma(disciplinaId, delta) {
@@ -2073,14 +2389,17 @@
     const hoje = D.hojeISO();
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
       '<p class="sub">Plano atual, editais cadastrados e agenda no mesmo lugar.</p></div>' +
-      '<button class="botao-quieto" id="pl-nova-disc">+ Nova disciplina</button></div>';
+      '<div class="cab-acoes"><button class="botao-quieto" id="pl-config">⚙ Configurações</button>' +
+      '<button class="botao-quieto" id="pl-nova-disc">+ Nova disciplina</button></div></div>';
 
     html += '<div class="planejamento-layout">' +
       planoAtualHtml() +
       planosCadastradosHtml() +
-      importacaoPlanejamentoHtml() +
-      catalogoPlanejamentoHtml() +
       '</div>';
+
+    if (planejamentoConfigAberta) {
+      html += '<div class="planejamento-config-panel">' + importacaoPlanejamentoHtml() + catalogoPlanejamentoHtml() + '</div>';
+    }
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
@@ -2156,6 +2475,11 @@
   }
 
   function ligarPlanejamento(raiz) {
+    const config = raiz.querySelector('#pl-config');
+    if (config) config.addEventListener('click', function () {
+      planejamentoConfigAberta = !planejamentoConfigAberta;
+      render();
+    });
     const novaDisc = raiz.querySelector('#pl-nova-disc');
     if (novaDisc) novaDisc.addEventListener('click', abrirNovaDisciplina);
     const criarDisc = raiz.querySelector('#pl-criar-disc');
@@ -2173,8 +2497,7 @@
     });
     const gerarRitmos = raiz.querySelector('#pl-gerar-ritmos');
     if (gerarRitmos) gerarRitmos.addEventListener('click', function () {
-      aplicarPlanosDuracaoAoAtivo(false);
-      render();
+      abrirGerarPlano();
     });
     const gerarAgenda = raiz.querySelector('#pl-gerar-agenda');
     if (gerarAgenda) gerarAgenda.addEventListener('click', gerarSemanaNaAgenda);
@@ -2337,13 +2660,19 @@
   }
 
   // distribuição de horas da semana corrente: peso do concurso × dificuldade do aluno
-  function distribuicaoSemanal() {
+  function distribuicaoSemanal(inicioReferencia) {
     if (!state.plano) return null;
     const hoje = D.hojeISO();
-    const sem = D.semanaCorrente(state, hoje);
+    const ref = inicioReferencia || agendaRef || D.segundaDaSemana(hoje);
+    const cron = state.cronogramas && state.plano ? (state.cronogramas[state.plano.ritmoAtivo || 'sustentavel'] || []) : [];
+    let sem = cron.find(function (s) { return ref >= s.inicio && ref < D.addDias(s.inicio, 7); });
+    if (!sem && cron.length > 0 && ref < cron[0].inicio) sem = cron[0];
+    if (!sem) sem = D.semanaCorrente(state, hoje);
     if (!sem || sem.futura || sem.encerrado) return null;
     const meta = D.metaSemanal(state, hoje);
-    const hAlvo = meta.horasAlvo > 0 ? meta.horasAlvo : 20;
+    const ritmo = state.plano.ritmoAtivo || 'sustentavel';
+    const r = state.plano.ritmos && state.plano.ritmos[ritmo];
+    const hAlvo = r && (r.h_semana || r.h_semana_exigidas) ? (r.h_semana || r.h_semana_exigidas) : (meta.horasAlvo > 0 ? meta.horasAlvo : 20);
 
     const porDisc = {};
     sem.blocos.forEach(function (b) {
@@ -2370,7 +2699,7 @@
 
   // materializa a distribuição como blocos na agenda da semana (regenerável)
   function gerarSemanaNaAgenda() {
-    const dist = distribuicaoSemanal();
+    const dist = distribuicaoSemanal(agendaRef);
     if (!dist) { toast('Sem semana ativa no cronograma para gerar.', 'erro'); return; }
     const ini = dist.semana.inicio;
     const fim = D.addDias(ini, 7);
@@ -2570,6 +2899,7 @@
     edital: { render: telaEdital, ligar: ligarEdital },
     simulados: { render: telaSimulados, ligar: ligarSimulados },
     stats: { render: telaStats, ligar: ligarStats },
+    disciplina: { render: telaDisciplinaDetalhe, ligar: ligarDisciplinaDetalhe },
     historico: { render: telaHistorico, ligar: ligarHistorico },
     ajustes: { render: telaAjustes, ligar: ligarAjustes },
     planos: { render: telaPlanos, ligar: ligarPlanos },
@@ -2578,6 +2908,10 @@
 
   function rotaAtual() {
     const r = location.hash.replace('#', '') || 'hoje';
+    if (r.indexOf('disciplina-') === 0) {
+      disciplinaDetalheId = decodeURIComponent(r.slice('disciplina-'.length));
+      return 'disciplina';
+    }
     return telas[r] ? r : 'hoje';
   }
 

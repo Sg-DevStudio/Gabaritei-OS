@@ -56,6 +56,7 @@
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';
+    if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
     if (!state.sessoes) state.sessoes = [];
     if (!state.revisoes) state.revisoes = [];
     if (!state.simulados) state.simulados = [];
