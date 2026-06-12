@@ -68,6 +68,14 @@
     return state.disciplinas.find((d) => d.id === id) || null;
   }
 
+  // Registros do plano ativo (itens antigos sem planoId contam — schema v1)
+  function doPlanoAtivo(state, lista) {
+    if (!state.planoAtivoId) return lista;
+    return lista.filter((x) => !x.planoId || x.planoId === state.planoAtivoId);
+  }
+
+  function sessoesDoPlano(state) { return doPlanoAtivo(state, state.sessoes); }
+
   // ---------- RN01 — Teoria concluída agenda revisões 24h/7d/30d ----------
   function agendarRevisoes(topicoId, dataBaseISO) {
     return [
@@ -88,9 +96,10 @@
 
   function desempenhoDisciplina(state, disciplina) {
     // média ponderada pela incidência, só entre tópicos com registro
+    const sessoes = sessoesDoPlano(state);
     let somaPesos = 0, soma = 0;
     for (const t of disciplina.topicos) {
-      const d = desempenhoTopico(state.sessoes, t.id);
+      const d = desempenhoTopico(sessoes, t.id);
       if (d.pct !== null) {
         const peso = t.incidencia_pct || 1;
         soma += d.pct * peso;
@@ -161,7 +170,7 @@
   function blocoFeito(state, bloco, inicioSemana) {
     const fim = addDias(inicioSemana, 7);
     const tipoSessao = bloco.tipo === 'questoes' ? 'questoes' : bloco.tipo === 'teoria' ? 'teoria' : null;
-    return state.sessoes.some((s) =>
+    return sessoesDoPlano(state).some((s) =>
       s.topicoId === bloco.topico && s.data >= inicioSemana && s.data < fim &&
       (tipoSessao === null || s.tipo === tipoSessao)
     );
@@ -171,7 +180,7 @@
   function filaHoje(state, hoje) {
     const fila = [];
 
-    const vencidas = state.revisoes
+    const vencidas = doPlanoAtivo(state, state.revisoes)
       .filter((r) => !r.dataConcluida && r.dataAgendada <= hoje && topicoPorId(state, r.topicoId))
       .sort((a, b) => a.dataAgendada.localeCompare(b.dataAgendada));
     for (const r of vencidas) fila.push({ categoria: 'revisao', topicoId: r.topicoId, revisao: r });
@@ -343,7 +352,7 @@
     const inicio = segundaDaSemana(hoje);
     const fim = addDias(inicio, 7);
     let minutos = 0, qFeitas = 0, qCertas = 0;
-    for (const s of state.sessoes) {
+    for (const s of sessoesDoPlano(state)) {
       if (s.data >= inicio && s.data < fim) {
         minutos += s.duracaoMin || 0;
         qFeitas += s.qFeitas || 0;
@@ -393,12 +402,13 @@
   // ---------- Série semanal para gráficos ----------
   function serieSemanal(state, hoje, nSemanas) {
     const serie = [];
+    const sessoes = sessoesDoPlano(state);
     const inicioAtual = segundaDaSemana(hoje);
     for (let i = nSemanas - 1; i >= 0; i--) {
       const ini = addDias(inicioAtual, -7 * i);
       const fim = addDias(ini, 7);
       let minutos = 0, feitas = 0, certas = 0;
-      for (const s of state.sessoes) {
+      for (const s of sessoes) {
         if (s.data >= ini && s.data < fim) {
           minutos += s.duracaoMin || 0; feitas += s.qFeitas || 0; certas += s.qCertas || 0;
         }
@@ -411,10 +421,11 @@
   // ---------- Piores tópicos (para simulado → fila, F3) ----------
   function pioresTopicos(state, n) {
     const lista = [];
+    const sessoes = sessoesDoPlano(state);
     for (const d of state.disciplinas) {
       for (const t of d.topicos) {
         if (t.orfao) continue;
-        const desemp = desempenhoTopico(state.sessoes, t.id);
+        const desemp = desempenhoTopico(sessoes, t.id);
         if (desemp.pct !== null && desemp.feitas >= 5) {
           lista.push({ topico: t, disciplina: d, pct: desemp.pct, feitas: desemp.feitas });
         }
@@ -426,7 +437,7 @@
 
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
-    topicoPorId, disciplinaDoTopico, disciplinaPorId,
+    topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,

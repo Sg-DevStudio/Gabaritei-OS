@@ -101,5 +101,131 @@
     return true;
   }
 
-  window.Graficos = { evolucaoSemanal, desempenhoVsMeta, disponivel };
+  function disciplinasHoras(canvas, dados) {
+    if (!disponivel()) return false;
+    destruir(canvas.id);
+    const labelsPlugin = {
+      id: 'labelsHoras',
+      afterDatasetsDraw: function (chart) {
+        const ctx = chart.ctx;
+        const dataset = chart.data.datasets[0];
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.font = '600 12px "IBM Plex Sans", sans-serif';
+        ctx.textBaseline = 'middle';
+        meta.data.forEach(function (bar, i) {
+          const valor = dataset.data[i];
+          if (!valor) return;
+          const texto = dados[i].rotulo;
+          const x = bar.x - 10;
+          const dentro = bar.width > 76;
+          ctx.fillStyle = dentro ? '#FFFFFF' : '#17181C';
+          ctx.textAlign = dentro ? 'right' : 'left';
+          ctx.fillText(texto, dentro ? x : bar.x + 8, bar.y);
+        });
+        ctx.restore();
+      }
+    };
+    instancias[canvas.id] = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: dados.map(function (d) { return d.nome; }),
+        datasets: [{
+          label: 'Horas de estudo',
+          data: dados.map(function (d) { return Math.round((d.minutos / 60) * 100) / 100; }),
+          backgroundColor: '#33C7A7',
+          borderRadius: 0,
+          barPercentage: 0.72,
+          categoryPercentage: 0.82
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: Object.assign(basePlugins(), {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) { return 'Horas de estudo: ' + dados[ctx.dataIndex].rotulo; }
+            }
+          }
+        }),
+        scales: {
+          x: {
+            beginAtZero: true,
+            position: 'top',
+            ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
+            grid: { color: '#DFE2DD' }
+          },
+          y: {
+            ticks: { color: '#17181C', font: { family: "'IBM Plex Sans', sans-serif", size: 12 } },
+            grid: { color: '#ECEEE8' }
+          }
+        }
+      },
+      plugins: [labelsPlugin]
+    });
+    return true;
+  }
+
+  function topicosDesempenho(canvas, dados, metaPct) {
+    if (!disponivel()) return false;
+    destruir(canvas.id);
+    const cores = dados.map(function (d) {
+      if (d.pct >= metaPct) return '#1F9D55';
+      if (d.pct >= metaPct - 10) return '#E0A800';
+      return '#C03B2B';
+    });
+    instancias[canvas.id] = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: dados.map(function (d) { return d.topicoCurto; }),
+        datasets: [{
+          label: 'Desempenho',
+          data: dados.map(function (d) { return d.pct; }),
+          backgroundColor: cores,
+          borderRadius: 4,
+          barPercentage: 0.72,
+          categoryPercentage: 0.82
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: Object.assign(basePlugins(), {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function (items) {
+                const item = dados[items[0].dataIndex];
+                return item.disciplina + ' · ' + item.topico;
+              },
+              label: function (ctx) {
+                const item = dados[ctx.dataIndex];
+                return item.qFeitas + ' questões · ' + item.pct + '% de acerto';
+              },
+              afterLabel: function () { return 'Meta: ' + metaPct + '%'; }
+            }
+          }
+        }),
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
+            grid: { color: '#DFE2DD' }
+          },
+          y: {
+            ticks: { color: '#17181C', font: { family: "'IBM Plex Sans', sans-serif", size: 12 } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+    return true;
+  }
+
+  window.Graficos = { evolucaoSemanal, desempenhoVsMeta, disciplinasHoras, topicosDesempenho, disponivel };
 })();

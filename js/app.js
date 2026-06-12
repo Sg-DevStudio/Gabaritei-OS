@@ -15,6 +15,7 @@
   let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
   let pintarTimerAtual = null;
   let audioCtx = null;
+  let ultimaRotaRender = null;
 
   // ---------------- utilidades de UI ----------------
   function esc(s) {
@@ -171,11 +172,132 @@
     return (d ? d.id + ' · ' : '') + t.nome;
   }
 
+  function doAtivo(lista) { return D.doPlanoAtivo(state, lista); }
+
+  function primeiroNome(valor) {
+    return String(valor || '').trim().split(/\s+/)[0] || '';
+  }
+
+  function nomeUsuario() {
+    return primeiroNome(state.config && state.config.nomeUsuario) ||
+      primeiroNome(firebaseStatus && firebaseStatus.usuario && firebaseStatus.usuario.nome) ||
+      primeiroNome(firebaseStatus && firebaseStatus.usuario && firebaseStatus.usuario.email) ||
+      'Samuel';
+  }
+
+  function saudacaoCompleta(saudacao) {
+    const nome = nomeUsuario();
+    return nome ? saudacao + ', ' + nome : saudacao;
+  }
+
+  function hojeMesISO() {
+    const hoje = D.hojeISO();
+    return hoje.slice(0, 7);
+  }
+
+  function ultimoDiaMesISO(aaaaMM) {
+    if (!aaaaMM || !/^\d{4}-\d{2}$/.test(aaaaMM)) return null;
+    const partes = aaaaMM.split('-').map(Number);
+    const dt = new Date(partes[0], partes[1], 0);
+    return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  }
+
+  function countdownProva(janela) {
+    if (!janela || !janela[0] || !janela[1]) return 'sem data definida';
+    const hoje = D.hojeISO();
+    const inicio = janela[0] + '-01';
+    const fim = ultimoDiaMesISO(janela[1]);
+    if (!fim) return 'sem data definida';
+    if (hoje < inicio) {
+      const dias = D.diffDias(hoje, inicio);
+      return 'faltam ' + dias + (dias === 1 ? ' dia' : ' dias');
+    }
+    if (hoje <= fim) return 'janela da prova em andamento';
+    const passou = D.diffDias(fim, hoje);
+    return 'janela passou há ' + passou + (passou === 1 ? ' dia' : ' dias');
+  }
+
+  function checkEstudoHtml(feito, acao, id, tipo, titulo) {
+    if (feito) {
+      return '<span class="check-estudo check-estudo-feito" title="Estudo registrado" aria-label="Estudo registrado">✓</span>';
+    }
+    return '<button type="button" class="check-estudo" data-acao="' + esc(acao) + '" data-id="' + esc(id) + '"' +
+      (tipo ? ' data-tipo="' + esc(tipo) + '"' : '') +
+      ' title="Registrar estudo" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
+  }
+
+  function provaEstimadaHtml() {
+    const radar = state.plano && state.plano.radar;
+    const janela = radar && radar.janela_prova;
+    const periodo = janela && janela[0] && janela[1]
+      ? D.formatarMesBR(janela[0]) + ' – ' + D.formatarMesBR(janela[1])
+      : 'Definir período';
+    const confianca = radar && radar.confianca ? radar.confianca : 'manual';
+    const reavaliar = radar && radar.reavaliar_em ? D.formatarDataBR(radar.reavaliar_em) : 'sem revisão marcada';
+    return '<div class="card card-kpi prova-card">' +
+      '<div class="prova-card-topo"><span class="alvo-emoji" aria-hidden="true">🎯</span>' +
+      '<div><div class="card-kpi-rotulo">Prova estimada</div>' +
+      '<div class="card-kpi-extra">confiança ' + esc(confianca) + '</div></div></div>' +
+      '<div class="prova-periodo num">' + esc(periodo) + '</div>' +
+      '<div class="prova-countdown">' + esc(countdownProva(janela)) + '</div>' +
+      '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' +
+      '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar data</button>' +
+      '</div>';
+  }
+
+  function abrirEditarProva() {
+    if (!state.plano) {
+      toast('Crie ou importe um plano antes de definir a prova.', 'erro');
+      return;
+    }
+    const radar = state.plano.radar || {};
+    const janela = radar.janela_prova || [hojeMesISO(), hojeMesISO()];
+    const m = abrirModal(
+      '<h3>Editar prova estimada</h3>' +
+      '<form id="form-prova">' +
+      '<div class="grade-2">' +
+      '<div><label for="pv-inicio">Início do período</label><input id="pv-inicio" type="month" value="' + esc(janela[0] || hojeMesISO()) + '" required></div>' +
+      '<div><label for="pv-fim">Fim do período</label><input id="pv-fim" type="month" value="' + esc(janela[1] || janela[0] || hojeMesISO()) + '" required></div></div>' +
+      '<div class="grade-2">' +
+      '<div><label for="pv-conf">Confiança</label><select id="pv-conf">' +
+      ['baixa', 'média', 'alta', 'manual'].map(function (c) {
+        return '<option value="' + esc(c) + '"' + ((radar.confianca || 'manual') === c ? ' selected' : '') + '>' + esc(c) + '</option>';
+      }).join('') + '</select></div>' +
+      '<div><label for="pv-reav">Reavaliar em</label><input id="pv-reav" type="date" value="' + esc(radar.reavaliar_em || '') + '"></div></div>' +
+      '<div class="msg-erro oculto" id="pv-erro"></div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="pv-cancelar">Cancelar</button>' +
+      '<button type="submit">Salvar data</button></div></form>'
+    );
+    m.querySelector('#pv-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#form-prova').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const inicio = m.querySelector('#pv-inicio').value;
+      const fim = m.querySelector('#pv-fim').value;
+      const erro = m.querySelector('#pv-erro');
+      if (!inicio || !fim || fim < inicio) {
+        erro.textContent = 'O fim do período precisa ser igual ou posterior ao início.';
+        erro.classList.remove('oculto');
+        return;
+      }
+      state.plano.radar = Object.assign({}, radar, {
+        janela_prova: [inicio, fim],
+        confianca: m.querySelector('#pv-conf').value,
+        reavaliar_em: m.querySelector('#pv-reav').value || null
+      });
+      salvar();
+      fecharModal();
+      render();
+      toast('Data da prova atualizada', 'sucesso');
+    });
+  }
+
   // ---------------- revisões: agendar/cancelar coerente ----------------
   function agendarRevisoesSeNecessario(topicoId) {
-    const tem = state.revisoes.some(function (r) { return r.topicoId === topicoId; });
+    const tem = doAtivo(state.revisoes).some(function (r) { return r.topicoId === topicoId; });
     if (!tem) {
-      state.revisoes = state.revisoes.concat(D.agendarRevisoes(topicoId, D.hojeISO()));
+      const novas = D.agendarRevisoes(topicoId, D.hojeISO());
+      novas.forEach(function (r) { r.planoId = state.planoAtivoId; });
+      state.revisoes = state.revisoes.concat(novas);
       return true;
     }
     return false;
@@ -283,7 +405,7 @@
     const metaAntes = D.metaSemanal(state, hoje);
 
     state.sessoes.push({
-      id: window.Store.novoId('ses'), data: hoje,
+      id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: hoje,
       topicoId: dados.topicoId, tipo: dados.tipo,
       duracaoMin: dados.duracaoMin, qFeitas: dados.qFeitas, qCertas: dados.qCertas,
       obs: dados.obs || ''
@@ -374,10 +496,10 @@
     const hora = new Date().getHours();
     const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
     const frase = window.Frases.fraseDoDia();
-    const agendaHoje = state.agenda.filter(function (a) { return a.data === hoje; });
+    const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
-      return '<div class="cab-pagina"><div><h1>' + saudacao + '</h1></div></div>' +
+      return '<div class="cab-pagina"><div><h1>' + saudacaoCompleta(saudacao) + '</h1></div></div>' +
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
         '<strong>Bem-vindo aos seus estudos</strong>' +
@@ -403,7 +525,7 @@
     const resumoDia = pendentes === 0 ? 'Tudo em dia por hoje.' :
       nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
 
-    let html = '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacao + '</h1>' +
+    let html = '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacaoCompleta(saudacao) + '</h1>' +
       '<p class="sub">' + resumoDia + '</p></div>' +
       '<button class="botao-secundario" id="btn-registrar-livre">Registrar sessão</button></div>';
 
@@ -414,13 +536,7 @@
 
     // cards: radar + horas + questões + desempenho com mensagem
     html += '<div class="linha-cards">';
-    if (state.plano && state.plano.radar && state.plano.radar.janela_prova) {
-      const jp = state.plano.radar.janela_prova;
-      html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Prova estimada (radar)</div>' +
-        '<div class="card-kpi-valor" style="font-size:1.1rem">' + D.formatarMesBR(jp[0]) + ' – ' + D.formatarMesBR(jp[1]) + '</div>' +
-        '<div class="card-kpi-extra">confiança ' + esc(state.plano.radar.confianca || '—') +
-        (state.plano.radar.reavaliar_em ? ' · reavaliar em ' + D.formatarDataBR(state.plano.radar.reavaliar_em) : '') + '</div></div>';
-    }
+    if (state.plano) html += provaEstimadaHtml();
     const pctHoras = meta.horasAlvo > 0 ? Math.min(100, Math.round((meta.minutos / 60 / meta.horasAlvo) * 100)) : 0;
     html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Horas na semana</div>' +
       '<div class="card-kpi-valor">' + D.formatarMin(meta.minutos) + (meta.horasAlvo > 0 ? '<span style="font-size:0.85rem;color:var(--grafite)"> / ' + meta.horasAlvo + 'h</span>' : '') + '</div>' +
@@ -459,14 +575,15 @@
           const a = item.agenda;
           const dA = D.disciplinaPorId(state, a.disciplinaId);
           const tA = a.topicoId ? D.topicoPorId(state, a.topicoId) : null;
-          const tituloA = (dA ? tagDisc(dA) + ' ' : '') + esc(tA ? tA.nome : (dA ? dA.nome : a.disciplinaId));
-          html += '<div class="fila-item">' +
-            bolha(a.feito ? 'teoria_concluida' : 'pendente') +
+          const tituloATexto = tA ? tA.nome : (dA ? dA.nome : a.disciplinaId);
+          const tituloA = (dA ? tagDisc(dA) + ' ' : '') + esc(tituloATexto);
+          html += '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
+            checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
             '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div>' +
             '<div class="fila-sub">planejado por você · ' + D.formatarMin(a.duracaoMin || 0) + (a.obs ? ' · ' + esc(a.obs) : '') + '</div></div>' +
             (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
-              '<div style="display:flex;gap:0.35rem">' +
+              '<div class="fila-acoes">' +
               '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
               '<button class="botao-mini" data-acao="concluir-agenda" data-id="' + esc(a.id) + '">Registrar</button></div>') +
             '</div>';
@@ -494,12 +611,16 @@
           acoes = '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
             '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="questoes">Registrar</button>';
         }
-        html += '<div class="fila-item">' +
-          bolha(t ? t.status : 'pendente') +
-          '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(t ? t.nome : item.topicoId) + '</div>' +
+        const tituloTopico = t ? t.nome : item.topicoId;
+        const check = item.categoria === 'revisao'
+          ? checkEstudoHtml(false, 'concluir-revisao', item.revisao.id, null, tituloTopico)
+          : checkEstudoHtml(!!item.feito, 'registrar', item.topicoId, item.categoria === 'reaberto' ? 'questoes' : item.tipoBloco, tituloTopico);
+        html += '<div class="fila-item fila-checklist' + (item.feito ? ' fila-feita' : '') + '">' +
+          check +
+          '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
           '<div class="fila-sub">' + sub + '</div></div>' +
           etiqueta +
-          '<div style="display:flex;gap:0.35rem">' + acoes + '</div></div>';
+          '<div class="fila-acoes">' + acoes + '</div></div>';
       }
     }
     html += '</div>';
@@ -509,6 +630,8 @@
   function ligarHoje(raiz) {
     const btn = raiz.querySelector('#btn-registrar-livre');
     if (btn) btn.addEventListener('click', function () { abrirRegistro({}); });
+    const provaEditar = raiz.querySelector('#prova-editar');
+    if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
     raiz.querySelectorAll('[data-acao]').forEach(function (el) {
       el.addEventListener('click', function () {
         const acao = el.getAttribute('data-acao');
@@ -537,10 +660,10 @@
   // ---------------- TELA: Timer ----------------
   function telaTimer() {
     if (state.disciplinas.length === 0) {
-      return '<h1>Timer</h1><div class="card"><div class="estado-vazio">' +
+      return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
         'Importe o plano para escolher um tópico e cronometrar o estudo.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div>';
+        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div></section>';
     }
 
     const ativo = window.Timer.estado();
@@ -551,7 +674,7 @@
         return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
       }).join('');
       selecao =
-        '<div class="grade-2" style="text-align:left;max-width:560px;margin:0 auto">' +
+        '<div class="grade-2 timer-select-grid">' +
         '<div><label for="timer-disc">Disciplina</label><select id="timer-disc">' + optsDisc + '</select></div>' +
         '<div><label for="timer-topico">Tópico</label><select id="timer-topico"></select></div></div>' +
         '<div style="margin-top:1rem"><span class="seletor-modo">' +
@@ -560,15 +683,15 @@
         '<div class="timer-limite"><label for="timer-limite">Tempo máximo (min)</label>' +
         '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>';
     } else {
-      selecao = '<p style="color:#B9BBC1;font-size:0.92rem">' + esc(nomeTopicoCompleto(ativo.topicoId)) + '</p>';
+      selecao = '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId)) + '</p>';
     }
 
-    return '<h1>Timer</h1><div class="tela-timer">' +
+    return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="tela-timer"><div class="timer-conteudo">' +
       selecao +
       '<div class="timer-display" id="timer-display">' + (ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00') + '</div>' +
       '<div class="timer-modo-info" id="timer-info"></div>' +
       '<div class="timer-acoes" id="timer-acoes"></div>' +
-      '</div>';
+      '</div></div></section>';
   }
 
   function ligarTimer(raiz) {
@@ -700,7 +823,7 @@
       rev.resultadoPct = feitas > 0 ? Math.round((certas / feitas) * 100) : null;
 
       state.sessoes.push({
-        id: window.Store.novoId('ses'), data: rev.dataConcluida, topicoId: rev.topicoId,
+        id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: rev.dataConcluida, topicoId: rev.topicoId,
         tipo: 'revisao', duracaoMin: dur, qFeitas: feitas, qCertas: certas, obs: 'Revisão ' + rev.tipo
       });
 
@@ -718,7 +841,7 @@
 
   function telaRevisoes() {
     const hoje = D.hojeISO();
-    const pendentes = state.revisoes
+    const pendentes = doAtivo(state.revisoes)
       .filter(function (r) { return !r.dataConcluida && D.topicoPorId(state, r.topicoId); })
       .sort(function (a, b) { return a.dataAgendada.localeCompare(b.dataAgendada); });
 
@@ -871,13 +994,14 @@
       '<p class="sub">Meta: ' + meta + '% (' + esc(state.plano.meta.corte_fonte || 'nota de corte estimada') + ')</p></div>' +
       '<button id="btn-novo-simulado">Preencher gabarito</button></div>';
 
-    if (state.simulados.length === 0) {
+    const simuladosAtivos = doAtivo(state.simulados);
+    if (simuladosAtivos.length === 0) {
       html += '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
         '<strong>Nenhum simulado registrado</strong>Registre o resultado por disciplina e veja a distância até a zona de nomeação.</div></div>';
       return html;
     }
 
-    const ordenados = [...state.simulados].sort(function (a, b) { return b.data.localeCompare(a.data); });
+    const ordenados = [...simuladosAtivos].sort(function (a, b) { return b.data.localeCompare(a.data); });
     ordenados.forEach(function (sim) {
       let totalC = 0, totalQ = 0;
       sim.acertos.forEach(function (a) { totalC += a.certas; totalQ += a.total; });
@@ -955,7 +1079,7 @@
       if (acertos.length === 0) { erroEl.textContent = 'Preencha ao menos uma disciplina.'; erroEl.classList.remove('oculto'); return; }
 
       state.simulados.push({
-        id: window.Store.novoId('sim'),
+        id: window.Store.novoId('sim'), planoId: state.planoAtivoId,
         data: m.querySelector('#sim-data').value || D.hojeISO(),
         tipo: m.querySelector('#sim-tipo').value,
         acertos
@@ -979,9 +1103,55 @@
   }
 
   // ---------------- TELA: Estatísticas ----------------
+  function dadosHorasPorDisciplina() {
+    const porDisc = {};
+    state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).forEach(function (d) {
+      porDisc[d.id] = { id: d.id, nome: d.nome, minutos: 0, rotulo: '0min' };
+    });
+    D.sessoesDoPlano(state).forEach(function (s) {
+      const d = D.disciplinaDoTopico(state, s.topicoId);
+      if (!d || d.id === 'ORF') return;
+      if (!porDisc[d.id]) porDisc[d.id] = { id: d.id, nome: d.nome, minutos: 0, rotulo: '0min' };
+      porDisc[d.id].minutos += s.duracaoMin || 0;
+    });
+    return Object.keys(porDisc).map(function (id) {
+      porDisc[id].rotulo = D.formatarMin(porDisc[id].minutos);
+      return porDisc[id];
+    }).sort(function (a, b) { return b.minutos - a.minutos || a.nome.localeCompare(b.nome); });
+  }
+
+  function encurtarTexto(txt, max) {
+    txt = String(txt || '');
+    return txt.length > max ? txt.slice(0, max - 1) + '…' : txt;
+  }
+
+  function dadosTopicosDesempenho() {
+    const porTopico = {};
+    D.sessoesDoPlano(state).forEach(function (s) {
+      if (!s.qFeitas) return;
+      const t = D.topicoPorId(state, s.topicoId);
+      const d = D.disciplinaDoTopico(state, s.topicoId);
+      if (!t || !d || t.orfao) return;
+      const item = porTopico[t.id] = porTopico[t.id] || {
+        id: t.id, topico: t.nome, topicoCurto: encurtarTexto(t.nome, 54),
+        disciplina: d.nome, qFeitas: 0, qCertas: 0, pct: 0
+      };
+      item.qFeitas += s.qFeitas || 0;
+      item.qCertas += s.qCertas || 0;
+    });
+    return Object.keys(porTopico).map(function (id) {
+      const item = porTopico[id];
+      item.pct = item.qFeitas > 0 ? Math.round((item.qCertas / item.qFeitas) * 100) : 0;
+      item.topicoCurto = encurtarTexto(item.topico, 54);
+      return item;
+    }).sort(function (a, b) {
+      return a.pct - b.pct || b.qFeitas - a.qFeitas || a.topico.localeCompare(b.topico);
+    }).slice(0, 18);
+  }
+
   function telaStats() {
     const hoje = D.hojeISO();
-    if (state.sessoes.length === 0) {
+    if (D.sessoesDoPlano(state).length === 0) {
       return '<h1>Estatísticas</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Sem dados ainda</strong>' +
         'Registre a primeira sessão de estudo e os números aparecem aqui.</div></div>';
@@ -992,7 +1162,7 @@
     const geral = D.desempenhoGeral(state);
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
     let totalMin = 0, totalQ = 0, totalC = 0;
-    state.sessoes.forEach(function (s) { totalMin += s.duracaoMin || 0; totalQ += s.qFeitas || 0; totalC += s.qCertas || 0; });
+    D.sessoesDoPlano(state).forEach(function (s) { totalMin += s.duracaoMin || 0; totalQ += s.qFeitas || 0; totalC += s.qCertas || 0; });
 
     let html = '<h1>Estatísticas</h1><div class="linha-cards">' +
       '<div class="card card-kpi"><div class="card-kpi-rotulo">Tempo total</div><div class="card-kpi-valor">' + D.formatarMin(totalMin) + '</div>' +
@@ -1008,8 +1178,19 @@
     // heatmap de constância (estilo GitHub, 12 semanas)
     html += '<div class="card"><h3 style="text-align:center">Constância (12 semanas)</h3>' + heatmapHtml(84, false) + '</div>';
 
-    html += '<div class="card"><h3>Evolução semanal</h3><div style="height:260px"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
-    html += '<div class="card"><h3>Desempenho por disciplina × meta de corte</h3><div style="height:260px"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+    const horasDisc = dadosHorasPorDisciplina();
+    const topicosDesempenho = dadosTopicosDesempenho();
+    const hDisc = Math.max(260, Math.min(560, horasDisc.length * 44 + 78));
+    const hTop = Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
+
+    html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
+    html += '<div class="card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
+    html += '<div class="card"><h3>Desempenho por disciplina × meta de corte</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+    html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
+      (topicosDesempenho.length > 0
+        ? '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>'
+        : '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem questões por tópico</strong>Registre questões nas sessões para ver o gráfico.</div>') +
+      '</div>';
     if (!window.Graficos.disponivel()) {
       html += '<div class="aviso aviso-info">Os gráficos precisam de internet na primeira carga (Chart.js via CDN). Os demais números continuam funcionando offline.</div>';
     }
@@ -1021,6 +1202,8 @@
     const hoje = D.hojeISO();
     const c1 = raiz.querySelector('#graf-evolucao');
     if (c1) window.Graficos.evolucaoSemanal(c1, D.serieSemanal(state, hoje, 8));
+    const cHoras = raiz.querySelector('#graf-horas-disc');
+    if (cHoras) window.Graficos.disciplinasHoras(cHoras, dadosHorasPorDisciplina());
     const c2 = raiz.querySelector('#graf-meta');
     if (c2 && state.disciplinas.length > 0) {
       const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
@@ -1028,6 +1211,11 @@
         return { sigla: d.id, pct: D.desempenhoDisciplina(state, d) };
       });
       window.Graficos.desempenhoVsMeta(c2, dados, metaPct);
+    }
+    const cTopicos = raiz.querySelector('#graf-topicos');
+    if (cTopicos) {
+      const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
+      window.Graficos.topicosDesempenho(cTopicos, dadosTopicosDesempenho(), metaPct);
     }
   }
 
@@ -1039,9 +1227,9 @@
         '<span class="bolha bolha-pendente"></span><strong>Nenhuma sessão registrada</strong>' +
         'Cada sessão registrada (timer ou manual) aparece aqui.</div></div>';
     }
-    const ordenadas = [...state.sessoes].sort(function (a, b) { return b.data.localeCompare(a.data) || b.id.localeCompare(a.id); });
+    const ordenadas = [...D.sessoesDoPlano(state)].sort(function (a, b) { return b.data.localeCompare(a.data) || b.id.localeCompare(a.id); });
     const visiveis = ordenadas.slice(0, historicoLimite);
-    let html = '<div class="cab-pagina"><div><h1>Histórico</h1><p class="sub">' + state.sessoes.length + ' sessões registradas</p></div></div>' +
+    let html = '<div class="cab-pagina"><div><h1>Histórico</h1><p class="sub">' + ordenadas.length + ' sessões deste plano</p></div></div>' +
       '<div class="card" style="overflow-x:auto"><table><thead><tr>' +
       '<th>Data</th><th>Tópico</th><th>Tipo</th><th class="num">Tempo</th><th class="num">Questões</th><th></th></tr></thead><tbody>';
     visiveis.forEach(function (s) {
@@ -1078,6 +1266,11 @@
   // ---------------- TELA: Plano e backup (F2) ----------------
   function telaAjustes() {
     let html = '<h1>Plano e dados</h1>';
+
+    html += '<div class="card"><h3>Preferências</h3>' +
+      '<label for="aj-nome-usuario">Seu nome na tela Hoje</label>' +
+      '<input id="aj-nome-usuario" type="text" maxlength="40" value="' + esc(state.config.nomeUsuario || nomeUsuario()) + '" style="max-width:320px">' +
+      '</div>';
 
     if (state.plano) {
       const p = state.plano;
@@ -1164,16 +1357,80 @@
     prev.innerHTML = '<div class="aviso aviso-info" style="margin-top:1rem">' +
       '<strong>Pronto para importar:</strong> ' + esc(v.resumo.concurso) + ' (' + esc(v.resumo.banca || 'banca não informada') + ') — ' +
       v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos, ' + v.resumo.semanas + ' semanas de cronograma.' +
-      (window.Store.temDados(state) ? '<br>Seu histórico (' + state.sessoes.length + ' sessões, ' + state.revisoes.length + ' revisões, ' + state.simulados.length + ' simulados) será preservado.' : '') +
-      '</div><div class="modal-acoes" style="justify-content:flex-start"><button id="imp-confirmar">Confirmar importação</button></div>';
-    prev.querySelector('#imp-confirmar').addEventListener('click', function () {
-      state = D.mesclarPlano(state, json);
-      salvar();
-      editalAbertas = new Set();
-      toast('Plano importado: ' + v.resumo.topicos + ' tópicos carregados', 'sucesso');
+      '</div><div class="modal-acoes" style="justify-content:flex-start">' +
+      '<button id="imp-novo">Adicionar como novo plano</button>' +
+      (state.plano ? '<button class="botao-secundario" id="imp-atualizar">Atualizar o plano ativo (preserva histórico)</button>' : '') +
+      '</div>';
+    prev.querySelector('#imp-novo').addEventListener('click', function () {
+      adicionarPlano(json);
+      aplicarPlanosDuracaoAoAtivo(true);
+      toast('Plano adicionado e ativado: ' + v.resumo.topicos + ' tópicos', 'sucesso');
+      location.hash = '#planejamento';
+      render();
+    });
+    const btnAtu = prev.querySelector('#imp-atualizar');
+    if (btnAtu) btnAtu.addEventListener('click', function () {
+      atualizarPlanoAtivo(json);
+      toast('Plano ativo atualizado — histórico preservado', 'sucesso');
       location.hash = '#hoje';
       render();
     });
+  }
+
+  // cria uma entrada nova em state.planos a partir do JSON (status zerados) e ativa
+  function adicionarPlano(json) {
+    const base = D.mesclarPlano({ plano: null, disciplinas: [], sessoes: [], revisoes: [], simulados: [], config: {} }, json);
+    const entrada = {
+      id: window.Store.novoId('pln'),
+      criadoEm: D.hojeISO(),
+      plano: base.plano,
+      disciplinas: base.disciplinas,
+      cronogramas: base.cronogramas,
+      links: base.links || []
+    };
+    state.planos.push(entrada);
+    window.Store.ativarPlano(state, entrada.id);
+    editalAbertas = new Set();
+    salvar();
+    return entrada;
+  }
+
+  // reimporta por cima do plano ativo (RN08: casa por ID e preserva histórico)
+  function atualizarPlanoAtivo(json) {
+    const contexto = {
+      plano: state.plano,
+      disciplinas: state.disciplinas,
+      sessoes: D.sessoesDoPlano(state),
+      revisoes: doAtivo(state.revisoes),
+      simulados: doAtivo(state.simulados),
+      config: state.config
+    };
+    const novo = D.mesclarPlano(contexto, json);
+    const entrada = state.planos.find(function (p) { return p.id === state.planoAtivoId; });
+    if (!entrada) return;
+    entrada.plano = novo.plano;
+    entrada.disciplinas = novo.disciplinas;
+    entrada.cronogramas = novo.cronogramas;
+    entrada.links = novo.links || [];
+    window.Store.hidratar(state);
+    editalAbertas = new Set();
+    salvar();
+  }
+
+  // disciplinas manuais precisam de um plano para morar
+  function garantirPlanoAtivo() {
+    if (state.planoAtivoId) return;
+    const entrada = {
+      id: window.Store.novoId('pln'),
+      criadoEm: D.hojeISO(),
+      plano: { concurso: 'Meus estudos (pessoal)', banca: '', cota: null, meta: { corte_pct: 70 }, radar: null, ritmos: null, ritmoAtivo: 'sustentavel', gerado_em: null },
+      disciplinas: [],
+      cronogramas: { sustentavel: [], hardcore: [] },
+      links: []
+    };
+    state.planos.push(entrada);
+    window.Store.ativarPlano(state, entrada.id);
+    salvar();
   }
 
   function ligarAjustes(raiz) {
@@ -1188,6 +1445,12 @@
       state.config.metaQuestoesSemana = Math.max(0, parseInt(metaQ.value, 10) || 0);
       salvar();
       toast('Meta de questões atualizada', 'sucesso');
+    });
+    const nomeUsuarioEl = raiz.querySelector('#aj-nome-usuario');
+    if (nomeUsuarioEl) nomeUsuarioEl.addEventListener('change', function () {
+      state.config.nomeUsuario = nomeUsuarioEl.value.trim();
+      salvar();
+      toast('Nome atualizado', 'sucesso');
     });
     const syncAgora = raiz.querySelector('#sync-agora');
     if (syncAgora) syncAgora.addEventListener('click', function () {
@@ -1349,7 +1612,7 @@
     m.querySelector('#form-agd').addEventListener('submit', function (e) {
       e.preventDefault();
       state.agenda.push({
-        id: window.Store.novoId('agd'),
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
         data: m.querySelector('#agd-data').value,
         disciplinaId: selDisc.value,
         topicoId: selTop.value || null,
@@ -1414,6 +1677,7 @@
   }
 
   function abrirNovaDisciplina() {
+    garantirPlanoAtivo();
     const cores = ['#2454D6', '#1F7A4D', '#B8762B', '#8E44AD', '#C0392B', '#0E7490', '#5B6B2F', '#99357F'];
     const cor = cores[state.disciplinas.length % cores.length];
     const m = abrirModal(
@@ -1452,18 +1716,378 @@
     });
   }
 
+  function rotuloRitmo(chave, dados) {
+    const mapa = {
+      sustentavel: 'Sustentável',
+      hardcore: 'Hardcore',
+      plano_3m: '3 meses',
+      plano_6m: '6 meses',
+      plano_9m: '9 meses'
+    };
+    const base = mapa[chave] || chave.replace(/_/g, ' ');
+    const horas = dados && (dados.h_semana || dados.h_semana_exigidas);
+    return base + (horas ? ' · ' + horas + 'h/semana' : '');
+  }
+
+  function ritmosDisponiveis() {
+    const chaves = new Set();
+    if (state.cronogramas) Object.keys(state.cronogramas).forEach(function (k) { chaves.add(k); });
+    if (state.plano && state.plano.ritmos) Object.keys(state.plano.ritmos).forEach(function (k) {
+      if (typeof state.plano.ritmos[k] === 'object') chaves.add(k);
+    });
+    return Array.from(chaves).filter(function (k) {
+      return state.cronogramas && state.cronogramas[k] && state.cronogramas[k].length > 0;
+    });
+  }
+
+  function contarTopicosPlano(entrada) {
+    return entrada.disciplinas.reduce(function (n, d) {
+      return n + d.topicos.filter(function (t) { return !t.orfao; }).length;
+    }, 0);
+  }
+
+  function planoAtualHtml() {
+    if (!state.plano) {
+      return '<div class="card planejamento-card plano-atual-card"><div class="card-kpi-rotulo">Plano atual</div>' +
+        '<h3>Sem plano ativo</h3><p class="sub">Crie um plano manual, importe JSON/Excel ou adicione um edital do catálogo.</p>' +
+        '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
+    }
+    const ritmos = ritmosDisponiveis();
+    const progresso = D.progressoEdital(state);
+    const ritmoAtual = state.plano.ritmoAtivo || ritmos[0] || 'sustentavel';
+    const optsRitmo = ritmos.map(function (r) {
+      const dados = state.plano.ritmos && state.plano.ritmos[r];
+      return '<option value="' + esc(r) + '"' + (r === ritmoAtual ? ' selected' : '') + '>' + esc(rotuloRitmo(r, dados)) + '</option>';
+    }).join('');
+    const optsDisc = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
+      return '<option value="' + esc(d.id) + '">' + esc(d.id + ' — ' + d.nome) + '</option>';
+    }).join('');
+    return '<div class="card planejamento-card plano-atual-card">' +
+      '<div class="card-kpi-rotulo">Plano atual</div>' +
+      '<div class="plano-atual-head"><div><h3>' + esc(state.plano.concurso) + '</h3>' +
+      '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
+      '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
+      '<div class="barra" style="margin:0.65rem 0 0.9rem"><span style="width:' + progresso.pct + '%"></span></div>' +
+      (ritmos.length > 0 ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>' :
+        '<p class="sub">Este plano ainda não tem cronograma gerado.</p>') +
+      '<div class="compact-actions">' +
+      '<button class="botao-mini" id="pl-gerar-ritmos">Gerar 3 · 6 · 9 meses</button>' +
+      '<button class="botao-mini botao-secundario" id="pl-gerar-agenda">Mostrar semana no calendário</button>' +
+      '<button class="botao-mini botao-quieto" id="pl-ajustar-perfil">Dificuldades</button></div>' +
+      (optsDisc ? '<div class="ajuste-cronograma"><label for="pl-disc-ajuste">Ajustar disciplina no cronograma</label>' +
+        '<div class="ajuste-cronograma-linha"><select id="pl-disc-ajuste">' + optsDisc + '</select>' +
+        '<button class="botao-mini botao-quieto" id="pl-antecipar">Antecipar</button>' +
+        '<button class="botao-mini botao-quieto" id="pl-atrasar">Atrasar</button></div></div>' : '') +
+      '</div>';
+  }
+
+  function planosCadastradosHtml() {
+    let html = '<div class="card planejamento-card"><div class="card-kpi-rotulo">Planos cadastrados</div>' +
+      '<div class="planos-grade">';
+    if (state.planos.length === 0) {
+      html += '<p class="sub">Nenhum plano salvo ainda.</p>';
+    }
+    state.planos.forEach(function (p) {
+      const ativo = p.id === state.planoAtivoId;
+      html += '<div class="plano-mini' + (ativo ? ' ativo' : '') + '">' +
+        '<div class="plano-mini-top"><strong>' + esc(p.plano.concurso) + '</strong>' +
+        (ativo ? '<span class="etiqueta etiqueta-feito">ativo</span>' : '') + '</div>' +
+        '<p class="sub">' + esc(p.plano.banca || 'manual') + ' · ' + p.disciplinas.length + ' disciplinas · ' + contarTopicosPlano(p) + ' tópicos</p>' +
+        '<div class="compact-actions">' +
+        (ativo ? '' : '<button class="botao-mini" data-pl-ativar="' + esc(p.id) + '">Ativar</button>') +
+        '<button class="botao-mini botao-quieto" data-pl-perfil="' + esc(p.id) + '">Editar perfil</button>' +
+        '<button class="botao-mini botao-quieto" data-pl-excluir="' + esc(p.id) + '">Excluir</button></div></div>';
+    });
+    html += '</div></div>';
+    return html;
+  }
+
+  function importacaoPlanejamentoHtml() {
+    return '<div class="card planejamento-card importar-plano-card"><div class="card-kpi-rotulo">Adicionar plano</div>' +
+      '<h3>Manual, JSON ou Excel</h3>' +
+      '<div class="grade-2"><div><label for="pl-arquivo">Arquivo</label>' +
+      '<input type="file" id="pl-arquivo" accept=".json,.csv,.xlsx,application/json,text/csv"></div>' +
+      '<div><label for="pl-nome-import">Nome do plano</label><input id="pl-nome-import" type="text" placeholder="Ex.: INSS 2027"></div></div>' +
+      '<label for="pl-json">Ou cole um JSON</label><textarea id="pl-json" placeholder=\'{"versao":1,"plano":{...}}\'></textarea>' +
+      '<div class="compact-actions"><button class="botao-mini" id="pl-importar">Adicionar plano</button>' +
+      '<button class="botao-mini botao-quieto" id="pl-em-branco-2">Plano manual vazio</button></div>' +
+      '<p class="sub">Planilhas podem usar colunas como disciplina, sigla, tópico, incidência, prioridade, horas e peso.</p></div>';
+  }
+
+  function catalogoPlanejamentoHtml() {
+    return '<div class="card planejamento-card catalogo-card"><div class="card-kpi-rotulo">Catálogo</div>' +
+      '<h3>Editais populares editáveis</h3>' +
+      '<div id="catalogo-lista"><div class="estado-vazio" style="padding:1rem"><span class="bolha bolha-carregando bolha-pendente"></span><br>Carregando catálogo…</div></div></div>';
+  }
+
+  function criarPlanoManual(nome) {
+    const titulo = (nome || 'Meus estudos').trim();
+    state.planos.push({
+      id: window.Store.novoId('pln'), criadoEm: D.hojeISO(),
+      plano: { concurso: titulo, banca: '', cota: null, meta: { corte_pct: 70 }, radar: null, ritmos: null, ritmoAtivo: 'sustentavel', gerado_em: null },
+      disciplinas: [], cronogramas: { sustentavel: [], hardcore: [] }, links: []
+    });
+    window.Store.ativarPlano(state, state.planos[state.planos.length - 1].id);
+    salvar();
+  }
+
+  function criarPlanoManualComPrompt() {
+    const nome = prompt('Nome do plano (ex.: INSS 2027, Estudos livres):', 'Meus estudos');
+    if (!nome) return;
+    criarPlanoManual(nome);
+    render();
+    toast('Plano "' + nome.trim() + '" criado', 'sucesso');
+  }
+
+  function gerarCronogramaHierarquico(disciplinas, semanas) {
+    const inicio = D.segundaDaSemana(D.hojeISO());
+    const semanasCron = [];
+    for (let i = 0; i < semanas; i++) {
+      semanasCron.push({ semana: i + 1, inicio: D.addDias(inicio, i * 7), blocos: [], marcos: [] });
+    }
+    const docs = disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d, idx) {
+      const topicos = d.topicos.filter(function (t) { return !t.orfao; }).map(function (t, ordem) {
+        const sugerida = t.semana_sugerida ? Math.max(1, Math.min(semanas, Math.round((t.semana_sugerida / 28) * semanas))) : ordem + 1;
+        return { topico: t, ordem, sugerida };
+      }).sort(function (a, b) {
+        return a.sugerida - b.sugerida || (a.topico.prioridade || 2) - (b.topico.prioridade || 2) ||
+          b.topico.incidencia_pct - a.topico.incidencia_pct || a.ordem - b.ordem;
+      });
+      const incidencia = topicos.reduce(function (n, t) { return n + (t.topico.incidencia_pct || 0); }, 0);
+      const prioridade = topicos.reduce(function (n, t) { return n + (4 - (t.topico.prioridade || 2)); }, 0);
+      return {
+        disciplina: d,
+        idx,
+        topicos,
+        cursor: 0,
+        score: (d.peso || 1) * 4 + incidencia / 20 + prioridade / Math.max(1, topicos.length),
+        inicio: 1
+      };
+    }).filter(function (d) { return d.topicos.length > 0; }).sort(function (a, b) {
+      return b.score - a.score || a.idx - b.idx;
+    });
+    docs.forEach(function (d, idx) {
+      d.inicio = idx < 4 ? 1 : Math.min(semanas, 2 + Math.floor((idx - 3) * semanas / Math.max(1, docs.length)));
+    });
+    const estudadosPorSemana = {};
+    for (let s = 1; s <= semanas; s++) {
+      let ativos = docs.filter(function (d) { return d.inicio <= s && d.cursor < d.topicos.length; });
+      if (ativos.length < 3) {
+        ativos = ativos.concat(docs.filter(function (d) { return d.inicio > s && d.cursor < d.topicos.length; }).slice(0, 3 - ativos.length));
+      }
+      ativos.sort(function (a, b) {
+        const atrasoA = a.topicos[a.cursor] ? Math.max(0, s - a.topicos[a.cursor].sugerida) : 0;
+        const atrasoB = b.topicos[b.cursor] ? Math.max(0, s - b.topicos[b.cursor].sugerida) : 0;
+        return (b.score + atrasoB) - (a.score + atrasoA);
+      });
+      const limite = s < semanas * 0.72 ? 4 : 5;
+      ativos.slice(0, limite).forEach(function (d) {
+        const item = d.topicos[d.cursor++];
+        if (!item) return;
+        const t = item.topico;
+        semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'teoria' });
+        semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'questoes' });
+        (estudadosPorSemana[s] = estudadosPorSemana[s] || []).push({ disciplina: d.disciplina.id, topico: t.id });
+        if (d.cursor === d.topicos.length) semanasCron[s - 1].marcos.push(d.disciplina.nome + ': primeira passada concluída');
+      });
+      if (s > 4 && s % 2 === 0 && estudadosPorSemana[s - 4]) {
+        estudadosPorSemana[s - 4].slice(0, 3).forEach(function (b) {
+          semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
+        });
+      }
+      if (s > Math.round(semanas * 0.78) && s % 3 === 0) {
+        semanasCron[s - 1].marcos.push('Simulado e revisão por questões');
+      }
+    }
+    return semanasCron;
+  }
+
+  function aplicarPlanosDuracaoAoAtivo(silencioso) {
+    const entrada = state.planos.find(function (p) { return p.id === state.planoAtivoId; });
+    if (!entrada || entrada.disciplinas.length === 0) {
+      if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
+      return false;
+    }
+    const totalHoras = entrada.disciplinas.reduce(function (n, d) {
+      return n + d.topicos.reduce(function (m, t) { return m + (t.horas_estimadas || 2); }, 0);
+    }, 0);
+    const defs = [
+      { chave: 'plano_3m', meses: 3, semanas: 13 },
+      { chave: 'plano_6m', meses: 6, semanas: 26 },
+      { chave: 'plano_9m', meses: 9, semanas: 39 }
+    ];
+    entrada.plano.ritmos = entrada.plano.ritmos || {};
+    defs.forEach(function (def) {
+      entrada.cronogramas[def.chave] = gerarCronogramaHierarquico(entrada.disciplinas, def.semanas);
+      entrada.plano.ritmos[def.chave] = {
+        meses: def.meses,
+        semanas: def.semanas,
+        h_semana: Math.max(6, Math.ceil((totalHoras * 1.8) / def.semanas))
+      };
+    });
+    entrada.plano.ritmoAtivo = entrada.plano.ritmoAtivo && entrada.cronogramas[entrada.plano.ritmoAtivo] &&
+      entrada.cronogramas[entrada.plano.ritmoAtivo].length ? entrada.plano.ritmoAtivo : 'plano_6m';
+    window.Store.hidratar(state);
+    salvar();
+    if (!silencioso) toast('Planos de 3, 6 e 9 meses gerados', 'sucesso');
+    return true;
+  }
+
+  function deslocarDisciplinaCronograma(disciplinaId, delta) {
+    if (!state.plano || !state.cronogramas) return;
+    const chave = state.plano.ritmoAtivo || 'sustentavel';
+    const cron = state.cronogramas[chave] || [];
+    if (cron.length === 0) { toast('Gere ou escolha um cronograma antes de ajustar.', 'erro'); return; }
+    const novos = cron.map(function (sem) { return Object.assign({}, sem, { blocos: [] }); });
+    let movidos = 0;
+    cron.forEach(function (sem, idx) {
+      sem.blocos.forEach(function (b) {
+        const alvo = b.disciplina === disciplinaId ? Math.max(0, Math.min(cron.length - 1, idx + delta)) : idx;
+        if (b.disciplina === disciplinaId && alvo !== idx) movidos++;
+        novos[alvo].blocos.push(Object.assign({}, b));
+      });
+    });
+    cron.forEach(function (sem, idx) { sem.blocos = novos[idx].blocos; });
+    salvar();
+    render();
+    toast(movidos + ' blocos ' + (delta < 0 ? 'antecipados' : 'atrasados'), 'sucesso');
+  }
+
+  function normalizarCabecalho(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+  }
+
+  function valorLinha(row, nomes) {
+    const mapa = {};
+    Object.keys(row).forEach(function (k) { mapa[normalizarCabecalho(k)] = row[k]; });
+    for (let i = 0; i < nomes.length; i++) {
+      const v = mapa[normalizarCabecalho(nomes[i])];
+      if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+    }
+    return '';
+  }
+
+  function siglaDisciplina(nome, usada) {
+    const base = String(nome || 'DISC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z\s]/g, ' ')
+      .trim().split(/\s+/).filter(function (p) { return !/^(de|da|do|das|dos|e)$/i.test(p); })
+      .map(function (p) { return p[0]; }).join('').slice(0, 4).toUpperCase() || 'DISC';
+    let sigla = base;
+    let n = 2;
+    while (usada[sigla]) sigla = (base.slice(0, 3) + n++).slice(0, 4);
+    usada[sigla] = true;
+    return sigla;
+  }
+
+  function planoJsonDeLinhas(rows, nome) {
+    const usadas = {};
+    const porDisc = {};
+    rows.forEach(function (row) {
+      const discNome = String(valorLinha(row, ['disciplina', 'materia', 'matéria']) || '').trim();
+      const topicoNome = String(valorLinha(row, ['topico', 'tópico', 'assunto', 'conteudo', 'conteúdo']) || '').trim();
+      if (!discNome || !topicoNome) return;
+      const siglaPlanilha = String(valorLinha(row, ['sigla', 'id disciplina', 'codigo', 'código']) || '').trim().toUpperCase();
+      const idDisc = siglaPlanilha || Object.keys(porDisc).find(function (id) { return porDisc[id].nome === discNome; }) || siglaDisciplina(discNome, usadas);
+      const disc = porDisc[idDisc] = porDisc[idDisc] || {
+        id: idDisc,
+        nome: discNome,
+        cor: String(valorLinha(row, ['cor']) || ['#2454D6', '#1F7A4D', '#B8762B', '#8E44AD'][Object.keys(porDisc).length % 4]),
+        peso: parseFloat(valorLinha(row, ['peso', 'importancia', 'importância'])) || 1,
+        base_teorica: 'pdf',
+        topicos: []
+      };
+      const n = disc.topicos.length + 1;
+      disc.topicos.push({
+        id: idDisc + '-' + String(n).padStart(2, '0'),
+        nome: topicoNome,
+        incidencia_pct: parseFloat(valorLinha(row, ['incidencia', 'incidência', 'chance'])) || 0,
+        prioridade: parseInt(valorLinha(row, ['prioridade']), 10) || 2,
+        horas_estimadas: parseFloat(valorLinha(row, ['horas', 'tempo'])) || 2,
+        semana_sugerida: parseInt(valorLinha(row, ['semana', 'ordem']), 10) || null
+      });
+    });
+    return {
+      versao: 1,
+      gerado_em: D.hojeISO(),
+      plano: { concurso: nome || 'Plano importado', banca: '', meta: { corte_pct: 70 }, radar: null, ritmos: { ativo: 'plano_6m' } },
+      disciplinas: Object.keys(porDisc).map(function (id) { return porDisc[id]; }),
+      cronograma: {}
+    };
+  }
+
+  function parseCsv(texto) {
+    const linhas = texto.split(/\r?\n/).filter(function (l) { return l.trim(); });
+    if (linhas.length < 2) return [];
+    const sep = linhas[0].indexOf(';') >= 0 ? ';' : ',';
+    const cab = linhas[0].split(sep).map(function (c) { return c.trim(); });
+    return linhas.slice(1).map(function (linha) {
+      const cols = linha.split(sep);
+      const row = {};
+      cab.forEach(function (c, i) { row[c] = (cols[i] || '').trim(); });
+      return row;
+    });
+  }
+
+  function lerArquivo(file, comoArrayBuffer) {
+    return new Promise(function (resolve, reject) {
+      const fr = new FileReader();
+      fr.onload = function () { resolve(fr.result); };
+      fr.onerror = reject;
+      if (comoArrayBuffer) fr.readAsArrayBuffer(file);
+      else fr.readAsText(file, 'utf-8');
+    });
+  }
+
+  async function importarPlanoPeloPlanejamento(raiz) {
+    const arquivo = raiz.querySelector('#pl-arquivo');
+    const textoEl = raiz.querySelector('#pl-json');
+    const nomeEl = raiz.querySelector('#pl-nome-import');
+    const file = arquivo && arquivo.files && arquivo.files[0];
+    const nome = (nomeEl && nomeEl.value.trim()) || (file ? file.name.replace(/\.[^.]+$/, '') : 'Plano importado');
+    let json = null;
+    try {
+      if (file && /\.xlsx$/i.test(file.name)) {
+        if (!window.XLSX) { toast('Leitor de Excel indisponível. Salve como CSV ou JSON.', 'erro'); return; }
+        const wb = window.XLSX.read(await lerArquivo(file, true), { type: 'array' });
+        const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+        json = planoJsonDeLinhas(rows, nome);
+      } else if (file && /\.csv$/i.test(file.name)) {
+        json = planoJsonDeLinhas(parseCsv(await lerArquivo(file, false)), nome);
+      } else {
+        const texto = file ? await lerArquivo(file, false) : textoEl.value.trim();
+        json = JSON.parse(texto);
+        if (Array.isArray(json)) json = planoJsonDeLinhas(json, nome);
+      }
+    } catch (e) {
+      toast('Não consegui ler o plano: ' + e.message, 'erro');
+      return;
+    }
+    const v = D.validarPlano(json);
+    if (!v.ok) { toast('Plano inválido: ' + v.erros[0], 'erro'); return; }
+    adicionarPlano(json);
+    aplicarPlanosDuracaoAoAtivo(true);
+    render();
+    toast('Plano adicionado: ' + v.resumo.concurso, 'sucesso');
+  }
+
   function telaPlanejamento() {
     const hoje = D.hojeISO();
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
-      '<p class="sub">Monte sua semana do seu jeito: arraste uma disciplina para um dia (ou toque no +) — com ou sem plano importado.</p></div>' +
+      '<p class="sub">Plano atual, editais cadastrados e agenda no mesmo lugar.</p></div>' +
       '<button class="botao-quieto" id="pl-nova-disc">+ Nova disciplina</button></div>';
+
+    html += '<div class="planejamento-layout">' +
+      planoAtualHtml() +
+      planosCadastradosHtml() +
+      importacaoPlanejamentoHtml() +
+      catalogoPlanejamentoHtml() +
+      '</div>';
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
         '<strong>Nenhuma disciplina ainda</strong>Crie uma disciplina manual ou importe um plano para começar a planejar.' +
         '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
         '<button class="botao" id="pl-criar-disc">Criar disciplina</button>' +
-        '<a class="botao botao-secundario" href="#ajustes">Importar plano</a></p></div></div>';
+        '<button class="botao botao-secundario" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
     }
 
     // paleta de disciplinas (arrastáveis)
@@ -1491,7 +2115,7 @@
       html += '<div class="agenda-grid">';
       for (let i = 0; i < 7; i++) {
         const data = D.addDias(agendaRef, i);
-        const blocos = state.agenda.filter(function (a) { return a.data === data; });
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; });
         const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
@@ -1516,7 +2140,7 @@
       for (let c = 0; c < 42; c++) {
         const noMes = cursor.slice(0, 7) === mesRef;
         if (c >= 35 && !noMes) break;
-        const blocos = state.agenda.filter(function (a) { return a.data === cursor; });
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; });
         html += '<div class="mes-celula' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') + '" data-vai-semana="' + esc(cursor) + '" role="button" tabindex="0">' +
           '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
           (blocos.length > 0 ? '<div class="mes-pontos">' + blocos.slice(0, 8).map(function (b) {
@@ -1536,6 +2160,87 @@
     if (novaDisc) novaDisc.addEventListener('click', abrirNovaDisciplina);
     const criarDisc = raiz.querySelector('#pl-criar-disc');
     if (criarDisc) criarDisc.addEventListener('click', abrirNovaDisciplina);
+    ['#pl-em-branco', '#pl-em-branco-2', '#pl-em-branco-vazio'].forEach(function (sel) {
+      const b = raiz.querySelector(sel);
+      if (b) b.addEventListener('click', criarPlanoManualComPrompt);
+    });
+
+    const ritmo = raiz.querySelector('#pl-ritmo');
+    if (ritmo) ritmo.addEventListener('change', function () {
+      state.plano.ritmoAtivo = ritmo.value;
+      salvar(); render();
+      toast('Ritmo ativo alterado', 'sucesso');
+    });
+    const gerarRitmos = raiz.querySelector('#pl-gerar-ritmos');
+    if (gerarRitmos) gerarRitmos.addEventListener('click', function () {
+      aplicarPlanosDuracaoAoAtivo(false);
+      render();
+    });
+    const gerarAgenda = raiz.querySelector('#pl-gerar-agenda');
+    if (gerarAgenda) gerarAgenda.addEventListener('click', gerarSemanaNaAgenda);
+    const ajustarPerfil = raiz.querySelector('#pl-ajustar-perfil');
+    if (ajustarPerfil) ajustarPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
+    const discAjuste = raiz.querySelector('#pl-disc-ajuste');
+    const antecipar = raiz.querySelector('#pl-antecipar');
+    const atrasar = raiz.querySelector('#pl-atrasar');
+    if (antecipar && discAjuste) antecipar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, -1); });
+    if (atrasar && discAjuste) atrasar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, 1); });
+
+    const importar = raiz.querySelector('#pl-importar');
+    if (importar) importar.addEventListener('click', function () { importarPlanoPeloPlanejamento(raiz); });
+
+    raiz.querySelectorAll('[data-pl-ativar]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        window.Store.ativarPlano(state, b.getAttribute('data-pl-ativar'));
+        editalAbertas = new Set();
+        salvar(); render();
+        toast('Plano ativado', 'sucesso');
+      });
+    });
+    raiz.querySelectorAll('[data-pl-perfil]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirPerfilPlano(b.getAttribute('data-pl-perfil')); });
+    });
+    raiz.querySelectorAll('[data-pl-excluir]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const p = state.planos.find(function (x) { return x.id === b.getAttribute('data-pl-excluir'); });
+        if (!p) return;
+        if (!confirm('Excluir o plano "' + p.plano.concurso + '"? As sessões registradas nele ficam guardadas, mas deixam de aparecer.')) return;
+        window.Store.removerPlano(state, p.id);
+        salvar(); render();
+        toast('Plano excluído');
+      });
+    });
+
+    const alvoCatalogo = raiz.querySelector('#catalogo-lista');
+    if (alvoCatalogo) {
+      fetch('data/catalogo.json').then(function (r) { return r.json(); }).then(function (catalogo) {
+        alvoCatalogo.innerHTML = catalogo.map(function (c, i) {
+          const jaTem = state.planos.some(function (p) { return p.plano.concurso === c.concurso; });
+          return '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
+            '<div class="fila-info"><div class="fila-titulo">' + esc(c.titulo) + '</div>' +
+            '<div class="fila-sub">' + esc(c.descricao) + '</div></div>' +
+            (jaTem ? '<span class="etiqueta etiqueta-feito">na sua lista ✓</span>'
+              : '<button class="botao-mini" data-cat="' + i + '">Adicionar</button>') +
+            '</div>';
+        }).join('');
+        alvoCatalogo.querySelectorAll('[data-cat]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            const c = catalogo[parseInt(b.getAttribute('data-cat'), 10)];
+            b.disabled = true;
+            fetch(c.arquivo).then(function (r) { return r.json(); }).then(function (json) {
+              const v = D.validarPlano(json);
+              if (!v.ok) { toast('Plano do catálogo inválido: ' + v.erros[0], 'erro'); return; }
+              adicionarPlano(json);
+              aplicarPlanosDuracaoAoAtivo(true);
+              render();
+              toast('Plano adicionado: ' + v.resumo.concurso, 'sucesso');
+            }).catch(function () { toast('Não consegui carregar o plano do catálogo.', 'erro'); b.disabled = false; });
+          });
+        });
+      }).catch(function () {
+        alvoCatalogo.innerHTML = '<p class="sub">Catálogo indisponível offline.</p>';
+      });
+    }
 
     const ant = raiz.querySelector('#pl-ant');
     if (ant) ant.addEventListener('click', function () {
@@ -1602,7 +2307,7 @@
         const dia = cel.getAttribute('data-dia');
         if (dado.indexOf('nova|') === 0) {
           state.agenda.push({
-            id: window.Store.novoId('agd'), data: dia, disciplinaId: dado.slice(5),
+            id: window.Store.novoId('agd'), planoId: state.planoAtivoId, data: dia, disciplinaId: dado.slice(5),
             topicoId: null, duracaoMin: 60, obs: '', feito: false
           });
           salvar(); render();
@@ -1624,6 +2329,219 @@
       cel.addEventListener('click', abrir);
       cel.addEventListener('keydown', function (e) { if (e.key === 'Enter') abrir(); });
     });
+  }
+
+  // ---------------- TELA: Planos (multiconcurso + perfil do aluno) ----------------
+  function multDificuldade(d) {
+    return d.dificuldade === 'facil' ? 0.75 : d.dificuldade === 'dificil' ? 1.4 : 1;
+  }
+
+  // distribuição de horas da semana corrente: peso do concurso × dificuldade do aluno
+  function distribuicaoSemanal() {
+    if (!state.plano) return null;
+    const hoje = D.hojeISO();
+    const sem = D.semanaCorrente(state, hoje);
+    if (!sem || sem.futura || sem.encerrado) return null;
+    const meta = D.metaSemanal(state, hoje);
+    const hAlvo = meta.horasAlvo > 0 ? meta.horasAlvo : 20;
+
+    const porDisc = {};
+    sem.blocos.forEach(function (b) {
+      const e = porDisc[b.disciplina] = porDisc[b.disciplina] || { teoria: false, blocos: [] };
+      if (b.tipo === 'teoria') e.teoria = true;
+      e.blocos.push(b);
+    });
+    let somaW = 0;
+    const itens = [];
+    Object.keys(porDisc).forEach(function (id) {
+      const d = D.disciplinaPorId(state, id);
+      if (!d) return;
+      const w = (d.peso || 1) * multDificuldade(d) * (porDisc[id].teoria ? 1.6 : 0.6);
+      somaW += w;
+      itens.push({ disciplina: d, w, teoria: porDisc[id].teoria, blocos: porDisc[id].blocos });
+    });
+    if (somaW === 0) return null;
+    itens.forEach(function (i) {
+      i.horas = Math.max(0.5, Math.round((hAlvo * i.w / somaW) * 4) / 4);
+    });
+    itens.sort(function (a, b) { return b.horas - a.horas; });
+    return { semana: sem, hAlvo, itens };
+  }
+
+  // materializa a distribuição como blocos na agenda da semana (regenerável)
+  function gerarSemanaNaAgenda() {
+    const dist = distribuicaoSemanal();
+    if (!dist) { toast('Sem semana ativa no cronograma para gerar.', 'erro'); return; }
+    const ini = dist.semana.inicio;
+    const fim = D.addDias(ini, 7);
+    // remove apenas o que foi gerado antes (blocos manuais ficam)
+    state.agenda = state.agenda.filter(function (a) {
+      return !(a.gerado && a.data >= ini && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId));
+    });
+    let dia = 0; // seg..sáb (domingo é folga)
+    dist.itens.forEach(function (item) {
+      const teoria = item.blocos.filter(function (b) { return b.tipo === 'teoria'; })[0];
+      const pratica = item.blocos.filter(function (b) { return b.tipo !== 'teoria'; })[0];
+      const partes = [];
+      if (teoria && pratica) {
+        partes.push({ b: teoria, h: item.horas * 0.6 });
+        partes.push({ b: pratica, h: item.horas * 0.4 });
+      } else {
+        partes.push({ b: teoria || pratica, h: item.horas });
+      }
+      partes.forEach(function (p) {
+        if (!p.b) return;
+        state.agenda.push({
+          id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
+          data: D.addDias(ini, dia % 6), disciplinaId: item.disciplina.id,
+          topicoId: p.b.topico || null,
+          duracaoMin: Math.max(15, Math.round(p.h * 60 / 5) * 5),
+          obs: p.b.tipo === 'teoria' ? '' : p.b.tipo, feito: false, gerado: true
+        });
+        dia++;
+      });
+    });
+    salvar();
+    agendaRef = ini;
+    agendaModo = 'semana';
+    render();
+    toast('Semana ' + dist.semana.semana + ' gerada na agenda — ajuste arrastando os blocos', 'sucesso');
+  }
+
+  function abrirPerfilPlano(planoId) {
+    const entrada = state.planos.find(function (p) { return p.id === planoId; });
+    if (!entrada) return;
+    const discs = entrada.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    const m = abrirModal(
+      '<h3>Ajustar o plano ao seu perfil</h3>' +
+      '<p style="font-size:0.85rem;color:var(--grafite)">Marque como você se sente em cada disciplina. Isso muda a fatia de horas que cada uma recebe na distribuição semanal — sem mexer na ordem do cronograma.</p>' +
+      '<table><thead><tr><th>Disciplina</th><th>Como você está</th></tr></thead><tbody>' +
+      discs.map(function (d) {
+        const v = d.dificuldade || 'normal';
+        return '<tr><td>' + tagDisc(d) + ' ' + esc(d.nome) + '</td>' +
+          '<td><select data-perfil="' + esc(d.id) + '" style="min-height:38px;padding:0.25rem 0.5rem">' +
+          '<option value="facil"' + (v === 'facil' ? ' selected' : '') + '>Tenho facilidade (−25%)</option>' +
+          '<option value="normal"' + (v === 'normal' ? ' selected' : '') + '>Normal</option>' +
+          '<option value="dificil"' + (v === 'dificil' ? ' selected' : '') + '>Tenho dificuldade (+40%)</option>' +
+          '</select></td></tr>';
+      }).join('') +
+      '</tbody></table>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="pf-cancelar">Cancelar</button>' +
+      '<button type="button" id="pf-salvar">Aplicar perfil</button></div>'
+    );
+    m.querySelector('#pf-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#pf-salvar').addEventListener('click', function () {
+      m.querySelectorAll('[data-perfil]').forEach(function (sel) {
+        const d = entrada.disciplinas.find(function (x) { return x.id === sel.getAttribute('data-perfil'); });
+        if (d) d.dificuldade = sel.value;
+      });
+      salvar(); fecharModal(); render();
+      toast('Perfil aplicado — a distribuição semanal foi recalculada', 'sucesso');
+    });
+  }
+
+  function telaPlanos() {
+    let html = '<div class="cab-pagina"><div><h1>Planos</h1>' +
+      '<p class="sub">Guarde um plano por concurso e alterne quando quiser — o histórico de cada um fica separado.</p></div>' +
+      '<a class="botao-secundario botao" href="#ajustes">Importar JSON</a></div>';
+
+    html += '<div class="linha-cards" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">';
+    state.planos.forEach(function (p) {
+      const ativo = p.id === state.planoAtivoId;
+      const nTop = p.disciplinas.reduce(function (n, d) { return n + d.topicos.filter(function (t) { return !t.orfao; }).length; }, 0);
+      const nSes = state.sessoes.filter(function (s) { return s.planoId === p.id || (!s.planoId && ativo); }).length;
+      html += '<div class="card card-kpi" style="min-height:170px">' +
+        '<div><div class="card-kpi-rotulo">' + esc(p.plano.banca || 'plano pessoal') +
+        (ativo ? ' · <span style="color:var(--correto)">ATIVO</span>' : '') + '</div>' +
+        '<div style="font-weight:700;font-size:1.02rem;line-height:1.3;margin:0.25rem 0">' + esc(p.plano.concurso) + '</div>' +
+        '<div class="card-kpi-extra">' + p.disciplinas.length + ' disciplinas · ' + nTop + ' tópicos · ' + nSes + ' sessões' +
+        (p.plano.meta && p.plano.meta.corte_pct ? ' · meta ' + p.plano.meta.corte_pct + '%' : '') + '</div></div>' +
+        '<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem">' +
+        (ativo ? '' : '<button class="botao-mini" data-pl-ativar="' + esc(p.id) + '">Ativar</button>') +
+        '<button class="botao-mini botao-quieto" data-pl-perfil="' + esc(p.id) + '">Ajustar ao meu perfil</button>' +
+        '<button class="botao-mini botao-quieto" data-pl-excluir="' + esc(p.id) + '" style="color:var(--errado)">Excluir</button>' +
+        '</div></div>';
+    });
+    // card criar novo
+    html += '<div class="card card-kpi card-quieto" style="min-height:170px;border-style:dashed;align-items:center;justify-content:center;text-align:center">' +
+      '<div><div style="font-weight:700;margin-bottom:0.35rem">Criar novo plano</div>' +
+      '<div class="card-kpi-extra" style="margin-bottom:0.75rem">do catálogo abaixo, importando um JSON da skill, ou em branco</div>' +
+      '<button class="botao-mini botao-secundario" id="pl-em-branco">Plano em branco</button></div></div>';
+    html += '</div>';
+
+    html += '<div class="card"><h3>Catálogo incluso no sistema</h3>' +
+      '<p style="font-size:0.85rem;color:var(--grafite)">Planos prontos que acompanham o app — um clique e ele entra na sua lista.</p>' +
+      '<div id="catalogo-lista"><div class="estado-vazio" style="padding:1rem"><span class="bolha bolha-carregando bolha-pendente"></span><br>Carregando catálogo…</div></div></div>';
+    return html;
+  }
+
+  function ligarPlanos(raiz) {
+    raiz.querySelectorAll('[data-pl-ativar]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        window.Store.ativarPlano(state, b.getAttribute('data-pl-ativar'));
+        editalAbertas = new Set();
+        salvar(); render();
+        toast('Plano ativado: ' + state.plano.concurso, 'sucesso');
+      });
+    });
+    raiz.querySelectorAll('[data-pl-perfil]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirPerfilPlano(b.getAttribute('data-pl-perfil')); });
+    });
+    raiz.querySelectorAll('[data-pl-excluir]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const p = state.planos.find(function (x) { return x.id === b.getAttribute('data-pl-excluir'); });
+        if (!p) return;
+        if (!confirm('Excluir o plano "' + p.plano.concurso + '"? As sessões registradas nele ficam guardadas, mas deixam de aparecer.')) return;
+        window.Store.removerPlano(state, p.id);
+        salvar(); render();
+        toast('Plano excluído');
+      });
+    });
+    const emBranco = raiz.querySelector('#pl-em-branco');
+    if (emBranco) emBranco.addEventListener('click', function () {
+      const nome = prompt('Nome do plano (ex.: INSS 2027, Estudos livres):', 'Meus estudos');
+      if (!nome) return;
+      state.planos.push({
+        id: window.Store.novoId('pln'), criadoEm: D.hojeISO(),
+        plano: { concurso: nome.trim(), banca: '', cota: null, meta: { corte_pct: 70 }, radar: null, ritmos: null, ritmoAtivo: 'sustentavel', gerado_em: null },
+        disciplinas: [], cronogramas: { sustentavel: [], hardcore: [] }, links: []
+      });
+      window.Store.ativarPlano(state, state.planos[state.planos.length - 1].id);
+      salvar(); render();
+      toast('Plano "' + nome.trim() + '" criado e ativado — crie as disciplinas no Planejamento', 'sucesso');
+    });
+
+    // catálogo incluso (data/catalogo.json)
+    const alvo = raiz.querySelector('#catalogo-lista');
+    if (alvo) {
+      fetch('data/catalogo.json').then(function (r) { return r.json(); }).then(function (catalogo) {
+        alvo.innerHTML = catalogo.map(function (c, i) {
+          const jaTem = state.planos.some(function (p) { return p.plano.concurso === c.concurso; });
+          return '<div class="fila-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
+            '<div class="fila-info"><div class="fila-titulo">' + esc(c.titulo) + '</div>' +
+            '<div class="fila-sub">' + esc(c.descricao) + '</div></div>' +
+            (jaTem ? '<span class="etiqueta etiqueta-feito">na sua lista ✓</span>'
+              : '<button class="botao-mini" data-cat="' + i + '">Adicionar</button>') +
+            '</div>';
+        }).join('');
+        alvo.querySelectorAll('[data-cat]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            const c = catalogo[parseInt(b.getAttribute('data-cat'), 10)];
+            b.disabled = true;
+            fetch(c.arquivo).then(function (r) { return r.json(); }).then(function (json) {
+              const v = D.validarPlano(json);
+              if (!v.ok) { toast('Plano do catálogo inválido: ' + v.erros[0], 'erro'); return; }
+              adicionarPlano(json);
+              aplicarPlanosDuracaoAoAtivo(true);
+              render();
+              toast('Plano adicionado e ativado: ' + v.resumo.concurso, 'sucesso');
+            }).catch(function () { toast('Não consegui carregar o plano do catálogo (offline?).', 'erro'); b.disabled = false; });
+          });
+        });
+      }).catch(function () {
+        alvo.innerHTML = '<p style="font-size:0.85rem;color:var(--grafite)">Catálogo indisponível offline.</p>';
+      });
+    }
   }
 
   // ---------------- TELA: Mais (atalhos no celular) ----------------
@@ -1654,6 +2572,7 @@
     stats: { render: telaStats, ligar: ligarStats },
     historico: { render: telaHistorico, ligar: ligarHistorico },
     ajustes: { render: telaAjustes, ligar: ligarAjustes },
+    planos: { render: telaPlanos, ligar: ligarPlanos },
     mais: { render: telaMais, ligar: function () {} }
   };
 
@@ -1669,7 +2588,7 @@
     const concurso = document.getElementById('sidebar-concurso');
     if (concurso) concurso.textContent = state.plano ? state.plano.concurso : 'Nenhum plano importado';
 
-    const nVencidas = state.revisoes.filter(function (r) {
+    const nVencidas = doAtivo(state.revisoes).filter(function (r) {
       return !r.dataConcluida && r.dataAgendada <= D.hojeISO() && D.topicoPorId(state, r.topicoId);
     }).length;
     const badge = document.getElementById('badge-revisoes');
@@ -1696,6 +2615,8 @@
   function render() {
     aplicarTema();
     const rota = rotaAtual();
+    const mudouRota = rota !== ultimaRotaRender;
+    ultimaRotaRender = rota;
     const tela = telas[rota];
     const conteudo = document.getElementById('conteudo');
     if (rota !== 'timer') pintarTimerAtual = null;
@@ -1703,10 +2624,15 @@
     tela.ligar(conteudo);
     atualizarNav(rota);
     atualizarSyncUi();
+    if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
   }
 
   // ---------------- inicialização ----------------
-  window.addEventListener('hashchange', function () { fecharModal(); render(); });
+  window.addEventListener('hashchange', function () {
+    fecharModal();
+    window.scrollTo(0, 0);
+    render();
+  });
 
   const botaoTema = document.getElementById('botao-tema');
   if (botaoTema) botaoTema.addEventListener('click', alternarTema);

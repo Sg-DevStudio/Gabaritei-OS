@@ -1,0 +1,26 @@
+[
+  {
+    "titulo": "TRF3 - Técnico Judiciário",
+    "concurso": "TRF3 - Técnico Judiciário, Área Administrativa",
+    "descricao": "Plano completo já incluído no app, com disciplinas, tópicos e cronograma base.",
+    "arquivo": "data/plano-trf3-tecnico.json"
+  },
+  {
+    "titulo": "INSS - Técnico do Seguro Social",
+    "concurso": "INSS - Técnico do Seguro Social",
+    "descricao": "Modelo inicial editável para organizar português, raciocínio lógico, direito e seguridade.",
+    "arquivo": "data/catalogo-inss-tecnico.json"
+  },
+  {
+    "titulo": "TJSP - Escrevente Técnico",
+    "concurso": "TJSP - Escrevente Técnico Judiciário",
+    "descricao": "Modelo inicial editável para português, direito, matemática, informática e atualidades.",
+    "arquivo": "data/catalogo-tjsp-escrevente.json"
+  },
+  {
+    "titulo": "Banco do Brasil - Escriturário",
+    "concurso": "Banco do Brasil - Escriturário",
+    "descricao": "Modelo inicial editável para conhecimentos bancários, vendas, matemática, português e tecnologia.",
+    "arquivo": "data/catalogo-bb-escriturario.json"
+  }
+]
