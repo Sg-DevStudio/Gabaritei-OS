@@ -136,6 +136,7 @@ Siga `references/contrato-edital.md`. Resumo do schema:
   "estado": "SP",
   "nivel": "medio",
   "nota_corte_sugerida_pct": 84,
+  "lista_corte": "ampla",
   "janela_prova": { "inicio": "AAAA-MM", "fim": "AAAA-MM" },
   "em_alta": false,
   "fonte": "edital + listas de nomeação usadas",
@@ -152,7 +153,9 @@ Siga `references/contrato-edital.md`. Resumo do schema:
 
 Campos que o app **autopreenche** no cadastro a partir do JSON: `titulo`, `banca`,
 `orgao`, `cargo`, `area`, `estado` (UF, 2 letras), `nivel` (`facil`|`medio`|
-`dificil`), `nota_corte_sugerida_pct` e `janela_prova` (`inicio`/`fim` em `AAAA-MM`).
+`dificil`), `nota_corte_sugerida_pct`, `lista_corte` (`ampla`|`negros`|`pcd`|
+`indigenas` — a QUAL lista a nota sugerida se refere) e `janela_prova`
+(`inicio`/`fim` em `AAAA-MM`).
 Preencha todos os que tiver — o que faltar, pergunte ao usuário (regra de ouro).
 `notas_corte_ultimo_nomeado` e `fonte` ficam para o usuário auditar a meta. IDs:
 disciplina = sigla de 3–4 letras maiúsculas; tópico = `SIGLA-NN` sequencial.

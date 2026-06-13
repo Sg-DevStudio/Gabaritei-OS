@@ -141,6 +141,10 @@
   function tratarTickTimer(e) {
     atualizarTituloTimer(e);
     if (e && e.limiteAtingido) avisarLimiteTimer(e);
+    if (e && e.pomoTrocouFase) {
+      tocarAlarme(5);                                    // alerta de ~5s ao virar a fase (foco/pausa)
+      toast(e.pomoFase === 'foco' ? 'Pausa encerrada — de volta ao foco' : 'Foco concluído — 5 min de pausa', 'sucesso');
+    }
     if (pintarTimerAtual && location.hash.replace('#', '') === 'timer') pintarTimerAtual(e);
     if (pintarTimerModal) pintarTimerModal(e);
   }
@@ -1062,10 +1066,6 @@
             : ' · limite atingido';
         }
       }
-      if (e.pomoTrocouFase) {
-        tocarAlarme(5);                                  // alerta sonoro de ~5s ao virar a fase
-        toast(e.pomoFase === 'foco' ? 'Pausa encerrada — de volta ao foco' : 'Foco concluído — 5 min de pausa', 'sucesso');
-      }
       atualizarTituloTimer(e);
     }
 
@@ -1186,7 +1186,7 @@
         }).join('');
         corpo.innerHTML =
           '<div class="timer-disciplina-topo"><select id="tr-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
-          '<button type="button" class="timer-assunto-btn" id="tr-assunto-btn">Adicionar assunto (Opcional)⌄</button>' +
+          '<button type="button" class="timer-assunto-btn" id="tr-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +
           '<input type="hidden" id="tr-top" value="' + esc(timerPreselecao || '') + '">' +
           '<div class="timer-assunto-escolhido" id="tr-assunto-escolhido"></div></div>' +
           '<div style="margin-top:0.8rem;text-align:center"><span class="seletor-modo">' +
@@ -1197,10 +1197,14 @@
           '<div class="modal-acoes"><button class="botao-quieto" id="tr-fechar2">Fechar</button><button id="tr-iniciar">Iniciar</button></div>';
         const selDisc = corpo.querySelector('#tr-disc');
         const selTop = corpo.querySelector('#tr-top');
+        const assuntoBtn = corpo.querySelector('#tr-assunto-btn');
         const assuntoEscolhido = corpo.querySelector('#tr-assunto-escolhido');
         const atualizarAssunto = function () {
           const t = selTop && selTop.value ? D.topicoPorId(state, selTop.value) : null;
-          if (assuntoEscolhido) assuntoEscolhido.textContent = t ? t.nome : 'Sem assunto específico';
+          if (assuntoBtn) assuntoBtn.innerHTML = (t ? esc(t.nome) : 'Adicionar assunto') +
+            ' <span class="timer-assunto-caret" aria-hidden="true">⌄</span>';
+          if (assuntoBtn) assuntoBtn.classList.toggle('tem-assunto', !!t);
+          if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
         };
         const preencher = function () {
           const d = D.disciplinaPorId(state, selDisc.value);
@@ -2094,6 +2098,7 @@
       estado: (json.estado || json.uf || '').toString().trim().toUpperCase().slice(0, 2),
       nivel: (json.nivel || '').toString().trim(),
       notaCorte: corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null,
+      tipoCorte: normalizarListaCorte(json.lista_corte || json.tipo_corte || json.nota_corte_lista || 'ampla'),
       janelaProva: { inicio: (jp.inicio || '').toString(), fim: (jp.fim || '').toString() },
       emAlta: !!(json.em_alta || json.emAlta)
     };
@@ -2144,7 +2149,7 @@
     // Fluxo de importação inteligente: abre a tela de conferência já autopreenchida.
     abrirEditorEdital(null, 'conferencia', {
       titulo: titulo, banca: banca, orgao: orgao, cargo: cargo, area: meta.area || '',
-      estado: estado, nivel: meta.nivel || '', notaCorte: corte,
+      estado: estado, nivel: meta.nivel || '', notaCorte: corte, tipoCorte: meta.tipoCorte || 'ampla',
       janelaProva: meta.janelaProva, emAlta: meta.emAlta, disciplinas: disciplinas
     });
   }
@@ -2156,7 +2161,7 @@
     const json = {
       versao: 1,
       gerado_em: D.hojeISO(),
-      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', meta: { corte_pct: e.notaCorte || 70 }, radar: null, ritmos: null },
+      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', meta: { corte_pct: e.notaCorte || 70, corte_lista: normalizarListaCorte(e.tipoCorte) }, radar: null, ritmos: null },
       disciplinas: e.disciplinas,
       cronograma: {}
     };
@@ -2245,8 +2250,10 @@
   }
 
   function rotuloCorteEdital(e) {
-    const tipo = e.tipoCorte || e.corteTipo || e.modalidadeCorte || 'Ampla';
-    return 'Corte ' + tipo + ' ' + (e.notaCorte || 70) + '%';
+    // o rótulo do card já diz "Corte"; aqui vai só o valor: "73% · ampla"
+    const lista = normalizarListaCorte(e.tipoCorte || e.corteTipo || e.modalidadeCorte || 'ampla');
+    const curto = { ampla: 'ampla', negros: 'negros', pcd: 'PcD', indigenas: 'indígenas' }[lista] || 'ampla';
+    return (e.notaCorte || 70) + '% · ' + curto;
   }
 
   function catalogoCard(e) {
@@ -2291,8 +2298,8 @@
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e incidências">Detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir deste edital">' + (jaTem ? 'Refazer' : 'Iniciar') + '</button>' +
       '<button class="botao-mini botao-quieto" data-pl-comparar="' + esc(e.id) + '" title="Comparar com outro edital">Comparar</button>' +
+      (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div>' +
-      (jaTem ? '<span class="etiqueta etiqueta-feito" style="margin-top:0.2rem">plano criado ✓</span>' : '') +
       '</div>';
   }
 
@@ -2474,7 +2481,16 @@
     return { id: '', nome: '', cor: '#3B82F6', peso: 1, dificuldade: 'media', base_teorica: 'pdf', topicos: [topicoEmBranco()] };
   }
   function editalEmBranco() {
-    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
+    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
+  }
+
+  const LISTAS_CORTE = { ampla: 'Ampla concorrência', negros: 'Cota negros', pcd: 'Cota PcD', indigenas: 'Cota indígenas' };
+  function normalizarListaCorte(v) {
+    const s = String(v || '').toLowerCase();
+    if (s.indexOf('negr') >= 0) return 'negros';
+    if (s.indexOf('pcd') >= 0 || s.indexOf('defici') >= 0) return 'pcd';
+    if (s.indexOf('ind') >= 0) return 'indigenas';
+    return 'ampla';
   }
 
   // Lê uma imagem e devolve um data URL já redimensionado (evita estourar o
@@ -2566,8 +2582,12 @@
       '<div><label>Nível de dificuldade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
       '<div><label>Nota de corte (%)</label><input id="ee-corte" type="number" min="0" max="100" value="' + (e.notaCorte || 70) + '"></div></div>' +
       '<div class="grade-3">' +
+      '<div><label>Lista da nota de corte</label><select id="ee-corte-lista">' +
+      Object.keys(LISTAS_CORTE).map(function (k) { return '<option value="' + k + '"' + (normalizarListaCorte(e.tipoCorte) === k ? ' selected' : '') + '>' + LISTAS_CORTE[k] + '</option>'; }).join('') +
+      '</select></div>' +
       '<div><label>Janela da prova — início</label><input id="ee-janela-ini" type="month" value="' + esc(e.janelaProva.inicio) + '"></div>' +
-      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div>' +
+      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>' +
+      '<div class="grade-3">' +
       '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>';
 
     h += '<div class="ee-foto-campo"><label>Foto / capa do plano (aparece na aba Planos)</label>' +
@@ -2615,6 +2635,7 @@
     e.estado = val('#ee-estado').trim().toUpperCase().slice(0, 2);
     e.nivel = val('#ee-nivel') || 'medio';
     e.notaCorte = Math.max(0, Math.min(100, parseInt(val('#ee-corte'), 10) || 70));
+    e.tipoCorte = normalizarListaCorte(val('#ee-corte-lista'));
     e.janelaProva.inicio = val('#ee-janela-ini');
     e.janelaProva.fim = val('#ee-janela-fim');
     const chk = body.querySelector('#ee-emalta');
@@ -2698,6 +2719,7 @@
         titulo: dadosImport.titulo, banca: dadosImport.banca, orgao: dadosImport.orgao,
         cargo: dadosImport.cargo, area: dadosImport.area || '', estado: dadosImport.estado,
         nivel: dadosImport.nivel || 'medio', notaCorte: dadosImport.notaCorte,
+        tipoCorte: normalizarListaCorte(dadosImport.tipoCorte),
         janelaProva: dadosImport.janelaProva || { inicio: '', fim: '' },
         emAlta: !!dadosImport.emAlta,
         disciplinas: dadosImport.disciplinas
@@ -2736,7 +2758,7 @@
     if (!v.ok) { toast('Não consegui validar: ' + v.erros[0], 'erro'); return; }
     const registro = {
       titulo: e.titulo, banca: e.banca, orgao: e.orgao, cargo: e.cargo, area: e.area,
-      estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, emAlta: e.emAlta,
+      estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte), emAlta: e.emAlta,
       foto: e.foto || '',
       arquivado: !!e.arquivado, janelaProva: { inicio: e.janelaProva.inicio || '', fim: e.janelaProva.fim || '' },
       disciplinas: disciplinas
