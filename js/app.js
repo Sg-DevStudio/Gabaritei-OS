@@ -63,7 +63,7 @@
     const tema = state.config && state.config.tema === 'escuro' ? 'escuro' : 'claro';
     document.documentElement.dataset.tema = tema;
     const metaCor = document.getElementById('meta-theme-color');
-    if (metaCor) metaCor.setAttribute('content', tema === 'escuro' ? '#111319' : '#F6F7F3');
+    if (metaCor) metaCor.setAttribute('content', tema === 'escuro' ? '#111319' : '#EDF1F8');
   }
 
   function alternarTema() {
@@ -2301,10 +2301,39 @@
     });
   }
 
+  const UFS_BR = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+
+  // Órgão = trecho antes do primeiro separador do título (ex.: "TRF3 - Técnico..." → "TRF3")
+  function orgaoDoTitulo(titulo) {
+    const base = String(titulo || '').split(/\s[-–—]\s|\s[-–—]|—|\(/)[0].trim();
+    return base.slice(0, 28);
+  }
+
+  // UF = primeira sigla de estado encontrada como palavra isolada no texto (ou '')
+  function ufDoTexto(txt) {
+    const toks = String(txt || '').toUpperCase().split(/[^A-ZÀ-Ú0-9]+/);
+    for (let i = 0; i < toks.length; i++) {
+      if (UFS_BR.indexOf(toks[i]) >= 0) return toks[i];
+    }
+    return '';
+  }
+
+  // Preenche órgão/estado que não vieram no cadastro, para os filtros terem opções.
+  function enriquecerEditais() {
+    let mudou = false;
+    (state.editais || []).forEach(function (e) {
+      if (!e.orgao) { const o = orgaoDoTitulo(e.titulo); if (o) { e.orgao = o; mudou = true; } }
+      if (!e.estado) { const uf = ufDoTexto(e.titulo) || ufDoTexto(e.cargo); if (uf) { e.estado = uf; mudou = true; } }
+    });
+    return mudou;
+  }
+
   function garantirEditaisMock() {
     if (!Array.isArray(state.editais)) state.editais = [];
     if (state.editais.length === 0) {
       state.editais = construirEditaisMock();
+      salvar({ sincronizar: false });
+    } else if (enriquecerEditais()) {
       salvar({ sincronizar: false });
     }
   }
@@ -2312,22 +2341,24 @@
   function abrirEditaisDisponiveis() {
     garantirEditaisMock();
     const filtro = { orgao: '', cargo: '', estado: '', busca: '' };
-    function opcoes(campo, rotulo, selecionado) {
-      return '<option value="">' + rotulo + '</option>' +
-        valoresUnicosEditais(campo).map(function (v) {
-          return '<option value="' + esc(v) + '"' + (v === selecionado ? ' selected' : '') + '>' + esc(v) + '</option>';
-        }).join('');
+    // só mostra um filtro quando há ao menos uma opção real para ele (evita menu vazio)
+    function selectFiltro(campo, id, rotulo) {
+      const valores = valoresUnicosEditais(campo);
+      if (valores.length === 0) return '';
+      return '<select id="' + id + '" aria-label="Filtrar por ' + rotulo.toLowerCase() + '">' +
+        '<option value="">' + rotulo + ' (todos)</option>' +
+        valores.map(function (v) { return '<option value="' + esc(v) + '">' + esc(v) + '</option>'; }).join('') +
+        '</select>';
     }
+    const selects = selectFiltro('orgao', 'ed-f-orgao', 'Órgão') +
+      selectFiltro('cargo', 'ed-f-cargo', 'Cargo') +
+      selectFiltro('estado', 'ed-f-estado', 'Estado');
     const m = abrirModal(
       '<h3>Editais disponíveis</h3>' +
       '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>' +
       '<div class="editais-filtros">' +
       '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, banca…)" aria-label="Pesquisa geral" value="' + esc(filtro.busca) + '">' +
-      '<div class="editais-filtros-selects">' +
-      '<select id="ed-f-orgao" aria-label="Filtrar por órgão">' + opcoes('orgao', 'Órgão', filtro.orgao) + '</select>' +
-      '<select id="ed-f-cargo" aria-label="Filtrar por cargo">' + opcoes('cargo', 'Cargo', filtro.cargo) + '</select>' +
-      '<select id="ed-f-estado" aria-label="Filtrar por estado">' + opcoes('estado', 'Estado', filtro.estado) + '</select>' +
-      '</div>' +
+      (selects ? '<div class="editais-filtros-selects">' + selects + '</div>' : '') +
       '<button type="button" class="botao" id="ed-criar-plano" disabled>Criar plano</button>' +
       '</div>' +
       '<div class="editais-lista" id="ed-lista">' + editaisListaHtml(filtro) + '</div>' +
@@ -2351,11 +2382,12 @@
         });
       });
     }
+    function valorSel(sel) { const el = m.querySelector(sel); return el ? el.value : ''; }
     function atualizar() {
       filtro.busca = m.querySelector('#ed-f-busca').value;
-      filtro.orgao = m.querySelector('#ed-f-orgao').value;
-      filtro.cargo = m.querySelector('#ed-f-cargo').value;
-      filtro.estado = m.querySelector('#ed-f-estado').value;
+      filtro.orgao = valorSel('#ed-f-orgao');
+      filtro.cargo = valorSel('#ed-f-cargo');
+      filtro.estado = valorSel('#ed-f-estado');
       editavelId = null;
       btnCriar.disabled = true;
       listaEl.innerHTML = editaisListaHtml(filtro);
@@ -2368,11 +2400,12 @@
     });
     m.querySelector('#ed-f-busca').addEventListener('input', atualizar);
     ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) {
-      m.querySelector(sel).addEventListener('change', atualizar);
+      const el = m.querySelector(sel);
+      if (el) el.addEventListener('change', atualizar);
     });
     m.querySelector('#ed-limpar').addEventListener('click', function () {
       m.querySelector('#ed-f-busca').value = '';
-      ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) { m.querySelector(sel).value = ''; });
+      ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) { const el = m.querySelector(sel); if (el) el.value = ''; });
       atualizar();
     });
     m.querySelector('#ed-fechar').addEventListener('click', fecharModal);
@@ -3652,16 +3685,16 @@
   // ---------------- TELA: Mais (atalhos no celular) ----------------
   function telaMais() {
     const itens = [
-      ['#stats', 'Estatísticas', 'gráficos, tempo total e desempenho × meta'],
-      ['#edital', 'Edital verticalizado', 'progresso ○◐● e incidência por tópico'],
-      ['#simulados', 'Simulados', 'gabarito × meta de corte'],
-      ['#historico', 'Histórico', 'sessões do plano ativo ou do site inteiro'],
-      ['#ajustes', 'Configurações', 'planos, editais esquematizados, sincronização e dados']
+      ['#edital', 'Edital verticalizado'],
+      ['#stats', 'Estatísticas'],
+      ['#simulados', 'Simulados'],
+      ['#historico', 'Histórico']
     ];
-    return '<h1>Mais</h1><div class="card card-quieto">' +
+    return '<h1>Mais</h1><div class="card card-quieto mais-menu">' +
       itens.map(function (i) {
-        return '<a href="' + i[0] + '" style="display:block;padding:0.85rem 0.25rem;border-bottom:1px solid var(--grafite-claro);text-decoration:none;color:var(--tinta)">' +
-          '<strong style="color:var(--caneta)">' + i[1] + '</strong><br><span style="font-size:0.82rem;color:var(--grafite)">' + i[2] + '</span></a>';
+        return '<a class="mais-item" href="' + i[0] + '">' +
+          '<span class="mais-item-nome">' + i[1] + '</span>' +
+          '<span class="mais-item-seta" aria-hidden="true">›</span></a>';
       }).join('') + '</div>';
   }
 
