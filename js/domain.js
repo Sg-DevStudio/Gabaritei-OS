@@ -531,6 +531,116 @@
     return { inicio: inicioAnterior, planejado, realizado, saldo, qFeitas, temDados: realizadoMin > 0 };
   }
 
+  // ---------- Conciliação de planos: "dá para conciliar dois concursos?" ----------
+  // Compara dois editais e diz se é viável estudar para os dois ao mesmo tempo.
+  // Pura e testável: recebe os editais (com disciplinas/tópicos) e a rotina semanal.
+  function normalizarNomeConc(s) {
+    return String(s == null ? '' : s).toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function topicosDoEdital(ed) {
+    const out = [];
+    (ed.disciplinas || []).forEach(function (d) {
+      (d.topicos || []).forEach(function (t) {
+        out.push({ disc: normalizarNomeConc(d.nome), nome: normalizarNomeConc(t.nome), horas: t.horas_estimadas || 2 });
+      });
+    });
+    return out;
+  }
+
+  // Quantos meses faltam de hoje até um marco "AAAA-MM" (null se não definido).
+  function mesesAteMarco(aaaaMM, hoje) {
+    if (!aaaaMM) return null;
+    const a = String(aaaaMM).split('-');
+    const ano = parseInt(a[0], 10), mes = parseInt(a[1] || '1', 10);
+    if (!ano) return null;
+    const h = String(hoje).split('-');
+    return (ano - parseInt(h[0], 10)) * 12 + (mes - parseInt(h[1], 10));
+  }
+
+  function mensagemConciliacao(nivel, d) {
+    const comuns = d.disciplinasComuns.length;
+    const base = comuns > 0
+      ? 'Os dois concursos compartilham ' + comuns + ' disciplina' + (comuns > 1 ? 's' : '') + ' e ' + d.topicosComuns + ' tópico' + (d.topicosComuns !== 1 ? 's' : '') + ' (' + d.overlapPct + '% de sobreposição), economizando cerca de ' + d.economiaH + 'h de estudo. '
+      : 'Os dois concursos quase não têm conteúdo em comum, então estudar os dois soma a carga inteira. ';
+    const carga = 'Para cobrir tudo na janela mais próxima seriam ~' + d.exigidaSemana + 'h/semana, e você tem ~' + d.horasSemana + 'h disponíveis' +
+      (d.provaDefinida ? ' (≈' + d.semanasDisponiveis + ' semanas até a prova mais próxima). ' : ' (sem data de prova definida; estimei 6 meses). ');
+    let veredito;
+    if (nivel === 'alta') veredito = '✅ Dá para conciliar com folga.';
+    else if (nivel === 'moderada') veredito = '🟡 Dá para conciliar, mas no limite — priorize o que cai nos dois.';
+    else if (nivel === 'baixa') veredito = '🟠 Conciliar vai exigir cortar conteúdo e aumentar as horas semanais.';
+    else veredito = '⛔ Não recomendado: a carga combinada não cabe no tempo disponível.';
+    return base + carga + veredito;
+  }
+
+  function conciliarPlanos(edA, edB, opcoes) {
+    opcoes = opcoes || {};
+    const horasSemana = opcoes.horasSemana || 18;
+    const hoje = opcoes.hoje || hojeISO();
+    const topsA = topicosDoEdital(edA), topsB = topicosDoEdital(edB);
+
+    const discA = {}, discB = {};
+    (edA.disciplinas || []).forEach(function (d) { discA[normalizarNomeConc(d.nome)] = d.nome; });
+    (edB.disciplinas || []).forEach(function (d) { discB[normalizarNomeConc(d.nome)] = d.nome; });
+    const disciplinasComuns = Object.keys(discA).filter(function (k) { return discB[k]; }).map(function (k) { return discA[k]; });
+
+    const setB = {};
+    topsB.forEach(function (t) { setB[t.disc + '|' + t.nome] = true; });
+    const chavesA = {};
+    let topicosComuns = 0, horasComuns = 0;
+    topsA.forEach(function (t) {
+      const k = t.disc + '|' + t.nome;
+      chavesA[k] = true;
+      if (setB[k]) { topicosComuns++; horasComuns += t.horas; }
+    });
+    const totalA = topsA.length, totalB = topsB.length;
+    const exclusivosA = totalA - topicosComuns;
+    const exclusivosB = topsB.filter(function (t) { return !chavesA[t.disc + '|' + t.nome]; }).length;
+
+    const horasA = topsA.reduce(function (n, t) { return n + t.horas; }, 0);
+    const horasB = topsB.reduce(function (n, t) { return n + t.horas; }, 0);
+    const cargaUniaoH = Math.round((horasA + horasB - horasComuns) * 1.8);
+    const cargaSomadaH = Math.round((horasA + horasB) * 1.8);
+    const economiaH = cargaSomadaH - cargaUniaoH;
+
+    const mA = mesesAteMarco(edA.janelaProva && edA.janelaProva.inicio, hoje);
+    const mB = mesesAteMarco(edB.janelaProva && edB.janelaProva.inicio, hoje);
+    const mesesAlvo = [mA, mB].filter(function (m) { return m != null && m > 0; });
+    const mesesMin = mesesAlvo.length ? Math.min.apply(null, mesesAlvo) : null;
+    const provaDefinida = mesesMin != null;
+    const semanasDisponiveis = provaDefinida ? Math.max(2, Math.round(mesesMin * 4.345)) : 26;
+
+    const exigidaSemana = Math.round((cargaUniaoH / semanasDisponiveis) * 10) / 10;
+    const ratio = horasSemana > 0 ? exigidaSemana / horasSemana : 99;
+    const overlapPct = Math.round((topicosComuns / Math.max(1, Math.min(totalA, totalB))) * 100);
+
+    let nivel;
+    if (ratio <= 0.85) nivel = 'alta';
+    else if (ratio <= 1.05) nivel = 'moderada';
+    else if (ratio <= 1.3) nivel = 'baixa';
+    else nivel = 'nao_recomendado';
+
+    const ordem = ['nao_recomendado', 'baixa', 'moderada', 'alta'];
+    // provas muito próximas com carga acima da capacidade derrubam um nível
+    if (provaDefinida && semanasDisponiveis < 8 && ratio > 1) {
+      nivel = ordem[Math.max(0, ordem.indexOf(nivel) - 1)];
+    }
+    // alta sobreposição no limite sobe um nível (estudar uma vez aproveita nos dois)
+    if (overlapPct >= 50 && nivel === 'moderada' && ratio <= 1.0) nivel = 'alta';
+
+    const detalhes = {
+      disciplinasComuns: disciplinasComuns, nDisciplinasComuns: disciplinasComuns.length,
+      topicosComuns: topicosComuns, exclusivosA: exclusivosA, exclusivosB: exclusivosB,
+      totalA: totalA, totalB: totalB, overlapPct: overlapPct,
+      cargaUniaoH: cargaUniaoH, cargaSomadaH: cargaSomadaH, economiaH: economiaH,
+      exigidaSemana: exigidaSemana, horasSemana: horasSemana,
+      semanasDisponiveis: semanasDisponiveis, provaDefinida: provaDefinida, mesesMin: mesesMin
+    };
+    return { nivel: nivel, ratio: Math.round(ratio * 100) / 100, mensagem: mensagemConciliacao(nivel, detalhes), detalhes: detalhes };
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -539,6 +649,7 @@
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
-    totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal
+    totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
+    conciliarPlanos
   };
 })();
