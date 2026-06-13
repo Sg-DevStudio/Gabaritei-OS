@@ -2130,27 +2130,29 @@
     });
   }
 
-  function contarTopicosPlano(entrada) {
-    return entrada.disciplinas.reduce(function (n, d) {
-      return n + d.topicos.filter(function (t) { return !t.orfao; }).length;
-    }, 0);
+  // [Nome do Plano] + [Carga Horária Semanal] para exibir abaixo do Ritmo ativo
+  function nomePlanoComCarga(dados) {
+    if (!dados) return '';
+    const macro = dados.meses ? MACRO_PLANOS.find(function (p) { return p.meses === dados.meses; }) : null;
+    const nome = macro ? 'Plano ' + macro.nome.split(' (')[0] : (state.plano ? state.plano.concurso : 'Plano');
+    const horas = dados.h_semana || dados.h_semana_exigidas;
+    return nome + (horas ? ' · ' + horas + 'h por semana' : '');
   }
 
   function planoAtualHtml() {
     if (!state.plano) {
       return '<div class="card planejamento-card plano-atual-card"><div class="card-kpi-rotulo">Plano atual</div>' +
-        '<h3>Sem plano ativo</h3><p class="sub">Escolha um edital disponível abaixo e o sistema gera seu plano personalizado — ou crie um plano manual.</p>' +
+        '<h3>Sem plano ativo</h3><p class="sub">Escolha um edital disponível acima e o sistema gera seu plano personalizado — ou crie um plano manual.</p>' +
         '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
     }
     const ritmos = ritmosDisponiveis();
     const progresso = D.progressoEdital(state);
     const ritmoAtual = state.plano.ritmoAtivo || ritmos[0] || 'sustentavel';
+    const temPlanoGerado = ritmos.length > 0;
+    const dadosRitmo = state.plano.ritmos && state.plano.ritmos[ritmoAtual];
     const optsRitmo = ritmos.map(function (r) {
       const dados = state.plano.ritmos && state.plano.ritmos[r];
       return '<option value="' + esc(r) + '"' + (r === ritmoAtual ? ' selected' : '') + '>' + esc(rotuloRitmo(r, dados)) + '</option>';
-    }).join('');
-    const optsDisc = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
-      return '<option value="' + esc(d.id) + '">' + esc(d.id + ' — ' + d.nome) + '</option>';
     }).join('');
     return '<div class="card planejamento-card plano-atual-card">' +
       '<div class="card-kpi-rotulo">Plano atual</div>' +
@@ -2158,38 +2160,21 @@
       '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
       '<div class="barra" style="margin:0.65rem 0 0.9rem"><span style="width:' + progresso.pct + '%"></span></div>' +
-      (ritmos.length > 0 ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>' :
-        '<p class="sub">Este plano ainda não tem cronograma gerado.</p>') +
+      (temPlanoGerado
+        ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>' +
+          '<p class="sub plano-ritmo-info">' + esc(nomePlanoComCarga(dadosRitmo)) + '</p>'
+        : '<p class="sub">Este plano ainda não tem cronograma gerado.</p>') +
       '<div class="compact-actions">' +
       '<button class="botao-mini" id="pl-gerar-ritmos">Gerar plano de estudos</button>' +
-      '<button class="botao-mini botao-secundario" id="pl-gerar-agenda">Mostrar semana no calendário</button>' +
-      '<button class="botao-mini botao-quieto" id="pl-ajustar-perfil">Dificuldades</button></div>' +
-      (optsDisc ? '<div class="ajuste-cronograma"><label for="pl-disc-ajuste">Ajustar disciplina no cronograma</label>' +
-        '<div class="ajuste-cronograma-linha"><select id="pl-disc-ajuste">' + optsDisc + '</select>' +
-        '<button class="botao-mini botao-quieto" id="pl-antecipar">Antecipar</button>' +
-        '<button class="botao-mini botao-quieto" id="pl-atrasar">Atrasar</button></div></div>' : '') +
+      // Regra: o botão de dificuldade só aparece depois que o plano é gerado
+      (temPlanoGerado ? '<button class="botao-mini botao-quieto" id="pl-ajustar-perfil">Dificuldades</button>' : '') +
+      '</div>' +
+      '<div class="compact-actions plano-acoes-card">' +
+      '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
+      '<button class="botao-mini botao-secundario" id="pl-acao-perfil">Perfil</button>' +
+      '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
+      '</div>' +
       '</div>';
-  }
-
-  function planosCadastradosHtml() {
-    let html = '<div class="card planejamento-card"><div class="card-kpi-rotulo">Planos cadastrados</div>' +
-      '<div class="planos-grade">';
-    if (state.planos.length === 0) {
-      html += '<p class="sub">Nenhum plano salvo ainda.</p>';
-    }
-    state.planos.forEach(function (p) {
-      const ativo = p.id === state.planoAtivoId;
-      html += '<div class="plano-mini' + (ativo ? ' ativo' : '') + '">' +
-        '<div class="plano-mini-top"><strong>' + esc(p.plano.concurso) + '</strong>' +
-        (ativo ? '<span class="etiqueta etiqueta-feito">ativo</span>' : '') + '</div>' +
-        '<p class="sub">' + esc(p.plano.banca || 'manual') + ' · ' + p.disciplinas.length + ' disciplinas · ' + contarTopicosPlano(p) + ' tópicos</p>' +
-        '<div class="compact-actions">' +
-        (ativo ? '' : '<button class="botao-mini" data-pl-ativar="' + esc(p.id) + '">Ativar</button>') +
-        '<button class="botao-mini botao-quieto" data-pl-perfil="' + esc(p.id) + '">Editar perfil</button>' +
-        '<button class="botao-mini botao-quieto" data-pl-excluir="' + esc(p.id) + '">Excluir</button></div></div>';
-    });
-    html += '</div></div>';
-    return html;
   }
 
   // E-mail de suporte para pedidos de edital (empty state do modal)
@@ -2248,26 +2233,67 @@
     }).join('');
   }
 
+  // Banco de dados de teste: editais de alta concorrência para popular os filtros.
+  function construirEditaisMock() {
+    function t(id, nome, inc, h) {
+      return { id: id, nome: nome, incidencia_pct: inc, prioridade: 2, horas_estimadas: h, semana_sugerida: null, status: 'pendente', reaberto: false, orfao: false };
+    }
+    function disc(id, nome, cor, peso, tops) {
+      return { id: id, nome: nome, cor: cor, peso: peso, base_teorica: 'pdf', topicos: tops };
+    }
+    const base = [
+      disc('POR', 'Língua Portuguesa', '#3B82F6', 2, [t('por-01', 'Interpretação de texto', 30, 4), t('por-02', 'Crase e regência', 18, 3), t('por-03', 'Concordância', 16, 3)]),
+      disc('RLM', 'Raciocínio Lógico-Matemático', '#8B5CF6', 2, [t('rlm-01', 'Lógica proposicional', 22, 4), t('rlm-02', 'Análise combinatória', 14, 3)]),
+      disc('DCONST', 'Direito Constitucional', '#EF4444', 3, [t('dc-01', 'Direitos fundamentais', 28, 5), t('dc-02', 'Organização do Estado', 16, 4)]),
+      disc('DADM', 'Direito Administrativo', '#F59E0B', 3, [t('da-01', 'Atos administrativos', 24, 5), t('da-02', 'Licitações (Lei 14.133)', 26, 5)])
+    ];
+    return [
+      { titulo: 'TRF3 — Técnico Judiciário 2026', banca: 'FCC', orgao: 'TRF3', cargo: 'Técnico Judiciário', estado: 'SP', notaCorte: 72 },
+      { titulo: 'TJ-RJ — Técnico de Atividade Judiciária 2026', banca: 'FGV', orgao: 'TJ-RJ', cargo: 'Técnico Judiciário', estado: 'RJ', notaCorte: 68 },
+      { titulo: 'Petrobras — Técnico(a) de Administração e Controle Jr', banca: 'Cebraspe', orgao: 'Petrobras', cargo: 'Técnico de Administração', estado: 'RJ', notaCorte: 65 }
+    ].map(function (e, i) {
+      return {
+        id: 'edt-mock-' + i, titulo: e.titulo, banca: e.banca, orgao: e.orgao, cargo: e.cargo, estado: e.estado,
+        notaCorte: e.notaCorte, criadoEm: D.hojeISO(), mock: true,
+        disciplinas: JSON.parse(JSON.stringify(base))
+      };
+    });
+  }
+
+  function garantirEditaisMock() {
+    if (!Array.isArray(state.editais)) state.editais = [];
+    if (state.editais.length === 0) {
+      state.editais = construirEditaisMock();
+      salvar({ sincronizar: false });
+    }
+  }
+
   function abrirEditaisDisponiveis() {
-    const filtro = { orgao: '', cargo: '', estado: '', busca: '' };
-    function opcoes(campo, rotulo) {
+    garantirEditaisMock();
+    // filtros previamente populados com o mock de alta concorrência quando há dados de teste
+    const temMock = state.editais.some(function (e) { return e.mock; });
+    const filtro = temMock
+      ? { orgao: 'TRF3', cargo: 'Técnico Judiciário', estado: 'SP', busca: '' }
+      : { orgao: '', cargo: '', estado: '', busca: '' };
+    function opcoes(campo, rotulo, selecionado) {
       return '<option value="">' + rotulo + '</option>' +
         valoresUnicosEditais(campo).map(function (v) {
-          return '<option value="' + esc(v) + '">' + esc(v) + '</option>';
+          return '<option value="' + esc(v) + '"' + (v === selecionado ? ' selected' : '') + '>' + esc(v) + '</option>';
         }).join('');
     }
     const m = abrirModal(
       '<h3>Editais disponíveis</h3>' +
       '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>' +
       '<div class="editais-filtros">' +
-      '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, banca…)" aria-label="Pesquisa geral">' +
+      '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, banca…)" aria-label="Pesquisa geral" value="' + esc(filtro.busca) + '">' +
       '<div class="grade-3">' +
-      '<select id="ed-f-orgao" aria-label="Filtrar por órgão">' + opcoes('orgao', 'Órgão: todos') + '</select>' +
-      '<select id="ed-f-cargo" aria-label="Filtrar por cargo">' + opcoes('cargo', 'Cargo: todos') + '</select>' +
-      '<select id="ed-f-estado" aria-label="Filtrar por estado">' + opcoes('estado', 'Estado: todos') + '</select>' +
+      '<select id="ed-f-orgao" aria-label="Filtrar por órgão">' + opcoes('orgao', 'Órgão: todos', filtro.orgao) + '</select>' +
+      '<select id="ed-f-cargo" aria-label="Filtrar por cargo">' + opcoes('cargo', 'Cargo: todos', filtro.cargo) + '</select>' +
+      '<select id="ed-f-estado" aria-label="Filtrar por estado">' + opcoes('estado', 'Estado: todos', filtro.estado) + '</select>' +
       '</div></div>' +
       '<div class="editais-lista" id="ed-lista">' + editaisListaHtml(filtro) + '</div>' +
-      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="ed-fechar">Fechar</button></div>'
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="ed-limpar">Limpar filtros</button>' +
+      '<button type="button" class="botao-quieto" id="ed-fechar">Fechar</button></div>'
     );
     m.classList.add('modal-amplo');
     const listaEl = m.querySelector('#ed-lista');
@@ -2282,6 +2308,11 @@
     m.querySelector('#ed-f-busca').addEventListener('input', atualizar);
     ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) {
       m.querySelector(sel).addEventListener('change', atualizar);
+    });
+    m.querySelector('#ed-limpar').addEventListener('click', function () {
+      m.querySelector('#ed-f-busca').value = '';
+      ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) { m.querySelector(sel).value = ''; });
+      atualizar();
     });
     m.querySelector('#ed-fechar').addEventListener('click', fecharModal);
     ligarBotoesPlanoEdital(listaEl);
@@ -2735,26 +2766,6 @@
     });
   }
 
-  function deslocarDisciplinaCronograma(disciplinaId, delta) {
-    if (!state.plano || !state.cronogramas) return;
-    const chave = state.plano.ritmoAtivo || 'sustentavel';
-    const cron = state.cronogramas[chave] || [];
-    if (cron.length === 0) { toast('Gere ou escolha um cronograma antes de ajustar.', 'erro'); return; }
-    const novos = cron.map(function (sem) { return Object.assign({}, sem, { blocos: [] }); });
-    let movidos = 0;
-    cron.forEach(function (sem, idx) {
-      sem.blocos.forEach(function (b) {
-        const alvo = b.disciplina === disciplinaId ? Math.max(0, Math.min(cron.length - 1, idx + delta)) : idx;
-        if (b.disciplina === disciplinaId && alvo !== idx) movidos++;
-        novos[alvo].blocos.push(Object.assign({}, b));
-      });
-    });
-    cron.forEach(function (sem, idx) { sem.blocos = novos[idx].blocos; });
-    salvar();
-    render();
-    toast(movidos + ' blocos ' + (delta < 0 ? 'antecipados' : 'atrasados'), 'sucesso');
-  }
-
   function normalizarCabecalho(s) {
     return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
   }
@@ -2856,10 +2867,7 @@
 
     html += checkinSemanalHtml();
 
-    html += '<div class="planejamento-layout">' +
-      planoAtualHtml() +
-      planosCadastradosHtml() +
-      '</div>';
+    html += planoAtualHtml();
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
@@ -2871,7 +2879,7 @@
 
     // paleta de disciplinas (arrastáveis)
     html += '<div class="card planejamento-disciplinas-card"><h3>Personalize seu plano de estudos</h3>' +
-      '<p class="sub">Arraste uma matéria para o calendário ou toque nela para agendar hoje.</p>' +
+      '<p class="sub">Arraste uma matéria para um dia do ciclo ou toque nela para agendar hoje.</p>' +
       '<div class="paleta-disc">' +
       state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
         return '<button class="chip-disc" draggable="true" data-chip="' + esc(d.id) + '" style="background:' + esc(d.cor) + '" title="' + esc(d.nome) + '">' + esc(d.id) + '</button>';
@@ -2879,69 +2887,34 @@
       '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
       '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
 
-    // barra de navegação + alternância semana/mês
-    const rotulo = agendaModo === 'semana'
-      ? D.formatarDataBR(agendaRef).slice(0, 5) + ' – ' + D.formatarDataBR(D.addDias(agendaRef, 6)).slice(0, 5) + ' · ' + agendaRef.slice(0, 4)
-      : D.formatarMesBR(mesRef);
-    html += '<div class="agenda-toolbar">' +
-      '<div class="agenda-nav">' +
-      '<button class="botao-mini botao-quieto" id="pl-ant" aria-label="Anterior">‹</button>' +
-      '<strong>' + rotulo + '</strong>' +
-      '<button class="botao-mini botao-quieto" id="pl-prox" aria-label="Próximo">›</button>' +
-      '<button class="botao-mini botao-quieto" id="pl-hoje">Hoje</button></div>' +
-      '<div class="agenda-nav">' +
-      '<button class="botao-mini ' + (agendaModo === 'semana' ? '' : 'botao-quieto') + '" data-modo-ag="semana">Semanal</button>' +
-      '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button></div></div>';
-
-    if (agendaModo === 'semana') {
-      html += '<div class="agenda-grid">';
-      for (let i = 0; i < 7; i++) {
-        const data = D.addDias(agendaRef, i);
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; }).sort(function (a, b) {
-          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
-        });
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
-        html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
-          '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
-          (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
-          blocos.map(function (b) {
-            const d = D.disciplinaPorId(state, b.disciplinaId);
-            const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
-            const concluido = blocoAgendaConcluido(b);
-            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
-              '<span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></div>';
-          }).join('') +
-          '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
-      }
-      html += '</div>';
-    } else {
-      // visão mensal compacta
-      const [anoM, mesM] = mesRef.split('-').map(Number);
-      const primeiroDia = mesRef + '-01';
-      const iniGrade = D.segundaDaSemana(primeiroDia);
-      html += '<div class="mes-grid">' + DIAS_CURTOS.map(function (n) { return '<div class="mes-rotulo">' + n + '</div>'; }).join('');
-      let cursor = iniGrade;
-      for (let c = 0; c < 42; c++) {
-        const noMes = cursor.slice(0, 7) === mesRef;
-        if (c >= 35 && !noMes) break;
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; }).sort(function (a, b) {
-          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
-        });
-        html += '<div class="mes-celula' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') + '" data-vai-semana="' + esc(cursor) + '" role="button" tabindex="0">' +
-          '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
-          (blocos.length > 0 ? '<div class="mes-eventos">' + blocos.slice(0, 3).map(function (b) {
-            const d = D.disciplinaPorId(state, b.disciplinaId);
-            const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
-            return '<div class="mes-evento' + (blocoAgendaConcluido(b) ? ' feito' : '') + '" style="--disc-cor:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc((d ? d.nome : b.disciplinaId) + (t ? ' · ' + t.nome : '')) + '">' +
-              '<span class="mes-evento-nome">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="mes-evento-hora">' + rotuloHorarioAgenda(b) + '</span></div>';
-          }).join('') + (blocos.length > 3 ? '<span class="mes-mais">Mais ' + (blocos.length - 3) + '</span>' : '') + '</div>' : '') +
-          '</div>';
-        cursor = D.addDias(cursor, 1);
-      }
-      html += '</div><p style="font-size:0.78rem;color:var(--grafite);margin-top:0.5rem">Toque em um dia para abrir a semana dele.</p>';
+    // Ciclo atual: board da semana corrente (foco no ciclo, sem navegação de calendário).
+    // Suporta arrastar/soltar disciplinas entre os dias (mouse e toque).
+    const refSemana = D.segundaDaSemana(hoje);
+    html += '<div class="card ciclo-atual-card"><div class="ciclo-cab"><div>' +
+      '<div class="card-kpi-rotulo">Ciclo atual</div>' +
+      '<h3>' + D.formatarDataBR(refSemana).slice(0, 5) + ' – ' + D.formatarDataBR(D.addDias(refSemana, 6)).slice(0, 5) + '</h3></div>' +
+      '<p class="sub">Segure e arraste uma disciplina para trocar o dia de estudo.</p></div>' +
+      '<div class="agenda-grid ciclo-grid">';
+    for (let i = 0; i < 7; i++) {
+      const data = D.addDias(refSemana, i);
+      const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; }).sort(function (a, b) {
+        return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+      });
+      const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+      html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
+        '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
+        (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
+        blocos.map(function (b) {
+          const d = D.disciplinaPorId(state, b.disciplinaId);
+          const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+          const concluido = blocoAgendaConcluido(b);
+          return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
+            '<span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
+            '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></div>';
+        }).join('') +
+        '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
     }
+    html += '</div></div>';
     return html;
   }
 
@@ -2973,64 +2946,19 @@
     if (gerarRitmos) gerarRitmos.addEventListener('click', function () {
       abrirGerarPlanoComRotina();
     });
-    const gerarAgenda = raiz.querySelector('#pl-gerar-agenda');
-    if (gerarAgenda) gerarAgenda.addEventListener('click', gerarSemanaNaAgenda);
     const ajustarPerfil = raiz.querySelector('#pl-ajustar-perfil');
     if (ajustarPerfil) ajustarPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
-    const discAjuste = raiz.querySelector('#pl-disc-ajuste');
-    const antecipar = raiz.querySelector('#pl-antecipar');
-    const atrasar = raiz.querySelector('#pl-atrasar');
-    if (antecipar && discAjuste) antecipar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, -1); });
-    if (atrasar && discAjuste) atrasar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, 1); });
 
-    raiz.querySelectorAll('[data-pl-ativar]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        window.Store.ativarPlano(state, b.getAttribute('data-pl-ativar'));
-        editalAbertas = new Set();
-        salvar(); render();
-        toast('Plano ativado', 'sucesso');
-      });
+    // ações do card "Plano atual": Edital · Perfil · Excluir
+    const acaoEdital = raiz.querySelector('#pl-acao-edital');
+    if (acaoEdital) acaoEdital.addEventListener('click', function () {
+      if (location.hash !== '#edital') location.hash = '#edital'; else render();
     });
-    raiz.querySelectorAll('[data-pl-perfil]').forEach(function (b) {
-      b.addEventListener('click', function () { abrirPerfilPlano(b.getAttribute('data-pl-perfil')); });
-    });
-    raiz.querySelectorAll('[data-pl-excluir]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        const p = state.planos.find(function (x) { return x.id === b.getAttribute('data-pl-excluir'); });
-        if (!p) return;
-        if (!confirm('Excluir o plano "' + p.plano.concurso + '"? As sessões registradas nele ficam guardadas, mas deixam de aparecer.')) return;
-        window.Store.removerPlano(state, p.id);
-        salvar(); render();
-        toast('Plano excluído');
-      });
-    });
-
-    const ant = raiz.querySelector('#pl-ant');
-    if (ant) ant.addEventListener('click', function () {
-      if (agendaModo === 'semana') agendaRef = D.addDias(agendaRef, -7);
-      else {
-        const [a, m] = mesRef.split('-').map(Number);
-        mesRef = (m === 1 ? (a - 1) + '-12' : a + '-' + String(m - 1).padStart(2, '0'));
-      }
-      render();
-    });
-    const prox = raiz.querySelector('#pl-prox');
-    if (prox) prox.addEventListener('click', function () {
-      if (agendaModo === 'semana') agendaRef = D.addDias(agendaRef, 7);
-      else {
-        const [a, m] = mesRef.split('-').map(Number);
-        mesRef = (m === 12 ? (a + 1) + '-01' : a + '-' + String(m + 1).padStart(2, '0'));
-      }
-      render();
-    });
-    const irHoje = raiz.querySelector('#pl-hoje');
-    if (irHoje) irHoje.addEventListener('click', function () {
-      agendaRef = D.segundaDaSemana(D.hojeISO());
-      mesRef = D.hojeISO().slice(0, 7);
-      render();
-    });
-    raiz.querySelectorAll('[data-modo-ag]').forEach(function (b) {
-      b.addEventListener('click', function () { agendaModo = b.getAttribute('data-modo-ag'); render(); });
+    const acaoPerfil = raiz.querySelector('#pl-acao-perfil');
+    if (acaoPerfil) acaoPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
+    const acaoExcluir = raiz.querySelector('#pl-acao-excluir');
+    if (acaoExcluir) acaoExcluir.addEventListener('click', function () {
+      if (state.planoAtivoId) excluirPlano(state.planoAtivoId, true);
     });
 
     // chips: arrastar para um dia ou tocar para agendar hoje
@@ -3059,38 +2987,107 @@
       b.addEventListener('click', function () { abrirNovoBlocoAgenda(b.getAttribute('data-add-dia')); });
     });
 
-    // alvos de soltura (dias da semana)
+    // alvos de soltura (dias do ciclo) — drag & drop nativo (mouse/desktop)
     raiz.querySelectorAll('[data-dia]').forEach(function (cel) {
       cel.addEventListener('dragover', function (e) { e.preventDefault(); cel.classList.add('drop-alvo'); });
       cel.addEventListener('dragleave', function () { cel.classList.remove('drop-alvo'); });
       cel.addEventListener('drop', function (e) {
         e.preventDefault();
         cel.classList.remove('drop-alvo');
-        const dado = e.dataTransfer.getData('text/plain');
-        const dia = cel.getAttribute('data-dia');
-        if (dado.indexOf('nova|') === 0) {
-          state.agenda.push({
-            id: window.Store.novoId('agd'), planoId: state.planoAtivoId, data: dia, disciplinaId: dado.slice(5),
-            topicoId: null, duracaoMin: 60, obs: '', feito: false
-          });
-          salvar(); render();
-          toast('Bloco de 1h adicionado — clique nele para ajustar', 'sucesso');
-        } else if (dado.indexOf('mover|') === 0) {
-          const b = state.agenda.find(function (x) { return x.id === dado.slice(6); });
-          if (b && b.data !== dia) { b.data = dia; salvar(); render(); }
-        }
+        moverOuCriarBlocoNoDia(e.dataTransfer.getData('text/plain'), cel.getAttribute('data-dia'));
       });
     });
 
-    // visão mensal: clicar num dia abre a semana dele
-    raiz.querySelectorAll('[data-vai-semana]').forEach(function (cel) {
-      const abrir = function () {
-        agendaRef = D.segundaDaSemana(cel.getAttribute('data-vai-semana'));
-        agendaModo = 'semana';
-        render();
-      };
-      cel.addEventListener('click', abrir);
-      cel.addEventListener('keydown', function (e) { if (e.key === 'Enter') abrir(); });
+    // arrastar e soltar por toque (mobile), sem quebrar o scroll nativo
+    ligarDragTouch(raiz);
+  }
+
+  // ação compartilhada por drop nativo e por toque
+  function moverOuCriarBlocoNoDia(dado, dia) {
+    if (!dado || !dia) return;
+    if (dado.indexOf('nova|') === 0) {
+      state.agenda.push({
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId, data: dia, disciplinaId: dado.slice(5),
+        topicoId: null, duracaoMin: 60, obs: '', feito: false
+      });
+      salvar(); render();
+      toast('Bloco de 1h adicionado — toque nele para ajustar', 'sucesso');
+    } else if (dado.indexOf('mover|') === 0) {
+      const b = state.agenda.find(function (x) { return x.id === dado.slice(6); });
+      if (b && b.data !== dia) { b.data = dia; salvar(); render(); toast('Disciplina movida de dia', 'sucesso'); }
+    }
+  }
+
+  // Drag and drop por toque: long-press inicia o arrasto; antes disso o scroll
+  // nativo continua funcionando. Um "fantasma" segue o dedo e o dia sob ele é o alvo.
+  function ligarDragTouch(raiz) {
+    raiz.querySelectorAll('[data-bloco], [data-chip]').forEach(function (el) {
+      let timer = null, ativo = false, clone = null, alvo = null, payload = '', startX = 0, startY = 0;
+
+      function payloadDe() {
+        return el.hasAttribute('data-bloco')
+          ? 'mover|' + el.getAttribute('data-bloco')
+          : 'nova|' + el.getAttribute('data-chip');
+      }
+      function limpar() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        if (clone) { clone.remove(); clone = null; }
+        if (alvo) { alvo.classList.remove('drop-alvo'); alvo = null; }
+        ativo = false;
+        document.body.classList.remove('arrastando-toque');
+      }
+      function iniciar(t) {
+        ativo = true;
+        payload = payloadDe();
+        document.body.classList.add('arrastando-toque');
+        const r = el.getBoundingClientRect();
+        clone = el.cloneNode(true);
+        clone.classList.add('drag-fantasma');
+        clone.style.width = r.width + 'px';
+        clone.style.left = (t.clientX - r.width / 2) + 'px';
+        clone.style.top = (t.clientY - r.height / 2) + 'px';
+        document.body.appendChild(clone);
+        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+      }
+
+      el.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) return;
+        const t = e.touches[0];
+        startX = t.clientX; startY = t.clientY;
+        timer = setTimeout(function () { timer = null; iniciar(t); }, 200);
+      }, { passive: true });
+
+      el.addEventListener('touchmove', function (e) {
+        const t = e.touches[0];
+        if (!ativo) {
+          // movimento antes do long-press = scroll → cancela o arrasto e deixa rolar
+          if (timer && (Math.abs(t.clientX - startX) > 10 || Math.abs(t.clientY - startY) > 10)) {
+            clearTimeout(timer); timer = null;
+          }
+          return;
+        }
+        e.preventDefault(); // segura o scroll apenas durante o arrasto
+        clone.style.left = (t.clientX - clone.offsetWidth / 2) + 'px';
+        clone.style.top = (t.clientY - clone.offsetHeight / 2) + 'px';
+        const sob = document.elementFromPoint(t.clientX, t.clientY);
+        const dia = sob ? sob.closest('[data-dia]') : null;
+        if (dia !== alvo) {
+          if (alvo) alvo.classList.remove('drop-alvo');
+          alvo = dia;
+          if (alvo) alvo.classList.add('drop-alvo');
+        }
+      }, { passive: false });
+
+      el.addEventListener('touchend', function () {
+        if (ativo && alvo) {
+          const dia = alvo.getAttribute('data-dia');
+          limpar();
+          moverOuCriarBlocoNoDia(payload, dia);
+        } else {
+          limpar();
+        }
+      });
+      el.addEventListener('touchcancel', limpar);
     });
   }
 
