@@ -5071,6 +5071,17 @@
     render();
   });
 
+  document.addEventListener('click', function (e) {
+    const link = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!link) return;
+    const destino = link.getAttribute('href');
+    if (!destino || destino === '#') return;
+    e.preventDefault();
+    fecharModal();
+    if (location.hash === destino) render();
+    else location.hash = destino;
+  });
+
   const botaoTema = document.getElementById('botao-tema');
   if (botaoTema) botaoTema.addEventListener('click', alternarTema);
   const botaoConfiguracoes = document.getElementById('botao-configuracoes');
