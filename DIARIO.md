@@ -59,6 +59,20 @@ e repaginação visual + gamificação.
 
 ---
 
+## 13/06/2026 — Onda 2 (parte 2): exportar para o Google Calendar (.ics)
+
+- **Exportação `.ics`** (botão "📅 Calendário" na barra da agenda do Planejamento):
+  gera um arquivo iCalendar com os blocos do cronograma (a partir de hoje) e as
+  revisões pendentes (24h/7d/30d/reforço), importável no Google Calendar, Apple
+  ou Outlook. Blocos sem horário são sequenciados a partir das 08:00; revisões
+  viram eventos de dia inteiro. **Custo zero, sem API/login** — a arquitetura
+  (`gerarIcs`/`baixarArquivo`) fica pronta para uma sincronização por API depois.
+  Modal com opções (blocos/revisões) e instruções de importação no Google Calendar.
+
+**Falta da Onda 2:** repaginação visual + gamificação.
+
+---
+
 ## Próximos passos (backlog)
 
 - [ ] **Publicar no GitHub Pages**: Settings → Pages → branch `main`, pasta `/ (root)`;
