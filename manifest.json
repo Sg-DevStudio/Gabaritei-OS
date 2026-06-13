@@ -1,6 +1,6 @@
 {
-  "name": "Estudos — Plataforma de Concursos",
-  "short_name": "Estudos",
+  "name": "Rota do Bizu — Plataforma de Concursos",
+  "short_name": "Rota do Bizu",
   "description": "Gestão pessoal de estudos para concursos: cronograma, sessões, revisões e estatísticas contra a meta de corte.",
   "lang": "pt-BR",
   "start_url": "./index.html",
