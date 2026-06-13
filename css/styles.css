@@ -150,6 +150,8 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .marca {
@@ -678,20 +680,20 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 
 .pizza-acertos {
   --pct: 0;
-  width: 58px;
+  width: 54px;
   aspect-ratio: 1;
   display: inline-grid;
   place-items: center;
   border-radius: 50%;
-  background: conic-gradient(#58D4A5 calc(var(--pct) * 1%), #CF4850 0);
+  /* anel fino e sóbrio: progresso de acertos sobre trilho neutro */
+  background: conic-gradient(var(--correto) calc(var(--pct) * 1%), var(--grafite-claro) 0);
   position: relative;
   vertical-align: middle;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
 }
 .pizza-acertos::after {
   content: '';
   position: absolute;
-  inset: 28%;
+  inset: 38%;
   border-radius: 50%;
   background: var(--papel-card);
 }
@@ -699,13 +701,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   position: relative;
   z-index: 1;
   font-family: var(--fonte-mono);
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--tinta);
 }
-.pizza-sm { width: 50px; }
-.pizza-xs { width: 42px; }
-.pizza-xs .pizza-centro { font-size: 0.62rem; }
+.pizza-sm { width: 46px; }
+.pizza-xs { width: 40px; }
+.pizza-xs .pizza-centro { font-size: 0.6rem; }
 
 .painel-disciplinas-mobile { display: none; }
 .tag-incidencia {
