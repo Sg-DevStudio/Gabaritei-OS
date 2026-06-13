@@ -1662,6 +1662,10 @@
       '<div class="grade-2" style="margin-top:0.5rem">' +
       '<div><label for="ed-titulo">Nome do edital</label><input id="ed-titulo" type="text" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
       '<div><label for="ed-banca">Banca</label><input id="ed-banca" type="text" placeholder="Ex.: FCC"></div></div>' +
+      '<div class="grade-3">' +
+      '<div><label for="ed-orgao">Órgão</label><input id="ed-orgao" type="text" placeholder="Ex.: TRF 3ª Região"></div>' +
+      '<div><label for="ed-cargo">Cargo</label><input id="ed-cargo" type="text" placeholder="Ex.: Técnico Judiciário"></div>' +
+      '<div><label for="ed-estado">Estado (UF)</label><input id="ed-estado" type="text" maxlength="2" placeholder="Ex.: SP" style="text-transform:uppercase"></div></div>' +
       '<label for="ed-corte">Nota de corte estimada do último edital (%)</label>' +
       '<input id="ed-corte" type="number" min="0" max="100" value="70" style="max-width:160px">' +
       '<label for="ed-arquivo">Tópicos detalhados (arquivo .json, .xlsx ou .csv)</label>' +
@@ -1687,6 +1691,9 @@
     const titulo = (raiz.querySelector('#ed-titulo').value || '').trim();
     if (!titulo) { toast('Dê um nome ao edital.', 'erro'); return; }
     const banca = (raiz.querySelector('#ed-banca').value || '').trim();
+    const orgao = (raiz.querySelector('#ed-orgao') ? raiz.querySelector('#ed-orgao').value : '').trim();
+    const cargo = (raiz.querySelector('#ed-cargo') ? raiz.querySelector('#ed-cargo').value : '').trim();
+    const estado = (raiz.querySelector('#ed-estado') ? raiz.querySelector('#ed-estado').value : '').trim().toUpperCase().slice(0, 2);
     const corte = Math.max(0, Math.min(100, parseInt(raiz.querySelector('#ed-corte').value, 10) || 70));
     const arquivoEl = raiz.querySelector('#ed-arquivo');
     const file = arquivoEl && arquivoEl.files && arquivoEl.files[0];
@@ -1715,6 +1722,9 @@
       id: window.Store.novoId('edt'),
       titulo: titulo,
       banca: banca,
+      orgao: orgao,
+      cargo: cargo,
+      estado: estado,
       notaCorte: corte,
       criadoEm: D.hojeISO(),
       disciplinas: disciplinas
@@ -1881,6 +1891,15 @@
     { id: 'sex', label: 'SEX', offset: 4, ativo: true, minutos: 180 },
     { id: 'sab', label: 'SÁB', offset: 5, ativo: true, minutos: 180 }
   ];
+
+  // RN-Antifadiga (Regra 1): blocos permitidos — 30min, 45min, 1h, 1h15, 1h30, 2h
+  const TEMPOS_BLOCO = [30, 45, 60, 75, 90, 120];
+
+  function rotuloBloco(min) {
+    if (min < 60) return min + 'min';
+    const h = Math.floor(min / 60), m = min % 60;
+    return h + 'h' + (m > 0 ? String(m).padStart(2, '0') : '');
+  }
 
   function parseHorasDia(valor) {
     const texto = String(valor || '').trim().replace(',', '.');
@@ -2173,24 +2192,165 @@
     return html;
   }
 
-  // editais cadastrados pelo admin, exibidos no Planejamento: o usuário escolhe
-  // se quer criar um plano personalizado a partir de cada um
-  function editaisDisponiveisHtml() {
-    if (state.editais.length === 0) return '';
-    let html = '<div class="card planejamento-card editais-card"><div class="card-kpi-rotulo">Editais disponíveis</div>' +
-      '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>';
-    state.editais.forEach(function (e) {
+  // E-mail de suporte para pedidos de edital (empty state do modal)
+  const EMAIL_SUPORTE = 'casar70@gmail.com';
+
+  function normalizarBusca(s) {
+    return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+  }
+
+  // opções únicas (Órgão / Cargo / Estado) presentes nos editais cadastrados
+  function valoresUnicosEditais(campo) {
+    const set = new Set();
+    state.editais.forEach(function (e) { if (e[campo]) set.add(e[campo]); });
+    return Array.from(set).sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
+  }
+
+  function editalCorrespondeFiltro(e, filtro) {
+    if (filtro.orgao && (e.orgao || '') !== filtro.orgao) return false;
+    if (filtro.cargo && (e.cargo || '') !== filtro.cargo) return false;
+    if (filtro.estado && (e.estado || '') !== filtro.estado) return false;
+    if (filtro.busca) {
+      const alvo = normalizarBusca([e.titulo, e.banca, e.orgao, e.cargo, e.estado].join(' '));
+      if (alvo.indexOf(normalizarBusca(filtro.busca)) < 0) return false;
+    }
+    return true;
+  }
+
+  // conteúdo da lista do modal (recalculado a cada mudança de filtro)
+  function editaisListaHtml(filtro) {
+    const lista = state.editais.filter(function (e) { return editalCorrespondeFiltro(e, filtro); });
+    if (lista.length === 0) {
+      return '<div class="estado-vazio editais-vazio"><span class="bolha bolha-pendente"></span>' +
+        '<strong>Nenhum edital encontrado</strong>' +
+        'Não encontrou seu edital? Faça um pedido.' +
+        '<p style="margin-top:1rem">' +
+        '<a class="botao" href="mailto:' + EMAIL_SUPORTE +
+        '?subject=' + encodeURIComponent('Pedido de edital') +
+        '&body=' + encodeURIComponent('Olá! Gostaria de pedir o cadastro do seguinte edital:\n\nÓrgão: ' +
+          (filtro.orgao || '') + '\nCargo: ' + (filtro.cargo || '') + '\nEstado: ' + (filtro.estado || '') +
+          '\nNome/observação: ' + (filtro.busca || '')) +
+        '">✉ Pedir este edital ao suporte</a></p></div>';
+    }
+    return lista.map(function (e) {
       const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
-      html += '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
+      const tags = [e.orgao, e.cargo, e.estado].filter(Boolean).map(function (t) {
+        return '<span class="edital-tag">' + esc(t) + '</span>';
+      }).join('');
+      return '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
         '<div class="fila-info"><div class="fila-titulo">' + esc(e.titulo) + '</div>' +
+        (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
         '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
         contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</div></div>' +
         (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado ✓</span>'
           : '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano personalizado</button>') +
         '</div>';
+    }).join('');
+  }
+
+  function abrirEditaisDisponiveis() {
+    const filtro = { orgao: '', cargo: '', estado: '', busca: '' };
+    function opcoes(campo, rotulo) {
+      return '<option value="">' + rotulo + '</option>' +
+        valoresUnicosEditais(campo).map(function (v) {
+          return '<option value="' + esc(v) + '">' + esc(v) + '</option>';
+        }).join('');
+    }
+    const m = abrirModal(
+      '<h3>Editais disponíveis</h3>' +
+      '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>' +
+      '<div class="editais-filtros">' +
+      '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, banca…)" aria-label="Pesquisa geral">' +
+      '<div class="grade-3">' +
+      '<select id="ed-f-orgao" aria-label="Filtrar por órgão">' + opcoes('orgao', 'Órgão: todos') + '</select>' +
+      '<select id="ed-f-cargo" aria-label="Filtrar por cargo">' + opcoes('cargo', 'Cargo: todos') + '</select>' +
+      '<select id="ed-f-estado" aria-label="Filtrar por estado">' + opcoes('estado', 'Estado: todos') + '</select>' +
+      '</div></div>' +
+      '<div class="editais-lista" id="ed-lista">' + editaisListaHtml(filtro) + '</div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="ed-fechar">Fechar</button></div>'
+    );
+    m.classList.add('modal-amplo');
+    const listaEl = m.querySelector('#ed-lista');
+    function atualizar() {
+      filtro.busca = m.querySelector('#ed-f-busca').value;
+      filtro.orgao = m.querySelector('#ed-f-orgao').value;
+      filtro.cargo = m.querySelector('#ed-f-cargo').value;
+      filtro.estado = m.querySelector('#ed-f-estado').value;
+      listaEl.innerHTML = editaisListaHtml(filtro);
+      ligarBotoesPlanoEdital(listaEl);
+    }
+    m.querySelector('#ed-f-busca').addEventListener('input', atualizar);
+    ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) {
+      m.querySelector(sel).addEventListener('change', atualizar);
     });
-    html += '</div>';
-    return html;
+    m.querySelector('#ed-fechar').addEventListener('click', fecharModal);
+    ligarBotoesPlanoEdital(listaEl);
+  }
+
+  function ligarBotoesPlanoEdital(raiz) {
+    raiz.querySelectorAll('[data-ed-plano]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        fecharModal();
+        criarPlanoDeEdital(b.getAttribute('data-ed-plano'));
+      });
+    });
+  }
+
+  // RN10 — cartão de check-in semanal + projeção de conclusão (burn-down do edital)
+  function checkinSemanalHtml() {
+    const burn = D.burndownEdital(state, D.hojeISO());
+    if (!burn) return '';
+    const check = D.checkinSemanal(state, D.hojeISO());
+    const mapaSit = {
+      no_prazo: { classe: 'ok', rotulo: 'No prazo', icone: '✅' },
+      adiantado: { classe: 'ok', rotulo: 'Adiantado', icone: '🚀' },
+      atrasado: { classe: 'alerta', rotulo: 'Atrasado', icone: '⚠️' },
+      parado: { classe: 'alerta', rotulo: 'Ritmo parado', icone: '⚠️' },
+      concluido: { classe: 'ok', rotulo: 'Esforço concluído', icone: '🏁' }
+    };
+    const sit = mapaSit[burn.situacao] || mapaSit.no_prazo;
+    let projecao;
+    if (burn.situacao === 'concluido') {
+      projecao = 'Você já cobriu o esforço estimado do edital. Foque em revisões e simulados.';
+    } else if (burn.situacao === 'parado') {
+      projecao = 'Sem sessões suficientes para projetar. Registre seus estudos para o sistema calcular seu ritmo.';
+    } else {
+      projecao = 'No ritmo atual você terminará o edital em <strong>' +
+        esc(String(burn.mesesProjetados).replace('.', ',')) + ' meses</strong> — ' +
+        (burn.situacao === 'atrasado'
+          ? 'acima da meta de ' + burn.meses + ' meses. As próximas semanas ganham um leve acréscimo para recuperar.'
+          : burn.situacao === 'adiantado'
+            ? 'abaixo da meta de ' + burn.meses + ' meses. Dá para aliviar a carga das próximas semanas.'
+            : 'dentro da meta de ' + burn.meses + ' meses.');
+    }
+    let checkLinha = '';
+    if (check.temDados) {
+      const deficit = check.saldo < -0.1;
+      const superavit = check.saldo > 0.1;
+      checkLinha = '<div class="checkin-comparativo ' + (deficit ? 'alerta' : 'ok') + '">' +
+        '<span>Semana passada · planejado <strong>' + formatarHorasSemana(check.planejado).replace(' na semana', '') + '</strong>' +
+        ' · realizado <strong>' + check.realizado + 'h</strong></span>' +
+        '<span class="checkin-saldo">' + (deficit
+          ? 'déficit de ' + Math.abs(check.saldo) + 'h — redistribuído nas semanas restantes'
+          : superavit
+            ? 'superávit de ' + check.saldo + 'h — carga futura aliviada'
+            : 'na meta 👏') + '</span></div>';
+    }
+    return '<div class="card checkin-card checkin-' + sit.classe + '">' +
+      '<div class="checkin-head"><div class="card-kpi-rotulo">Check-in semanal · burn-down do edital</div>' +
+      '<span class="checkin-badge checkin-badge-' + sit.classe + '">' + sit.icone + ' ' + sit.rotulo + '</span></div>' +
+      '<div class="checkin-grid">' +
+      '<div class="checkin-kpi"><span class="checkin-num">' + formatarHorasSemana(burn.cargaIdeal).replace(' na semana', '') + '</span>' +
+      '<span class="checkin-rotulo">Carga ideal desta semana</span></div>' +
+      '<div class="checkin-kpi"><span class="checkin-num">' + burn.ritmoReal + 'h</span>' +
+      '<span class="checkin-rotulo">Seu ritmo real / semana</span></div>' +
+      '<div class="checkin-kpi"><span class="checkin-num">' + burn.pctConcluido + '%</span>' +
+      '<span class="checkin-rotulo">do esforço estimado</span></div>' +
+      '<div class="checkin-kpi"><span class="checkin-num">' + burn.semanasRestantes + '</span>' +
+      '<span class="checkin-rotulo">semanas até a meta</span></div></div>' +
+      '<div class="barra checkin-barra"><span style="width:' + burn.pctConcluido + '%"></span></div>' +
+      '<p class="checkin-projecao">' + projecao + '</p>' +
+      checkLinha + '</div>';
   }
 
   function abrirConfiguracoesPlanejamento() {
@@ -2288,6 +2448,13 @@
     return escolhidos;
   }
 
+  // Parte 3 — macro-planos de estudo
+  const MACRO_PLANOS = [
+    { meses: 3, nome: 'Intensivo (reta final / pós-edital)' },
+    { meses: 6, nome: 'Regular' },
+    { meses: 9, nome: 'Construção de base (pré-edital)' }
+  ];
+
   function semanasPorMeses(meses) {
     return meses === 3 ? 13 : meses === 9 ? 39 : 26;
   }
@@ -2317,6 +2484,7 @@
   function gerarCronogramaHierarquico(disciplinas, semanas, opcoes) {
     opcoes = opcoes || {};
     const horasSemana = opcoes.horasSemana || 20;
+    const porIncidencia = opcoes.ordemAtaque === 'incidencia'; // Regra 2 — 80/20
     const inicio = D.segundaDaSemana(D.hojeISO());
     const semanasCron = [];
     for (let i = 0; i < semanas; i++) {
@@ -2327,6 +2495,11 @@
         const sugerida = t.semana_sugerida ? Math.max(1, Math.min(semanas, Math.round((t.semana_sugerida / 28) * semanas))) : ordem + 1;
         return { topico: t, ordem, sugerida };
       }).sort(function (a, b) {
+        if (porIncidencia) {
+          // ataca primeiro os tópicos mais cobrados nas provas (regra 80/20)
+          return (b.topico.incidencia_pct || 0) - (a.topico.incidencia_pct || 0) ||
+            (a.topico.prioridade || 2) - (b.topico.prioridade || 2) || a.sugerida - b.sugerida || a.ordem - b.ordem;
+        }
         return a.sugerida - b.sugerida || (a.topico.prioridade || 2) - (b.topico.prioridade || 2) ||
           b.topico.incidencia_pct - a.topico.incidencia_pct || a.ordem - b.ordem;
       });
@@ -2383,7 +2556,7 @@
     return semanasCron;
   }
 
-  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso) {
+  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || entrada.disciplinas.length === 0) {
       if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
@@ -2393,9 +2566,11 @@
     const semanas = semanasPorMeses(meses);
     const chave = 'plano_ativo';
     const hSemana = Math.max(4, Math.round(horasSemana || horasIdeaisSemanaPlano(entrada, meses) || 20));
+    if (ordemAtaque) entrada.plano.ordemAtaque = ordemAtaque;
+    const ordem = entrada.plano.ordemAtaque || 'edital';
     entrada.cronogramas = {};
     entrada.plano.ritmos = entrada.plano.ritmos || {};
-    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana });
+    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem });
     entrada.plano.ritmos = {};
     entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana };
     entrada.plano.ritmoAtivo = chave;
@@ -2455,15 +2630,16 @@
     const ritmo = state.plano.ritmoAtivo;
     const atual = state.plano.ritmos && ritmo ? state.plano.ritmos[ritmo] : null;
     const mesesAtual = atual && atual.meses ? atual.meses : 6;
+    const ordemAtual = state.plano.ordemAtaque || 'edital';
     const rotina = rotinaEstudosAtual();
     const totalAtual = totalMinutosRotina(rotina);
     const entrada = entradaPlanoAtivo();
     const idealAtual = horasIdeaisSemanaPlano(entrada, mesesAtual);
-    const optsMin = [25, 30, 45, 50, 60, 75, 90].map(function (v) {
-      return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + v + 'min</option>';
+    const optsMin = TEMPOS_BLOCO.map(function (v) {
+      return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + rotuloBloco(v) + '</option>';
     }).join('');
-    const optsMax = [45, 60, 75, 90, 120].map(function (v) {
-      return '<option value="' + v + '"' + (v === rotina.maxBloco ? ' selected' : '') + '>' + (v >= 60 ? (v / 60) + 'h' : v + 'min') + '</option>';
+    const optsMax = TEMPOS_BLOCO.map(function (v) {
+      return '<option value="' + v + '"' + (v === rotina.maxBloco ? ' selected' : '') + '>' + rotuloBloco(v) + '</option>';
     }).join('');
     const diasHtml = ROTINA_DIAS.map(function (d) {
       const cfg = rotina.dias[d.id] || { ativo: d.ativo, minutos: d.minutos };
@@ -2478,12 +2654,19 @@
       '<p class="sub">Defina sua rotina. O sistema vai respeitar dias, horas disponíveis e blocos máximos por disciplina.</p>' +
       '<form id="form-gerar-plano-rotina">' +
       '<div class="grade-2"><div><label for="gp-meses">Terminar edital em</label><select id="gp-meses">' +
-      [3, 6, 9].map(function (v) {
-        return '<option value="' + v + '"' + (v === mesesAtual ? ' selected' : '') + '>' + v + ' meses</option>';
+      MACRO_PLANOS.map(function (p) {
+        return '<option value="' + p.meses + '"' + (p.meses === mesesAtual ? ' selected' : '') + '>' + p.meses + ' meses · ' + p.nome + '</option>';
       }).join('') + '</select></div>' +
       '<div class="rotina-totais"><div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + formatarHorasSemana(totalAtual / 60) + '</div></div>' +
       '<div><label>Total ideal</label><div class="rotina-total rotina-total-ideal" id="gp-total-ideal">' + formatarHorasSemana(idealAtual) + '</div></div></div></div>' +
       '<p class="rotina-feedback" id="gp-feedback"></p>' +
+      '<label>Ordem de ataque ao conteúdo</label>' +
+      '<div class="toggle-ordem" role="radiogroup" aria-label="Ordem de ataque ao conteúdo">' +
+      '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="edital"' + (ordemAtual === 'edital' ? ' checked' : '') + '>' +
+      '<span><strong>Ordem do edital</strong><small>Segue a sequência publicada no edital.</small></span></label>' +
+      '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="incidencia"' + (ordemAtual === 'incidencia' ? ' checked' : '') + '>' +
+      '<span><strong>Ordem de incidência (80/20)</strong><small>Ataca primeiro os tópicos mais cobrados nas provas.</small></span></label>' +
+      '</div>' +
       '<label>Quais dias e quantas horas pretende estudar?</label>' +
       '<div class="rotina-dias">' + diasHtml + '</div>' +
       '<label>Qual mínimo e máximo de tempo que deseja estudar uma mesma disciplina?</label>' +
@@ -2538,14 +2721,17 @@
       const totalMinutos = totalMinutosRotina(rotinaNova);
       if (totalMinutos < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); return; }
       const horas = Math.max(1, Math.round(totalMinutos / 60));
+      const ordemEl = m.querySelector('input[name="gp-ordem"]:checked');
+      const ordemAtaque = ordemEl ? ordemEl.value : 'edital';
       state.config.rotinaEstudos = rotinaNova;
-      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true)) return;
+      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque)) return;
       fecharModal();
       const cron = D.cronogramaAtivo(state);
       agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
       agendaModo = 'semana';
       render();
-      toast('Plano gerado respeitando sua rotina — o calendário foi preenchido', 'sucesso');
+      const macro = MACRO_PLANOS.find(function (p) { return p.meses === meses; });
+      toast('Plano ' + (macro ? macro.nome.split(' (')[0] : meses + ' meses') + ' gerado — calendário preenchido', 'sucesso');
     });
   }
 
@@ -2663,16 +2849,17 @@
       if (sincronizarAgendaComCronograma() > 0) salvar();
     }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
-      '<p class="sub">Plano atual, editais disponíveis e agenda no mesmo lugar.</p></div>' +
-      '<div class="cab-acoes"><button class="botao-quieto" id="pl-config">⚙ Configurações</button>' +
+      '<p class="sub">Plano atual, agenda e seu ritmo contra a meta no mesmo lugar.</p></div>' +
+      '<div class="cab-acoes"><button class="botao" id="pl-editais">📋 Editais disponíveis</button>' +
+      '<button class="botao-quieto" id="pl-config">⚙ Configurações</button>' +
       '<button class="botao-quieto" id="pl-nova-disc">+ Nova disciplina</button></div></div>';
+
+    html += checkinSemanalHtml();
 
     html += '<div class="planejamento-layout">' +
       planoAtualHtml() +
       planosCadastradosHtml() +
       '</div>';
-
-    html += editaisDisponiveisHtml();
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
@@ -2759,6 +2946,8 @@
   }
 
   function ligarPlanejamento(raiz) {
+    const editais = raiz.querySelector('#pl-editais');
+    if (editais) editais.addEventListener('click', abrirEditaisDisponiveis);
     const config = raiz.querySelector('#pl-config');
     if (config) config.addEventListener('click', function () {
       abrirConfiguracoesPlanejamento();
@@ -2793,10 +2982,6 @@
     const atrasar = raiz.querySelector('#pl-atrasar');
     if (antecipar && discAjuste) antecipar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, -1); });
     if (atrasar && discAjuste) atrasar.addEventListener('click', function () { deslocarDisciplinaCronograma(discAjuste.value, 1); });
-
-    raiz.querySelectorAll('[data-ed-plano]').forEach(function (b) {
-      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-ed-plano')); });
-    });
 
     raiz.querySelectorAll('[data-pl-ativar]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -2992,6 +3177,15 @@
     toast('Semana ' + dist.semana.semana + ' gerada na agenda — ajuste arrastando os blocos', 'sucesso');
   }
 
+  // ajusta uma duração para o tempo de bloco permitido mais próximo dentro da faixa
+  function snapBloco(min, minBloco, maxBloco) {
+    const permitidos = TEMPOS_BLOCO.filter(function (v) { return v >= minBloco && v <= maxBloco; });
+    const opts = permitidos.length ? permitidos : TEMPOS_BLOCO;
+    return opts.reduce(function (melhor, v) {
+      return Math.abs(v - min) < Math.abs(melhor - min) ? v : melhor;
+    }, opts[0]);
+  }
+
   function dividirBlocosMinutos(totalMin, minBloco, maxBloco) {
     let restante = Math.max(5, Math.round(totalMin / 5) * 5);
     const partes = [];
@@ -3005,7 +3199,8 @@
     if (partes.length > 1 && partes[partes.length - 1] < minBloco) {
       partes[partes.length - 2] += partes.pop();
     }
-    return partes;
+    // Regra 1: cada bloco precisa cair em um dos tempos permitidos (30/45/60/75/90/120)
+    return partes.map(function (p) { return snapBloco(p, minBloco, maxBloco); });
   }
 
   function ordenarTarefasIntercaladas(filas) {
