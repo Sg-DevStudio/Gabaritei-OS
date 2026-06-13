@@ -25,9 +25,27 @@ estudo, mais a **meta de desempenho** (nota de corte do último nomeado). Esta s
 produz exatamente esse insumo. Cronograma, calendário e revisões ficam por conta do
 app; esta skill NÃO monta cronograma.
 
+O arquivo deve **autopreencher ao máximo o cadastro do app**: quando o usuário
+importa o JSON na seção "Editais esquematizados", o app já lê título, banca, órgão,
+cargo, área, estado (UF), nível, nota de corte e janela da prova direto do arquivo —
+então preencha TODOS esses campos. Quanto mais completo o JSON, menos o usuário
+digita.
+
+### Regra de ouro: preencher tudo que dá, perguntar o resto, nunca inventar
+
+- Preencha cada campo que você consiga extrair do edital ou confirmar com fonte.
+- O que você **não encontrar ou não tiver certeza** (nota de corte, incidência de um
+  tópico, UF, janela da prova, banca) **NÃO é chutado**: liste os campos faltantes e
+  **pergunte ao usuário** — ele pesquisa e te devolve o dado, você junta tudo e gera
+  o arquivo final. É melhor um arquivo com 3 perguntas pendentes do que um arquivo
+  com 3 números inventados.
+- Para campos não-críticos que mesmo assim ficarem sem fonte, use o neutro seguro
+  (`incidencia_pct: 0`, `foto` ausente, `em_alta: false`) e avise o usuário do que
+  ficou em branco — nunca um valor plausível "de fachada".
+
 Fluxo: **edital recebido → esquematização → incidência → notas de corte →
-arquivo pronto para upload** (seção "Editais esquematizados" da aba Configurações
-do app).
+(perguntar o que faltou) → arquivo pronto para upload** (seção "Editais
+esquematizados" da aba Configurações do app).
 
 > Toda busca na web desta skill segue o protocolo da skill `checagem-fatos`
 > (fonte primária > snippet, triangulação, data de publicação). Se ela estiver
@@ -112,9 +130,15 @@ Siga `references/contrato-edital.md`. Resumo do schema:
   "gerado_em": "AAAA-MM-DD",
   "titulo": "Órgão — Cargo (Edital NN/AAAA)",
   "banca": "FCC",
+  "orgao": "TRF 3ª Região",
   "cargo": "nome completo do cargo",
-  "fonte": "edital + listas de nomeação usadas",
+  "area": "Administrativa",
+  "estado": "SP",
+  "nivel": "medio",
   "nota_corte_sugerida_pct": 84,
+  "janela_prova": { "inicio": "AAAA-MM", "fim": "AAAA-MM" },
+  "em_alta": false,
+  "fonte": "edital + listas de nomeação usadas",
   "notas_corte_ultimo_nomeado": {
     "escala": "como a nota final é calculada e qual o máximo",
     "Unidade X": { "ampla": 16.80, "ampla_pct": 84.0, "negros": 15.60, "negros_pct": 78.0, "pcd": 15.32 }
@@ -126,10 +150,14 @@ Siga `references/contrato-edital.md`. Resumo do schema:
 }
 ```
 
-O app lê o campo `disciplinas`; os metadados (título, banca, notas de corte) são
-para o usuário preencher o formulário de cadastro e conferir as fontes. IDs:
+Campos que o app **autopreenche** no cadastro a partir do JSON: `titulo`, `banca`,
+`orgao`, `cargo`, `area`, `estado` (UF, 2 letras), `nivel` (`facil`|`medio`|
+`dificil`), `nota_corte_sugerida_pct` e `janela_prova` (`inicio`/`fim` em `AAAA-MM`).
+Preencha todos os que tiver — o que faltar, pergunte ao usuário (regra de ouro).
+`notas_corte_ultimo_nomeado` e `fonte` ficam para o usuário auditar a meta. IDs:
 disciplina = sigla de 3–4 letras maiúsculas; tópico = `SIGLA-NN` sequencial.
-Entregue como **arquivo .json para download** (UTF-8, parseável, sem comentários).
+Entregue como **arquivo .json para download** (UTF-8, parseável, sem comentários) —
+este é o caminho rápido recomendado; o Excel abaixo é alternativa de legado.
 
 ### Excel (.xlsx) — alternativa
 
@@ -144,8 +172,11 @@ Uma linha por tópico com as colunas que o app importa: `disciplina`, `sigla`,
 3. `semana_sugerida` respeita a ordem pedagógica dentro de cada disciplina?
 4. Notas de corte: números fechados para ampla E negros, com fonte? (Frases
    proibidas: "eu fecho depois", "posso puxar se você quiser".)
-5. Sem links de plataformas de questões no arquivo?
-6. JSON parseia sem erro / planilha abre com cabeçalhos corretos?
+5. Campos de autopreenchimento (`orgao`, `cargo`, `area`, `estado`, `nivel`,
+   `janela_prova`, `nota_corte_sugerida_pct`) preenchidos com fonte OU listados
+   como pergunta ao usuário — nenhum chutado?
+6. Sem links de plataformas de questões no arquivo?
+7. JSON parseia sem erro / planilha abre com cabeçalhos corretos?
 
 ## Manutenção e legado
 
@@ -160,6 +191,7 @@ Uma linha por tópico com as colunas que o app importa: `disciplina`, `sigla`,
 ## O que esta skill NÃO faz
 
 - Não monta cronograma nem calendário — isso é função do app.
-- Não inventa incidência nem nota de corte: se a fonte não existir, diga e ofereça
-  a melhor aproximação declarada.
+- Não inventa NADA (incidência, nota de corte, UF, banca, janela da prova): se a
+  fonte não existir, **pergunta ao usuário** e espera o dado — nunca preenche com
+  chute nem com "aproximação de fachada".
 - Não esquematiza cargo diferente do que o usuário vai prestar.

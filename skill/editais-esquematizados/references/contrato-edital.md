@@ -1,11 +1,13 @@
 # Contrato do edital esquematizado (v1) — upload no app
 
 O arquivo alimenta a seção **Editais esquematizados** (aba Configurações do app
-PWA). O app lê apenas o campo `disciplinas`; os demais campos são metadados para o
-usuário preencher o formulário de cadastro (nome, banca, nota de corte) e auditar
-as fontes. Também é aceito: um JSON só com `{"disciplinas":[...]}`, uma lista de
-disciplinas, ou planilha .xlsx/.csv com colunas `disciplina, sigla, topico,
-incidencia, prioridade, horas, semana, peso, cor`.
+PWA). O app lê o campo `disciplinas` E **autopreenche o cadastro** com os metadados
+do topo do arquivo: `titulo`, `banca`, `orgao`, `cargo`, `area`, `estado` (UF),
+`nivel`, `nota_corte_sugerida_pct` e `janela_prova`. Preencha todos os que tiver com
+fonte; o que faltar, pergunte ao usuário (regra de ouro — nunca invente). Também é
+aceito: um JSON só com `{"disciplinas":[...]}`, uma lista de disciplinas, ou planilha
+.xlsx/.csv com colunas `disciplina, sigla, topico, incidencia, prioridade, horas,
+semana, peso, cor`.
 
 ## Regras
 
@@ -34,9 +36,15 @@ incidencia, prioridade, horas, semana, peso, cor`.
   "gerado_em": "2026-06-12",
   "titulo": "TRF3 — Técnico Judiciário, Área Administrativa (Edital 01/2024)",
   "banca": "FCC",
+  "orgao": "TRF 3ª Região",
   "cargo": "Técnico Judiciário — Área Administrativa (TJAA)",
+  "area": "Administrativa",
+  "estado": "SP",
+  "nivel": "medio",
   "fonte": "Edital nº 01/2024 (DOU 18/04/2024); atos de nomeação até mai/2026",
   "nota_corte_sugerida_pct": 84,
+  "janela_prova": { "inicio": "2027-07", "fim": "2027-09" },
+  "em_alta": false,
   "notas_corte_ultimo_nomeado": {
     "escala": "nota final 0–20 (média ponderada das objetivas + discursiva); pct = nota/20",
     "TJAA Seção SP": { "ampla": 16.80, "ampla_pct": 84.0, "negros": 15.60, "negros_pct": 78.0, "pcd": 15.32 }
@@ -44,7 +52,7 @@ incidencia, prioridade, horas, semana, peso, cor`.
   "disciplinas": [
     {
       "id": "ADM",
-      "nome": "Noções de Direito Administrativo",
+      "nome": "Direito Administrativo",
       "cor": "#27AE60",
       "peso": 2,
       "base_teorica": "pdf",
@@ -69,4 +77,8 @@ incidencia, prioridade, horas, semana, peso, cor`.
 2. Incidências de cada disciplina somam ~100.
 3. Nenhum tópico sem `incidencia_pct` numérico (o validador do app exige).
 4. Notas de corte com fonte, para ampla E negros.
-5. Arquivo .json para download, não colado na conversa.
+5. Metadados de autopreenchimento (`orgao`, `cargo`, `area`, `estado`, `nivel`,
+   `janela_prova`, `nota_corte_sugerida_pct`) com fonte OU perguntados ao usuário —
+   nada inventado. Nomes de disciplina sem prefixo "Noções de".
+6. Tópicos desmembrados (um assunto por tópico, régua dos filtros do Qconcursos/TEC).
+7. Arquivo .json para download, não colado na conversa.
