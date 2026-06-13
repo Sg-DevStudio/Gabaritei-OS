@@ -85,23 +85,26 @@
     } catch (e) {}
   }
 
-  function tocarAlarme() {
+  function tocarAlarme(duracaoS) {
     prepararAudio();
-    if (navigator.vibrate) navigator.vibrate([180, 80, 180]);
+    if (navigator.vibrate) navigator.vibrate([180, 80, 180, 80, 180]);
     if (!audioCtx) return;
     const agora = audioCtx.currentTime;
-    for (let i = 0; i < 3; i++) {
+    const total = duracaoS && duracaoS > 0 ? duracaoS : 0.9;
+    const passo = 0.5;                                   // um bipe a cada 0,5s
+    const n = Math.max(3, Math.round(total / passo));
+    for (let i = 0; i < n; i++) {
       const osc = audioCtx.createOscillator();
       const ganho = audioCtx.createGain();
-      const t = agora + i * 0.28;
+      const t = agora + i * passo;
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.setValueAtTime(i % 2 ? 660 : 880, t);  // dois tons alternados
       ganho.gain.setValueAtTime(0.001, t);
-      ganho.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
-      ganho.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      ganho.gain.exponentialRampToValueAtTime(0.18, t + 0.03);
+      ganho.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
       osc.connect(ganho).connect(audioCtx.destination);
       osc.start(t);
-      osc.stop(t + 0.2);
+      osc.stop(t + 0.33);
     }
   }
 
@@ -124,7 +127,7 @@
   }
 
   function avisarLimiteTimer(e) {
-    tocarAlarme();
+    tocarAlarme(5);
     toast('Tempo máximo atingido: ' + e.limiteMin + ' min.', 'sucesso');
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('Tempo máximo atingido', {
@@ -160,6 +163,16 @@
     return '<span class="tag-disc" style="background:' + esc(disc.cor) + '">' + esc(disc.id) + '</span>';
   }
 
+  // Nome de exibição da disciplina sem o prefixo "Noções de / Noções Dir." —
+  // na prática nunca é só noção e o prefixo só ocupa espaço.
+  function nomeDiscCurto(nome) {
+    let s = String(nome || '');
+    s = s.replace(/^No[çc][õo]es\s+Dir\.\s*/i, 'Direito ');
+    s = s.replace(/^No[çc][õo]es\s+de\s+/i, '');
+    s = s.replace(/^No[çc][õo]es\s+/i, '');
+    return s.trim() || String(nome || '');
+  }
+
   function bolha(status, extra) {
     return '<span class="bolha bolha-' + esc(status) + (extra ? ' ' + extra : '') + '" aria-hidden="true"></span>';
   }
@@ -189,17 +202,15 @@
       (quente ? '🔥 ' : '') + n + '%</span>';
   }
 
-  // IDs dos tópicos mais recorrentes (maior incidência) do plano ativo — ganham 🔥
-  function idsTopicosQuentes(limite) {
+  // IDs dos tópicos mais recorrentes (maior incidência) DE CADA disciplina — ganham 🔥.
+  // Por disciplina (não global) para que toda matéria destaque os seus campeões
+  // de incidência, ex.: Constitucional também marca os dela.
+  function idsTopicosQuentes(topicos, limite) {
     limite = limite || 3;
-    const todos = [];
-    (state.disciplinas || []).forEach(function (d) {
-      (d.topicos || []).forEach(function (t) {
-        if (t.orfao) return;
-        todos.push({ id: t.id, inc: t.incidencia_pct || 0 });
-      });
-    });
-    todos.sort(function (a, b) { return b.inc - a.inc; });
+    const todos = (topicos || [])
+      .filter(function (t) { return !t.orfao; })
+      .map(function (t) { return { id: t.id, inc: t.incidencia_pct || 0 }; })
+      .sort(function (a, b) { return b.inc - a.inc; });
     const set = new Set();
     todos.slice(0, limite).forEach(function (t) { if (t.inc > 0) set.add(t.id); });
     return set;
@@ -643,7 +654,7 @@
     return '<div class="card painel-disciplinas-card"><h3 class="painel-titulo">Painel de disciplinas</h3>' +
       '<div class="painel-disciplinas-mobile">' + linhas.map(function (d) {
         return '<button type="button" class="painel-disc-mobile" data-disc-detalhe="' + esc(d.id) + '" style="--disc-cor:' + esc(d.cor) + '">' +
-          '<span class="painel-disc-mobile-nome">' + esc(d.nome) + '</span>' +
+          '<span class="painel-disc-mobile-nome">' + esc(nomeDiscCurto(d.nome)) + '</span>' +
           pizzaAcertosHtml(d.certas, d.erros, { classe: 'pizza-sm', titulo: d.nome }) +
           '</button>';
       }).join('') + '</div>' +
@@ -652,7 +663,7 @@
       linhas.map(function (d) {
         const pctClasse = d.pct === null ? 'neutro' : d.pct >= 70 ? 'bom' : d.pct >= 60 ? 'medio' : 'baixo';
         return '<tr data-disc-detalhe="' + esc(d.id) + '" role="button" tabindex="0">' +
-          '<td><span class="disc-link" style="--disc-cor:' + esc(d.cor) + '">' + esc(d.nome) + '</span></td>' +
+          '<td><span class="disc-link" style="--disc-cor:' + esc(d.cor) + '">' + esc(nomeDiscCurto(d.nome)) + '</span></td>' +
           '<td class="num">' + d.tempo + '</td>' +
           '<td class="num painel-acertos">' + d.certas + '</td>' +
           '<td class="num painel-erros">' + d.erros + '</td>' +
@@ -722,7 +733,8 @@
         '<div class="card-kpi-extra">defina um plano para ter meta semanal</div>') + '</div>';
     const pctQ = meta.questoesAlvo > 0 ? Math.min(100, Math.round((meta.qFeitas / meta.questoesAlvo) * 100)) : 0;
     html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Questões na semana</div>' +
-      '<div class="card-kpi-valor card-kpi-valor-compacto">' + meta.qFeitas + '<span style="font-size:0.85rem;color:var(--grafite)"> / ' + meta.questoesAlvo + '</span></div>' +
+      '<div class="card-kpi-valor card-kpi-valor-compacto">' + meta.qFeitas +
+      '<button type="button" class="meta-q-editar" data-editar-meta title="Ajustar a meta semanal de questões"> / ' + meta.questoesAlvo + ' <span aria-hidden="true">✎</span></button></div>' +
       '<div class="barra' + (pctQ >= 100 ? ' barra-verde' : '') + '" style="margin-top:0.4rem"><span style="width:' + pctQ + '%"></span></div></div>';
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
     const pctSemana = meta.qFeitas > 0 ? Math.round((meta.qCertas / meta.qFeitas) * 100) : D.desempenhoGeral(state);
@@ -734,7 +746,7 @@
     html += painelDisciplinasHojeHtml();
 
     // fila do dia (RN06 + agenda manual)
-    html += '<div class="card"><h3 style="margin-bottom:0.25rem">O que estudar hoje</h3>';
+    html += '<div class="card estudar-hoje-card"><h3 style="margin-bottom:0.25rem">O que estudar hoje</h3>';
     if (sem && sem.futura) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma começa em ' + D.formatarDataBR(sem.proxima.inicio) + ' (semana 1). Revisões e tópicos reabertos já aparecem aqui.</p>';
     } else if (sem && sem.encerrado) {
@@ -845,6 +857,8 @@
     celebrarConquistasNovas();
     const provaEditar = raiz.querySelector('#prova-editar');
     if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
+    const metaQBtn = raiz.querySelector('[data-editar-meta]');
+    if (metaQBtn) metaQBtn.addEventListener('click', editarMetaQuestoes);
     raiz.querySelectorAll('[data-disc-detalhe]').forEach(function (linha) {
       const abrir = function () {
         disciplinaDetalheId = linha.getAttribute('data-disc-detalhe');
@@ -935,7 +949,7 @@
     if (!ativo) {
       const discIni = timerPreselecao ? D.disciplinaDoTopico(state, timerPreselecao) : state.disciplinas[0];
       const optsDisc = state.disciplinas.map(function (d) {
-        return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.nome) + '</option>';
+        return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(nomeDiscCurto(d.nome)) + '</option>';
       }).join('');
       selecao =
         '<div class="timer-disciplina-topo"><select id="timer-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
@@ -949,7 +963,7 @@
         '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>';
     } else {
       const discAtiva = D.disciplinaDoTopico(state, ativo.topicoId);
-      selecao = '<div class="timer-disciplina-topo"><h2>' + esc(discAtiva ? discAtiva.nome : 'Estudo') + '</h2>' +
+      selecao = '<div class="timer-disciplina-topo"><h2>' + esc(discAtiva ? nomeDiscCurto(discAtiva.nome) : 'Estudo') + '</h2>' +
         '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId).replace((discAtiva ? discAtiva.id + ' · ' : ''), '')) + '</p></div>';
     }
 
@@ -986,7 +1000,11 @@
       const assuntoEscolhido = raiz.querySelector('#timer-assunto-escolhido');
       const atualizarAssunto = function () {
         const t = selTop && selTop.value ? D.topicoPorId(state, selTop.value) : null;
-        if (assuntoEscolhido) assuntoEscolhido.textContent = t ? t.nome : 'Sem assunto específico';
+        // o nome do assunto escolhido fica DENTRO da própria caixa, não embaixo
+        if (assuntoBtn) assuntoBtn.innerHTML = (t ? esc(t.nome) : 'Adicionar assunto') +
+          ' <span class="timer-assunto-caret" aria-hidden="true">⌄</span>';
+        if (assuntoBtn) assuntoBtn.classList.toggle('tem-assunto', !!t);
+        if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
       };
       const preencher = function () {
         const d = D.disciplinaPorId(state, selDisc.value);
@@ -1008,6 +1026,13 @@
         b.addEventListener('click', function () {
           modoEscolhido = b.getAttribute('data-modo');
           raiz.querySelectorAll('[data-modo]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+          // ao escolher Pomodoro o relógio já mostra 25:00 (foco); cronômetro volta a 00:00
+          if (!window.Timer.estado()) {
+            if (display) display.textContent = modoEscolhido === 'pomodoro'
+              ? window.Timer.formatar(window.Timer.POMO_FOCO_MIN * 60000) : '00:00';
+            if (info) info.textContent = modoEscolhido === 'pomodoro'
+              ? 'Pomodoro 25/5 — 25 min de foco, 5 min de pausa' : '';
+          }
         });
       });
     }
@@ -1033,7 +1058,10 @@
             : ' · limite atingido';
         }
       }
-      if (e.pomoTrocouFase) toast(e.pomoFase === 'foco' ? 'Pausa encerrada — de volta ao foco' : 'Foco concluído — 5 min de pausa', 'sucesso');
+      if (e.pomoTrocouFase) {
+        tocarAlarme(5);                                  // alerta sonoro de ~5s ao virar a fase
+        toast(e.pomoFase === 'foco' ? 'Pausa encerrada — de volta ao foco' : 'Foco concluído — 5 min de pausa', 'sucesso');
+      }
       atualizarTituloTimer(e);
     }
 
@@ -1150,7 +1178,7 @@
       } else {
         const discIni = timerPreselecao ? D.disciplinaDoTopico(state, timerPreselecao) : state.disciplinas[0];
         const optsDisc = state.disciplinas.map(function (d) {
-          return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.nome) + '</option>';
+          return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(nomeDiscCurto(d.nome)) + '</option>';
         }).join('');
         corpo.innerHTML =
           '<div class="timer-disciplina-topo"><select id="tr-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
@@ -1360,15 +1388,15 @@
 
     html += '<div class="card edital-contexto"><div class="card-kpi-rotulo">Plano ativo</div><p><strong>' + esc(state.plano.concurso) + '</strong></p><p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos concluídos (' + prog.pct + '%). Percentual dos tópicos indica incidência estimada nas provas.</p></div>';
     html += comparativoPlanosHtml();
-    const quentes = idsTopicosQuentes();
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
     state.disciplinas.forEach(function (d) {
       const aberta = editalAbertas.has(d.id);
       const pd = D.progressoDisciplina(d);
       const desemp = D.desempenhoDisciplina(state, d);
+      const quentes = idsTopicosQuentes(d.topicos);
       html += '<button class="disc-cab" data-disc="' + esc(d.id) + '" aria-expanded="' + aberta + '">' +
         '<span style="font-family:var(--fonte-mono);color:var(--grafite)">' + (aberta ? '▾' : '▸') + '</span>' +
-        tagDisc(d) + ' ' + esc(d.nome) +
+        tagDisc(d) + ' ' + esc(nomeDiscCurto(d.nome)) +
         '<span class="disc-prog">' + pd.concluidos + '/' + pd.total + ' · ' + semaforoHtml(desemp, meta) + '</span></button>';
       if (aberta) {
         d.topicos.forEach(function (t) {
@@ -1723,7 +1751,7 @@
     const m = metricasDisciplina(disc);
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
     let html = '<div class="cab-pagina detalhe-disc-cab"><div><span class="rotulo-pagina">' + esc(state.plano ? state.plano.concurso : 'Plano manual') + '</span>' +
-      '<h1>' + esc(disc.nome) + '</h1><p class="sub">Edital verticalizado da disciplina, histórico e desempenho acumulado.</p></div>' +
+      '<h1>' + esc(nomeDiscCurto(disc.nome)) + '</h1><p class="sub">Edital verticalizado da disciplina, histórico e desempenho acumulado.</p></div>' +
       '<div class="cab-acoes"><button class="botao-secundario" id="det-voltar">Voltar</button><button id="det-add">Adicionar estudo</button></div></div>';
 
     html += '<div class="linha-cards detalhe-metricas">' +
@@ -1752,7 +1780,7 @@
 
     html += '<div class="card edital-disc-card"><div class="card-kpi-rotulo">Edital verticalizado</div>' +
       '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">✓</th><th class="num edital-qtd-col">×</th><th class="num edital-qtd-col">Questões</th><th class="num">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
-      (function () { const quentes = idsTopicosQuentes(); return disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
+      (function () { const quentes = idsTopicosQuentes(disc.topicos); return disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
         const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
         const erros = Math.max(0, dt.feitas - dt.certas);
@@ -1881,31 +1909,17 @@
   function telaAjustes() {
     let html = '<h1>Configurações</h1>';
 
-    html += '<div class="card"><h3>Preferências</h3>' +
-      '<label for="aj-nome-usuario">Seu nome na tela Hoje</label>' +
-      '<input id="aj-nome-usuario" type="text" maxlength="40" value="' + esc(state.config.nomeUsuario || nomeUsuario()) + '" style="max-width:320px">' +
-      '</div>';
-
+    // Esta aba foca no painel do edital. Nome do usuário fica no Perfil (topo);
+    // meta de questões da semana é editada na própria tela Hoje.
     if (state.plano) {
       const p = state.plano;
-      const ficha = [p.orgao, p.cargo, p.estado].filter(Boolean).map(esc).join(' · ');
-      html += '<div class="card"><h3>Plano atual</h3>' +
-        '<p><strong>' + esc(p.concurso) + '</strong></p>' +
-        (ficha ? '<p style="font-size:0.88rem;color:var(--grafite)">' + ficha + '</p>' : '') +
-        '<p style="font-size:0.88rem;color:var(--grafite)">Banca ' + esc(p.banca || '—') +
-        (p.cota ? ' · cota: ' + esc(p.cota) : '') +
-        ' · meta de corte: ' + (p.meta && p.meta.corte_pct != null ? p.meta.corte_pct + '%' : '—') +
-        (p.gerado_em ? ' · gerado em ' + D.formatarDataBR(p.gerado_em) : '') + '</p>' +
-        (p.radar && p.radar.janela_edital ? '<p style="font-size:0.88rem;color:var(--grafite)">Radar: edital entre ' + D.formatarMesBR(p.radar.janela_edital[0]) + ' e ' + D.formatarMesBR(p.radar.janela_edital[1]) +
-          ' · confiança ' + esc(p.radar.confianca) + '</p>' : '') +
-        '<label for="aj-ritmo">Ritmo do cronograma</label>' +
+      html += '<div class="card"><h3>Ritmo do cronograma</h3>' +
+        '<label for="aj-ritmo">Quanto você consegue manter por semana</label>' +
         '<select id="aj-ritmo" style="max-width:320px">' +
         '<option value="sustentavel"' + (p.ritmoAtivo === 'sustentavel' ? ' selected' : '') + '>Sustentável' +
         (p.ritmos && p.ritmos.sustentavel ? ' — ' + p.ritmos.sustentavel.h_semana + 'h/semana' : '') + '</option>' +
         '<option value="hardcore"' + (p.ritmoAtivo === 'hardcore' ? ' selected' : '') + '>Hardcore 120 dias' +
         (p.ritmos && p.ritmos.hardcore ? ' — ' + p.ritmos.hardcore.h_semana_exigidas + 'h/semana' : '') + '</option></select>' +
-        '<label for="aj-meta-q">Meta de questões por semana</label>' +
-        '<input id="aj-meta-q" type="number" min="0" max="2000" value="' + (state.config.metaQuestoesSemana || 100) + '" style="max-width:160px">' +
         '</div>';
     }
 
@@ -2011,8 +2025,7 @@
       '<strong>Planos disponíveis</strong> mostra o cardápio para o aluno. <em>No futuro esta área ficará visível apenas para o perfil admin.</em></p>' +
       '<div class="admin-acoes">' +
       '<button class="botao botao-mini" id="adm-novo">+ Novo edital</button>' +
-      '<button class="botao-secundario botao-mini" id="adm-prompt">Organizar edital bruto (IA grátis)</button>' +
-      '<button class="botao-quieto botao-mini" id="adm-importar">Importar JSON / planilha</button>' +
+      '<button class="botao-secundario botao-mini" id="adm-importar">Importar arquivo da skill</button>' +
       '</div>';
 
     if (ativos.length > 0) {
@@ -4988,6 +5001,24 @@
       }).join('') + '</div>';
   }
 
+  // ---------------- Meta semanal de questões (editada na própria Hoje) ----------------
+  function editarMetaQuestoes() {
+    const atual = (state.config && state.config.metaQuestoesSemana) || 100;
+    const m = abrirModal(
+      '<h3>Meta de questões por semana</h3>' +
+      '<p style="font-size:0.85rem;color:var(--grafite)">Quantas questões você quer resolver por semana.</p>' +
+      '<input id="mq-valor" type="number" min="0" max="2000" value="' + atual + '" style="max-width:160px">' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="mq-cancelar">Cancelar</button>' +
+      '<button type="button" id="mq-salvar">Salvar</button></div>'
+    );
+    m.querySelector('#mq-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#mq-salvar').addEventListener('click', function () {
+      state.config.metaQuestoesSemana = Math.max(0, Math.min(2000, parseInt(m.querySelector('#mq-valor').value, 10) || 0));
+      salvar(); fecharModal(); render();
+      toast('Meta de questões atualizada', 'sucesso');
+    });
+  }
+
   // ---------------- Perfil (menu superior) ----------------
   function abrirPerfilUsuario() {
     const atual = statusSincronizacao();
@@ -4998,11 +5029,20 @@
       '<input id="pf-nome" type="text" maxlength="40" value="' + esc(state.config.nomeUsuario || nomeUsuario()) + '">' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
-      '<div class="modal-acoes" style="justify-content:space-between">' +
+      '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
+      (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
       '<button type="button" id="pf-salvar-nome">Salvar</button></div>'
     );
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
+    const pfSair = m.querySelector('#pf-sair');
+    if (pfSair) pfSair.addEventListener('click', function () {
+      if (!window.FirebaseSync) { toast('Sincronização indisponível.', 'erro'); return; }
+      window.FirebaseSync.logout().then(function () {
+        fecharModal();
+        toast('Você saiu da conta', 'sucesso');
+      }).catch(function () { toast('Não consegui sair agora.', 'erro'); });
+    });
     m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
       salvar();
