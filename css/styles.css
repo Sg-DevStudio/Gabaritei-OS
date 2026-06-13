@@ -693,7 +693,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .pizza-acertos::after {
   content: '';
   position: absolute;
-  inset: 38%;
+  /* inset pequeno = anel fino + miolo largo, deixando o número respirar */
+  inset: 15%;
   border-radius: 50%;
   background: var(--papel-card);
 }
@@ -701,7 +702,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   position: relative;
   z-index: 1;
   font-family: var(--fonte-mono);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--tinta);
@@ -709,6 +710,33 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .pizza-sm { width: 46px; }
 .pizza-xs { width: 40px; }
 .pizza-xs .pizza-centro { font-size: 0.6rem; }
+
+/* Pizza do card "Desempenho" (detalhe da disciplina): maior e proporcional ao
+   card, com o número folgado no centro — não igual às mini dos tópicos. */
+.detalhe-card-pizza .pizza-acertos { width: 96px; }
+.detalhe-card-pizza .pizza-acertos::after { inset: 13%; }
+.detalhe-card-pizza .pizza-centro { font-size: 1.1rem; font-weight: 700; }
+
+/* Meta semanal de questões editável direto na Hoje */
+.meta-q-editar {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0 0 0 0.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--grafite);
+  cursor: pointer;
+  min-height: 0;
+}
+.meta-q-editar:hover { color: var(--caneta); background: transparent; box-shadow: none; }
+.meta-q-editar span { opacity: 0.6; font-size: 0.78rem; }
+
+/* Na Hoje (celular), a fila "O que estudar hoje" não precisa da etiqueta da
+   disciplina — o nome do tópico já basta e a tag só ocupa espaço. */
+@media (max-width: 760px) {
+  .estudar-hoje-card .fila-titulo .tag-disc { display: none; }
+}
 
 .painel-disciplinas-mobile { display: none; }
 .tag-incidencia {
@@ -797,7 +825,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .tela-timer {
   background: linear-gradient(180deg, #112C55 0%, #1E4274 100%);
   color: #F7F8F6;
-  border-radius: 0;
+  border-radius: var(--raio);
   padding: clamp(1.5rem, 5vw, 2.8rem) 1.5rem 2.4rem;
   text-align: center;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1791,6 +1819,21 @@ canvas.grafico {
 
 /* painel admin de editais */
 .admin-acoes { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.5rem 0; }
+
+/* Planos cadastrados (painel admin): cabeçalho + busca + capa nos cards */
+.planos-cadastrados-cab {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; flex-wrap: wrap; margin-top: 0.85rem;
+}
+.planos-cadastrados-cab h4 { margin: 0; font-size: 0.98rem; }
+.planos-cadastrados-cab input { max-width: 260px; min-width: 180px; flex: 1; }
+.plano-mini-top-foto { justify-content: flex-start; align-items: center; }
+.plano-mini-top-foto .catalogo-foto { width: 42px; height: 54px; flex: 0 0 42px; }
+.plano-mini-tit { display: flex; flex-direction: column; gap: 0.2rem; }
+.ee-foto-campo { margin-top: 0.6rem; }
+.ee-foto-linha { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.ee-foto-linha .catalogo-foto { width: 54px; height: 70px; flex: 0 0 54px; }
+.ee-foto-linha input[type="file"] { flex: 1; min-width: 160px; }
 .admin-pedidos { margin-top: 0.75rem; border-top: 1px solid var(--linha); padding-top: 0.75rem; }
 .pedidos-lista { list-style: none; padding: 0; margin: 0.4rem 0; }
 .pedidos-lista li { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid var(--linha); font-size: 0.85rem; }
