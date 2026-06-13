@@ -1989,6 +1989,45 @@
     return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
   }
 
+  // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
+  function ordemAgenda(b) { return typeof b.ordem === 'number' ? b.ordem : 1e9; }
+  function compararAgenda(a, b) {
+    return ordemAgenda(a) - ordemAgenda(b) ||
+      (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+  }
+  function blocosDoDia(diaISO) {
+    return doAtivo(state.agenda).filter(function (a) { return a.data === diaISO; }).sort(compararAgenda);
+  }
+  // grava a ordem explícita (0,1,2,…) de todos os blocos do dia
+  function renumerarDia(diaISO) {
+    blocosDoDia(diaISO).forEach(function (b, i) { b.ordem = i; });
+  }
+  // move/cria um bloco inserindo-o ANTES de alvoId (ou no fim, se alvoId vazio)
+  function reordenarBlocoNoDia(payload, diaISO, alvoId) {
+    if (!payload || !diaISO) return false;
+    let bloco, diaOrigem = null;
+    if (payload.indexOf('mover|') === 0) {
+      bloco = state.agenda.find(function (x) { return x.id === payload.slice(6); });
+      if (!bloco) return false;
+      diaOrigem = bloco.data;
+      bloco.data = diaISO;
+    } else if (payload.indexOf('nova|') === 0) {
+      bloco = {
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId, data: diaISO,
+        disciplinaId: payload.slice(5), topicoId: null, duracaoMin: 60, obs: '', feito: false
+      };
+      state.agenda.push(bloco);
+    } else { return false; }
+    // recompõe a ordem do dia inserindo o bloco na posição do alvo
+    const ordenados = blocosDoDia(diaISO).filter(function (b) { return b.id !== bloco.id; });
+    let pos = ordenados.length;
+    if (alvoId) { const i = ordenados.findIndex(function (b) { return b.id === alvoId; }); if (i >= 0) pos = i; }
+    ordenados.splice(pos, 0, bloco);
+    ordenados.forEach(function (b, i) { b.ordem = i; });
+    if (diaOrigem && diaOrigem !== diaISO) renumerarDia(diaOrigem); // fecha o buraco no dia de origem
+    return true;
+  }
+
   function registrarDeAgenda(blocoAg) {
     const disc = D.disciplinaPorId(state, blocoAg.disciplinaId);
     const topId = blocoAg.topicoId || (disc && disc.topicos.length > 0 ? disc.topicos[0].id : null);
@@ -2187,29 +2226,35 @@
         '<h3>Sem plano ativo</h3><p class="sub">Escolha um edital disponível acima e o sistema gera seu plano personalizado — ou crie um plano manual.</p>' +
         '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
     }
-    const ritmos = ritmosDisponiveis();
     const progresso = D.progressoEdital(state);
-    const ritmoAtual = state.plano.ritmoAtivo || ritmos[0] || 'sustentavel';
-    const temPlanoGerado = ritmos.length > 0;
-    const dadosRitmo = state.plano.ritmos && state.plano.ritmos[ritmoAtual];
-    const optsRitmo = ritmos.map(function (r) {
-      const dados = state.plano.ritmos && state.plano.ritmos[r];
-      return '<option value="' + esc(r) + '"' + (r === ritmoAtual ? ' selected' : '') + '>' + esc(rotuloRitmo(r, dados)) + '</option>';
-    }).join('');
     return '<div class="card planejamento-card plano-atual-card">' +
-      '<div class="card-kpi-rotulo">Plano atual</div>' +
-      '<div class="plano-atual-head"><div><h3>' + esc(state.plano.concurso) + '</h3>' +
+      '<div class="plano-atual-head"><div><div class="card-kpi-rotulo">Plano atual</div>' +
+      '<h3>' + esc(state.plano.concurso) + '</h3>' +
       '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
-      '<div class="barra" style="margin:0.65rem 0 0.9rem"><span style="width:' + progresso.pct + '%"></span></div>' +
+      '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
       '<div class="compact-actions plano-acoes-card">' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button class="botao-mini botao-secundario" id="pl-acao-perfil">Perfil</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
+      '</div>';
+  }
+
+  // Card próprio para ritmo ativo + geração do plano (logo abaixo do plano atual)
+  function ritmoCardHtml() {
+    if (!state.plano) return '';
+    const ritmos = ritmosDisponiveis();
+    const ritmoAtual = state.plano.ritmoAtivo || ritmos[0] || 'sustentavel';
+    const temPlanoGerado = ritmos.length > 0;
+    const optsRitmo = ritmos.map(function (r) {
+      const dados = state.plano.ritmos && state.plano.ritmos[r];
+      return '<option value="' + esc(r) + '"' + (r === ritmoAtual ? ' selected' : '') + '>' + esc(rotuloRitmo(r, dados)) + '</option>';
+    }).join('');
+    return '<div class="card planejamento-card ritmo-card">' +
       (temPlanoGerado
         ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>'
-        : '<p class="sub">Este plano ainda não tem cronograma gerado.</p>') +
+        : '<div class="card-kpi-rotulo">Plano de estudos</div><p class="sub" style="margin:0.2rem 0 0.6rem">Este plano ainda não tem cronograma gerado.</p>') +
       '<div class="compact-actions">' +
       '<button class="botao-mini" id="pl-gerar-ritmos">Gerar plano de estudos</button>' +
       // Regra: o botão de dificuldade só aparece depois que o plano é gerado
@@ -3067,10 +3112,13 @@
       '<p class="sub">Plano atual, agenda e seu ritmo contra a meta no mesmo lugar.</p></div>' +
       '<div class="cab-acoes"><button class="botao" id="pl-editais">📋 Editais disponíveis</button></div></div>';
 
-    // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile
+    // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile.
+    // O ritmo ativo/geração ganham um card próprio logo abaixo do plano atual.
     const checkin = checkinSemanalHtml();
     html += '<div class="planejamento-topo' + (checkin ? '' : ' planejamento-topo-solo') + '">' +
-      checkin + planoAtualHtml() + '</div>';
+      checkin +
+      '<div class="planejamento-col-direita">' + planoAtualHtml() + ritmoCardHtml() + '</div>' +
+      '</div>';
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
@@ -3110,9 +3158,7 @@
       html += '<div class="agenda-grid">';
       for (let i = 0; i < 7; i++) {
         const data = D.addDias(agendaRef, i);
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; }).sort(function (a, b) {
-          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
-        });
+        const blocos = blocosDoDia(data);
         const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
@@ -3121,9 +3167,10 @@
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
             const concluido = blocoAgendaConcluido(b);
-            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
-              '<span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></div>';
+            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
+              '<span class="agenda-bloco-arrasto" aria-hidden="true">⠿</span>' +
+              '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
+              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></span></div>';
           }).join('') +
           '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
       }
@@ -3168,9 +3215,7 @@
 
   // Tela de detalhes de um dia (a partir da visão mensal estilo Google)
   function abrirDetalhesDia(dataISO) {
-    const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === dataISO; }).sort(function (a, b) {
-      return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
-    });
+    const blocos = blocosDoDia(dataISO);
     const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
     const feitos = blocos.filter(blocoAgendaConcluido).length;
     const ymd = dataISO.split('-').map(Number);
@@ -3293,7 +3338,8 @@
       });
     });
 
-    // blocos existentes: clicar edita, arrastar move
+    // blocos existentes: clicar edita, arrastar move/reordena. Cada bloco também é
+    // alvo de soltura: soltar sobre ele insere a disciplina ANTES dele (reordenar).
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirBlocoAgenda(el.getAttribute('data-bloco')); } });
@@ -3302,6 +3348,16 @@
         e.dataTransfer.setData('text/plain', 'mover|' + el.getAttribute('data-bloco'));
         e.dataTransfer.effectAllowed = 'move';
       });
+      const diaBloco = el.getAttribute('data-pos-dia');
+      if (diaBloco) {
+        el.addEventListener('dragover', function (e) { e.preventDefault(); e.stopPropagation(); el.classList.add('drop-antes'); });
+        el.addEventListener('dragleave', function () { el.classList.remove('drop-antes'); });
+        el.addEventListener('drop', function (e) {
+          e.preventDefault(); e.stopPropagation();
+          el.classList.remove('drop-antes');
+          moverOuCriarBlocoNoDia(e.dataTransfer.getData('text/plain'), diaBloco, el.getAttribute('data-bloco'));
+        });
+      }
     });
 
     raiz.querySelectorAll('[data-add-dia]').forEach(function (b) {
@@ -3330,19 +3386,15 @@
     ligarDragTouch(raiz);
   }
 
-  // ação compartilhada por drop nativo e por toque
-  function moverOuCriarBlocoNoDia(dado, dia) {
-    if (!dado || !dia) return;
-    if (dado.indexOf('nova|') === 0) {
-      state.agenda.push({
-        id: window.Store.novoId('agd'), planoId: state.planoAtivoId, data: dia, disciplinaId: dado.slice(5),
-        topicoId: null, duracaoMin: 60, obs: '', feito: false
-      });
+  // ação compartilhada por drop nativo e por toque.
+  // alvoId (opcional): id do bloco antes do qual inserir — permite reordenar
+  // dentro do mesmo dia e posicionar a disciplina solta entre blocos.
+  function moverOuCriarBlocoNoDia(dado, dia, alvoId) {
+    if (!dado || !dia || alvoId === dado.slice(dado.indexOf('|') + 1)) return; // soltar sobre si mesmo
+    const ehNova = dado.indexOf('nova|') === 0;
+    if (reordenarBlocoNoDia(dado, dia, alvoId)) {
       salvar(); render();
-      toast('Bloco de 1h adicionado — toque nele para ajustar', 'sucesso');
-    } else if (dado.indexOf('mover|') === 0) {
-      const b = state.agenda.find(function (x) { return x.id === dado.slice(6); });
-      if (b && b.data !== dia) { b.data = dia; salvar(); render(); toast('Disciplina movida de dia', 'sucesso'); }
+      toast(ehNova ? 'Bloco de 1h adicionado — toque nele para ajustar' : 'Bloco reposicionado', 'sucesso');
     }
   }
 
@@ -3357,10 +3409,13 @@
           ? 'mover|' + el.getAttribute('data-bloco')
           : 'nova|' + el.getAttribute('data-chip');
       }
+      let alvoBloco = null, alvoBlocoId = null;
       function limpar() {
         if (timer) { clearTimeout(timer); timer = null; }
         if (clone) { clone.remove(); clone = null; }
         if (alvo) { alvo.classList.remove('drop-alvo'); alvo = null; }
+        if (alvoBloco) { alvoBloco.classList.remove('drop-antes'); alvoBloco = null; }
+        alvoBlocoId = null;
         ativo = false;
         document.body.classList.remove('arrastando-toque');
       }
@@ -3404,13 +3459,23 @@
           alvo = dia;
           if (alvo) alvo.classList.add('drop-alvo');
         }
+        // bloco sob o dedo (exceto o próprio arrastado) = inserir antes dele
+        const bloco = sob ? sob.closest('[data-bloco]') : null;
+        const bAlvo = (bloco && bloco !== el) ? bloco : null;
+        if (bAlvo !== alvoBloco) {
+          if (alvoBloco) alvoBloco.classList.remove('drop-antes');
+          alvoBloco = bAlvo;
+          alvoBlocoId = bAlvo ? bAlvo.getAttribute('data-bloco') : null;
+          if (alvoBloco) alvoBloco.classList.add('drop-antes');
+        }
       }, { passive: false });
 
       el.addEventListener('touchend', function () {
         if (ativo && alvo) {
           const dia = alvo.getAttribute('data-dia');
+          const idAlvo = alvoBlocoId;
           limpar();
-          moverOuCriarBlocoNoDia(payload, dia);
+          moverOuCriarBlocoNoDia(payload, dia, idAlvo);
         } else {
           limpar();
         }
