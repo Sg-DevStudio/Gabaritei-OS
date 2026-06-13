@@ -10,6 +10,33 @@ Documentos-irmãos: [plano-projeto-plataforma-estudos.md](plano-projeto-platafor
 
 ---
 
+## 13/06/2026 — Evolução para plataforma: catálogo, painel admin e "dá para conciliar?"
+
+Primeira onda da evolução do produto (paridade com o Mentoris, mantendo o app
+leve, gratuito de operar e sem IA paga como dependência). Entregue:
+
+- **Aba "Planos disponíveis"** (`#planos`): cardápio de concursos com cargo, banca,
+  área, nota de corte, janela provável da prova, nível, tempo médio recomendado e
+  botões *Ver detalhes / Iniciar plano / Comparar*. No celular fica em **Mais**.
+- **Painel do edital (admin)** nas Configurações: novo edital, editar, arquivar/
+  desarquivar, excluir, criar plano e **pedidos de edital recebidos** (fila local).
+- **"Dá para conciliar?"**: `D.conciliarPlanos(edA, edB)` (puro, testável) compara
+  disciplinas/tópicos em comum, carga total, horas disponíveis e proximidade das
+  provas; devolve compatibilidade alta/moderada/baixa/não recomendado + texto.
+- **Skill/processo do edital bruto** (`skill/PROCESSO-EDITAL-BRUTO.md`) + gerador de
+  **prompt grátis** (Claude.ai/NotebookLM) no painel admin: edital bruto → JSON → app.
+- **Importação inteligente com tela de conferência**: ao importar JSON/planilha o
+  admin revisa disciplinas, pesos, dificuldade e incidências antes de salvar.
+
+Campos opcionais de catálogo adicionados ao edital (retrocompatíveis): `area`,
+`nivel`, `emAlta`, `arquivado`, `janelaProva {inicio, fim}`.
+
+**Próximas ondas** (não nesta entrega): calendário adaptativo para 2 planos,
+ajuste fino da curva do esquecimento por desempenho, integração com Google
+Calendar e repaginação visual/gamificação.
+
+---
+
 ## Próximos passos (backlog)
 
 - [ ] **Publicar no GitHub Pages**: Settings → Pages → branch `main`, pasta `/ (root)`;

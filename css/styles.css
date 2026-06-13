@@ -1466,3 +1466,61 @@ canvas.grafico {
   position: fixed; width: 7px; height: 11px; z-index: 300;
   animation: confete-sobe 0.9s ease-out forwards; pointer-events: none;
 }
+
+/* ============================================================
+   Planos disponíveis (catálogo) · comparar/conciliar · painel admin
+   ============================================================ */
+.catalogo-grade {
+  display: grid; gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.catalogo-card { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 0; }
+.catalogo-card-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+.catalogo-titulo { font-size: 1rem; line-height: 1.25; }
+.etiqueta-alta { background: var(--alerta-suave); color: var(--alerta); }
+.catalogo-metricas { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.catalogo-metrica {
+  display: flex; flex-direction: column; gap: 1px; min-width: 70px;
+  background: var(--papel-elevado); border: 1px solid var(--linha);
+  border-radius: var(--raio-s); padding: 0.32rem 0.5rem;
+}
+.cm-rotulo { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--grafite); }
+.cm-valor { font-family: var(--fonte-mono); font-size: 0.86rem; font-weight: 600; }
+.catalogo-sub { font-size: 0.8rem; color: var(--grafite); }
+.catalogo-acoes { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.15rem; }
+
+/* veredito "dá para conciliar?" */
+.conciliar-veredito { border-radius: var(--raio-s); padding: 0.7rem 0.85rem; border-left: 4px solid var(--grafite); }
+.conciliar-veredito strong { display: block; font-size: 0.95rem; }
+.conciliar-veredito p { margin: 0.3rem 0 0; font-size: 0.86rem; line-height: 1.4; }
+.conciliar-verde { background: var(--correto-suave); border-color: var(--correto); }
+.conciliar-amarelo { background: var(--alerta-suave); border-color: var(--alerta); }
+.conciliar-alerta { background: var(--alerta-suave); border-color: var(--alerta); }
+.conciliar-vermelho { background: var(--errado-suave); border-color: var(--errado); }
+.conciliar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 0.7rem; }
+.conciliar-grid > div { display: flex; flex-direction: column; gap: 2px; background: var(--papel-elevado); border: 1px solid var(--linha); border-radius: var(--raio-s); padding: 0.4rem 0.55rem; }
+
+/* tabela de tópicos (detalhes do edital) */
+.detalhe-disc { margin-bottom: 0.85rem; }
+.detalhe-disc-cab { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.3rem; }
+.tabela-topicos, .editor-topicos { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.tabela-topicos th, .tabela-topicos td, .editor-topicos th, .editor-topicos td { text-align: left; padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--linha); }
+.tabela-topicos td.num, .tabela-topicos th.num { text-align: right; font-family: var(--fonte-mono); }
+
+/* painel admin de editais */
+.admin-acoes { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.5rem 0; }
+.admin-pedidos { margin-top: 0.75rem; border-top: 1px solid var(--linha); padding-top: 0.75rem; }
+.pedidos-lista { list-style: none; padding: 0; margin: 0.4rem 0; }
+.pedidos-lista li { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid var(--linha); font-size: 0.85rem; }
+
+/* editor/conferência de edital */
+.editor-disc { border: 1px solid var(--linha); border-radius: var(--raio-s); padding: 0.6rem; margin-bottom: 0.6rem; background: var(--papel-elevado); }
+.editor-disc-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem; }
+.editor-disc-cab .ed-d-nome { flex: 1 1 160px; min-width: 120px; }
+.editor-disc-cab input[type="color"] { width: 40px; padding: 2px; }
+.editor-topicos input { width: 100%; padding: 0.25rem 0.35rem; }
+.editor-topicos td:nth-child(2) input, .editor-topicos td:nth-child(3) input, .editor-topicos td:nth-child(4) input { width: 64px; }
+.mini-rot { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.74rem; color: var(--grafite); }
+.mini-rot input { width: 52px; }
+.check-inline { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 400; }
+.check-inline input { width: auto; }

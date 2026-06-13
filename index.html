@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20260613-gabaritei2">
+  <link rel="stylesheet" href="css/styles.css?v=20260613-gabaritei6">
 </head>
 <body>
   <!-- Ícones compartilhados da navegação -->
@@ -22,6 +22,7 @@
     <symbol id="ic-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 9.8v3.7l2.8 1.9M9.4 2.6h5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="ic-revisoes" viewBox="0 0 24 24"><path d="M20.4 12a8.4 8.4 0 1 1-2.6-6.1M20.4 3.4v4.4H16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="ic-edital" viewBox="0 0 24 24"><rect x="4.6" y="3" width="14.8" height="18" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.6 8.2h6.8M8.6 12h6.8M8.6 15.8h4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="ic-planos" viewBox="0 0 24 24"><rect x="3.2" y="4" width="7.2" height="7.2" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13.6" y="4" width="7.2" height="7.2" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3.2" y="13.6" width="7.2" height="7.2" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M14 17.2h6.6M17.3 13.9v6.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="ic-simulados" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></symbol>
     <symbol id="ic-stats" viewBox="0 0 24 24"><path d="M5 20v-6.5M11 20V5.5M17 20v-9.5M2.8 20h18.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="ic-historico" viewBox="0 0 24 24"><path d="M3.6 12a8.4 8.4 0 1 0 2.6-6.1M3.6 3.4v4.4H8M12 8.2v4.2l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -58,6 +59,7 @@
         <span class="marca-nome">Gabaritei OS</span>
       </div>
       <a href="#hoje" data-rota="hoje" class="nav-item"><svg class="nav-ic"><use href="#ic-hoje"/></svg>Hoje</a>
+      <a href="#planos" data-rota="planos" class="nav-item"><svg class="nav-ic"><use href="#ic-planos"/></svg>Planos disponíveis</a>
       <a href="#planejamento" data-rota="planejamento" class="nav-item"><svg class="nav-ic"><use href="#ic-agenda"/></svg>Planejamento</a>
       <a href="#timer" data-rota="timer" class="nav-item"><svg class="nav-ic"><use href="#ic-timer"/></svg>Timer</a>
       <a href="#revisoes" data-rota="revisoes" class="nav-item"><svg class="nav-ic"><use href="#ic-revisoes"/></svg>Revisões <span id="badge-revisoes" class="badge oculto"></span></a>
@@ -100,7 +102,7 @@
   <script type="module" src="js/firebase-sync.js"></script>
   <script src="js/timer.js"></script>
   <script src="js/charts.js"></script>
-  <script src="js/app.js?v=20260613-gabaritei2"></script>
+  <script src="js/app.js?v=20260613-gabaritei6"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
