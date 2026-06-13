@@ -3682,7 +3682,8 @@
       '<button class="botao-mini botao-quieto" id="pl-hoje">Hoje</button></div>' +
       '<div class="agenda-nav">' +
       '<button class="botao-mini ' + (agendaModo === 'semana' ? '' : 'botao-quieto') + '" data-modo-ag="semana">Semanal</button>' +
-      '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button></div></div>';
+      '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button>' +
+      '<button class="botao-mini botao-quieto" id="pl-exportar-ics" title="Exportar blocos e revisões para Google Calendar, Apple ou Outlook">📅 Calendário</button></div></div>';
 
     if (agendaModo === 'semana') {
       html += '<div class="agenda-grid">';
@@ -3853,6 +3854,8 @@
       mesRef = D.hojeISO().slice(0, 7);
       render();
     });
+    const exportarIcsBtn = raiz.querySelector('#pl-exportar-ics');
+    if (exportarIcsBtn) exportarIcsBtn.addEventListener('click', abrirExportarCalendario);
     raiz.querySelectorAll('[data-modo-ag]').forEach(function (b) {
       b.addEventListener('click', function () { agendaModo = b.getAttribute('data-modo-ag'); render(); });
     });
@@ -4226,6 +4229,97 @@
     render();
     const extra = r.pendentes > 0 ? ' · ' + D.formatarMin(r.pendentes) + ' ficaram sem encaixe' : '';
     toast('Semana ' + r.semana.semana + ' gerada respeitando sua rotina' + extra, r.pendentes > 0 ? 'erro' : 'sucesso');
+  }
+
+  // ================= Exportar para o calendário (.ics) =================
+  // Gera um arquivo iCalendar com os blocos do cronograma e as revisões.
+  // Zero custo / sem API: o aluno importa no Google Calendar, Apple ou Outlook.
+  // A arquitetura fica pronta para uma sincronização por API numa fase futura.
+  function baixarArquivo(nome, conteudo, mime) {
+    const blob = new Blob([conteudo], { type: mime || 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nome;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { if (a.parentNode) a.parentNode.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  }
+  function icsEscape(s) {
+    return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  }
+  function icsSoDigitos(iso) { return String(iso).replace(/-/g, ''); }
+  function hhmmParaMin(hhmm) { const p = String(hhmm).split(':'); return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0); }
+  function minParaHHMM(min) { min = Math.max(0, Math.min(min, 24 * 60 - 1)); const h = Math.floor(min / 60), m = min % 60; return (h < 10 ? '0' + h : '' + h) + ':' + (m < 10 ? '0' + m : '' + m); }
+  function carimboIcs() { return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z'); }
+  function veventoTimed(uid, dataISO, hIni, hFim, titulo, desc) {
+    const d = icsSoDigitos(dataISO);
+    return ['BEGIN:VEVENT', 'UID:' + uid + '@gabaritei', 'DTSTAMP:' + carimboIcs(),
+      'DTSTART:' + d + 'T' + hIni.replace(':', '') + '00', 'DTEND:' + d + 'T' + hFim.replace(':', '') + '00',
+      'SUMMARY:' + icsEscape(titulo), 'DESCRIPTION:' + icsEscape(desc), 'END:VEVENT'].join('\r\n');
+  }
+  function veventoDiaInteiro(uid, dataISO, titulo, desc) {
+    const d = icsSoDigitos(dataISO), dFim = icsSoDigitos(D.addDias(dataISO, 1));
+    return ['BEGIN:VEVENT', 'UID:' + uid + '@gabaritei', 'DTSTAMP:' + carimboIcs(),
+      'DTSTART;VALUE=DATE:' + d, 'DTEND;VALUE=DATE:' + dFim,
+      'SUMMARY:' + icsEscape(titulo), 'DESCRIPTION:' + icsEscape(desc), 'END:VEVENT'].join('\r\n');
+  }
+  function gerarIcs(opts) {
+    opts = opts || {};
+    const hoje = D.hojeISO();
+    const eventos = [];
+    if (opts.blocos !== false) {
+      const blocos = doAtivo(state.agenda)
+        .filter(function (a) { return a.data >= hoje; })
+        .sort(function (a, b) { return a.data.localeCompare(b.data) || (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id); });
+      let dia = null, cursor = 480; // 08:00 quando não há horário definido
+      blocos.forEach(function (b) {
+        const d = D.disciplinaPorId(state, b.disciplinaId);
+        const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+        const dur = b.duracaoMin || 60;
+        let ini, fim;
+        if (b.horaInicio) {
+          const iniMin = hhmmParaMin(b.horaInicio), fimMin = iniMin + dur;
+          ini = b.horaInicio; fim = minParaHHMM(fimMin);
+          if (b.data === dia) cursor = Math.max(cursor, fimMin); else { dia = b.data; cursor = fimMin; }
+        } else {
+          if (b.data !== dia) { dia = b.data; cursor = 480; }
+          ini = minParaHHMM(cursor); fim = minParaHHMM(cursor + dur); cursor += dur;
+        }
+        const titulo = (d ? d.nome : 'Estudo') + (b.obs ? ' · ' + b.obs : '');
+        eventos.push(veventoTimed(b.id + '-agd', b.data, ini, fim, titulo, t ? t.nome : ''));
+      });
+    }
+    if (opts.revisoes !== false) {
+      doAtivo(state.revisoes)
+        .filter(function (r) { return !r.dataConcluida && r.dataAgendada >= hoje && D.topicoPorId(state, r.topicoId); })
+        .forEach(function (r) {
+          const t = D.topicoPorId(state, r.topicoId);
+          const dcb = D.disciplinaDoTopico(state, r.topicoId);
+          eventos.push(veventoDiaInteiro(r.id + '-rev', r.dataAgendada, '🔁 Revisão ' + r.tipo + ' — ' + t.nome, dcb ? dcb.nome : ''));
+        });
+    }
+    const corpo = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Gabaritei OS//Cronograma//PT-BR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH']
+      .concat(eventos).concat(['END:VCALENDAR']);
+    return { texto: corpo.join('\r\n'), nEventos: eventos.length };
+  }
+
+  function abrirExportarCalendario() {
+    const m = abrirModal('<h3>Exportar para o calendário</h3>' +
+      '<p class="sub">Gera um arquivo <strong>.ics</strong> com seus blocos de estudo e revisões — importável no Google Calendar, Apple ou Outlook. Custo zero, sem login.</p>' +
+      '<label class="check-inline"><input type="checkbox" id="ics-blocos" checked> Blocos do cronograma</label><br>' +
+      '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> Revisões (24h · 7d · 30d · reforço)</label>' +
+      '<details style="margin-top:0.7rem"><summary style="cursor:pointer;font-weight:700;font-size:0.88rem">Como importar no Google Calendar</summary>' +
+      '<p class="sub" style="margin-top:0.4rem">No computador: Google Calendar → ⚙ Configurações → <em>Importar e exportar</em> → escolha o arquivo .ics → <em>Importar</em>. O app continua sendo a fonte do plano; reexporte quando o cronograma mudar.</p></details>' +
+      '<div class="modal-acoes"><button class="botao-quieto" id="ics-cancelar">Fechar</button>' +
+      '<button id="ics-baixar">Baixar .ics</button></div>');
+    m.querySelector('#ics-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#ics-baixar').addEventListener('click', function () {
+      const r = gerarIcs({ blocos: m.querySelector('#ics-blocos').checked, revisoes: m.querySelector('#ics-revisoes').checked });
+      if (r.nEventos === 0) { toast('Nada futuro para exportar — gere a semana no calendário primeiro.', 'erro'); return; }
+      const slug = state.plano ? state.plano.concurso.replace(/[^a-z0-9]+/gi, '-').toLowerCase().slice(0, 30).replace(/^-|-$/g, '') : 'plano';
+      baixarArquivo('gabaritei-' + (slug || 'plano') + '.ics', r.texto, 'text/calendar;charset=utf-8');
+      fecharModal();
+      toast('Calendário exportado: ' + r.nEventos + ' eventos (.ics)', 'sucesso');
+    });
   }
 
   // preenche o calendário inteiro (todas as semanas do cronograma ativo) — usado
