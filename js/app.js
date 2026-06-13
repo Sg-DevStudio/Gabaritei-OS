@@ -2861,9 +2861,8 @@
     }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
       '<p class="sub">Plano atual, agenda e seu ritmo contra a meta no mesmo lugar.</p></div>' +
-      '<div class="cab-acoes"><button class="botao" id="pl-editais">📋 Editais disponíveis</button>' +
-      '<button class="botao-quieto" id="pl-config">⚙ Configurações</button>' +
-      '<button class="botao-quieto" id="pl-nova-disc">+ Nova disciplina</button></div></div>';
+      '<div class="cab-acoes cab-acoes-split"><button class="botao" id="pl-editais">📋 Editais disponíveis</button>' +
+      '<button class="botao-quieto" id="pl-config">⚙ Configurações</button></div></div>';
 
     html += checkinSemanalHtml();
 
@@ -2961,8 +2960,6 @@
     if (config) config.addEventListener('click', function () {
       abrirConfiguracoesPlanejamento();
     });
-    const novaDisc = raiz.querySelector('#pl-nova-disc');
-    if (novaDisc) novaDisc.addEventListener('click', abrirNovaDisciplina);
     const novaDiscCard = raiz.querySelector('#pl-nova-disc-card');
     if (novaDiscCard) novaDiscCard.addEventListener('click', abrirNovaDisciplina);
     const criarDisc = raiz.querySelector('#pl-criar-disc');
