@@ -1578,3 +1578,24 @@ canvas.grafico {
 .mini-rot input { width: 52px; }
 .check-inline { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 400; }
 .check-inline input { width: auto; }
+
+/* ============================================================
+   Conquistas (gamificação discreta)
+   ============================================================ */
+.conquistas-card h3 { display: flex; align-items: center; gap: 0.5rem; }
+.conquistas-contador { font-family: var(--fonte-mono); font-size: 0.82rem; font-weight: 600; color: var(--caneta); background: var(--caneta-suave); border-radius: 999px; padding: 0.1rem 0.5rem; }
+.conquistas-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 0.55rem; margin-top: 0.6rem; }
+.medalha {
+  display: flex; flex-direction: column; align-items: center; gap: 0.25rem; text-align: center;
+  padding: 0.6rem 0.4rem; border: 1px solid var(--linha); border-radius: var(--raio-s);
+  background: var(--papel-elevado); opacity: 0.45; filter: grayscale(1);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+.medalha.ganha { opacity: 1; filter: none; border-color: var(--caneta-suave); box-shadow: var(--sombra); }
+.medalha.ganha:hover { transform: translateY(-2px); }
+.medalha-icone { font-size: 1.5rem; line-height: 1; }
+.medalha-titulo { font-size: 0.72rem; font-weight: 600; line-height: 1.15; color: var(--tinta); }
+.medalha:not(.ganha) .medalha-titulo { color: var(--grafite); }
+@media (max-width: 480px) {
+  .conquistas-grade { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+}

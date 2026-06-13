@@ -706,6 +706,39 @@
     };
   }
 
+  // ---------- Conquistas (gamificação leve, derivada dos dados existentes) ----------
+  function conquistas(state, hoje) {
+    hoje = hoje || hojeISO();
+    const ses = sessoesDoPlano(state);
+    const totalQ = ses.reduce(function (n, s) { return n + (s.qFeitas || 0); }, 0);
+    const horas = ses.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0) / 60;
+    const st = streak(ses, hoje);
+    let dominados = 0, concluidos = 0, totalTop = 0;
+    (state.disciplinas || []).forEach(function (d) {
+      (d.topicos || []).forEach(function (t) {
+        if (t.orfao) return;
+        totalTop++;
+        if (t.status === 'dominado') dominados++;
+        if (t.status === 'dominado' || t.status === 'teoria_concluida') concluidos++;
+      });
+    });
+    const prog = totalTop > 0 ? Math.round((concluidos / totalTop) * 100) : 0;
+    const nSim = doPlanoAtivo(state, state.simulados || []).length;
+    const defs = [
+      { id: 'plano', icone: '🚀', titulo: 'Plano traçado', desc: 'Comece um plano de estudos', ganha: (state.planos || []).length >= 1 },
+      { id: 'streak7', icone: '🔥', titulo: 'Semana de fogo', desc: '7 dias seguidos estudando', ganha: st.recorde >= 7 },
+      { id: 'streak30', icone: '🏔️', titulo: 'Inabalável', desc: '30 dias seguidos estudando', ganha: st.recorde >= 30 },
+      { id: 'q100', icone: '💯', titulo: 'Centena', desc: '100 questões resolvidas', ganha: totalQ >= 100 },
+      { id: 'q1000', icone: '🎯', titulo: 'Franco-atirador', desc: '1.000 questões resolvidas', ganha: totalQ >= 1000 },
+      { id: 'h50', icone: '⏱️', titulo: 'Maratonista', desc: '50 horas de estudo registradas', ganha: horas >= 50 },
+      { id: 'dom10', icone: '🧠', titulo: 'Domínio', desc: '10 tópicos dominados', ganha: dominados >= 10 },
+      { id: 'meio', icone: '📈', titulo: 'Meio caminho', desc: '50% do edital concluído', ganha: prog >= 50 },
+      { id: 'edital', icone: '🏆', titulo: 'Edital fechado', desc: '100% do edital concluído', ganha: prog >= 100 },
+      { id: 'sim', icone: '📝', titulo: 'Simulado feito', desc: 'Registre um simulado', ganha: nSim >= 1 }
+    ];
+    return { lista: defs, ganhas: defs.filter(function (d) { return d.ganha; }).length, total: defs.length };
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -715,6 +748,6 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, ajustePosRevisao, revisaoReforco, combinarEditais
+    conciliarPlanos, ajustePosRevisao, revisaoReforco, combinarEditais, conquistas
   };
 })();

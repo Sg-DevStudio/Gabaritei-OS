@@ -665,6 +665,9 @@
     // constância em destaque, centralizada (estilo GitHub)
     html += '<div class="card constancia-card"><h3 style="text-align:center">⚡ Constância</h3>' + heatmapHtml(119, true) + '</div>';
 
+    // conquistas (gamificação discreta)
+    html += conquistasHtml();
+
     // cards: radar + horas + questões + desempenho com mensagem
     html += '<div class="linha-cards">';
     if (state.plano) html += provaEstimadaHtml();
@@ -761,9 +764,41 @@
     return html;
   }
 
+  // ---------------- Conquistas (gamificação discreta) ----------------
+  function conquistasHtml() {
+    if (!state.plano && (!state.sessoes || state.sessoes.length === 0)) return '';
+    const c = D.conquistas(state, D.hojeISO());
+    return '<div class="card conquistas-card"><h3>🏅 Conquistas <span class="conquistas-contador">' + c.ganhas + '/' + c.total + '</span></h3>' +
+      '<div class="conquistas-grade">' + c.lista.map(function (m) {
+        return '<div class="medalha' + (m.ganha ? ' ganha' : '') + '" title="' + esc(m.titulo + ' — ' + m.desc) + '">' +
+          '<span class="medalha-icone" aria-hidden="true">' + m.icone + '</span>' +
+          '<span class="medalha-titulo">' + esc(m.titulo) + '</span></div>';
+      }).join('') + '</div></div>';
+  }
+
+  // Festeja conquistas recém-obtidas (uma vez). Usuários já existentes têm o
+  // estado inicial registrado sem festa retroativa.
+  function celebrarConquistasNovas() {
+    const c = D.conquistas(state, D.hojeISO());
+    const ganhasIds = c.lista.filter(function (m) { return m.ganha; }).map(function (m) { return m.id; });
+    if (!Array.isArray(state.config.conquistasVistas)) {
+      state.config.conquistasVistas = ganhasIds;
+      salvar({ sincronizar: false });
+      return;
+    }
+    const novas = ganhasIds.filter(function (id) { return state.config.conquistasVistas.indexOf(id) < 0; });
+    if (novas.length === 0) return;
+    state.config.conquistasVistas = state.config.conquistasVistas.concat(novas);
+    salvar({ sincronizar: false });
+    const nomes = c.lista.filter(function (m) { return novas.indexOf(m.id) >= 0; }).map(function (m) { return m.icone + ' ' + m.titulo; });
+    confete();
+    toast('Nova conquista: ' + nomes.join(' · '), 'sucesso');
+  }
+
   function ligarHoje(raiz) {
     const btn = raiz.querySelector('#btn-registrar-livre');
     if (btn) btn.addEventListener('click', function () { abrirRegistro({}); });
+    celebrarConquistasNovas();
     const provaEditar = raiz.querySelector('#prova-editar');
     if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
     raiz.querySelectorAll('[data-disc-detalhe]').forEach(function (linha) {

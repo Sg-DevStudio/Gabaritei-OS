@@ -73,6 +73,23 @@ e repaginação visual + gamificação.
 
 ---
 
+## 13/06/2026 — Onda 2 (parte 3): gamificação com conquistas
+
+- **Conquistas/medalhas** (`D.conquistas`, função pura derivada dos dados já
+  existentes): 10 medalhas — primeiro plano, constância 7/30 dias, 100/1.000
+  questões, 50h de estudo, 10 tópicos dominados, 50%/100% do edital e primeiro
+  simulado. Card "🏅 Conquistas" na Home, com medalhas ganhas em destaque e as
+  demais esmaecidas, e contador X/Y.
+- **Micro-celebração**: ao conquistar uma medalha nova, dispara confete + toast
+  (uma vez; usuários existentes têm o estado inicial registrado sem festa
+  retroativa, via `config.conquistasVistas`).
+
+Com isso a Onda 2 fica completa: curva do esquecimento adaptativa, plano
+combinado (calendário p/ 2 planos), exportação .ics e gamificação. A
+repaginação visual mais ampla pode evoluir em iterações futuras conforme o uso.
+
+---
+
 ## Próximos passos (backlog)
 
 - [ ] **Publicar no GitHub Pages**: Settings → Pages → branch `main`, pasta `/ (root)`;
