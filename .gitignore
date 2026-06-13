@@ -1,1 +1,4 @@
 data/sync/
+node_modules/
+_repro*.js
+_t.js
