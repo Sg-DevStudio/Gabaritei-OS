@@ -802,6 +802,20 @@
   }
 
   // ---------------- TELA: Timer ----------------
+  function gerarTicksTimer() {
+    var cx = 150, cy = 150, R = 134, out = '';
+    for (var i = 0; i < 60; i++) {
+      var a = i * 6 * Math.PI / 180;
+      var major = i % 5 === 0;
+      var len = major ? 14 : 7;
+      var x1 = (cx + R * Math.sin(a)).toFixed(2), y1 = (cy - R * Math.cos(a)).toFixed(2);
+      var x2 = (cx + (R - len) * Math.sin(a)).toFixed(2), y2 = (cy - (R - len) * Math.cos(a)).toFixed(2);
+      out += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
+        '" stroke-width="' + (major ? '2.5' : '1.5') + '" stroke-opacity="' + (major ? '.8' : '.35') + '" stroke-linecap="round"/>';
+    }
+    return out;
+  }
+
   function telaTimer() {
     if (state.disciplinas.length === 0) {
       return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="card"><div class="estado-vazio">' +
@@ -830,9 +844,19 @@
       selecao = '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId)) + '</p>';
     }
 
+    const ticksSvg = gerarTicksTimer();
+    const tempoIni = ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00';
     return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="tela-timer"><div class="timer-conteudo">' +
       selecao +
-      '<div class="timer-relogio-frame"><div class="timer-display" id="timer-display">' + (ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00') + '</div></div>' +
+      '<div class="timer-relogio-frame">' +
+      '<svg class="timer-clock-svg" viewBox="0 0 300 300" aria-hidden="true">' +
+      '<circle cx="150" cy="150" r="146" fill="#08090E"/>' +
+      '<g stroke="white">' + ticksSvg + '</g>' +
+      '<line id="timer-hand" x1="150" y1="150" x2="150" y2="30" stroke="var(--caneta)" stroke-width="2.5" stroke-linecap="round"/>' +
+      '<circle cx="150" cy="150" r="6" fill="var(--caneta)"/>' +
+      '</svg>' +
+      '<div class="timer-display" id="timer-display">' + tempoIni + '</div>' +
+      '</div>' +
       '<div class="timer-modo-info" id="timer-info"></div>' +
       '<div class="timer-acoes" id="timer-acoes"></div>' +
       '</div></div></section>';
@@ -840,6 +864,7 @@
 
   function ligarTimer(raiz) {
     const display = raiz.querySelector('#timer-display');
+    const timerHand = raiz.querySelector('#timer-hand');
     const info = raiz.querySelector('#timer-info');
     const acoes = raiz.querySelector('#timer-acoes');
     const limiteInput = raiz.querySelector('#timer-limite');
@@ -869,6 +894,10 @@
       if (display) {
         display.textContent = window.Timer.formatar(e.modo === 'pomodoro' ? e.pomoRestanteMs : e.decorridoMs);
       }
+      if (timerHand) {
+        var secs = (e.decorridoMs / 1000) % 60;
+        timerHand.setAttribute('transform', 'rotate(' + (secs * 6).toFixed(2) + ',150,150)');
+      }
       if (info) {
         if (e.modo === 'pomodoro') {
           info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
@@ -888,7 +917,7 @@
     function botoes() {
       const e = window.Timer.estado();
       if (!e) {
-        acoes.innerHTML = '<button id="t-iniciar">Iniciar estudo</button>';
+        acoes.innerHTML = '<button id="t-iniciar">Iniciar</button>';
         acoes.querySelector('#t-iniciar').addEventListener('click', function () {
           if (!selTop || !selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
           const limiteMin = limiteInput && limiteInput.value ? parseInt(limiteInput.value, 10) : null;
@@ -909,7 +938,7 @@
         (e.rodando
           ? '<button class="botao-quieto" id="t-pausar" style="border-color:#3A3D45;color:#F7F8F6">Pausar</button>'
           : '<button class="botao-quieto" id="t-retomar" style="border-color:#3A3D45;color:#F7F8F6">Retomar</button>') +
-        '<button id="t-finalizar">Encerrar e registrar</button>' +
+        '<button id="t-finalizar">Encerrar</button>' +
         '<button class="botao-quieto" id="t-descartar" style="border-color:#3A3D45;color:#9A9DA3">Descartar</button>';
       const bp = acoes.querySelector('#t-pausar');
       if (bp) bp.addEventListener('click', function () { window.Timer.pausar(); botoes(); pintar(window.Timer.estado()); });
@@ -1100,17 +1129,23 @@
     if (!t) return;
     const dt = D.desempenhoTopico(state.sessoes, t.id);
     const statusOpcoes = [
-      ['pendente', '○ Pendente'], ['em_curso', '◐ Em curso'],
-      ['teoria_concluida', '● Teoria concluída'], ['dominado', '● Dominado']
+      { val: 'pendente', ic: '○', label: 'Pendente' },
+      { val: 'em_curso', ic: '◐', label: 'Em curso' },
+      { val: 'teoria_concluida', ic: '✓', label: 'Teoria concluída' },
+      { val: 'dominado', ic: '🧠', label: 'Dominado' }
     ];
+    const radioHtml = statusOpcoes.map(function (o) {
+      return '<label class="status-opt">' +
+        '<input type="radio" name="top-status" value="' + o.val + '"' + (t.status === o.val ? ' checked' : '') + '>' +
+        '<span class="status-ic' + (o.val === 'dominado' ? ' status-ic-brain' : '') + '">' + o.ic + '</span>' +
+        o.label + '</label>';
+    }).join('');
     const m = abrirModal(
       '<h3>' + (d ? tagDisc(d) + ' ' : '') + esc(t.nome) + '</h3>' +
       '<p style="font-size:0.85rem;color:var(--grafite)">Incidência: ' + (t.incidencia_pct || 0) + '% · ' +
       (t.horas_estimadas ? '~' + t.horas_estimadas + 'h estimadas · ' : '') +
       'Desempenho: ' + (dt.pct !== null ? dt.certas + '/' + dt.feitas + ' (' + dt.pct + '%)' : 'sem questões ainda') + '</p>' +
-      '<label for="top-status">Status</label><select id="top-status">' +
-      statusOpcoes.map(function (o) { return '<option value="' + o[0] + '"' + (t.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') +
-      '</select>' +
+      '<div class="status-radio-group">' + radioHtml + '</div>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="top-fechar">Fechar</button>' +
       '<button type="button" class="botao-secundario" id="top-estudar">Estudar agora</button>' +
@@ -1121,7 +1156,8 @@
       timerPreselecao = t.id; fecharModal(); location.hash = '#timer';
     });
     m.querySelector('#top-salvar').addEventListener('click', function () {
-      const novo = m.querySelector('#top-status').value;
+      const checkedInput = m.querySelector('input[name="top-status"]:checked');
+      const novo = checkedInput ? checkedInput.value : t.status;
       const antes = t.status;
       t.status = novo;
       if ((novo === 'teoria_concluida' || novo === 'dominado') && antes !== 'teoria_concluida' && antes !== 'dominado') {
