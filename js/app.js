@@ -20,6 +20,7 @@
   let planejamentoConfigAberta = false;
   let disciplinaDetalheId = null;
   let catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
+  let adminBusca = '';
   let googleCalendarToken = null;
 
   // ---------------- utilidades de UI ----------------
@@ -1989,8 +1990,9 @@
 
   function adminEditalCard(e, arquivado) {
     return '<div class="plano-mini">' +
-      '<div class="plano-mini-top"><strong>' + esc(e.titulo) + '</strong>' +
-      (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</div>' +
+      '<div class="plano-mini-top plano-mini-top-foto">' + editalFotoHtml(e) +
+      '<div class="plano-mini-tit"><strong>' + esc(e.titulo) + '</strong>' +
+      (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</div></div>' +
       '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
       contarTopicosEdital(e) + ' tóp · corte ~' + (e.notaCorte || 70) + '% · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
@@ -2018,8 +2020,14 @@
   }
 
   function editaisEsquematizadosHtml() {
-    const ativos = (state.editais || []).filter(function (e) { return !e.arquivado; });
-    const arquivados = (state.editais || []).filter(function (e) { return e.arquivado; });
+    const termo = (adminBusca || '').trim().toLowerCase();
+    const correspondeBusca = function (e) {
+      if (!termo) return true;
+      return [e.titulo, e.banca, e.orgao, e.cargo, e.estado].filter(Boolean)
+        .join(' ').toLowerCase().indexOf(termo) >= 0;
+    };
+    const ativos = (state.editais || []).filter(function (e) { return !e.arquivado && correspondeBusca(e); });
+    const arquivados = (state.editais || []).filter(function (e) { return e.arquivado && correspondeBusca(e); });
     let html = '<div class="card"><h3>Painel do edital (admin)</h3>' +
       '<p style="font-size:0.88rem;color:var(--grafite)">Cadastre e organize os editais do catálogo. A partir deles o app gera planos e a aba ' +
       '<strong>Planos disponíveis</strong> mostra o cardápio para o aluno. <em>No futuro esta área ficará visível apenas para o perfil admin.</em></p>' +
@@ -2028,12 +2036,15 @@
       '<button class="botao-secundario botao-mini" id="adm-importar">Importar arquivo da skill</button>' +
       '</div>';
 
+    html += '<div class="planos-cadastrados-cab"><h4>Planos cadastrados</h4>' +
+      '<input id="adm-busca" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '"></div>';
+
     if (ativos.length > 0) {
-      html += '<div class="planos-grade" style="margin:0.75rem 0">';
+      html += '<div class="planos-grade" style="margin:0.5rem 0 0.75rem">';
       ativos.forEach(function (e) { html += adminEditalCard(e, false); });
       html += '</div>';
     } else {
-      html += '<p class="sub" style="margin:0.5rem 0">Nenhum edital cadastrado ainda.</p>';
+      html += '<p class="sub" style="margin:0.5rem 0">' + (termo ? 'Nenhum plano encontrado para essa busca.' : 'Nenhum edital cadastrado ainda.') + '</p>';
     }
 
     if (arquivados.length > 0) {
@@ -2136,6 +2147,13 @@
   }
 
   function ligarEditaisEsquematizados(raiz) {
+    const admBusca = raiz.querySelector('#adm-busca');
+    if (admBusca) {
+      const aplicar = function () { adminBusca = admBusca.value; render(); };
+      admBusca.addEventListener('change', aplicar);
+      admBusca.addEventListener('search', aplicar);
+      admBusca.addEventListener('keydown', function (e) { if (e.key === 'Enter') aplicar(); });
+    }
     const cadastrar = raiz.querySelector('#ed-cadastrar');
     if (cadastrar) cadastrar.addEventListener('click', function () { cadastrarEditalEsquematizado(raiz); });
     const novo = raiz.querySelector('#adm-novo');
@@ -2431,7 +2449,33 @@
     return { id: '', nome: '', cor: '#3B82F6', peso: 1, dificuldade: 'media', base_teorica: 'pdf', topicos: [topicoEmBranco()] };
   }
   function editalEmBranco() {
-    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, emAlta: false, arquivado: false, janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
+    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
+  }
+
+  // Lê uma imagem e devolve um data URL já redimensionado (evita estourar o
+  // localStorage / a sincronização com fotos gigantes).
+  function arquivoParaImagemData(file, max) {
+    return new Promise(function (resolve, reject) {
+      const fr = new FileReader();
+      fr.onload = function () {
+        const img = new Image();
+        img.onload = function () {
+          const escala = Math.min(1, (max || 480) / (img.width || 1));
+          const w = Math.max(1, Math.round(img.width * escala));
+          const hh = Math.max(1, Math.round(img.height * escala));
+          try {
+            const cv = document.createElement('canvas');
+            cv.width = w; cv.height = hh;
+            cv.getContext('2d').drawImage(img, 0, 0, w, hh);
+            resolve(cv.toDataURL('image/jpeg', 0.82));
+          } catch (e) { resolve(fr.result); }
+        };
+        img.onerror = function () { resolve(fr.result); };
+        img.src = fr.result;
+      };
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
   }
   function normalizarEditalParaEditor(e) {
     const c = JSON.parse(JSON.stringify(e || {}));
@@ -2501,6 +2545,14 @@
       '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div>' +
       '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>';
 
+    h += '<div class="ee-foto-campo"><label>Foto / capa do plano (aparece na aba Planos)</label>' +
+      '<div class="ee-foto-linha">' +
+      '<span class="catalogo-foto' + (e.foto ? '' : ' catalogo-foto-placeholder') + '" id="ee-foto-preview">' +
+      (e.foto ? '<img src="' + esc(e.foto) + '" alt="">' : 'IMG') + '</span>' +
+      '<input type="file" id="ee-foto" accept="image/*">' +
+      (e.foto ? '<button type="button" class="botao-mini botao-quieto" id="ee-foto-remover">Remover foto</button>' : '') +
+      '</div></div>';
+
     h += '<div class="editor-discs">';
     e.disciplinas.forEach(function (d, di) {
       h += '<div class="editor-disc" data-di="' + di + '"><div class="editor-disc-cab">' +
@@ -2558,6 +2610,32 @@
   }
   function ligarEditorBody(m) {
     const body = m.querySelector('#editor-body');
+    const fotoInput = body.querySelector('#ee-foto');
+    if (fotoInput) fotoInput.addEventListener('change', function () {
+      const f = fotoInput.files && fotoInput.files[0];
+      if (!f) return;
+      arquivoParaImagemData(f, 480).then(function (data) {
+        editorEdital.foto = data;
+        const prev = body.querySelector('#ee-foto-preview');
+        if (prev) { prev.classList.remove('catalogo-foto-placeholder'); prev.innerHTML = '<img src="' + esc(data) + '" alt="">'; }
+        if (!body.querySelector('#ee-foto-remover')) {
+          const btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'botao-mini botao-quieto'; btn.id = 'ee-foto-remover'; btn.textContent = 'Remover foto';
+          fotoInput.parentNode.appendChild(btn);
+          btn.addEventListener('click', removerFotoEditor);
+        }
+      });
+    });
+    function removerFotoEditor() {
+      editorEdital.foto = '';
+      const prev = body.querySelector('#ee-foto-preview');
+      if (prev) { prev.classList.add('catalogo-foto-placeholder'); prev.innerHTML = 'IMG'; }
+      const rem = body.querySelector('#ee-foto-remover');
+      if (rem) rem.remove();
+      if (fotoInput) fotoInput.value = '';
+    }
+    const fotoRemInicial = body.querySelector('#ee-foto-remover');
+    if (fotoRemInicial) fotoRemInicial.addEventListener('click', removerFotoEditor);
     const addDisc = body.querySelector('#ee-add-disc');
     if (addDisc) addDisc.addEventListener('click', function () {
       sincronizarEditorDoDom(body);
@@ -2631,6 +2709,7 @@
     const registro = {
       titulo: e.titulo, banca: e.banca, orgao: e.orgao, cargo: e.cargo, area: e.area,
       estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, emAlta: e.emAlta,
+      foto: e.foto || '',
       arquivado: !!e.arquivado, janelaProva: { inicio: e.janelaProva.inicio || '', fim: e.janelaProva.fim || '' },
       disciplinas: disciplinas
     };
