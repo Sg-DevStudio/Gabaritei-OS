@@ -443,6 +443,94 @@
     return lista.slice(0, n);
   }
 
+  // ---------- RN09 — Esforço total do edital (burn-down) ----------
+  // Fator 1.8 sobre as horas de teoria estimadas: cobre teoria + questões + revisões 24h/7d/30d.
+  const FATOR_ESFORCO = 1.8;
+
+  function totalHorasTeoria(disciplinas) {
+    if (!disciplinas) return 0;
+    return disciplinas.reduce(function (n, d) {
+      if (d.id === 'ORF') return n;
+      return n + (d.topicos || []).reduce(function (m, t) {
+        return t.orfao ? m : m + (t.horas_estimadas || 2);
+      }, 0);
+    }, 0);
+  }
+
+  function esforcoTotalHoras(state) {
+    return Math.round(totalHorasTeoria(state.disciplinas) * FATOR_ESFORCO);
+  }
+
+  function horasRealizadas(state, desdeISO, ateISO) {
+    let min = 0;
+    for (const s of sessoesDoPlano(state)) {
+      if (desdeISO && s.data < desdeISO) continue;
+      if (ateISO && s.data >= ateISO) continue;
+      min += s.duracaoMin || 0;
+    }
+    return min / 60;
+  }
+
+  function ritmoInfoAtivo(state) {
+    if (!state.plano || !state.plano.ritmos) return null;
+    const chave = state.plano.ritmoAtivo || 'sustentavel';
+    const r = state.plano.ritmos[chave];
+    return r && typeof r === 'object' ? r : null;
+  }
+
+  // RN09 — Carga semanal ideal + projeção de conclusão no ritmo real do aluno.
+  // Recalculado a cada render: o "vencimento" do cronograma some porque a carga
+  // ideal restante é sempre (esforço que falta) / (semanas que faltam até a meta).
+  function burndownEdital(state, hoje) {
+    const r = ritmoInfoAtivo(state);
+    if (!r || !r.semanas) return null;
+    const inicio = (state.plano && state.plano.gerado_em) || segundaDaSemana(hoje);
+    const semanasTotais = r.semanas;
+    const meses = r.meses || Math.max(1, Math.round(semanasTotais / 4.345));
+    const esforcoTotal = esforcoTotalHoras(state);
+    const horasFeitas = horasRealizadas(state, inicio, null);
+    const decorridas = Math.min(semanasTotais, Math.max(0, diffDias(inicio, hoje) / 7));
+    const semanasRestantes = Math.max(0.5, semanasTotais - decorridas);
+    const restante = Math.max(0, esforcoTotal - horasFeitas);
+    const cargaIdeal = Math.round((restante / semanasRestantes) * 10) / 10;
+    const cargaPlanejada = r.h_semana || cargaIdeal;
+    const ritmoReal = decorridas >= 0.5 ? horasFeitas / decorridas : cargaPlanejada;
+    const semanasProjetadas = ritmoReal > 0.1 ? restante / ritmoReal : Infinity;
+    const mesesProjetados = isFinite(semanasProjetadas)
+      ? Math.round(((decorridas + semanasProjetadas) / 4.345) * 10) / 10 : Infinity;
+    const pctConcluido = esforcoTotal > 0 ? Math.min(100, Math.round((horasFeitas / esforcoTotal) * 100)) : 0;
+    let situacao = 'no_prazo';
+    if (restante <= 0) situacao = 'concluido';
+    else if (!isFinite(mesesProjetados)) situacao = 'parado';
+    else if (mesesProjetados > meses + 0.5) situacao = 'atrasado';
+    else if (mesesProjetados < meses - 0.5) situacao = 'adiantado';
+    return {
+      esforcoTotal, horasFeitas: Math.round(horasFeitas * 10) / 10, restante: Math.round(restante * 10) / 10,
+      semanasTotais, meses, semanasDecorridas: Math.round(decorridas * 10) / 10,
+      semanasRestantes: Math.round(semanasRestantes * 10) / 10, cargaIdeal,
+      cargaPlanejada: Math.round(cargaPlanejada * 10) / 10, ritmoReal: Math.round(ritmoReal * 10) / 10,
+      mesesProjetados, pctConcluido, situacao
+    };
+  }
+
+  // RN10 — Check-in semanal: Planejado vs. Realizado da última semana fechada.
+  function checkinSemanal(state, hoje) {
+    const inicioAtual = segundaDaSemana(hoje);
+    const inicioAnterior = addDias(inicioAtual, -7);
+    let realizadoMin = 0, qFeitas = 0;
+    for (const s of sessoesDoPlano(state)) {
+      if (s.data >= inicioAnterior && s.data < inicioAtual) {
+        realizadoMin += s.duracaoMin || 0;
+        qFeitas += s.qFeitas || 0;
+      }
+    }
+    const r = ritmoInfoAtivo(state);
+    const planejado = r ? (r.h_semana || 0) : 0;
+    const realizado = Math.round((realizadoMin / 60) * 10) / 10;
+    const saldo = Math.round((realizado - planejado) * 10) / 10; // <0 déficit, >0 superávit
+    return { inicio: inicioAnterior, planejado, realizado, saldo, qFeitas, temDados: realizadoMin > 0 };
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -450,6 +538,7 @@
     revisaoReabreTopico, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
-    heatmapDias, serieSemanal, pioresTopicos
+    heatmapDias, serieSemanal, pioresTopicos,
+    totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal
   };
 })();
