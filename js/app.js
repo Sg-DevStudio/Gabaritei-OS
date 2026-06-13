@@ -14,6 +14,7 @@
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
   let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
   let pintarTimerAtual = null;
+  let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let audioCtx = null;
   let ultimaRotaRender = null;
   let planejamentoConfigAberta = false;
@@ -56,7 +57,7 @@
     return raiz.querySelector('.modal');
   }
 
-  function fecharModal() { document.getElementById('modal-raiz').innerHTML = ''; }
+  function fecharModal() { pintarTimerModal = null; document.getElementById('modal-raiz').innerHTML = ''; }
 
   // ---------------- tema claro/escuro ----------------
   function aplicarTema() {
@@ -135,6 +136,7 @@
     atualizarTituloTimer(e);
     if (e && e.limiteAtingido) avisarLimiteTimer(e);
     if (pintarTimerAtual && location.hash.replace('#', '') === 'timer') pintarTimerAtual(e);
+    if (pintarTimerModal) pintarTimerModal(e);
   }
 
   function confete() {
@@ -998,6 +1000,114 @@
     pintarTimerAtual = pintar;
     botoes();
     pintar(window.Timer.estado());
+  }
+
+  // Timer rápido em modal central — cronometra de qualquer tela sem ir para a aba.
+  function abrirTimerRapido() {
+    if (state.disciplinas.length === 0) {
+      toast('Importe ou crie um plano para cronometrar.', 'erro');
+      if (location.hash !== '#planejamento') location.hash = '#planejamento';
+      return;
+    }
+    const m = abrirModal('<h3>Timer rápido</h3><div id="tr-corpo"></div>');
+    m.classList.add('timer-modal');
+    const corpo = m.querySelector('#tr-corpo');
+    let modoEscolhido = 'cronometro';
+
+    function pintar(e) {
+      const disp = m.querySelector('#tr-display');
+      const info = m.querySelector('#tr-info');
+      if (!e || !disp) return;
+      disp.textContent = window.Timer.formatar(e.modo === 'pomodoro' ? e.pomoRestanteMs : e.decorridoMs);
+      if (info) {
+        if (e.modo === 'pomodoro') {
+          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
+        } else {
+          info.textContent = e.rodando ? 'Estudando' : 'Pausado';
+        }
+        if (e.limiteMin) {
+          info.textContent += e.limiteRestanteMs > 0 ? ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs) : ' · limite atingido';
+        }
+      }
+    }
+
+    function desenhar() {
+      const e = window.Timer.estado();
+      if (e) {
+        corpo.innerHTML =
+          '<div class="timer-mini-clock"><div class="timer-display" id="tr-display">00:00</div>' +
+          '<div class="timer-modo-info" id="tr-info"></div></div>' +
+          '<p class="tr-topico">' + esc(nomeTopicoCompleto(e.topicoId)) + '</p>' +
+          '<div class="modal-acoes tr-acoes">' +
+          (e.rodando ? '<button class="botao-quieto" id="tr-pausar">Pausar</button>' : '<button class="botao-quieto" id="tr-retomar">Retomar</button>') +
+          '<button id="tr-encerrar">Encerrar</button>' +
+          '<button class="botao-quieto" id="tr-descartar">Descartar</button></div>' +
+          '<div class="modal-acoes" style="margin-top:0.3rem"><button class="botao-quieto botao-mini" id="tr-fechar">Continuar em 2º plano</button>' +
+          '<a class="botao-quieto botao-mini" href="#timer" id="tr-abrir-tela">Abrir em tela cheia</a></div>';
+        const bp = corpo.querySelector('#tr-pausar');
+        if (bp) bp.addEventListener('click', function () { window.Timer.pausar(); desenhar(); });
+        const br = corpo.querySelector('#tr-retomar');
+        if (br) br.addEventListener('click', function () { prepararAudio(); window.Timer.retomar(); desenhar(); });
+        corpo.querySelector('#tr-encerrar').addEventListener('click', function () {
+          const fim = window.Timer.finalizar();
+          atualizarTituloTimer(null);
+          abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, fim.decorridoMin), tipo: 'teoria', aoSalvar: function () { render(); } });
+          render();
+        });
+        corpo.querySelector('#tr-descartar').addEventListener('click', function () {
+          if (confirm('Descartar o tempo cronometrado sem registrar?')) { window.Timer.descartar(); atualizarTituloTimer(null); fecharModal(); render(); }
+        });
+        corpo.querySelector('#tr-fechar').addEventListener('click', fecharModal);
+        const abrirTela = corpo.querySelector('#tr-abrir-tela');
+        if (abrirTela) abrirTela.addEventListener('click', fecharModal);
+        pintar(e);
+      } else {
+        const discIni = timerPreselecao ? D.disciplinaDoTopico(state, timerPreselecao) : state.disciplinas[0];
+        const optsDisc = state.disciplinas.map(function (d) {
+          return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
+        }).join('');
+        corpo.innerHTML =
+          '<div class="grade-2"><div><label for="tr-disc">Disciplina</label><select id="tr-disc">' + optsDisc + '</select></div>' +
+          '<div><label for="tr-top">Tópico</label><select id="tr-top"></select></div></div>' +
+          '<div style="margin-top:0.8rem;text-align:center"><span class="seletor-modo">' +
+          '<button type="button" data-trmodo="cronometro" class="ativo">Cronômetro</button>' +
+          '<button type="button" data-trmodo="pomodoro">Pomodoro 25/5</button></span></div>' +
+          '<div class="timer-limite" style="margin:0.8rem auto 0"><label for="tr-limite">Tempo máximo (min)</label>' +
+          '<input id="tr-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>' +
+          '<div class="modal-acoes"><button class="botao-quieto" id="tr-fechar2">Fechar</button><button id="tr-iniciar">Iniciar</button></div>';
+        const selDisc = corpo.querySelector('#tr-disc');
+        const selTop = corpo.querySelector('#tr-top');
+        const preencher = function () {
+          const d = D.disciplinaPorId(state, selDisc.value);
+          selTop.innerHTML = d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
+            return '<option value="' + esc(t.id) + '"' + (t.id === timerPreselecao ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
+          }).join('');
+        };
+        preencher();
+        selDisc.addEventListener('change', preencher);
+        corpo.querySelectorAll('[data-trmodo]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            modoEscolhido = b.getAttribute('data-trmodo');
+            corpo.querySelectorAll('[data-trmodo]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+          });
+        });
+        corpo.querySelector('#tr-fechar2').addEventListener('click', fecharModal);
+        corpo.querySelector('#tr-iniciar').addEventListener('click', function () {
+          if (!selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
+          const limiteEl = corpo.querySelector('#tr-limite');
+          const limiteMin = limiteEl && limiteEl.value ? parseInt(limiteEl.value, 10) : null;
+          if (limiteEl && limiteEl.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) { toast('Informe um tempo máximo entre 1 e 720 minutos.', 'erro'); return; }
+          prepararAudio();
+          pedirNotificacaoSePossivel(limiteMin);
+          window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin: limiteMin });
+          timerPreselecao = null;
+          desenhar();
+        });
+      }
+    }
+
+    pintarTimerModal = pintar;
+    desenhar();
   }
 
   // ---------------- TELA: Revisões (F4) ----------------
@@ -3035,20 +3145,6 @@
       concluido: { classe: 'ok', rotulo: 'Esforço concluído', icone: '🏁' }
     };
     const sit = mapaSit[burn.situacao] || mapaSit.no_prazo;
-    let projecao;
-    if (burn.situacao === 'concluido') {
-      projecao = 'Você já cobriu o esforço estimado do edital. Foque em revisões e simulados.';
-    } else if (burn.situacao === 'parado') {
-      projecao = 'Sem sessões suficientes para projetar. Registre seus estudos para o sistema calcular seu ritmo.';
-    } else {
-      projecao = 'No ritmo atual você terminará o edital em <strong>' +
-        esc(String(burn.mesesProjetados).replace('.', ',')) + ' meses</strong> — ' +
-        (burn.situacao === 'atrasado'
-          ? 'acima da meta de ' + burn.meses + ' meses. As próximas semanas ganham um leve acréscimo para recuperar.'
-          : burn.situacao === 'adiantado'
-            ? 'abaixo da meta de ' + burn.meses + ' meses. Dá para aliviar a carga das próximas semanas.'
-            : 'dentro da meta de ' + burn.meses + ' meses.');
-    }
     let checkLinha = '';
     if (check.temDados) {
       const deficit = check.saldo < -0.1;
@@ -3063,19 +3159,17 @@
             : 'na meta 👏') + '</span></div>';
     }
     return '<div class="card checkin-card checkin-' + sit.classe + '">' +
-      '<div class="checkin-head"><div class="card-kpi-rotulo">Check-in semanal · burn-down do edital</div>' +
+      '<div class="checkin-head"><div class="card-kpi-rotulo">Check-in semanal</div>' +
       '<span class="checkin-badge checkin-badge-' + sit.classe + '">' + sit.icone + ' ' + sit.rotulo + '</span></div>' +
-      '<div class="checkin-grid">' +
-      '<div class="checkin-kpi"><span class="checkin-num">' + formatarHorasSemana(burn.cargaIdeal).replace(' na semana', '') + '</span>' +
-      '<span class="checkin-rotulo">Carga ideal desta semana</span></div>' +
+      '<div class="checkin-grid checkin-grid-2">' +
       '<div class="checkin-kpi"><span class="checkin-num">' + burn.ritmoReal + 'h</span>' +
-      '<span class="checkin-rotulo">Seu ritmo real / semana</span></div>' +
-      '<div class="checkin-kpi"><span class="checkin-num">' + burn.pctConcluido + '%</span>' +
-      '<span class="checkin-rotulo">do esforço estimado</span></div>' +
+      '<span class="checkin-rotulo">Carga horária real / semana</span></div>' +
       '<div class="checkin-kpi"><span class="checkin-num">' + burn.semanasRestantes + '</span>' +
-      '<span class="checkin-rotulo">semanas até a meta</span></div></div>' +
-      '<div class="barra checkin-barra"><span style="width:' + burn.pctConcluido + '%"></span></div>' +
-      '<p class="checkin-projecao">' + projecao + '</p>' +
+      '<span class="checkin-rotulo">Semanas até a meta</span></div></div>' +
+      '<div class="checkin-edital">' +
+      '<div class="checkin-edital-topo"><span class="checkin-rotulo">Progresso do edital</span>' +
+      '<span class="checkin-edital-pct">' + burn.pctConcluido + '%</span></div>' +
+      '<div class="barra checkin-barra"><span style="width:' + burn.pctConcluido + '%"></span></div></div>' +
       checkLinha +
       '<div class="compact-actions" style="margin-top:0.6rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
       '</div>';
@@ -4527,7 +4621,7 @@
   const botaoPerfil = document.getElementById('botao-perfil');
   if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);
   const botaoTimerRapido = document.getElementById('botao-timer-rapido');
-  if (botaoTimerRapido) botaoTimerRapido.addEventListener('click', function () { location.hash = '#timer'; });
+  if (botaoTimerRapido) botaoTimerRapido.addEventListener('click', abrirTimerRapido);
 
   window.Timer.aoAtualizar(tratarTickTimer);
 
