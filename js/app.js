@@ -2114,7 +2114,13 @@
       plano_6m: 'Regular',
       plano_9m: 'Construção de base'
     };
-    const base = chave === 'plano_ativo' && dados && dados.meses ? dados.meses + ' meses' : (mapa[chave] || chave.replace(/_/g, ' '));
+    let base;
+    if (chave === 'plano_ativo' && dados && dados.meses) {
+      const mp = MACRO_PLANOS.find(function (p) { return p.meses === dados.meses; });
+      base = mp ? mp.nome.split(' (')[0] : (mapa[chave] || chave.replace(/_/g, ' '));
+    } else {
+      base = mapa[chave] || chave.replace(/_/g, ' ');
+    }
     const horas = dados && (dados.h_semana || dados.h_semana_exigidas);
     return base + (horas ? ' · ' + horas + 'h/semana' : '');
   }
@@ -2166,8 +2172,7 @@
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
       (temPlanoGerado
-        ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>' +
-          '<p class="sub plano-ritmo-info">' + esc(nomePlanoComCarga(dadosRitmo)) + '</p>'
+        ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>'
         : '<p class="sub">Este plano ainda não tem cronograma gerado.</p>') +
       '<div class="compact-actions">' +
       '<button class="botao-mini" id="pl-gerar-ritmos">Gerar plano de estudos</button>' +
@@ -3279,6 +3284,8 @@
     let ultimoId = '';
     let ultimoGrupo = '';
     while (ativas.some(function (f) { return f.tarefas.length > 0; })) {
+      // Ordena por tarefas restantes (desc) para distribuir disciplinas pesadas ao longo de toda a semana
+      ativas.sort(function (a, b) { return b.tarefas.length - a.tarefas.length; });
       let idx = ativas.findIndex(function (f) {
         return f.tarefas.length > 0 && f.disciplina.id !== ultimoId && f.grupo !== ultimoGrupo;
       });
