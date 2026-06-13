@@ -1911,19 +1911,8 @@
     let html = '<h1>Configurações</h1>';
 
     // Esta aba foca no painel do edital. Nome do usuário fica no Perfil (topo);
-    // meta de questões da semana é editada na própria tela Hoje.
-    if (state.plano) {
-      const p = state.plano;
-      html += '<div class="card"><h3>Ritmo do cronograma</h3>' +
-        '<label for="aj-ritmo">Quanto você consegue manter por semana</label>' +
-        '<select id="aj-ritmo" style="max-width:320px">' +
-        '<option value="sustentavel"' + (p.ritmoAtivo === 'sustentavel' ? ' selected' : '') + '>Sustentável' +
-        (p.ritmos && p.ritmos.sustentavel ? ' — ' + p.ritmos.sustentavel.h_semana + 'h/semana' : '') + '</option>' +
-        '<option value="hardcore"' + (p.ritmoAtivo === 'hardcore' ? ' selected' : '') + '>Hardcore 120 dias' +
-        (p.ritmos && p.ritmos.hardcore ? ' — ' + p.ritmos.hardcore.h_semana_exigidas + 'h/semana' : '') + '</option></select>' +
-        '</div>';
-    }
-
+    // meta de questões da semana é editada na Hoje; o ritmo do cronograma é
+    // definido ao criar o plano (aba Planos), após escolher o edital.
     html += editaisEsquematizadosHtml();
 
     const syncAtual = statusSincronizacao();
