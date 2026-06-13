@@ -1893,9 +1893,9 @@
         (ficha ? '<p style="font-size:0.88rem;color:var(--grafite)">' + ficha + '</p>' : '') +
         '<p style="font-size:0.88rem;color:var(--grafite)">Banca ' + esc(p.banca || '—') +
         (p.cota ? ' · cota: ' + esc(p.cota) : '') +
-        ' · meta de corte: ' + p.meta.corte_pct + '%' +
+        ' · meta de corte: ' + (p.meta && p.meta.corte_pct != null ? p.meta.corte_pct + '%' : '—') +
         (p.gerado_em ? ' · gerado em ' + D.formatarDataBR(p.gerado_em) : '') + '</p>' +
-        (p.radar ? '<p style="font-size:0.88rem;color:var(--grafite)">Radar: edital entre ' + D.formatarMesBR(p.radar.janela_edital[0]) + ' e ' + D.formatarMesBR(p.radar.janela_edital[1]) +
+        (p.radar && p.radar.janela_edital ? '<p style="font-size:0.88rem;color:var(--grafite)">Radar: edital entre ' + D.formatarMesBR(p.radar.janela_edital[0]) + ' e ' + D.formatarMesBR(p.radar.janela_edital[1]) +
           ' · confiança ' + esc(p.radar.confianca) + '</p>' : '') +
         '<label for="aj-ritmo">Ritmo do cronograma</label>' +
         '<select id="aj-ritmo" style="max-width:320px">' +
@@ -5076,8 +5076,18 @@
     const tela = telas[rota];
     const conteudo = document.getElementById('conteudo');
     if (rota !== 'timer') pintarTimerAtual = null;
-    conteudo.innerHTML = tela.render();
-    tela.ligar(conteudo);
+    // À prova de falhas: um erro numa tela não pode mais congelar a navegação
+    // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
+    try {
+      conteudo.innerHTML = tela.render();
+      tela.ligar(conteudo);
+    } catch (err) {
+      console.error('Falha ao renderizar a tela "' + rota + '":', err);
+      conteudo.innerHTML = '<h1>Ops…</h1><div class="card"><p>Não consegui abrir esta tela por causa de um dado inesperado. ' +
+        'As outras telas continuam funcionando.</p>' +
+        '<p style="font-size:0.82rem;color:var(--grafite);white-space:pre-wrap;margin-top:0.5rem">' +
+        esc(String(err && err.message ? err.message : err)) + '</p></div>';
+    }
     atualizarNav(rota);
     atualizarSyncUi();
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
