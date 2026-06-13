@@ -994,6 +994,9 @@
     const limiteInput = raiz.querySelector('#timer-limite');
     let modoEscolhido = 'cronometro';
 
+    // Estado vazio (sem plano): a tela não tem os controles do relógio.
+    if (!acoes) return;
+
     const selDisc = raiz.querySelector('#timer-disc');
     const selTop = raiz.querySelector('#timer-topico');
     if (selDisc) {
@@ -2076,40 +2079,73 @@
     return [];
   }
 
+  // Extrai os metadados do JSON da skill para autopreencher o cadastro.
+  function metadadosEditalDeJson(json) {
+    if (!json || typeof json !== 'object' || Array.isArray(json)) return {};
+    const jp = json.janela_prova || json.janelaProva || {};
+    const corte = json.nota_corte_sugerida_pct != null ? json.nota_corte_sugerida_pct
+      : (json.notaCorte != null ? json.notaCorte : null);
+    return {
+      titulo: (json.titulo || '').toString().trim(),
+      banca: (json.banca || '').toString().trim(),
+      orgao: (json.orgao || json['órgão'] || '').toString().trim(),
+      cargo: (json.cargo || '').toString().trim(),
+      area: (json.area || json['área'] || '').toString().trim(),
+      estado: (json.estado || json.uf || '').toString().trim().toUpperCase().slice(0, 2),
+      nivel: (json.nivel || '').toString().trim(),
+      notaCorte: corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null,
+      janelaProva: { inicio: (jp.inicio || '').toString(), fim: (jp.fim || '').toString() },
+      emAlta: !!(json.em_alta || json.emAlta)
+    };
+  }
+
   async function cadastrarEditalEsquematizado(raiz) {
-    const titulo = (raiz.querySelector('#ed-titulo').value || '').trim();
-    if (!titulo) { toast('Dê um nome ao edital.', 'erro'); return; }
-    const banca = (raiz.querySelector('#ed-banca').value || '').trim();
-    const orgao = (raiz.querySelector('#ed-orgao') ? raiz.querySelector('#ed-orgao').value : '').trim();
-    const cargo = (raiz.querySelector('#ed-cargo') ? raiz.querySelector('#ed-cargo').value : '').trim();
-    const estado = (raiz.querySelector('#ed-estado') ? raiz.querySelector('#ed-estado').value : '').trim().toUpperCase().slice(0, 2);
-    const corte = Math.max(0, Math.min(100, parseInt(raiz.querySelector('#ed-corte').value, 10) || 70));
+    const tituloForm = (raiz.querySelector('#ed-titulo').value || '').trim();
+    const bancaForm = (raiz.querySelector('#ed-banca').value || '').trim();
+    const orgaoForm = (raiz.querySelector('#ed-orgao') ? raiz.querySelector('#ed-orgao').value : '').trim();
+    const cargoForm = (raiz.querySelector('#ed-cargo') ? raiz.querySelector('#ed-cargo').value : '').trim();
+    const estadoForm = (raiz.querySelector('#ed-estado') ? raiz.querySelector('#ed-estado').value : '').trim().toUpperCase().slice(0, 2);
+    const corteForm = parseInt(raiz.querySelector('#ed-corte').value, 10);
     const arquivoEl = raiz.querySelector('#ed-arquivo');
     const file = arquivoEl && arquivoEl.files && arquivoEl.files[0];
     let disciplinas = [];
+    let meta = {};                                       // metadados vindos do JSON da skill
     try {
       if (file && /\.xlsx$/i.test(file.name)) {
         if (!window.XLSX) { toast('Leitor de Excel indisponível. Salve como CSV ou JSON.', 'erro'); return; }
         const wb = window.XLSX.read(await lerArquivo(file, true), { type: 'array' });
         const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-        disciplinas = planoJsonDeLinhas(rows, titulo).disciplinas;
+        disciplinas = planoJsonDeLinhas(rows, tituloForm).disciplinas;
       } else if (file && /\.csv$/i.test(file.name)) {
-        disciplinas = planoJsonDeLinhas(parseCsv(await lerArquivo(file, false)), titulo).disciplinas;
+        disciplinas = planoJsonDeLinhas(parseCsv(await lerArquivo(file, false)), tituloForm).disciplinas;
       } else {
         const texto = file ? await lerArquivo(file, false) : (raiz.querySelector('#ed-json').value || '').trim();
         if (!texto) { toast('Envie um arquivo ou cole o JSON com as disciplinas.', 'erro'); return; }
-        disciplinas = disciplinasDeEntradaEdital(JSON.parse(texto), titulo);
+        const json = JSON.parse(texto);
+        meta = metadadosEditalDeJson(json);
+        disciplinas = disciplinasDeEntradaEdital(json, tituloForm || meta.titulo);
       }
     } catch (e) {
       toast('Não consegui ler o edital: ' + e.message, 'erro');
       return;
     }
+    // O que o usuário digitou no formulário tem prioridade; o JSON autopreenche o resto.
+    const titulo = tituloForm || meta.titulo || '';
+    if (!titulo) { toast('Dê um nome ao edital (ou inclua "titulo" no JSON).', 'erro'); return; }
+    const banca = bancaForm || meta.banca || '';
+    const orgao = orgaoForm || meta.orgao || '';
+    const cargo = cargoForm || meta.cargo || '';
+    const estado = estadoForm || meta.estado || '';
+    const corte = Number.isFinite(corteForm) && corteForm !== 70 ? corteForm
+      : (meta.notaCorte != null ? meta.notaCorte : (Number.isFinite(corteForm) ? corteForm : 70));
     const teste = { versao: 1, plano: { concurso: titulo, banca: banca, meta: { corte_pct: corte } }, disciplinas: disciplinas };
     const v = D.validarPlano(teste);
     if (!v.ok) { toast('Edital inválido: ' + v.erros[0], 'erro'); return; }
-    // Fluxo de importação inteligente: abre a tela de conferência antes de salvar.
+    // Fluxo de importação inteligente: abre a tela de conferência já autopreenchida.
     abrirEditorEdital(null, 'conferencia', {
-      titulo: titulo, banca: banca, orgao: orgao, cargo: cargo, estado: estado, notaCorte: corte, disciplinas: disciplinas
+      titulo: titulo, banca: banca, orgao: orgao, cargo: cargo, area: meta.area || '',
+      estado: estado, nivel: meta.nivel || '', notaCorte: corte,
+      janelaProva: meta.janelaProva, emAlta: meta.emAlta, disciplinas: disciplinas
     });
   }
 
@@ -2660,7 +2696,10 @@
     if (dadosImport) {
       baseObj = Object.assign(editalEmBranco(), {
         titulo: dadosImport.titulo, banca: dadosImport.banca, orgao: dadosImport.orgao,
-        cargo: dadosImport.cargo, estado: dadosImport.estado, notaCorte: dadosImport.notaCorte,
+        cargo: dadosImport.cargo, area: dadosImport.area || '', estado: dadosImport.estado,
+        nivel: dadosImport.nivel || 'medio', notaCorte: dadosImport.notaCorte,
+        janelaProva: dadosImport.janelaProva || { inicio: '', fim: '' },
+        emAlta: !!dadosImport.emAlta,
         disciplinas: dadosImport.disciplinas
       });
     } else if (editalId) {
