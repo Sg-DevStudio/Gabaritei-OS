@@ -1417,6 +1417,23 @@ body.arrastando-toque .agenda-dia.drop-alvo { outline: 2px dashed var(--caneta);
 .checkin-comparativo.alerta { background: var(--alerta-suave, #F6E7C8); }
 .checkin-saldo { font-weight: 600; }
 
+/* Check-in e plano atual lado a lado (inline) */
+.planejamento-topo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+.planejamento-topo.planejamento-topo-solo { grid-template-columns: 1fr; }
+.planejamento-topo > .card { margin: 0; height: 100%; grid-row: auto; }
+/* meia largura: KPIs do check-in em 2 colunas para não espremer */
+.planejamento-topo .checkin-grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 900px) {
+  .planejamento-topo { grid-template-columns: 1fr; }
+  .planejamento-topo > .card { height: auto; }
+}
+
 .cab-pagina { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .cab-pagina .sub { color: var(--grafite); font-size: 0.88rem; }
 .rotulo-pagina { display: block; font-size: 0.74rem; color: var(--grafite); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.28rem; }
