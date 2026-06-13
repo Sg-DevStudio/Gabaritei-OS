@@ -1,517 +1,565 @@
 {
-    "tipo":  "edital_esquematizado",
-    "versao":  1,
-    "gerado_em":  "2026-06-12",
-    "titulo":  "TRF3 - Tecnico Judiciario, Area Administrativa (Edital 01/2024)",
-    "banca":  "FCC",
-    "cargo":  "Tecnico Judiciario - Area Administrativa (TJAA)",
-    "fonte":  "Blueprint_TRF3_2024.docx - Edital n. 01/2024 (DOU 18/04/2024); nomeacoes publicadas ate mai/2026 (@ricardobaronovsky)",
-    "nota_corte_sugerida_pct":  84,
-    "notas_corte_ultimo_nomeado":  {
-                                       "escala":  "nota final de 0 a 20 (media ponderada das objetivas + discursiva); percentual = nota/20",
-                                       "TJAA Sede (TRF3)":  {
-                                                                "ampla":  15.9,
-                                                                "ampla_pct":  79.5,
-                                                                "negros":  14.65,
-                                                                "negros_pct":  73.3,
-                                                                "pcd":  15.13
-                                                            },
-                                       "TJAA Secao SP":  {
-                                                             "ampla":  16.8,
-                                                             "ampla_pct":  84,
-                                                             "negros":  15.6,
-                                                             "negros_pct":  78,
-                                                             "pcd":  15.32
-                                                         },
-                                       "TJAA Secao MS":  {
-                                                             "ampla":  15.82,
-                                                             "ampla_pct":  79.1,
-                                                             "negros":  15.78,
-                                                             "negros_pct":  78.9,
-                                                             "pcd":  14.55
-                                                         }
-                                   },
-    "disciplinas":  [
-                        {
-                            "id":  "ADM",
-                            "nome":  "Noções de Direito Administrativo",
-                            "cor":  "#27AE60",
-                            "peso":  2,
-                            "base_teorica":  "pdf",
-                            "topicos":  [
-                                            {
-                                                "id":  "ADM-01",
-                                                "nome":  "Lei 8.112/1990 — provimento, vacância, posse, exercício, estabilidade",
-                                                "incidencia_pct":  12,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  9,
-                                                "semana_sugerida":  8
-                                            },
-                                            {
-                                                "id":  "ADM-02",
-                                                "nome":  "Lei 8.112/1990 — licenças, vantagens, deveres, PAD",
-                                                "incidencia_pct":  10,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  8,
-                                                "semana_sugerida":  11
-                                            },
-                                            {
-                                                "id":  "ADM-03",
-                                                "nome":  "Lei 14.133/2021 — fases da licitação, modalidades, critérios",
-                                                "incidencia_pct":  9,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  8,
-                                                "semana_sugerida":  14
-                                            },
-                                            {
-                                                "id":  "ADM-04",
-                                                "nome":  "Lei 14.133/2021 — contratos, gestão contratual, crimes",
-                                                "incidencia_pct":  7,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  17
-                                            },
-                                            {
-                                                "id":  "ADM-05",
-                                                "nome":  "Ato administrativo — conceito, atributos, espécies, vícios",
-                                                "incidencia_pct":  13,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  7,
-                                                "semana_sugerida":  4
-                                            },
-                                            {
-                                                "id":  "ADM-06",
-                                                "nome":  "Improbidade administrativa — Lei 8.429/1992 c/ Lei 14.230/2021",
-                                                "incidencia_pct":  12,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  19
-                                            },
-                                            {
-                                                "id":  "ADM-07",
-                                                "nome":  "Gestão estratégica — SWOT, BSC, OKR, processos, projetos, riscos",
-                                                "incidencia_pct":  10,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  21
-                                            },
-                                            {
-                                                "id":  "ADM-08",
-                                                "nome":  "Lei 9.784/1999 — processo administrativo federal",
-                                                "incidencia_pct":  9,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  4,
-                                                "semana_sugerida":  6
-                                            },
-                                            {
-                                                "id":  "ADM-09",
-                                                "nome":  "Organização administrativa — direta e indireta",
-                                                "incidencia_pct":  9,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  4,
-                                                "semana_sugerida":  2
-                                            },
-                                            {
-                                                "id":  "ADM-10",
-                                                "nome":  "Responsabilidade extracontratual do Estado",
-                                                "incidencia_pct":  5,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  3,
-                                                "semana_sugerida":  7
-                                            },
-                                            {
-                                                "id":  "ADM-11",
-                                                "nome":  "Princípios administrativos — LIMPE e doutrina",
-                                                "incidencia_pct":  4,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  3,
-                                                "semana_sugerida":  1
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "CON",
-                            "nome":  "Noções de Direito Constitucional",
-                            "cor":  "#2980B9",
-                            "peso":  2,
-                            "base_teorica":  "video",
-                            "topicos":  [
-                                            {
-                                                "id":  "CON-01",
-                                                "nome":  "Administração Pública na CF (arts. 37-41)",
-                                                "incidencia_pct":  25,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  10,
-                                                "semana_sugerida":  10
-                                            },
-                                            {
-                                                "id":  "CON-02",
-                                                "nome":  "Direitos e garantias fundamentais (art. 5º)",
-                                                "incidencia_pct":  18,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  11,
-                                                "semana_sugerida":  3
-                                            },
-                                            {
-                                                "id":  "CON-03",
-                                                "nome":  "Organização dos Poderes / Poder Judiciário Federal",
-                                                "incidencia_pct":  16,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  8,
-                                                "semana_sugerida":  14
-                                            },
-                                            {
-                                                "id":  "CON-04",
-                                                "nome":  "Servidores públicos — regime, estabilidade",
-                                                "incidencia_pct":  15,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  7,
-                                                "semana_sugerida":  7
-                                            },
-                                            {
-                                                "id":  "CON-05",
-                                                "nome":  "Princípios fundamentais (arts. 1º-4º)",
-                                                "incidencia_pct":  10,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  5,
-                                                "semana_sugerida":  1
-                                            },
-                                            {
-                                                "id":  "CON-06",
-                                                "nome":  "Tributação e orçamento (arts. 145-169)",
-                                                "incidencia_pct":  9,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  5,
-                                                "semana_sugerida":  17
-                                            },
-                                            {
-                                                "id":  "CON-07",
-                                                "nome":  "Ordem econômica e social",
-                                                "incidencia_pct":  7,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  4,
-                                                "semana_sugerida":  19
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "POR",
-                            "nome":  "Língua Portuguesa",
-                            "cor":  "#E67E22",
-                            "peso":  1,
-                            "base_teorica":  "pdf",
-                            "topicos":  [
-                                            {
-                                                "id":  "POR-01",
-                                                "nome":  "Interpretação e compreensão de texto (estilo FCC)",
-                                                "incidencia_pct":  40,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  18,
-                                                "semana_sugerida":  1
-                                            },
-                                            {
-                                                "id":  "POR-02",
-                                                "nome":  "Gramática — concordância, regência, pontuação",
-                                                "incidencia_pct":  30,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  16,
-                                                "semana_sugerida":  10
-                                            },
-                                            {
-                                                "id":  "POR-03",
-                                                "nome":  "Redação dissertativa-argumentativa (prova discursiva)",
-                                                "incidencia_pct":  0,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  12,
-                                                "semana_sugerida":  24
-                                            },
-                                            {
-                                                "id":  "POR-04",
-                                                "nome":  "Ortografia, acentuação, crase",
-                                                "incidencia_pct":  18,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  19
-                                            },
-                                            {
-                                                "id":  "POR-05",
-                                                "nome":  "Sinonímia, antonímia, figuras de linguagem",
-                                                "incidencia_pct":  12,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  3,
-                                                "semana_sugerida":  23
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "DEF",
-                            "nome":  "Noções Dir. Pessoas com Deficiência",
-                            "cor":  "#16A085",
-                            "peso":  1,
-                            "base_teorica":  "lei_seca",
-                            "topicos":  [
-                                            {
-                                                "id":  "DEF-01",
-                                                "nome":  "Lei 13.146/2015 — LBI (artigos cobrados)",
-                                                "incidencia_pct":  40,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  12
-                                            },
-                                            {
-                                                "id":  "DEF-02",
-                                                "nome":  "Decreto 3.298/1999 e Decreto 5.296/2004",
-                                                "incidencia_pct":  25,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  4,
-                                                "semana_sugerida":  15
-                                            },
-                                            {
-                                                "id":  "DEF-03",
-                                                "nome":  "Resolução CNJ 401/2021",
-                                                "incidencia_pct":  20,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  3,
-                                                "semana_sugerida":  17
-                                            },
-                                            {
-                                                "id":  "DEF-04",
-                                                "nome":  "Leis 10.048 e 10.098/2000; Lei 7.853/1989; Lei 11.126/2005",
-                                                "incidencia_pct":  15,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  2,
-                                                "semana_sugerida":  16
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "PCI",
-                            "nome":  "Noções Dir. Processual Civil",
-                            "cor":  "#34495E",
-                            "peso":  2,
-                            "base_teorica":  "video",
-                            "topicos":  [
-                                            {
-                                                "id":  "PCI-01",
-                                                "nome":  "Procedimento comum — petição inicial → sentença",
-                                                "incidencia_pct":  22,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  14,
-                                                "semana_sugerida":  10
-                                            },
-                                            {
-                                                "id":  "PCI-02",
-                                                "nome":  "Recursos — apelação, agravo, embargos",
-                                                "incidencia_pct":  18,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  11,
-                                                "semana_sugerida":  19
-                                            },
-                                            {
-                                                "id":  "PCI-03",
-                                                "nome":  "Tutela provisória — antecipada e cautelar",
-                                                "incidencia_pct":  16,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  10,
-                                                "semana_sugerida":  15
-                                            },
-                                            {
-                                                "id":  "PCI-04",
-                                                "nome":  "Mandado de segurança — individual e coletivo",
-                                                "incidencia_pct":  12,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  7,
-                                                "semana_sugerida":  24
-                                            },
-                                            {
-                                                "id":  "PCI-05",
-                                                "nome":  "Processo judicial eletrônico (Lei 11.419/2006)",
-                                                "incidencia_pct":  11,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  26
-                                            },
-                                            {
-                                                "id":  "PCI-06",
-                                                "nome":  "Cumprimento de sentença e execução",
-                                                "incidencia_pct":  10,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  23
-                                            },
-                                            {
-                                                "id":  "PCI-07",
-                                                "nome":  "Juizados Especiais Cíveis (Lei 9.099/1995)",
-                                                "incidencia_pct":  8,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  5,
-                                                "semana_sugerida":  27
-                                            },
-                                            {
-                                                "id":  "PCI-08",
-                                                "nome":  "Provas, nulidades, litisconsórcio, competência",
-                                                "incidencia_pct":  3,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  8
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "PPE",
-                            "nome":  "Noções Dir. Processual Penal",
-                            "cor":  "#C0392B",
-                            "peso":  2,
-                            "base_teorica":  "video",
-                            "topicos":  [
-                                            {
-                                                "id":  "PPE-01",
-                                                "nome":  "Lavagem de dinheiro (Lei 9.613/1998)",
-                                                "incidencia_pct":  32,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  11,
-                                                "semana_sugerida":  10
-                                            },
-                                            {
-                                                "id":  "PPE-02",
-                                                "nome":  "Prisão, liberdade provisória e medidas cautelares",
-                                                "incidencia_pct":  22,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  8,
-                                                "semana_sugerida":  6
-                                            },
-                                            {
-                                                "id":  "PPE-03",
-                                                "nome":  "Competência penal da Justiça Federal",
-                                                "incidencia_pct":  20,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  7,
-                                                "semana_sugerida":  3
-                                            },
-                                            {
-                                                "id":  "PPE-04",
-                                                "nome":  "Ação penal e sujeitos processuais",
-                                                "incidencia_pct":  14,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  5,
-                                                "semana_sugerida":  1
-                                            },
-                                            {
-                                                "id":  "PPE-05",
-                                                "nome":  "Juizados Especiais Federais Criminais (Lei 10.259/2001)",
-                                                "incidencia_pct":  12,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  4,
-                                                "semana_sugerida":  14
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "RLM",
-                            "nome":  "Raciocínio Lógico-Matemático",
-                            "cor":  "#8E44AD",
-                            "peso":  1,
-                            "base_teorica":  "video",
-                            "topicos":  [
-                                            {
-                                                "id":  "RLM-01",
-                                                "nome":  "Lógica proposicional e silogismos",
-                                                "incidencia_pct":  40,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  16,
-                                                "semana_sugerida":  1
-                                            },
-                                            {
-                                                "id":  "RLM-02",
-                                                "nome":  "Porcentagem, proporcionalidade, regra de três",
-                                                "incidencia_pct":  30,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  12,
-                                                "semana_sugerida":  10
-                                            },
-                                            {
-                                                "id":  "RLM-03",
-                                                "nome":  "Sequências e raciocínio indutivo",
-                                                "incidencia_pct":  22,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  9,
-                                                "semana_sugerida":  18
-                                            },
-                                            {
-                                                "id":  "RLM-04",
-                                                "nome":  "Orientação espacial e raciocínio verbal",
-                                                "incidencia_pct":  8,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  3,
-                                                "semana_sugerida":  23
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "PRE",
-                            "nome":  "Noções Dir. Previdenciário",
-                            "cor":  "#F39C12",
-                            "peso":  2,
-                            "base_teorica":  "lei_seca",
-                            "topicos":  [
-                                            {
-                                                "id":  "PRE-01",
-                                                "nome":  "Lei 8.213/1991 — benefícios do RGPS",
-                                                "incidencia_pct":  45,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  13,
-                                                "semana_sugerida":  19
-                                            },
-                                            {
-                                                "id":  "PRE-02",
-                                                "nome":  "Lei 8.212/1991 — custeio da seguridade social",
-                                                "incidencia_pct":  30,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  9,
-                                                "semana_sugerida":  24
-                                            },
-                                            {
-                                                "id":  "PRE-03",
-                                                "nome":  "Seguridade social na CF (arts. 194/195/201-204)",
-                                                "incidencia_pct":  25,
-                                                "prioridade":  2,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  16
-                                            }
-                                        ]
-                        },
-                        {
-                            "id":  "TRI",
-                            "nome":  "Noções Dir. Tributário",
-                            "cor":  "#7F8C8D",
-                            "peso":  2,
-                            "base_teorica":  "lei_seca",
-                            "topicos":  [
-                                            {
-                                                "id":  "TRI-01",
-                                                "nome":  "Crédito tributário (CTN arts. 113-193)",
-                                                "incidencia_pct":  50,
-                                                "prioridade":  1,
-                                                "horas_estimadas":  12,
-                                                "semana_sugerida":  25
-                                            },
-                                            {
-                                                "id":  "TRI-02",
-                                                "nome":  "Obrigação tributária — fato gerador, sujeitos",
-                                                "incidencia_pct":  30,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  7,
-                                                "semana_sugerida":  23
-                                            },
-                                            {
-                                                "id":  "TRI-03",
-                                                "nome":  "Sistema Tributário Nacional (CF arts. 145-154)",
-                                                "incidencia_pct":  20,
-                                                "prioridade":  3,
-                                                "horas_estimadas":  6,
-                                                "semana_sugerida":  19
-                                            }
-                                        ]
-                        }
-                    ]
+  "tipo": "edital_esquematizado",
+  "versao": 1,
+  "gerado_em": "2026-06-12",
+  "titulo": "TRF3 - Tecnico Judiciario, Area Administrativa (Edital 01/2024)",
+  "banca": "FCC",
+  "cargo": "Tecnico Judiciario - Area Administrativa (TJAA)",
+  "fonte": "Blueprint_TRF3_2024.docx - Edital n. 01/2024 (DOU 18/04/2024); nomeacoes publicadas ate mai/2026 (@ricardobaronovsky)",
+  "nota_corte_sugerida_pct": 84,
+  "notas_corte_ultimo_nomeado": {
+    "escala": "nota final de 0 a 20 (media ponderada das objetivas + discursiva); percentual = nota/20",
+    "TJAA Sede (TRF3)": {
+      "ampla": 15.9,
+      "ampla_pct": 79.5,
+      "negros": 14.65,
+      "negros_pct": 73.3,
+      "pcd": 15.13
+    },
+    "TJAA Secao SP": {
+      "ampla": 16.8,
+      "ampla_pct": 84,
+      "negros": 15.6,
+      "negros_pct": 78,
+      "pcd": 15.32
+    },
+    "TJAA Secao MS": {
+      "ampla": 15.82,
+      "ampla_pct": 79.1,
+      "negros": 15.78,
+      "negros_pct": 78.9,
+      "pcd": 14.55
+    }
+  },
+  "disciplinas": [
+    {
+      "id": "ADM",
+      "nome": "Noções de Direito Administrativo",
+      "cor": "#27AE60",
+      "peso": 2,
+      "base_teorica": "pdf",
+      "topicos": [
+        {
+          "id": "ADM-01",
+          "nome": "Lei 8.112/1990 — provimento, vacância, posse, exercício, estabilidade",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "ADM-02",
+          "nome": "Lei 8.112/1990 — licenças, vantagens, deveres, PAD",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 11
+        },
+        {
+          "id": "ADM-03",
+          "nome": "Lei 14.133/2021 — fases da licitação, modalidades, critérios",
+          "incidencia_pct": 9,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 14
+        },
+        {
+          "id": "ADM-04",
+          "nome": "Lei 14.133/2021 — contratos, gestão contratual, crimes",
+          "incidencia_pct": 7,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 17
+        },
+        {
+          "id": "ADM-05",
+          "nome": "Ato administrativo — conceito, atributos, espécies, vícios",
+          "incidencia_pct": 13,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "ADM-06",
+          "nome": "Improbidade administrativa — Lei 8.429/1992 c/ Lei 14.230/2021",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "ADM-07",
+          "nome": "Gestão estratégica — SWOT, BSC, OKR, processos, projetos, riscos",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 21
+        },
+        {
+          "id": "ADM-08",
+          "nome": "Lei 9.784/1999 — processo administrativo federal",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "ADM-09",
+          "nome": "Organização administrativa — direta e indireta",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "ADM-10",
+          "nome": "Responsabilidade extracontratual do Estado",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 3,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "ADM-11",
+          "nome": "Princípios administrativos — LIMPE e doutrina",
+          "incidencia_pct": 4,
+          "prioridade": 3,
+          "horas_estimadas": 3,
+          "semana_sugerida": 1
+        }
+      ]
+    },
+    {
+      "id": "CON",
+      "nome": "Noções de Direito Constitucional",
+      "cor": "#2980B9",
+      "peso": 2,
+      "base_teorica": "video",
+      "topicos": [
+        {
+          "id": "CON-01",
+          "nome": "Administração Pública na CF (arts. 37-41)",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 10,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "CON-02",
+          "nome": "Direitos e garantias fundamentais (art. 5º)",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 11,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "CON-03",
+          "nome": "Organização dos Poderes (Legislativo e Executivo)",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 14
+        },
+        {
+          "id": "CON-08",
+          "nome": "Poder Judiciário e funções essenciais à Justiça",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 15
+        },
+        {
+          "id": "CON-04",
+          "nome": "Servidores públicos — regime, estabilidade",
+          "incidencia_pct": 15,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "CON-05",
+          "nome": "Princípios fundamentais (arts. 1º-4º)",
+          "incidencia_pct": 10,
+          "prioridade": 3,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "CON-06",
+          "nome": "Tributação e orçamento (arts. 145-169)",
+          "incidencia_pct": 9,
+          "prioridade": 3,
+          "horas_estimadas": 5,
+          "semana_sugerida": 17
+        },
+        {
+          "id": "CON-07",
+          "nome": "Ordem econômica e social",
+          "incidencia_pct": 7,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 19
+        }
+      ]
+    },
+    {
+      "id": "POR",
+      "nome": "Língua Portuguesa",
+      "cor": "#E67E22",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        {
+          "id": "POR-01",
+          "nome": "Interpretação e compreensão de texto (estilo FCC)",
+          "incidencia_pct": 40,
+          "prioridade": 1,
+          "horas_estimadas": 18,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "POR-02",
+          "nome": "Concordância verbal e nominal",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "POR-06",
+          "nome": "Regência verbal e nominal",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 11
+        },
+        {
+          "id": "POR-07",
+          "nome": "Pontuação",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 12
+        },
+        {
+          "id": "POR-03",
+          "nome": "Redação dissertativa-argumentativa (prova discursiva)",
+          "incidencia_pct": 0,
+          "prioridade": 1,
+          "horas_estimadas": 12,
+          "semana_sugerida": 24
+        },
+        {
+          "id": "POR-04",
+          "nome": "Ortografia",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "POR-08",
+          "nome": "Acentuação gráfica",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "POR-09",
+          "nome": "Crase",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 20
+        },
+        {
+          "id": "POR-05",
+          "nome": "Sinonímia e antonímia",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 1,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "POR-10",
+          "nome": "Figuras de linguagem",
+          "incidencia_pct": 7,
+          "prioridade": 3,
+          "horas_estimadas": 2,
+          "semana_sugerida": 23
+        }
+      ]
+    },
+    {
+      "id": "DEF",
+      "nome": "Noções Dir. Pessoas com Deficiência",
+      "cor": "#16A085",
+      "peso": 1,
+      "base_teorica": "lei_seca",
+      "topicos": [
+        {
+          "id": "DEF-01",
+          "nome": "Lei 13.146/2015 — LBI (artigos cobrados)",
+          "incidencia_pct": 40,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 12
+        },
+        {
+          "id": "DEF-02",
+          "nome": "Decreto 3.298/1999 e Decreto 5.296/2004",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 15
+        },
+        {
+          "id": "DEF-03",
+          "nome": "Resolução CNJ 401/2021",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 17
+        },
+        {
+          "id": "DEF-04",
+          "nome": "Leis 10.048 e 10.098/2000; Lei 7.853/1989; Lei 11.126/2005",
+          "incidencia_pct": 15,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 16
+        }
+      ]
+    },
+    {
+      "id": "PCI",
+      "nome": "Noções Dir. Processual Civil",
+      "cor": "#34495E",
+      "peso": 2,
+      "base_teorica": "video",
+      "topicos": [
+        {
+          "id": "PCI-01",
+          "nome": "Procedimento comum — petição inicial → sentença",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 14,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "PCI-02",
+          "nome": "Recursos — apelação, agravo, embargos",
+          "incidencia_pct": 18,
+          "prioridade": 2,
+          "horas_estimadas": 11,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "PCI-03",
+          "nome": "Tutela provisória — antecipada e cautelar",
+          "incidencia_pct": 16,
+          "prioridade": 2,
+          "horas_estimadas": 10,
+          "semana_sugerida": 15
+        },
+        {
+          "id": "PCI-04",
+          "nome": "Mandado de segurança — individual e coletivo",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 24
+        },
+        {
+          "id": "PCI-05",
+          "nome": "Processo judicial eletrônico (Lei 11.419/2006)",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 26
+        },
+        {
+          "id": "PCI-06",
+          "nome": "Cumprimento de sentença e execução",
+          "incidencia_pct": 10,
+          "prioridade": 3,
+          "horas_estimadas": 6,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "PCI-07",
+          "nome": "Juizados Especiais Cíveis (Lei 9.099/1995)",
+          "incidencia_pct": 8,
+          "prioridade": 3,
+          "horas_estimadas": 5,
+          "semana_sugerida": 27
+        },
+        {
+          "id": "PCI-08",
+          "nome": "Provas, nulidades, litisconsórcio, competência",
+          "incidencia_pct": 3,
+          "prioridade": 3,
+          "horas_estimadas": 6,
+          "semana_sugerida": 8
+        }
+      ]
+    },
+    {
+      "id": "PPE",
+      "nome": "Noções Dir. Processual Penal",
+      "cor": "#C0392B",
+      "peso": 2,
+      "base_teorica": "video",
+      "topicos": [
+        {
+          "id": "PPE-01",
+          "nome": "Lavagem de dinheiro (Lei 9.613/1998)",
+          "incidencia_pct": 32,
+          "prioridade": 1,
+          "horas_estimadas": 11,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "PPE-02",
+          "nome": "Prisão, liberdade provisória e medidas cautelares",
+          "incidencia_pct": 22,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "PPE-03",
+          "nome": "Competência penal da Justiça Federal",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "PPE-04",
+          "nome": "Ação penal e sujeitos processuais",
+          "incidencia_pct": 14,
+          "prioridade": 3,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "PPE-05",
+          "nome": "Juizados Especiais Federais Criminais (Lei 10.259/2001)",
+          "incidencia_pct": 12,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 14
+        }
+      ]
+    },
+    {
+      "id": "RLM",
+      "nome": "Raciocínio Lógico-Matemático",
+      "cor": "#8E44AD",
+      "peso": 1,
+      "base_teorica": "video",
+      "topicos": [
+        {
+          "id": "RLM-01",
+          "nome": "Lógica proposicional e silogismos",
+          "incidencia_pct": 40,
+          "prioridade": 1,
+          "horas_estimadas": 16,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "RLM-02",
+          "nome": "Porcentagem, proporcionalidade, regra de três",
+          "incidencia_pct": 30,
+          "prioridade": 1,
+          "horas_estimadas": 12,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "RLM-03",
+          "nome": "Sequências e raciocínio indutivo",
+          "incidencia_pct": 22,
+          "prioridade": 2,
+          "horas_estimadas": 9,
+          "semana_sugerida": 18
+        },
+        {
+          "id": "RLM-04",
+          "nome": "Orientação espacial e raciocínio verbal",
+          "incidencia_pct": 8,
+          "prioridade": 3,
+          "horas_estimadas": 3,
+          "semana_sugerida": 23
+        }
+      ]
+    },
+    {
+      "id": "PRE",
+      "nome": "Noções Dir. Previdenciário",
+      "cor": "#F39C12",
+      "peso": 2,
+      "base_teorica": "lei_seca",
+      "topicos": [
+        {
+          "id": "PRE-01",
+          "nome": "Lei 8.213/1991 — benefícios do RGPS",
+          "incidencia_pct": 45,
+          "prioridade": 1,
+          "horas_estimadas": 13,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "PRE-02",
+          "nome": "Lei 8.212/1991 — custeio da seguridade social",
+          "incidencia_pct": 30,
+          "prioridade": 2,
+          "horas_estimadas": 9,
+          "semana_sugerida": 24
+        },
+        {
+          "id": "PRE-03",
+          "nome": "Seguridade social na CF (arts. 194/195/201-204)",
+          "incidencia_pct": 25,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 16
+        }
+      ]
+    },
+    {
+      "id": "TRI",
+      "nome": "Noções Dir. Tributário",
+      "cor": "#7F8C8D",
+      "peso": 2,
+      "base_teorica": "lei_seca",
+      "topicos": [
+        {
+          "id": "TRI-01",
+          "nome": "Crédito tributário (CTN arts. 113-193)",
+          "incidencia_pct": 50,
+          "prioridade": 1,
+          "horas_estimadas": 12,
+          "semana_sugerida": 25
+        },
+        {
+          "id": "TRI-02",
+          "nome": "Obrigação tributária — fato gerador, sujeitos",
+          "incidencia_pct": 30,
+          "prioridade": 3,
+          "horas_estimadas": 7,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "TRI-03",
+          "nome": "Sistema Tributário Nacional (CF arts. 145-154)",
+          "incidencia_pct": 20,
+          "prioridade": 3,
+          "horas_estimadas": 6,
+          "semana_sugerida": 19
+        }
+      ]
+    }
+  ]
 }

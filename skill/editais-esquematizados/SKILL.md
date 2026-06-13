@@ -54,9 +54,17 @@ confirme apenas o essencial que não estiver claro no documento:
 
 - Extraia TODAS as disciplinas e tópicos do conteúdo programático do cargo,
   incluindo leis e artigos citados nominalmente no edital.
-- **Granularidade**: cada tópico deve ser estudável em uma sentada (2–9h). Agrupe
-  itens minúsculos correlatos; quebre itens gigantes (ex.: "Lei 8.112/1990" vira
-  2–3 tópicos: provimento/vacância/posse; licenças/vantagens/deveres/PAD).
+- **Granularidade — um assunto estudável por tópico**: cada assunto que o aluno
+  estuda e cobra estatística separada deve ser um tópico próprio. Use como régua os
+  filtros de assunto do Qconcursos / TEC Concursos: se a banca tem um filtro só para
+  "Concordância", outro para "Regência" e outro para "Pontuação", então são TRÊS
+  tópicos — nunca um único "Gramática (concordância, regência, pontuação)".
+  - NÃO una assuntos só porque pertencem à mesma matéria (gramática, organização dos
+    poderes etc.). Una APENAS quando: (a) o assunto é pouquíssimo cobrado e não rende
+    estatística própria, OU (b) há afinidade extrema — aprender um já é aprender o
+    outro (ex.: sinonímia + antonímia).
+  - Quebre itens gigantes (ex.: "Lei 8.112/1990" vira provimento/vacância/posse;
+    licenças/vantagens/deveres/PAD). Cada tópico deve ser estudável em 2–9h.
 - **Ordem lógica de aprendizado** (`semana_sugerida`): pré-requisito vem antes
   (princípios antes de controle de constitucionalidade; parte geral antes de
   recursos; organização administrativa antes de ato administrativo). A incidência

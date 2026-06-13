@@ -185,8 +185,24 @@
 
   function tagIncidenciaHtml(valor, quente) {
     const n = Math.max(0, parseInt(valor || 0, 10));
-    return '<span class="tag-incidencia' + (quente ? ' tag-incidencia-hot' : '') + '" title="Incidencia estimada nas provas">' +
-      (quente ? '🔥 ' : '') + n + '% incid.</span>';
+    return '<span class="tag-incidencia' + (quente ? ' tag-incidencia-hot' : '') + '" title="Incidência estimada nas provas">' +
+      (quente ? '🔥 ' : '') + n + '%</span>';
+  }
+
+  // IDs dos tópicos mais recorrentes (maior incidência) do plano ativo — ganham 🔥
+  function idsTopicosQuentes(limite) {
+    limite = limite || 3;
+    const todos = [];
+    (state.disciplinas || []).forEach(function (d) {
+      (d.topicos || []).forEach(function (t) {
+        if (t.orfao) return;
+        todos.push({ id: t.id, inc: t.incidencia_pct || 0 });
+      });
+    });
+    todos.sort(function (a, b) { return b.inc - a.inc; });
+    const set = new Set();
+    todos.slice(0, limite).forEach(function (t) { if (t.inc > 0) set.add(t.id); });
+    return set;
   }
 
   function nomeTopicoCompleto(topicoId) {
@@ -1343,6 +1359,7 @@
 
     html += '<div class="card edital-contexto"><div class="card-kpi-rotulo">Plano ativo</div><p><strong>' + esc(state.plano.concurso) + '</strong></p><p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos concluídos (' + prog.pct + '%). Percentual dos tópicos indica incidência estimada nas provas.</p></div>';
     html += comparativoPlanosHtml();
+    const quentes = idsTopicosQuentes();
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
     state.disciplinas.forEach(function (d) {
       const aberta = editalAbertas.has(d.id);
@@ -1360,7 +1377,7 @@
             bolha(t.status) +
             '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(órfão — fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + '</span>' +
             '<span class="topico-meta topico-meta-pizza">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) +
-            tagIncidenciaHtml(t.incidencia_pct || 0, (t.incidencia_pct || 0) >= 70) + '</span></div>';
+            tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</span></div>';
         });
       }
     });
@@ -1734,7 +1751,7 @@
 
     html += '<div class="card edital-disc-card"><div class="card-kpi-rotulo">Edital verticalizado</div>' +
       '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">✓</th><th class="num edital-qtd-col">×</th><th class="num edital-qtd-col">Questões</th><th class="num">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
-      disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
+      (function () { const quentes = idsTopicosQuentes(); return disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
         const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
         const erros = Math.max(0, dt.feitas - dt.certas);
@@ -1742,8 +1759,8 @@
           '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tópico">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
           '<td class="num painel-acertos edital-qtd-col">' + dt.certas + '</td><td class="num painel-erros edital-qtd-col">' + erros + '</td>' +
           '<td class="num edital-qtd-col">' + dt.feitas + '</td><td class="num">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) + '</td>' +
-          '<td class="num">' + tagIncidenciaHtml(t.incidencia_pct || 0, (t.incidencia_pct || 0) >= 70) + '</td></tr>';
-      }).join('') + '</tbody></table></div></div>';
+          '<td class="num">' + tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</td></tr>';
+      }).join(''); })() + '</tbody></table></div></div>';
     return html;
   }
 
@@ -1870,8 +1887,10 @@
 
     if (state.plano) {
       const p = state.plano;
+      const ficha = [p.orgao, p.cargo, p.estado].filter(Boolean).map(esc).join(' · ');
       html += '<div class="card"><h3>Plano atual</h3>' +
         '<p><strong>' + esc(p.concurso) + '</strong></p>' +
+        (ficha ? '<p style="font-size:0.88rem;color:var(--grafite)">' + ficha + '</p>' : '') +
         '<p style="font-size:0.88rem;color:var(--grafite)">Banca ' + esc(p.banca || '—') +
         (p.cota ? ' · cota: ' + esc(p.cota) : '') +
         ' · meta de corte: ' + p.meta.corte_pct + '%' +
@@ -2087,7 +2106,7 @@
     const json = {
       versao: 1,
       gerado_em: D.hojeISO(),
-      plano: { concurso: e.titulo, banca: e.banca || '', meta: { corte_pct: e.notaCorte || 70 }, radar: null, ritmos: null },
+      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', meta: { corte_pct: e.notaCorte || 70 }, radar: null, ritmos: null },
       disciplinas: e.disciplinas,
       cronograma: {}
     };
