@@ -728,7 +728,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
    Timer — sempre escuro (estudo noturno), nos dois temas
    ============================================================ */
 .timer-page {
-  min-height: calc(100vh - 5.25rem);
   display: flex;
   flex-direction: column;
 }
@@ -745,21 +744,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   background: linear-gradient(90deg, var(--linha), transparent);
 }
 .tela-timer {
-  background: linear-gradient(180deg, #17191F 0%, #101116 100%);
+  background: linear-gradient(180deg, #1B1E27 0%, #12131A 100%);
   color: #F7F8F6;
   border-radius: var(--raio);
-  padding: clamp(1.35rem, 3vw, 2.4rem) 1.5rem 2.5rem;
+  padding: clamp(1.5rem, 3vw, 2.4rem) 1.5rem 2rem;
   text-align: center;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 18px 45px rgba(16, 17, 22, 0.24);
-  flex: 1;
-  min-height: 560px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 18px 45px rgba(16, 17, 22, 0.22);
+  max-width: 540px;
+  width: 100%;
+  margin: 0.5rem auto 0;
 }
 .timer-conteudo {
-  width: min(100%, 760px);
+  width: 100%;
   margin: 0 auto;
 }
 .timer-select-grid {
@@ -1496,7 +1493,6 @@ canvas.grafico {
   .etiqueta { order: 3; margin-left: 2rem; }
   .check-estudo { margin-top: 0.1rem; }
   .timer-acoes button { flex: 0 0 72px !important; width: 72px !important; }
-  .tela-timer { min-height: 500px; }
   .catalogo-item.fila-item { flex-wrap: wrap; }
   .catalogo-item.fila-item .fila-info { flex: 1 1 calc(100% - 2rem); }
   .catalogo-item.fila-item > button { margin-left: 1.5rem; }
@@ -1599,3 +1595,29 @@ canvas.grafico {
 @media (max-width: 480px) {
   .conquistas-grade { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
 }
+
+/* ============================================================
+   Check-in semanal enxuto + Timer rápido em modal
+   ============================================================ */
+.checkin-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+.checkin-edital { margin: 0.6rem 0 0.2rem; }
+.checkin-edital-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.checkin-edital-pct { font-family: var(--fonte-mono); font-weight: 600; font-size: 1.05rem; }
+.checkin-edital .checkin-barra { margin: 0.35rem 0 0; }
+
+/* Timer rápido (modal central) */
+.timer-modal .modal { text-align: center; }
+.timer-modal .seletor-modo { background: var(--papel-elevado); border-color: var(--campo-borda); }
+.timer-mini-clock {
+  background: linear-gradient(180deg, #1B1E27 0%, #12131A 100%);
+  border-radius: var(--raio); padding: 1.5rem 1rem 1.2rem; margin: 0.4rem 0 0.6rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.timer-modal .timer-display {
+  position: static; transform: none; margin: 0; line-height: 1;
+  font-family: var(--fonte-mono); font-weight: 600;
+  font-size: clamp(2.6rem, 13vw, 3.4rem); color: #F7F8F6; letter-spacing: 0.02em;
+}
+.timer-modal .timer-modo-info { color: #C9CCD4; margin-top: 0.5rem; }
+.timer-modal .tr-topico { font-size: 0.92rem; color: var(--grafite); margin: 0 0 0.4rem; }
+.timer-modal .tr-acoes { justify-content: center; gap: 0.6rem; }

@@ -90,6 +90,22 @@ repaginação visual mais ampla pode evoluir em iterações futuras conforme o u
 
 ---
 
+## 13/06/2026 — Ajustes de design: Planejamento e Timer
+
+- **Check-in semanal enxuto**: removidos "carga ideal" e o texto/projeção de
+  burn-down. O cabeçalho mostra só "Check-in semanal" + o selo de status
+  (✅ No prazo / ⚠️ Atrasado…) na mesma linha. Os dois KPIs passam a ser
+  **Carga horária real / semana** e **Semanas até a meta**, e o **% do edital**
+  fica livre embaixo (rótulo + barra), mais organizado no mobile e no PC.
+- **Timer**: o painel preto que tomava quase a tela toda virou um **card central
+  contido** (largura máxima, altura natural) sobre o fundo claro.
+- **Timer rápido em modal**: o botão flutuante agora abre um **modal central**
+  com o cronômetro (selação de disciplina/tópico + cronômetro/pomodoro, ou o
+  relógio rodando com pausar/encerrar/descartar), com opção de continuar em 2º
+  plano ou abrir em tela cheia. Pinta em qualquer rota via `pintarTimerModal`.
+
+---
+
 ## Próximos passos (backlog)
 
 - [ ] **Publicar no GitHub Pages**: Settings → Pages → branch `main`, pasta `/ (root)`;
