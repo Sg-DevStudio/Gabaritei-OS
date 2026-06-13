@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20260613-gabaritei11">
+  <link rel="stylesheet" href="css/styles.css?v=20260613-gabaritei13">
 </head>
 <body>
   <!-- Ícones compartilhados da navegação -->
@@ -59,7 +59,7 @@
         <span class="marca-nome">Gabaritei OS</span>
       </div>
       <a href="#hoje" data-rota="hoje" class="nav-item"><svg class="nav-ic"><use href="#ic-hoje"/></svg>Hoje</a>
-      <a href="#planos" data-rota="planos" class="nav-item"><svg class="nav-ic"><use href="#ic-planos"/></svg>Planos disponíveis</a>
+      <a href="#planos" data-rota="planos" class="nav-item"><svg class="nav-ic"><use href="#ic-planos"/></svg>Planos</a>
       <a href="#planejamento" data-rota="planejamento" class="nav-item"><svg class="nav-ic"><use href="#ic-agenda"/></svg>Planejamento</a>
       <a href="#timer" data-rota="timer" class="nav-item"><svg class="nav-ic"><use href="#ic-timer"/></svg>Timer</a>
       <a href="#revisoes" data-rota="revisoes" class="nav-item"><svg class="nav-ic"><use href="#ic-revisoes"/></svg>Revisões <span id="badge-revisoes" class="badge oculto"></span></a>
@@ -100,9 +100,10 @@
   <script src="js/store.js"></script>
   <script src="js/sync.js"></script>
   <script type="module" src="js/firebase-sync.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="js/timer.js"></script>
   <script src="js/charts.js"></script>
-  <script src="js/app.js?v=20260613-gabaritei11"></script>
+  <script src="js/app.js?v=20260613-gabaritei13"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

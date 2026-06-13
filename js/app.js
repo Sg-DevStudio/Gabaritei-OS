@@ -19,6 +19,8 @@
   let ultimaRotaRender = null;
   let planejamentoConfigAberta = false;
   let disciplinaDetalheId = null;
+  let catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
+  let googleCalendarToken = null;
 
   // ---------------- utilidades de UI ----------------
   function esc(s) {
@@ -167,6 +169,24 @@
     const cor = D.semaforo(pct, meta);
     const simbolo = cor === 'verde' ? ' ✓' : cor === 'amarelo' ? ' ⚠' : ' ✗';
     return '<span class="semaforo semaforo-' + cor + '">' + pct + '%' + simbolo + '</span>';
+  }
+
+  function pizzaAcertosHtml(certas, erros, opcoes) {
+    opcoes = opcoes || {};
+    certas = Math.max(0, parseInt(certas || 0, 10));
+    erros = Math.max(0, parseInt(erros || 0, 10));
+    const total = certas + erros;
+    const pct = total > 0 ? Math.round((certas / total) * 100) : 0;
+    const classe = opcoes.classe ? ' ' + opcoes.classe : '';
+    const titulo = (opcoes.titulo ? opcoes.titulo + ' - ' : '') + pct + '% de acertos | ' + certas + ' acertos | ' + erros + ' erros';
+    return '<span class="pizza-acertos' + classe + '" style="--pct:' + pct + '" title="' + esc(titulo) + '" aria-label="' + esc(titulo) + '">' +
+      '<span class="pizza-centro">' + pct + '%</span></span>';
+  }
+
+  function tagIncidenciaHtml(valor, quente) {
+    const n = Math.max(0, parseInt(valor || 0, 10));
+    return '<span class="tag-incidencia' + (quente ? ' tag-incidencia-hot' : '') + '" title="Incidencia estimada nas provas">' +
+      (quente ? '🔥 ' : '') + n + '% incid.</span>';
   }
 
   function nomeTopicoCompleto(topicoId) {
@@ -605,6 +625,12 @@
     const linhas = dadosPainelDisciplinas();
     if (linhas.length === 0) return '';
     return '<div class="card painel-disciplinas-card"><h3 class="painel-titulo">Painel de disciplinas</h3>' +
+      '<div class="painel-disciplinas-mobile">' + linhas.map(function (d) {
+        return '<button type="button" class="painel-disc-mobile" data-disc-detalhe="' + esc(d.id) + '" style="--disc-cor:' + esc(d.cor) + '">' +
+          '<span class="painel-disc-mobile-nome">' + esc(d.nome) + '</span>' +
+          pizzaAcertosHtml(d.certas, d.erros, { classe: 'pizza-sm', titulo: d.nome }) +
+          '</button>';
+      }).join('') + '</div>' +
       '<div class="painel-scroll"><table class="painel-disciplinas"><thead><tr>' +
       '<th>Matéria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
       linhas.map(function (d) {
@@ -635,8 +661,8 @@
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
         '<strong>Bem-vindo aos seus estudos</strong>' +
-        'Escolha um edital disponível no Planejamento para o sistema gerar seu plano, ou monte sua semana manualmente.' +
-        '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap"><a class="botao" href="#planejamento">Acesse os Editais Disponíveis</a>' +
+        'Escolha um edital na aba Planos para o sistema gerar seu plano, ou monte sua semana manualmente.' +
+        '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap"><a class="botao" href="#planos">Acessar Planos</a>' +
         '<a class="botao botao-secundario" href="#planejamento">Planejar manualmente</a></p>' +
         '</div></div>';
     }
@@ -671,7 +697,7 @@
     html += conquistasHtml();
 
     // cards: radar + horas + questões + desempenho com mensagem
-    html += '<div class="linha-cards">';
+    html += '<div class="linha-cards home-kpis">';
     if (state.plano) html += provaEstimadaHtml();
     const pctHoras = meta.horasAlvo > 0 ? Math.min(100, Math.round((meta.minutos / 60 / meta.horasAlvo) * 100)) : 0;
     html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Horas na semana</div>' +
@@ -853,6 +879,33 @@
     return out;
   }
 
+  function abrirModalAssuntosTimer(disciplinaId, selecionadoId, aoEscolher) {
+    const d = D.disciplinaPorId(state, disciplinaId);
+    if (!d) return;
+    const topicos = d.topicos.filter(function (t) { return !t.orfao; });
+    const m = abrirModal(
+      '<div class="assuntos-modal-cab"><h3>Assuntos</h3><button type="button" class="modal-x" id="ass-fechar" aria-label="Fechar">×</button></div>' +
+      '<input id="ass-busca" type="search" placeholder="Digite um assunto">' +
+      '<div class="assuntos-lista" id="ass-lista"></div>'
+    );
+    function desenhar() {
+      const q = normalizarBusca(m.querySelector('#ass-busca').value);
+      const lista = topicos.filter(function (t) { return !q || normalizarBusca(t.nome).indexOf(q) >= 0; });
+      m.querySelector('#ass-lista').innerHTML = lista.map(function (t) {
+        return '<button type="button" class="assunto-opcao' + (t.id === selecionadoId ? ' selecionado' : '') + '" data-assunto="' + esc(t.id) + '">' + esc(t.nome) + '</button>';
+      }).join('') || '<div class="estado-vazio" style="padding:1rem">Nenhum assunto encontrado.</div>';
+      m.querySelectorAll('[data-assunto]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          aoEscolher(b.getAttribute('data-assunto'));
+          fecharModal();
+        });
+      });
+    }
+    m.querySelector('#ass-fechar').addEventListener('click', fecharModal);
+    m.querySelector('#ass-busca').addEventListener('input', desenhar);
+    desenhar();
+  }
+
   function telaTimer() {
     if (state.disciplinas.length === 0) {
       return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="card"><div class="estado-vazio">' +
@@ -866,19 +919,22 @@
     if (!ativo) {
       const discIni = timerPreselecao ? D.disciplinaDoTopico(state, timerPreselecao) : state.disciplinas[0];
       const optsDisc = state.disciplinas.map(function (d) {
-        return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
+        return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.nome) + '</option>';
       }).join('');
       selecao =
-        '<div class="grade-2 timer-select-grid">' +
-        '<div><label for="timer-disc">Disciplina</label><select id="timer-disc">' + optsDisc + '</select></div>' +
-        '<div><label for="timer-topico">Tópico</label><select id="timer-topico"></select></div></div>' +
-        '<div style="margin-top:1rem"><span class="seletor-modo">' +
+        '<div class="timer-disciplina-topo"><select id="timer-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
+        '<button type="button" class="timer-assunto-btn" id="timer-assunto-btn">Adicionar assunto (Opcional)⌄</button>' +
+        '<input type="hidden" id="timer-topico" value="' + esc(timerPreselecao || '') + '">' +
+        '<div class="timer-assunto-escolhido" id="timer-assunto-escolhido"></div></div>' +
+        '<div class="timer-modos-wrap"><span class="seletor-modo">' +
         '<button type="button" data-modo="cronometro" class="ativo">Cronômetro</button>' +
         '<button type="button" data-modo="pomodoro">Pomodoro 25/5</button></span></div>' +
         '<div class="timer-limite"><label for="timer-limite">Tempo máximo (min)</label>' +
         '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>';
     } else {
-      selecao = '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId)) + '</p>';
+      const discAtiva = D.disciplinaDoTopico(state, ativo.topicoId);
+      selecao = '<div class="timer-disciplina-topo"><h2>' + esc(discAtiva ? discAtiva.nome : 'Estudo') + '</h2>' +
+        '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId).replace((discAtiva ? discAtiva.id + ' · ' : ''), '')) + '</p></div>';
     }
 
     const ticksSvg = gerarTicksTimer();
@@ -887,10 +943,9 @@
       selecao +
       '<div class="timer-relogio-frame">' +
       '<svg class="timer-clock-svg" viewBox="0 0 300 300" aria-hidden="true">' +
-      '<circle cx="150" cy="150" r="146" fill="#08090E"/>' +
-      '<g stroke="white">' + ticksSvg + '</g>' +
-      '<line id="timer-hand" x1="150" y1="150" x2="150" y2="30" stroke="var(--caneta)" stroke-width="2.5" stroke-linecap="round"/>' +
-      '<circle cx="150" cy="150" r="6" fill="var(--caneta)"/>' +
+      '<circle cx="150" cy="150" r="136" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="16"/>' +
+      '<path d="M132 106 L132 194 L204 150 Z" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round"/>' +
+      '<line id="timer-hand" x1="150" y1="150" x2="150" y2="30" stroke="rgba(255,255,255,.9)" stroke-width="3" stroke-linecap="round"/>' +
       '</svg>' +
       '<div class="timer-display" id="timer-display">' + tempoIni + '</div>' +
       '</div>' +
@@ -910,14 +965,28 @@
     const selDisc = raiz.querySelector('#timer-disc');
     const selTop = raiz.querySelector('#timer-topico');
     if (selDisc) {
+      const assuntoBtn = raiz.querySelector('#timer-assunto-btn');
+      const assuntoEscolhido = raiz.querySelector('#timer-assunto-escolhido');
+      const atualizarAssunto = function () {
+        const t = selTop && selTop.value ? D.topicoPorId(state, selTop.value) : null;
+        if (assuntoEscolhido) assuntoEscolhido.textContent = t ? t.nome : 'Sem assunto específico';
+      };
       const preencher = function () {
         const d = D.disciplinaPorId(state, selDisc.value);
-        selTop.innerHTML = d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
-          return '<option value="' + esc(t.id) + '"' + (t.id === timerPreselecao ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
-        }).join('');
+        const tops = d ? d.topicos.filter(function (t) { return !t.orfao; }) : [];
+        if (selTop && (!selTop.value || !tops.some(function (t) { return t.id === selTop.value; }))) {
+          selTop.value = timerPreselecao && tops.some(function (t) { return t.id === timerPreselecao; }) ? timerPreselecao : (tops[0] ? tops[0].id : '');
+        }
+        atualizarAssunto();
       };
       preencher();
       selDisc.addEventListener('change', preencher);
+      if (assuntoBtn) assuntoBtn.addEventListener('click', function () {
+        abrirModalAssuntosTimer(selDisc.value, selTop.value, function (topicoId) {
+          selTop.value = topicoId;
+          atualizarAssunto();
+        });
+      });
       raiz.querySelectorAll('[data-modo]').forEach(function (b) {
         b.addEventListener('click', function () {
           modoEscolhido = b.getAttribute('data-modo');
@@ -1064,11 +1133,13 @@
       } else {
         const discIni = timerPreselecao ? D.disciplinaDoTopico(state, timerPreselecao) : state.disciplinas[0];
         const optsDisc = state.disciplinas.map(function (d) {
-          return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
+          return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.nome) + '</option>';
         }).join('');
         corpo.innerHTML =
-          '<div class="grade-2"><div><label for="tr-disc">Disciplina</label><select id="tr-disc">' + optsDisc + '</select></div>' +
-          '<div><label for="tr-top">Tópico</label><select id="tr-top"></select></div></div>' +
+          '<div class="timer-disciplina-topo"><select id="tr-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
+          '<button type="button" class="timer-assunto-btn" id="tr-assunto-btn">Adicionar assunto (Opcional)⌄</button>' +
+          '<input type="hidden" id="tr-top" value="' + esc(timerPreselecao || '') + '">' +
+          '<div class="timer-assunto-escolhido" id="tr-assunto-escolhido"></div></div>' +
           '<div style="margin-top:0.8rem;text-align:center"><span class="seletor-modo">' +
           '<button type="button" data-trmodo="cronometro" class="ativo">Cronômetro</button>' +
           '<button type="button" data-trmodo="pomodoro">Pomodoro 25/5</button></span></div>' +
@@ -1077,14 +1148,27 @@
           '<div class="modal-acoes"><button class="botao-quieto" id="tr-fechar2">Fechar</button><button id="tr-iniciar">Iniciar</button></div>';
         const selDisc = corpo.querySelector('#tr-disc');
         const selTop = corpo.querySelector('#tr-top');
+        const assuntoEscolhido = corpo.querySelector('#tr-assunto-escolhido');
+        const atualizarAssunto = function () {
+          const t = selTop && selTop.value ? D.topicoPorId(state, selTop.value) : null;
+          if (assuntoEscolhido) assuntoEscolhido.textContent = t ? t.nome : 'Sem assunto específico';
+        };
         const preencher = function () {
           const d = D.disciplinaPorId(state, selDisc.value);
-          selTop.innerHTML = d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
-            return '<option value="' + esc(t.id) + '"' + (t.id === timerPreselecao ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
-          }).join('');
+          const tops = d ? d.topicos.filter(function (t) { return !t.orfao; }) : [];
+          if (selTop && (!selTop.value || !tops.some(function (t) { return t.id === selTop.value; }))) {
+            selTop.value = timerPreselecao && tops.some(function (t) { return t.id === timerPreselecao; }) ? timerPreselecao : (tops[0] ? tops[0].id : '');
+          }
+          atualizarAssunto();
         };
         preencher();
         selDisc.addEventListener('change', preencher);
+        corpo.querySelector('#tr-assunto-btn').addEventListener('click', function () {
+          abrirModalAssuntosTimer(selDisc.value, selTop.value, function (topicoId) {
+            timerPreselecao = topicoId;
+            setTimeout(abrirTimerRapido, 0);
+          });
+        });
         corpo.querySelectorAll('[data-trmodo]').forEach(function (b) {
           b.addEventListener('click', function () {
             modoEscolhido = b.getAttribute('data-trmodo');
@@ -1271,11 +1355,12 @@
       if (aberta) {
         d.topicos.forEach(function (t) {
           const dt = D.desempenhoTopico(state.sessoes, t.id);
+          const erros = Math.max(0, dt.feitas - dt.certas);
           html += '<div class="topico-linha' + (t.orfao ? ' topico-orfao' : '') + '" data-topico="' + esc(t.id) + '" role="button" tabindex="0">' +
             bolha(t.status) +
             '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(órfão — fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + '</span>' +
-            '<span class="topico-meta">' + (t.incidencia_pct ? t.incidencia_pct + '%' : '—') +
-            (dt.pct !== null ? ' · ' + dt.certas + '/' + dt.feitas : '') + '</span></div>';
+            '<span class="topico-meta topico-meta-pizza">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) +
+            tagIncidenciaHtml(t.incidencia_pct || 0, (t.incidencia_pct || 0) >= 70) + '</span></div>';
         });
       }
     });
@@ -1624,10 +1709,10 @@
       '<div class="cab-acoes"><button class="botao-secundario" id="det-voltar">Voltar</button><button id="det-add">Adicionar estudo</button></div></div>';
 
     html += '<div class="linha-cards detalhe-metricas">' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Tempo de estudo</div><div class="card-kpi-valor">' + D.formatarMin(m.minutos) + '</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Desempenho</div><div class="card-kpi-extra"><span class="painel-acertos">' + m.certas + ' acertos</span><br><span class="painel-erros">' + m.erros + ' erros</span></div><div class="card-kpi-valor">' + (m.desempenho === null ? '—' : m.desempenho + '%') + '</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Progresso no edital</div><div class="card-kpi-extra">' + m.progresso.concluidos + ' tópicos concluídos<br>' + (m.progresso.total - m.progresso.concluidos) + ' pendentes</div><div class="card-kpi-valor">' + m.progresso.pct + '%</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + m.feitas + '</div><div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
+      '<div class="card card-kpi detalhe-card-tempo"><div class="card-kpi-rotulo">Tempo de estudo</div><div class="card-kpi-valor">' + D.formatarMin(m.minutos) + '</div></div>' +
+      '<div class="card card-kpi detalhe-card-desempenho"><div class="card-kpi-rotulo">Desempenho</div><div class="detalhe-card-pizza">' + pizzaAcertosHtml(m.certas, m.erros, { titulo: disc.nome }) + '</div><div class="card-kpi-extra"><span class="painel-acertos">' + m.certas + ' acertos</span> · <span class="painel-erros">' + m.erros + ' erros</span></div></div>' +
+      '<div class="card card-kpi detalhe-card-progresso"><div class="card-kpi-rotulo">Progresso no edital</div><div class="card-kpi-extra">' + m.progresso.concluidos + ' tópicos concluídos<br>' + (m.progresso.total - m.progresso.concluidos) + ' pendentes</div><div class="card-kpi-valor">' + m.progresso.pct + '%</div></div>' +
+      '<div class="card card-kpi detalhe-card-questoes"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + m.feitas + '</div><div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
       '</div>';
 
     html += '<div class="card"><div class="card-kpi-rotulo">Histórico de registros</div>';
@@ -1648,16 +1733,16 @@
     html += '</div>';
 
     html += '<div class="card edital-disc-card"><div class="card-kpi-rotulo">Edital verticalizado</div>' +
-      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th><th class="num">Incid.</th></tr></thead><tbody>' +
+      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">✓</th><th class="num edital-qtd-col">×</th><th class="num edital-qtd-col">Questões</th><th class="num">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
       disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
         const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
         const erros = Math.max(0, dt.feitas - dt.certas);
         return '<tr data-topico-detalhe="' + esc(t.id) + '" role="button" tabindex="0">' +
           '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tópico">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
-          '<td class="num painel-acertos">' + dt.certas + '</td><td class="num painel-erros">' + erros + '</td>' +
-          '<td class="num">' + dt.feitas + '</td><td class="num"><span class="painel-pct painel-pct-' + (dt.pct === null ? 'neutro' : dt.pct >= metaPct ? 'bom' : dt.pct >= metaPct - 10 ? 'medio' : 'baixo') + '">' + (dt.pct === null ? '0' : dt.pct) + '</span></td>' +
-          '<td class="num">' + (t.incidencia_pct || 0) + '%</td></tr>';
+          '<td class="num painel-acertos edital-qtd-col">' + dt.certas + '</td><td class="num painel-erros edital-qtd-col">' + erros + '</td>' +
+          '<td class="num edital-qtd-col">' + dt.feitas + '</td><td class="num">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) + '</td>' +
+          '<td class="num">' + tagIncidenciaHtml(t.incidencia_pct || 0, (t.incidencia_pct || 0) >= 70) + '</td></tr>';
       }).join('') + '</tbody></table></div></div>';
     return html;
   }
@@ -1820,6 +1905,21 @@
       '<button id="fb-login">Entrar com Google</button>' +
       '<button class="botao-secundario" id="sync-agora">Sincronizar agora</button>' +
       '<button class="botao-quieto" id="fb-logout">Sair</button>' +
+      '</div></div>';
+
+    const gc = state.config.googleCalendar || {};
+    const vinculados = gc.eventos ? Object.keys(gc.eventos).length : 0;
+    html += '<div class="card"><h3>Google Calendar</h3>' +
+      '<p class="sub">Sincroniza a semana aberta no Planejamento com o calendario do aluno. A exclusao do plano remove os eventos vinculados quando houver autorizacao.</p>' +
+      '<div class="grade-2">' +
+      '<div><label for="aj-gcal-client">Client ID OAuth</label>' +
+      '<input id="aj-gcal-client" type="text" value="' + esc(gc.clientId || '') + '" placeholder="...apps.googleusercontent.com"></div>' +
+      '<div><label for="aj-gcal-cal">Calendario</label>' +
+      '<input id="aj-gcal-cal" type="text" value="' + esc(gc.calendarId || 'primary') + '" placeholder="primary"></div></div>' +
+      '<p class="sub">' + vinculados + ' eventos vinculados pelo app.</p>' +
+      '<div class="modal-acoes" style="justify-content:flex-start">' +
+      '<button class="botao-secundario botao-mini" id="gcal-salvar">Salvar Calendar</button>' +
+      '<button class="botao-mini botao-quieto" id="gcal-ir-planejamento">Ir para Planejamento</button>' +
       '</div></div>';
 
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
@@ -2060,6 +2160,19 @@
   }
 
   // ================= Catálogo: aba "Planos disponíveis" =================
+  function editalFotoHtml(e) {
+    const src = e.foto || e.fotoUrl || e.imagem || '';
+    const iniciais = String(e.orgao || e.titulo || 'ED').replace(/[^A-Za-zÀ-ú0-9 ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(function (p) { return p.charAt(0); }).join('').toUpperCase() || 'ED';
+    return src
+      ? '<span class="catalogo-foto"><img src="' + esc(src) + '" alt=""></span>'
+      : '<span class="catalogo-foto catalogo-foto-placeholder" aria-hidden="true">' + esc(iniciais) + '</span>';
+  }
+
+  function rotuloCorteEdital(e) {
+    const tipo = e.tipoCorte || e.corteTipo || e.modalidadeCorte || 'Ampla';
+    return 'Corte ' + tipo + ' ' + (e.notaCorte || 70) + '%';
+  }
+
   function catalogoCard(e) {
     const nt = contarTopicosEdital(e);
     const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
@@ -2085,6 +2198,28 @@
       '</div>';
   }
 
+  function catalogoCardCompacto(e) {
+    const nt = contarTopicosEdital(e);
+    const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
+    function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
+    return '<div class="card catalogo-card catalogo-card-compacto">' +
+      '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
+      '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) + '</strong>' +
+      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</span></div></div>' +
+      '<div class="catalogo-metricas">' +
+      metrica('Corte', esc(rotuloCorteEdital(e))) +
+      metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica('Prova', esc(janelaProvaTexto(e))) +
+      '</div>' +
+      '<div class="catalogo-acoes">' +
+      '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e incidências">Detalhes</button>' +
+      '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir deste edital">' + (jaTem ? 'Refazer' : 'Iniciar') + '</button>' +
+      '<button class="botao-mini botao-quieto" data-pl-comparar="' + esc(e.id) + '" title="Comparar com outro edital">Comparar</button>' +
+      '</div>' +
+      (jaTem ? '<span class="etiqueta etiqueta-feito" style="margin-top:0.2rem">plano criado ✓</span>' : '') +
+      '</div>';
+  }
+
   function telaPlanos() {
     garantirEditaisMock();
     const lista = (state.editais || []).filter(function (e) { return !e.arquivado; })
@@ -2101,7 +2236,51 @@
     return html;
   }
 
+  function telaPlanosNova() {
+    garantirEditaisMock();
+    const lista = (state.editais || []).filter(function (e) {
+      return !e.arquivado && editalCorrespondeFiltro(e, catalogoFiltro);
+    }).slice().sort(function (a, b) {
+      return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a);
+    });
+    function selectFiltro(campo, rotulo) {
+      const opts = valoresUnicosEditais(campo).map(function (v) {
+        return '<option value="' + esc(v) + '"' + (catalogoFiltro[campo] === v ? ' selected' : '') + '>' + esc(v) + '</option>';
+      }).join('');
+      return '<select data-cat-filtro="' + campo + '" title="' + rotulo + '"><option value="">' + rotulo + '</option>' + opts + '</select>';
+    }
+    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de editais</span><h1>Planos</h1></div></div>' +
+      '<div class="catalogo-toolbar">' +
+      '<input id="cat-busca" type="search" placeholder="Pesquisar edital" value="' + esc(catalogoFiltro.busca || '') + '">' +
+      '<div class="catalogo-filtros">' + selectFiltro('orgao', 'Órgão') + selectFiltro('cargo', 'Cargo') + selectFiltro('estado', 'Estado') +
+      '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
+    if (lista.length === 0) {
+      html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum edital encontrado</strong>' +
+        '<p style="margin-top:1rem"><a class="botao" href="mailto:' + EMAIL_SUPORTE + '?subject=' + encodeURIComponent('Pedido de edital') + '">✉ Pedir um edital</a></p></div>';
+      return html;
+    }
+    html += '<div class="catalogo-grade">' + lista.map(catalogoCardCompacto).join('') + '</div>';
+    return html;
+  }
+
   function ligarPlanos(raiz) {
+    const busca = raiz.querySelector('#cat-busca');
+    if (busca) {
+      const aplicarBusca = function () { catalogoFiltro.busca = busca.value; render(); };
+      busca.addEventListener('change', aplicarBusca);
+      busca.addEventListener('keydown', function (e) { if (e.key === 'Enter') aplicarBusca(); });
+    }
+    raiz.querySelectorAll('[data-cat-filtro]').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        catalogoFiltro[sel.getAttribute('data-cat-filtro')] = sel.value;
+        render();
+      });
+    });
+    const limpar = raiz.querySelector('#cat-limpar');
+    if (limpar) limpar.addEventListener('click', function () {
+      catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
+      render();
+    });
     raiz.querySelectorAll('[data-pl-detalhes]').forEach(function (b) {
       b.addEventListener('click', function () { abrirDetalhesEdital(b.getAttribute('data-pl-detalhes')); });
     });
@@ -2572,6 +2751,23 @@
       window.FirebaseSync.logout().catch(function () {
         toast('Não consegui sair do Firebase.', 'erro');
       });
+    });
+
+    const gcalSalvar = raiz.querySelector('#gcal-salvar');
+    if (gcalSalvar) gcalSalvar.addEventListener('click', function () {
+      if (!state.config.googleCalendar) state.config.googleCalendar = { clientId: '', calendarId: 'primary', eventos: {} };
+      const clientEl = raiz.querySelector('#aj-gcal-client');
+      const calEl = raiz.querySelector('#aj-gcal-cal');
+      state.config.googleCalendar.clientId = clientEl ? clientEl.value.trim() : '';
+      state.config.googleCalendar.calendarId = (calEl && calEl.value.trim()) || 'primary';
+      if (!state.config.googleCalendar.eventos) state.config.googleCalendar.eventos = {};
+      googleCalendarToken = null;
+      salvar();
+      toast('Google Calendar salvo', 'sucesso');
+    });
+    const gcalIrPlanejamento = raiz.querySelector('#gcal-ir-planejamento');
+    if (gcalIrPlanejamento) gcalIrPlanejamento.addEventListener('click', function () {
+      location.hash = '#planejamento';
     });
 
     ligarEditaisEsquematizados(raiz);
@@ -3166,10 +3362,6 @@
       '<span class="checkin-rotulo">Carga horária real / semana</span></div>' +
       '<div class="checkin-kpi"><span class="checkin-num">' + burn.semanasRestantes + '</span>' +
       '<span class="checkin-rotulo">Semanas até a meta</span></div></div>' +
-      '<div class="checkin-edital">' +
-      '<div class="checkin-edital-topo"><span class="checkin-rotulo">Progresso do edital</span>' +
-      '<span class="checkin-edital-pct">' + burn.pctConcluido + '%</span></div>' +
-      '<div class="barra checkin-barra"><span style="width:' + burn.pctConcluido + '%"></span></div></div>' +
       checkLinha +
       '<div class="compact-actions" style="margin-top:0.6rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
       '</div>';
@@ -3768,20 +3960,19 @@
       if (sincronizarAgendaComCronograma() > 0) salvar();
     }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
-      '<p class="sub">Plano atual, agenda e seu ritmo contra a meta no mesmo lugar.</p></div>' +
-      '<div class="cab-acoes"><button class="botao" id="pl-editais">📋 Editais disponíveis</button></div></div>';
+      '<p class="sub">Plano atual, check-in e agenda no mesmo lugar.</p></div></div>';
 
     // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile.
     // O ritmo ativo/geração ganham um card próprio logo abaixo do plano atual.
     const checkin = checkinSemanalHtml();
     html += '<div class="planejamento-topo' + (checkin ? '' : ' planejamento-topo-solo') + '">' +
       checkin +
-      '<div class="planejamento-col-direita">' + planoAtualHtml() + ritmoCardHtml() + '</div>' +
+      '<div class="planejamento-col-direita">' + planoAtualHtml() + '</div>' +
       '</div>';
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
-        '<strong>Nenhuma disciplina ainda</strong>Escolha um edital disponível acima para o sistema gerar seu plano, ou crie uma disciplina manual.' +
+        '<strong>Nenhuma disciplina ainda</strong>Escolha um edital na aba Planos para gerar seu plano, ou crie uma disciplina manual.' +
         '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
         '<button class="botao" id="pl-criar-disc">Criar disciplina</button>' +
         '<button class="botao botao-secundario" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
@@ -4499,11 +4690,12 @@
   // ---------------- TELA: Mais (atalhos no celular) ----------------
   function telaMais() {
     const itens = [
-      ['#planos', 'Planos disponíveis'],
+      ['#planos', 'Planos'],
       ['#edital', 'Edital verticalizado'],
       ['#stats', 'Estatísticas'],
       ['#simulados', 'Simulados'],
-      ['#historico', 'Histórico']
+      ['#historico', 'Histórico'],
+      ['#ajustes', 'Configurações']
     ];
     return '<h1>Mais</h1><div class="card card-quieto mais-menu">' +
       itens.map(function (i) {
@@ -4540,7 +4732,7 @@
   // ---------------- roteador ----------------
   const telas = {
     hoje: { render: telaHoje, ligar: ligarHoje },
-    planos: { render: telaPlanos, ligar: ligarPlanos },
+    planos: { render: telaPlanosNova, ligar: ligarPlanos },
     planejamento: { render: telaPlanejamento, ligar: ligarPlanejamento },
     timer: { render: telaTimer, ligar: ligarTimer },
     revisoes: { render: telaRevisoes, ligar: ligarRevisoes },
@@ -4618,6 +4810,13 @@
 
   const botaoTema = document.getElementById('botao-tema');
   if (botaoTema) botaoTema.addEventListener('click', alternarTema);
+  const botaoConfiguracoes = document.getElementById('botao-configuracoes');
+  if (botaoConfiguracoes) botaoConfiguracoes.addEventListener('click', function (e) {
+    e.preventDefault();
+    fecharModal();
+    if (location.hash === '#ajustes') render();
+    else location.hash = '#ajustes';
+  });
   const botaoPerfil = document.getElementById('botao-perfil');
   if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);
   const botaoTimerRapido = document.getElementById('botao-timer-rapido');

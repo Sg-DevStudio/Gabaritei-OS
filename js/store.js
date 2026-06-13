@@ -35,7 +35,14 @@
       simulados: [], // {id, planoId, data, tipo, acertos:[{disciplinaId, certas, total}]}
       agenda: [],    // {id, planoId, data, disciplinaId, topicoId|null, duracaoMin, obs, feito, gerado}
       editais: [],   // editais esquematizados {id, titulo, banca, notaCorte, criadoEm, disciplinas}
-      config: { ultimoBackup: null, metaQuestoesSemana: 100, tema: 'claro', criadoEm: agora, atualizadoEm: agora }
+      config: {
+        ultimoBackup: null,
+        metaQuestoesSemana: 100,
+        tema: 'claro',
+        criadoEm: agora,
+        atualizadoEm: agora,
+        googleCalendar: { clientId: '', calendarId: 'primary', eventos: {} }
+      }
     };
   }
 
@@ -58,6 +65,12 @@
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
+    if (!state.config.googleCalendar) state.config.googleCalendar = {};
+    if (state.config.googleCalendar.clientId === undefined) state.config.googleCalendar.clientId = '';
+    if (!state.config.googleCalendar.calendarId) state.config.googleCalendar.calendarId = 'primary';
+    if (!state.config.googleCalendar.eventos || Array.isArray(state.config.googleCalendar.eventos)) {
+      state.config.googleCalendar.eventos = {};
+    }
     if (!state.sessoes) state.sessoes = [];
     if (!state.revisoes) state.revisoes = [];
     if (!state.simulados) state.simulados = [];
