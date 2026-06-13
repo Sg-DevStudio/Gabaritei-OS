@@ -1000,11 +1000,26 @@
         tipo: 'revisao', duracaoMin: dur, qFeitas: feitas, qCertas: certas, obs: 'Revisão ' + rev.tipo
       });
 
-      // RN03 — revisão de 30d com <70% reabre o tópico
-      if (D.revisaoReabreTopico(rev, rev.resultadoPct)) {
-        const t = D.topicoPorId(state, rev.topicoId);
-        if (t) { t.status = 'em_curso'; t.reaberto = true; }
-        toast('Abaixo de 70% na revisão de 30 dias — tópico reaberto e na fila da semana.', 'erro');
+      // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
+      const aj = D.ajustePosRevisao(rev, rev.resultadoPct);
+      const t = D.topicoPorId(state, rev.topicoId);
+      if (t) {
+        if (aj.subirPrioridade) t.prioridade = Math.max(1, (t.prioridade || 2) - 1);
+        if (aj.reabrir) { t.status = 'em_curso'; t.reaberto = true; }
+        else if (aj.dominar) t.status = 'dominado';
+      }
+      if (aj.revisaoExtraDias != null) {
+        state.revisoes.push(Object.assign(
+          D.revisaoReforco(rev.topicoId, rev.dataConcluida, aj.revisaoExtraDias),
+          { planoId: state.planoAtivoId }
+        ));
+      }
+      if (aj.reabrir) {
+        toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
+      } else if (aj.revisaoExtraDias != null) {
+        toast('Abaixo de 70% — prioridade elevada e revisão de reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
+      } else if (aj.dominar) {
+        toast('Mandou bem (≥85%) — tópico marcado como dominado ●.', 'sucesso');
       } else {
         toast('Revisão concluída — bolha preenchida ●', 'sucesso');
       }
@@ -2012,7 +2027,9 @@
       '<p class="sub">Compara <strong>' + esc(edA.titulo) + '</strong> com outro edital e estima a viabilidade pela sua rotina (~' + horasSemanaDisponiveis() + 'h/semana).</p>' +
       '<label for="cmp-b">Comparar com</label><select id="cmp-b">' + opts + '</select>' +
       '<div id="cmp-resultado" style="margin-top:0.75rem"></div>' +
-      '<div class="modal-acoes"><button class="botao-quieto" id="cmp-fechar">Fechar</button></div>');
+      '<p class="sub" style="margin-top:0.6rem">O plano combinado une os dois editais num só cronograma, sem tópicos repetidos. O calendário adaptativo distribui os blocos dentro da sua rotina.</p>' +
+      '<div class="modal-acoes"><button class="botao-quieto" id="cmp-fechar">Fechar</button>' +
+      '<button id="cmp-combinar">Gerar plano combinado</button></div>');
     m.classList.add('modal-amplo');
     const sel = m.querySelector('#cmp-b');
     const resEl = m.querySelector('#cmp-resultado');
@@ -2023,7 +2040,28 @@
     }
     sel.addEventListener('change', recalc);
     m.querySelector('#cmp-fechar').addEventListener('click', fecharModal);
+    m.querySelector('#cmp-combinar').addEventListener('click', function () {
+      const edB = outros.find(function (x) { return x.id === sel.value; });
+      if (!edB) return;
+      const r = D.conciliarPlanos(edA, edB, { horasSemana: horasSemanaDisponiveis() });
+      if (r.nivel === 'nao_recomendado' && !confirm('A compatibilidade é baixa (' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis). Gerar o plano combinado mesmo assim?')) return;
+      gerarPlanoCombinado(edA, edB);
+    });
     recalc();
+  }
+
+  // Une dois editais conciliáveis num plano único e gera o cronograma adaptativo.
+  function gerarPlanoCombinado(edA, edB) {
+    const comb = D.combinarEditais(edA, edB);
+    gerarIdsEdital(comb.disciplinas);
+    const reg = Object.assign(
+      { id: window.Store.novoId('edt'), criadoEm: D.hojeISO(), orgao: '', cargo: '', area: '', estado: '', emAlta: false, arquivado: false },
+      comb
+    );
+    state.editais.push(reg);
+    salvar();
+    fecharModal();
+    criarPlanoDeEdital(reg.id); // valida, cria o plano, ativa e abre o ajuste de rotina
   }
 
   // ================= Editor/conferência de edital (admin) =================

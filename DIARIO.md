@@ -37,6 +37,28 @@ Calendar e repaginação visual/gamificação.
 
 ---
 
+## 13/06/2026 — Onda 2 (parte 1): curva do esquecimento adaptativa e plano combinado
+
+Continuação da evolução, ainda sem IA paga e reaproveitando o motor existente.
+
+- **Curva do esquecimento adaptativa** (`D.ajustePosRevisao`): ao concluir uma
+  revisão, o desempenho ajusta o tópico automaticamente — <50% reabre, sobe a
+  prioridade e agenda reforço em 2 dias; <70% sobe a prioridade e agenda reforço
+  em 3 dias (reabre na de 30d); ≥85% na de 30d marca como dominado. O recálculo
+  semanal já existente reposiciona o tópico mais cedo no cronograma.
+- **Calendário adaptativo para 2 planos** via **plano combinado**
+  (`D.combinarEditais`): a partir do "Dá para conciliar?", o botão *Gerar plano
+  combinado* une dois editais num só (dedup de disciplinas/tópicos por nome,
+  mantendo maior incidência, maior prioridade e maiores horas — "reduz blocos
+  redundantes"). O cronograma adaptativo então distribui dentro da rotina,
+  evitando sobrecarga e mantendo as revisões. Sem refatorar o modelo de plano
+  único — reusa `criarPlanoDeEdital` e o gerador de cronograma.
+
+**Próximas ondas:** integração com Google Calendar (exportar .ics / sincronizar)
+e repaginação visual + gamificação.
+
+---
+
 ## Próximos passos (backlog)
 
 - [ ] **Publicar no GitHub Pages**: Settings → Pages → branch `main`, pasta `/ (root)`;
