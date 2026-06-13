@@ -634,7 +634,7 @@
         '<span class="bolha bolha-pendente"></span>' +
         '<strong>Bem-vindo aos seus estudos</strong>' +
         'Escolha um edital disponível no Planejamento para o sistema gerar seu plano, ou monte sua semana manualmente.' +
-        '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap"><a class="botao" href="#ajustes">Importar plano</a>' +
+        '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap"><a class="botao" href="#planejamento">Acesse os Editais Disponíveis</a>' +
         '<a class="botao botao-secundario" href="#planejamento">Planejar manualmente</a></p>' +
         '</div></div>';
     }
@@ -1650,7 +1650,7 @@
           '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
           contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</p>' +
           '<div class="compact-actions">' +
-          '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano personalizado</button>' +
+          '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
           '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button></div></div>';
       });
       html += '</div>';
@@ -2228,7 +2228,7 @@
         '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
         contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</div></div>' +
         (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado ✓</span>'
-          : '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano personalizado</button>') +
+          : '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano</button>') +
         '</div>';
     }).join('');
   }

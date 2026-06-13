@@ -1304,7 +1304,7 @@ body.arrastando-toque .agenda-dia.drop-alvo { outline: 2px dashed var(--caneta);
 .cab-pagina .sub { color: var(--grafite); font-size: 0.88rem; }
 .rotulo-pagina { display: block; font-size: 0.74rem; color: var(--grafite); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.28rem; }
 .cab-acoes { display: flex; gap: 0.55rem; flex-wrap: wrap; justify-content: flex-end; }
-.cab-acoes-split { flex: 1; justify-content: space-between; }
+.cab-acoes-split { flex: 1; justify-content: space-between; flex-wrap: nowrap; min-width: 0; }
 
 .lista-limpa { list-style: none; margin: 0; padding: 0; }
 
@@ -1345,6 +1345,9 @@ canvas.grafico {
   .check-estudo { margin-top: 0.1rem; }
   .timer-acoes button { flex: 1 1 100%; }
   .tela-timer { min-height: 500px; }
+  .catalogo-item.fila-item { flex-wrap: wrap; }
+  .catalogo-item.fila-item .fila-info { flex: 1 1 calc(100% - 2rem); }
+  .catalogo-item.fila-item > button { margin-left: 1.5rem; }
 }
 
 @keyframes confete-sobe {
