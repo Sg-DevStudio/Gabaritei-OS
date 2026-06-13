@@ -2110,9 +2110,9 @@
       sustentavel: 'Sustentável',
       hardcore: 'Hardcore',
       plano_ativo: 'Plano gerado',
-      plano_3m: '3 meses',
-      plano_6m: '6 meses',
-      plano_9m: '9 meses'
+      plano_3m: 'Intensivo',
+      plano_6m: 'Regular',
+      plano_9m: 'Construção de base'
     };
     const base = chave === 'plano_ativo' && dados && dados.meses ? dados.meses + ' meses' : (mapa[chave] || chave.replace(/_/g, ' '));
     const horas = dados && (dados.h_semana || dados.h_semana_exigidas);
@@ -2160,6 +2160,11 @@
       '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
       '<div class="barra" style="margin:0.65rem 0 0.9rem"><span style="width:' + progresso.pct + '%"></span></div>' +
+      '<div class="compact-actions plano-acoes-card">' +
+      '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
+      '<button class="botao-mini botao-secundario" id="pl-acao-perfil">Perfil</button>' +
+      '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
+      '</div>' +
       (temPlanoGerado
         ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>' +
           '<p class="sub plano-ritmo-info">' + esc(nomePlanoComCarga(dadosRitmo)) + '</p>'
@@ -2168,11 +2173,6 @@
       '<button class="botao-mini" id="pl-gerar-ritmos">Gerar plano de estudos</button>' +
       // Regra: o botão de dificuldade só aparece depois que o plano é gerado
       (temPlanoGerado ? '<button class="botao-mini botao-quieto" id="pl-ajustar-perfil">Dificuldades</button>' : '') +
-      '</div>' +
-      '<div class="compact-actions plano-acoes-card">' +
-      '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
-      '<button class="botao-mini botao-secundario" id="pl-acao-perfil">Perfil</button>' +
-      '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
       '</div>';
   }

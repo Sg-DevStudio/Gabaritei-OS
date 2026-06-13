@@ -399,14 +399,14 @@ button:disabled { background: var(--grafite-claro); color: var(--grafite); curso
   width: 54px;
   height: 54px;
   min-height: 54px;
-  background: linear-gradient(180deg, #2FC7AA, #13A88E);
+  background: linear-gradient(180deg, var(--caneta), var(--caneta-forte));
   color: #fff;
   border: 3px solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 12px 26px rgba(19, 168, 142, 0.34), 0 2px 8px rgba(23, 24, 28, 0.15);
+  box-shadow: 0 12px 26px rgba(36, 84, 214, 0.34), 0 2px 8px rgba(23, 24, 28, 0.15);
 }
 .botao-timer-rapido:hover {
-  background: linear-gradient(180deg, #35D4B7, #13A88E);
-  box-shadow: 0 14px 30px rgba(19, 168, 142, 0.42), 0 2px 8px rgba(23, 24, 28, 0.15);
+  background: linear-gradient(180deg, var(--caneta), var(--caneta-forte));
+  box-shadow: 0 14px 30px rgba(36, 84, 214, 0.42), 0 2px 8px rgba(23, 24, 28, 0.15);
 }
 .botao-timer-rapido svg { width: 24px; height: 24px; }
 .ic-tema-sol { display: none; }
@@ -1165,9 +1165,13 @@ html[data-tema="escuro"] .mes-evento {
   .agenda-grid { grid-template-columns: 1fr; }
   .agenda-dia { min-height: 0; }
   .agenda-dia:empty { display: none; }
-  .mes-grid { grid-template-columns: 1fr; }
-  .mes-rotulo { display: none; }
-  .mes-celula { min-height: 86px; padding: 0.35rem; }
+  .mes-grid { grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .mes-rotulo { font-size: 0.58rem; text-align: center; padding: 2px 0; }
+  .mes-celula { min-height: 58px; padding: 0.15rem; }
+  .mes-dia-num { font-size: 0.62rem; }
+  .mes-evento { padding: 1px 2px; font-size: 0.55rem; }
+  .mes-evento-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; display: block; }
+  .mes-evento-hora { display: none; }
 }
 
 /* ============================================================
