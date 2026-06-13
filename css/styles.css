@@ -1790,9 +1790,13 @@ canvas.grafico {
 .cm-rotulo { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--grafite); }
 .cm-valor { font-family: var(--fonte-mono); font-size: 0.86rem; font-weight: 600; }
 .catalogo-sub { font-size: 0.8rem; color: var(--grafite); }
-.catalogo-acoes { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.15rem; }
+.catalogo-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
+.catalogo-feito { align-self: center; margin: 0; }
 @media (max-width: 760px) {
   .catalogo-grade { grid-template-columns: 1fr; }
+  /* Corte, Nível e Prova lado a lado no celular */
+  .catalogo-card-compacto .catalogo-metricas { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .catalogo-card-compacto .catalogo-metrica { min-width: 0; }
   .catalogo-toolbar { align-items: stretch; }
   .catalogo-toolbar input[type="search"] { max-width: none; }
   .catalogo-filtros { min-width: 100%; flex-wrap: wrap; }
