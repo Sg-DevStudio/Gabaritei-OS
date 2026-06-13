@@ -1271,10 +1271,6 @@ html[data-tema="escuro"] .mes-evento {
 .plano-acoes-card { margin-top: 0.6rem; border-top: 1px solid var(--linha); padding-top: 0.7rem; }
 .plano-ritmo-info { margin: 0.3rem 0 0.2rem; font-weight: 600; color: var(--tinta); }
 
-/* ---- Ciclo atual (board da semana corrente, drag & drop) ---- */
-.ciclo-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-.ciclo-cab h3 { margin: 0.1rem 0 0; }
-
 /* ---- Fantasma do arrasto por toque ---- */
 .drag-fantasma {
   position: fixed; z-index: 300; pointer-events: none; opacity: 0.92;

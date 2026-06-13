@@ -2879,7 +2879,7 @@
 
     // paleta de disciplinas (arrastáveis)
     html += '<div class="card planejamento-disciplinas-card"><h3>Personalize seu plano de estudos</h3>' +
-      '<p class="sub">Arraste uma matéria para um dia do ciclo ou toque nela para agendar hoje.</p>' +
+      '<p class="sub">Arraste uma matéria para um dia do calendário ou toque nela para agendar hoje.</p>' +
       '<div class="paleta-disc">' +
       state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
         return '<button class="chip-disc" draggable="true" data-chip="' + esc(d.id) + '" style="background:' + esc(d.cor) + '" title="' + esc(d.nome) + '">' + esc(d.id) + '</button>';
@@ -2887,34 +2887,70 @@
       '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
       '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
 
-    // Ciclo atual: board da semana corrente (foco no ciclo, sem navegação de calendário).
-    // Suporta arrastar/soltar disciplinas entre os dias (mouse e toque).
-    const refSemana = D.segundaDaSemana(hoje);
-    html += '<div class="card ciclo-atual-card"><div class="ciclo-cab"><div>' +
-      '<div class="card-kpi-rotulo">Ciclo atual</div>' +
-      '<h3>' + D.formatarDataBR(refSemana).slice(0, 5) + ' – ' + D.formatarDataBR(D.addDias(refSemana, 6)).slice(0, 5) + '</h3></div>' +
-      '<p class="sub">Segure e arraste uma disciplina para trocar o dia de estudo.</p></div>' +
-      '<div class="agenda-grid ciclo-grid">';
-    for (let i = 0; i < 7; i++) {
-      const data = D.addDias(refSemana, i);
-      const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; }).sort(function (a, b) {
-        return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
-      });
-      const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
-      html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
-        '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
-        (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
-        blocos.map(function (b) {
-          const d = D.disciplinaPorId(state, b.disciplinaId);
-          const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
-          const concluido = blocoAgendaConcluido(b);
-          return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
-            '<span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-            '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></div>';
-        }).join('') +
-        '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
+    // Calendário: visão semanal (arrastar/soltar entre os dias, com toque) e
+    // visão mensal planejada — o aluno enxerga o que vem pela frente e pode
+    // adiantar metas se sobrar tempo no mês.
+    const rotulo = agendaModo === 'semana'
+      ? D.formatarDataBR(agendaRef).slice(0, 5) + ' – ' + D.formatarDataBR(D.addDias(agendaRef, 6)).slice(0, 5) + ' · ' + agendaRef.slice(0, 4)
+      : D.formatarMesBR(mesRef);
+    html += '<div class="agenda-toolbar">' +
+      '<div class="agenda-nav">' +
+      '<button class="botao-mini botao-quieto" id="pl-ant" aria-label="Anterior">‹</button>' +
+      '<strong>' + rotulo + '</strong>' +
+      '<button class="botao-mini botao-quieto" id="pl-prox" aria-label="Próximo">›</button>' +
+      '<button class="botao-mini botao-quieto" id="pl-hoje">Hoje</button></div>' +
+      '<div class="agenda-nav">' +
+      '<button class="botao-mini ' + (agendaModo === 'semana' ? '' : 'botao-quieto') + '" data-modo-ag="semana">Semanal</button>' +
+      '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button></div></div>';
+
+    if (agendaModo === 'semana') {
+      html += '<div class="agenda-grid">';
+      for (let i = 0; i < 7; i++) {
+        const data = D.addDias(agendaRef, i);
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; }).sort(function (a, b) {
+          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+        });
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+        html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
+          '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
+          (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
+          blocos.map(function (b) {
+            const d = D.disciplinaPorId(state, b.disciplinaId);
+            const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+            const concluido = blocoAgendaConcluido(b);
+            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
+              '<span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
+              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></div>';
+          }).join('') +
+          '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
+      }
+      html += '</div>';
+    } else {
+      // visão mensal compacta (planejamento do mês)
+      const primeiroDia = mesRef + '-01';
+      const iniGrade = D.segundaDaSemana(primeiroDia);
+      html += '<div class="mes-grid">' + DIAS_CURTOS.map(function (n) { return '<div class="mes-rotulo">' + n + '</div>'; }).join('');
+      let cursor = iniGrade;
+      for (let c = 0; c < 42; c++) {
+        const noMes = cursor.slice(0, 7) === mesRef;
+        if (c >= 35 && !noMes) break;
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; }).sort(function (a, b) {
+          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+        });
+        html += '<div class="mes-celula' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') + '" data-vai-semana="' + esc(cursor) + '" role="button" tabindex="0">' +
+          '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
+          (blocos.length > 0 ? '<div class="mes-eventos">' + blocos.slice(0, 3).map(function (b) {
+            const d = D.disciplinaPorId(state, b.disciplinaId);
+            const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+            return '<div class="mes-evento' + (blocoAgendaConcluido(b) ? ' feito' : '') + '" style="--disc-cor:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc((d ? d.nome : b.disciplinaId) + (t ? ' · ' + t.nome : '')) + '">' +
+              '<span class="mes-evento-nome">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
+              '<span class="mes-evento-hora">' + rotuloHorarioAgenda(b) + '</span></div>';
+          }).join('') + (blocos.length > 3 ? '<span class="mes-mais">Mais ' + (blocos.length - 3) + '</span>' : '') + '</div>' : '') +
+          '</div>';
+        cursor = D.addDias(cursor, 1);
+      }
+      html += '</div><p style="font-size:0.78rem;color:var(--grafite);margin-top:0.5rem">Toque em um dia para abrir a semana dele.</p>';
     }
-    html += '</div></div>';
     return html;
   }
 
@@ -2961,6 +2997,35 @@
       if (state.planoAtivoId) excluirPlano(state.planoAtivoId, true);
     });
 
+    // navegação do calendário (semana/mês)
+    const ant = raiz.querySelector('#pl-ant');
+    if (ant) ant.addEventListener('click', function () {
+      if (agendaModo === 'semana') agendaRef = D.addDias(agendaRef, -7);
+      else {
+        const [a, m] = mesRef.split('-').map(Number);
+        mesRef = (m === 1 ? (a - 1) + '-12' : a + '-' + String(m - 1).padStart(2, '0'));
+      }
+      render();
+    });
+    const prox = raiz.querySelector('#pl-prox');
+    if (prox) prox.addEventListener('click', function () {
+      if (agendaModo === 'semana') agendaRef = D.addDias(agendaRef, 7);
+      else {
+        const [a, m] = mesRef.split('-').map(Number);
+        mesRef = (m === 12 ? (a + 1) + '-01' : a + '-' + String(m + 1).padStart(2, '0'));
+      }
+      render();
+    });
+    const irHoje = raiz.querySelector('#pl-hoje');
+    if (irHoje) irHoje.addEventListener('click', function () {
+      agendaRef = D.segundaDaSemana(D.hojeISO());
+      mesRef = D.hojeISO().slice(0, 7);
+      render();
+    });
+    raiz.querySelectorAll('[data-modo-ag]').forEach(function (b) {
+      b.addEventListener('click', function () { agendaModo = b.getAttribute('data-modo-ag'); render(); });
+    });
+
     // chips: arrastar para um dia ou tocar para agendar hoje
     raiz.querySelectorAll('[data-chip]').forEach(function (chip) {
       chip.addEventListener('dragstart', function (e) {
@@ -2996,6 +3061,17 @@
         cel.classList.remove('drop-alvo');
         moverOuCriarBlocoNoDia(e.dataTransfer.getData('text/plain'), cel.getAttribute('data-dia'));
       });
+    });
+
+    // visão mensal: clicar num dia abre a semana dele
+    raiz.querySelectorAll('[data-vai-semana]').forEach(function (cel) {
+      const abrir = function () {
+        agendaRef = D.segundaDaSemana(cel.getAttribute('data-vai-semana'));
+        agendaModo = 'semana';
+        render();
+      };
+      cel.addEventListener('click', abrir);
+      cel.addEventListener('keydown', function (e) { if (e.key === 'Enter') abrir(); });
     });
 
     // arrastar e soltar por toque (mobile), sem quebrar o scroll nativo
