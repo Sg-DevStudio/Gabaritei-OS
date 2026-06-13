@@ -641,6 +641,71 @@
     return { nivel: nivel, ratio: Math.round(ratio * 100) / 100, mensagem: mensagemConciliacao(nivel, detalhes), detalhes: detalhes };
   }
 
+  // ---------- Curva do esquecimento adaptativa (ajuste por desempenho) ----------
+  // Decide o que fazer com o tópico depois de uma revisão, a partir do % de acerto.
+  // Regras: <50% reabre + sobe prioridade + reforço em 2d; <70% sobe prioridade +
+  // reforço em 3d (reabre só na de 30d); >=85% na de 30d marca como dominado.
+  function ajustePosRevisao(revisao, resultadoPct) {
+    const r = { reabrir: false, subirPrioridade: false, revisaoExtraDias: null, dominar: false };
+    if (resultadoPct == null) return r; // revisão só de leitura, sem questões — neutro
+    if (resultadoPct < 50) { r.reabrir = true; r.subirPrioridade = true; r.revisaoExtraDias = 2; }
+    else if (resultadoPct < 70) { r.subirPrioridade = true; r.revisaoExtraDias = 3; if (revisao.tipo === '30d') r.reabrir = true; }
+    else if (resultadoPct >= 85 && revisao.tipo === '30d') { r.dominar = true; }
+    return r;
+  }
+
+  // Revisão extra de reforço (curva encurtada quando o desempenho foi baixo).
+  function revisaoReforco(topicoId, baseISO, dias) {
+    const data = addDias(baseISO, dias);
+    return { id: 'rev-' + topicoId + '-reforco-' + data, topicoId: topicoId, tipo: 'reforço', dataAgendada: data, dataConcluida: null, resultadoPct: null };
+  }
+
+  // ---------- Plano combinado: une dois editais conciliáveis num só ----------
+  // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
+  // O tópico em comum vira um só, com a maior incidência, a maior prioridade
+  // (menor número) e as maiores horas — depois o cronograma adaptativo distribui.
+  function tituloCurtoConc(t) { return String(t || '').split(/\s[-–—]/)[0].trim().slice(0, 28); }
+
+  function combinarEditais(edA, edB) {
+    const discMap = {};
+    function addDisc(d) {
+      const k = normalizarNomeConc(d.nome);
+      if (!k) return;
+      if (!discMap[k]) {
+        discMap[k] = { id: '', nome: d.nome, cor: d.cor || '#3B82F6', peso: d.peso || 1, dificuldade: d.dificuldade || 'media', base_teorica: d.base_teorica || 'pdf', _top: {}, topicos: [] };
+      }
+      const alvo = discMap[k];
+      alvo.peso = Math.max(alvo.peso, d.peso || 1);
+      (d.topicos || []).forEach(function (t) {
+        const tk = normalizarNomeConc(t.nome);
+        if (!tk) return;
+        if (!alvo._top[tk]) {
+          alvo._top[tk] = { id: '', nome: t.nome, incidencia_pct: t.incidencia_pct || 0, prioridade: t.prioridade || 2, horas_estimadas: t.horas_estimadas || 2, semana_sugerida: t.semana_sugerida || null, status: 'pendente', reaberto: false, orfao: false };
+          alvo.topicos.push(alvo._top[tk]);
+        } else {
+          const ex = alvo._top[tk];
+          ex.incidencia_pct = Math.max(ex.incidencia_pct, t.incidencia_pct || 0);
+          ex.prioridade = Math.min(ex.prioridade, t.prioridade || 2);
+          ex.horas_estimadas = Math.max(ex.horas_estimadas, t.horas_estimadas || 2);
+        }
+      });
+    }
+    (edA.disciplinas || []).forEach(addDisc);
+    (edB.disciplinas || []).forEach(addDisc);
+    const disciplinas = Object.keys(discMap).map(function (k) {
+      const d = discMap[k]; delete d._top; return d;
+    });
+    const inis = [edA.janelaProva && edA.janelaProva.inicio, edB.janelaProva && edB.janelaProva.inicio].filter(Boolean).sort();
+    return {
+      titulo: tituloCurtoConc(edA.titulo) + ' + ' + tituloCurtoConc(edB.titulo) + ' (combinado)',
+      banca: [edA.banca, edB.banca].filter(Boolean).join(' + '),
+      notaCorte: Math.max(edA.notaCorte || 70, edB.notaCorte || 70),
+      nivel: 'dificil',
+      janelaProva: inis.length ? { inicio: inis[0], fim: '' } : { inicio: '', fim: '' },
+      disciplinas: disciplinas
+    };
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -650,6 +715,6 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos
+    conciliarPlanos, ajustePosRevisao, revisaoReforco, combinarEditais
   };
 })();
