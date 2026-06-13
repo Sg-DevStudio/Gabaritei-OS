@@ -5,10 +5,10 @@
    Temas: claro (padrão) e escuro via html[data-tema="escuro"].
    ============================================================ */
 :root {
-  --papel: #F6F7F3;
+  --papel: #EDF1F8;
   --papel-card: #FFFFFF;
-  --papel-elevado: #FCFDFB;
-  --tinta: #17181C;
+  --papel-elevado: #F8FAFE;
+  --tinta: #15171D;
   --caneta: #2454D6;
   --caneta-forte: #183A9E;
   --caneta-suave: #E7EDFF;
@@ -18,18 +18,18 @@
   --errado-suave: #F9E7E4;
   --alerta: #8A6500;
   --alerta-suave: #F7EFD7;
-  --grafite: #6F737C;
-  --grafite-claro: #DFE2DD;
-  --linha: #ECEEE8;
+  --grafite: #6B7180;
+  --grafite-claro: #DBE0EC;
+  --linha: #E4E8F2;
 
   --vidro: rgba(255, 255, 255, 0.92);
   --vidro-2: rgba(255, 255, 255, 0.62);
   --campo: #FFFFFF;
-  --campo-borda: #C8CCC4;
-  --barra-fundo: #EAEEE6;
-  --realce-linha: rgba(36, 84, 214, 0.04);
+  --campo-borda: #C5CCDB;
+  --barra-fundo: #E5EAF4;
+  --realce-linha: rgba(36, 84, 214, 0.045);
 
-  --hm0: #E9EBE4;
+  --hm0: #E5E9F2;
   --hm1: #BCD1F8;
   --hm2: #7FA0EE;
   --hm3: #3D6AE0;
@@ -97,8 +97,8 @@ html { font-size: 16px; }
 body {
   margin: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 247, 243, 0.92)),
-    repeating-linear-gradient(0deg, rgba(23, 24, 28, 0.018) 0, rgba(23, 24, 28, 0.018) 1px, transparent 1px, transparent 32px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(237, 241, 248, 0.94)),
+    repeating-linear-gradient(0deg, rgba(36, 84, 214, 0.014) 0, rgba(36, 84, 214, 0.014) 1px, transparent 1px, transparent 32px),
     var(--papel);
   color: var(--tinta);
   font-family: var(--fonte-ui);
@@ -307,6 +307,25 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
 }
 
 .card-quieto { box-shadow: none; }
+
+/* Menu "Mais": linhas limpas, sem descrições, com respiro do menu inferior */
+.mais-menu { padding: 0.35rem 0.4rem; margin-bottom: 1.25rem; }
+.mais-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.05rem 0.85rem;
+  text-decoration: none;
+  color: var(--tinta);
+  border-bottom: 1px solid var(--linha);
+  border-radius: var(--raio-s);
+  transition: background 0.15s ease;
+}
+.mais-item:last-child { border-bottom: none; }
+.mais-item:hover, .mais-item:active { background: var(--vidro); }
+.mais-item-nome { font-weight: 700; font-size: 1.02rem; color: var(--caneta); }
+.mais-item-seta { color: var(--grafite); font-size: 1.4rem; line-height: 1; }
 
 .linha-cards {
   display: grid;
@@ -1085,6 +1104,9 @@ td.num, th.num { text-align: right; }
 .agenda-dia-cab .num { font-size: 0.9rem; color: var(--tinta); }
 
 .agenda-bloco {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
   border-left: 3px solid;
   border-radius: 6px;
   padding: 0.32rem 0.5rem;
@@ -1094,9 +1116,14 @@ td.num, th.num { text-align: right; }
   background: var(--vidro-2);
   color: var(--tinta);
   line-height: 1.25;
+  position: relative;
 }
 .agenda-bloco:active { cursor: grabbing; }
+.agenda-bloco-arrasto { color: var(--grafite); font-size: 0.85rem; line-height: 1.1; cursor: grab; flex: 0 0 auto; opacity: 0.7; }
+.agenda-bloco-texto { min-width: 0; flex: 1; }
 .agenda-bloco .agenda-bloco-sub { display: block; font-weight: 500; font-size: 0.7rem; color: var(--grafite); }
+/* indicador de inserção ao reordenar (soltar antes deste bloco) */
+.agenda-bloco.drop-antes { box-shadow: inset 0 3px 0 var(--caneta); }
 .agenda-bloco.feito { opacity: 0.55; }
 .agenda-bloco.feito .agenda-bloco-titulo,
 .agenda-bloco.feito .agenda-bloco-sub { text-decoration: line-through; }
@@ -1397,6 +1424,33 @@ body.arrastando-toque .agenda-dia.drop-alvo { outline: 2px dashed var(--caneta);
 }
 .checkin-comparativo.alerta { background: var(--alerta-suave, #F6E7C8); }
 .checkin-saldo { font-weight: 600; }
+
+/* Check-in (esquerda) e plano atual + ritmo (coluna direita) lado a lado */
+.planejamento-topo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  align-items: start;
+  margin-bottom: 0.85rem;
+}
+.planejamento-topo.planejamento-topo-solo { grid-template-columns: 1fr; }
+.planejamento-topo > .card { margin: 0; grid-row: auto; }
+.planejamento-col-direita { display: flex; flex-direction: column; gap: 0.85rem; min-width: 0; }
+.planejamento-col-direita > .card { margin: 0; }
+/* meia largura: KPIs do check-in em 2 colunas para não espremer */
+.planejamento-topo .checkin-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin: 0.6rem 0 0.45rem; }
+/* versão compacta dos cards do topo */
+.planejamento-topo .card { padding: 0.85rem 0.95rem; }
+.planejamento-topo .checkin-num { font-size: 1.1rem; }
+.planejamento-topo .checkin-projecao { font-size: 0.84rem; margin: 0.3rem 0; }
+.planejamento-topo .checkin-barra { margin: 0.3rem 0 0.5rem; }
+.plano-atual-card .plano-atual-head h3 { margin: 0.1rem 0 0.15rem; font-size: 1.12rem; }
+.ritmo-card label { margin-bottom: 0.3rem; }
+.ritmo-card select { margin-bottom: 0; }
+.ritmo-card .compact-actions { margin-top: 0.6rem; }
+@media (max-width: 900px) {
+  .planejamento-topo { grid-template-columns: 1fr; }
+}
 
 .cab-pagina { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .cab-pagina .sub { color: var(--grafite); font-size: 0.88rem; }

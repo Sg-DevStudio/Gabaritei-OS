@@ -63,7 +63,7 @@
     const tema = state.config && state.config.tema === 'escuro' ? 'escuro' : 'claro';
     document.documentElement.dataset.tema = tema;
     const metaCor = document.getElementById('meta-theme-color');
-    if (metaCor) metaCor.setAttribute('content', tema === 'escuro' ? '#111319' : '#F6F7F3');
+    if (metaCor) metaCor.setAttribute('content', tema === 'escuro' ? '#111319' : '#EDF1F8');
   }
 
   function alternarTema() {
@@ -2480,6 +2480,45 @@
     return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
   }
 
+  // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
+  function ordemAgenda(b) { return typeof b.ordem === 'number' ? b.ordem : 1e9; }
+  function compararAgenda(a, b) {
+    return ordemAgenda(a) - ordemAgenda(b) ||
+      (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+  }
+  function blocosDoDia(diaISO) {
+    return doAtivo(state.agenda).filter(function (a) { return a.data === diaISO; }).sort(compararAgenda);
+  }
+  // grava a ordem explícita (0,1,2,…) de todos os blocos do dia
+  function renumerarDia(diaISO) {
+    blocosDoDia(diaISO).forEach(function (b, i) { b.ordem = i; });
+  }
+  // move/cria um bloco inserindo-o ANTES de alvoId (ou no fim, se alvoId vazio)
+  function reordenarBlocoNoDia(payload, diaISO, alvoId) {
+    if (!payload || !diaISO) return false;
+    let bloco, diaOrigem = null;
+    if (payload.indexOf('mover|') === 0) {
+      bloco = state.agenda.find(function (x) { return x.id === payload.slice(6); });
+      if (!bloco) return false;
+      diaOrigem = bloco.data;
+      bloco.data = diaISO;
+    } else if (payload.indexOf('nova|') === 0) {
+      bloco = {
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId, data: diaISO,
+        disciplinaId: payload.slice(5), topicoId: null, duracaoMin: 60, obs: '', feito: false
+      };
+      state.agenda.push(bloco);
+    } else { return false; }
+    // recompõe a ordem do dia inserindo o bloco na posição do alvo
+    const ordenados = blocosDoDia(diaISO).filter(function (b) { return b.id !== bloco.id; });
+    let pos = ordenados.length;
+    if (alvoId) { const i = ordenados.findIndex(function (b) { return b.id === alvoId; }); if (i >= 0) pos = i; }
+    ordenados.splice(pos, 0, bloco);
+    ordenados.forEach(function (b, i) { b.ordem = i; });
+    if (diaOrigem && diaOrigem !== diaISO) renumerarDia(diaOrigem); // fecha o buraco no dia de origem
+    return true;
+  }
+
   function registrarDeAgenda(blocoAg) {
     const disc = D.disciplinaPorId(state, blocoAg.disciplinaId);
     const topId = blocoAg.topicoId || (disc && disc.topicos.length > 0 ? disc.topicos[0].id : null);
@@ -2678,29 +2717,35 @@
         '<h3>Sem plano ativo</h3><p class="sub">Escolha um edital disponível acima e o sistema gera seu plano personalizado — ou crie um plano manual.</p>' +
         '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
     }
-    const ritmos = ritmosDisponiveis();
     const progresso = D.progressoEdital(state);
-    const ritmoAtual = state.plano.ritmoAtivo || ritmos[0] || 'sustentavel';
-    const temPlanoGerado = ritmos.length > 0;
-    const dadosRitmo = state.plano.ritmos && state.plano.ritmos[ritmoAtual];
-    const optsRitmo = ritmos.map(function (r) {
-      const dados = state.plano.ritmos && state.plano.ritmos[r];
-      return '<option value="' + esc(r) + '"' + (r === ritmoAtual ? ' selected' : '') + '>' + esc(rotuloRitmo(r, dados)) + '</option>';
-    }).join('');
     return '<div class="card planejamento-card plano-atual-card">' +
-      '<div class="card-kpi-rotulo">Plano atual</div>' +
-      '<div class="plano-atual-head"><div><h3>' + esc(state.plano.concurso) + '</h3>' +
+      '<div class="plano-atual-head"><div><div class="card-kpi-rotulo">Plano atual</div>' +
+      '<h3>' + esc(state.plano.concurso) + '</h3>' +
       '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
-      '<div class="barra" style="margin:0.65rem 0 0.9rem"><span style="width:' + progresso.pct + '%"></span></div>' +
+      '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
       '<div class="compact-actions plano-acoes-card">' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button class="botao-mini botao-secundario" id="pl-acao-perfil">Perfil</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
+      '</div>';
+  }
+
+  // Card próprio para ritmo ativo + geração do plano (logo abaixo do plano atual)
+  function ritmoCardHtml() {
+    if (!state.plano) return '';
+    const ritmos = ritmosDisponiveis();
+    const ritmoAtual = state.plano.ritmoAtivo || ritmos[0] || 'sustentavel';
+    const temPlanoGerado = ritmos.length > 0;
+    const optsRitmo = ritmos.map(function (r) {
+      const dados = state.plano.ritmos && state.plano.ritmos[r];
+      return '<option value="' + esc(r) + '"' + (r === ritmoAtual ? ' selected' : '') + '>' + esc(rotuloRitmo(r, dados)) + '</option>';
+    }).join('');
+    return '<div class="card planejamento-card ritmo-card">' +
       (temPlanoGerado
         ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>'
-        : '<p class="sub">Este plano ainda não tem cronograma gerado.</p>') +
+        : '<div class="card-kpi-rotulo">Plano de estudos</div><p class="sub" style="margin:0.2rem 0 0.6rem">Este plano ainda não tem cronograma gerado.</p>') +
       '<div class="compact-actions">' +
       '<button class="botao-mini" id="pl-gerar-ritmos">Gerar plano de estudos</button>' +
       // Regra: o botão de dificuldade só aparece depois que o plano é gerado
@@ -2793,10 +2838,39 @@
     });
   }
 
+  const UFS_BR = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+
+  // Órgão = trecho antes do primeiro separador do título (ex.: "TRF3 - Técnico..." → "TRF3")
+  function orgaoDoTitulo(titulo) {
+    const base = String(titulo || '').split(/\s[-–—]\s|\s[-–—]|—|\(/)[0].trim();
+    return base.slice(0, 28);
+  }
+
+  // UF = primeira sigla de estado encontrada como palavra isolada no texto (ou '')
+  function ufDoTexto(txt) {
+    const toks = String(txt || '').toUpperCase().split(/[^A-ZÀ-Ú0-9]+/);
+    for (let i = 0; i < toks.length; i++) {
+      if (UFS_BR.indexOf(toks[i]) >= 0) return toks[i];
+    }
+    return '';
+  }
+
+  // Preenche órgão/estado que não vieram no cadastro, para os filtros terem opções.
+  function enriquecerEditais() {
+    let mudou = false;
+    (state.editais || []).forEach(function (e) {
+      if (!e.orgao) { const o = orgaoDoTitulo(e.titulo); if (o) { e.orgao = o; mudou = true; } }
+      if (!e.estado) { const uf = ufDoTexto(e.titulo) || ufDoTexto(e.cargo); if (uf) { e.estado = uf; mudou = true; } }
+    });
+    return mudou;
+  }
+
   function garantirEditaisMock() {
     if (!Array.isArray(state.editais)) state.editais = [];
     if (state.editais.length === 0) {
       state.editais = construirEditaisMock();
+      salvar({ sincronizar: false });
+    } else if (enriquecerEditais()) {
       salvar({ sincronizar: false });
     }
   }
@@ -2804,22 +2878,24 @@
   function abrirEditaisDisponiveis() {
     garantirEditaisMock();
     const filtro = { orgao: '', cargo: '', estado: '', busca: '' };
-    function opcoes(campo, rotulo, selecionado) {
-      return '<option value="">' + rotulo + '</option>' +
-        valoresUnicosEditais(campo).map(function (v) {
-          return '<option value="' + esc(v) + '"' + (v === selecionado ? ' selected' : '') + '>' + esc(v) + '</option>';
-        }).join('');
+    // só mostra um filtro quando há ao menos uma opção real para ele (evita menu vazio)
+    function selectFiltro(campo, id, rotulo) {
+      const valores = valoresUnicosEditais(campo);
+      if (valores.length === 0) return '';
+      return '<select id="' + id + '" aria-label="Filtrar por ' + rotulo.toLowerCase() + '">' +
+        '<option value="">' + rotulo + ' (todos)</option>' +
+        valores.map(function (v) { return '<option value="' + esc(v) + '">' + esc(v) + '</option>'; }).join('') +
+        '</select>';
     }
+    const selects = selectFiltro('orgao', 'ed-f-orgao', 'Órgão') +
+      selectFiltro('cargo', 'ed-f-cargo', 'Cargo') +
+      selectFiltro('estado', 'ed-f-estado', 'Estado');
     const m = abrirModal(
       '<h3>Editais disponíveis</h3>' +
       '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>' +
       '<div class="editais-filtros">' +
       '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, banca…)" aria-label="Pesquisa geral" value="' + esc(filtro.busca) + '">' +
-      '<div class="editais-filtros-selects">' +
-      '<select id="ed-f-orgao" aria-label="Filtrar por órgão">' + opcoes('orgao', 'Órgão', filtro.orgao) + '</select>' +
-      '<select id="ed-f-cargo" aria-label="Filtrar por cargo">' + opcoes('cargo', 'Cargo', filtro.cargo) + '</select>' +
-      '<select id="ed-f-estado" aria-label="Filtrar por estado">' + opcoes('estado', 'Estado', filtro.estado) + '</select>' +
-      '</div>' +
+      (selects ? '<div class="editais-filtros-selects">' + selects + '</div>' : '') +
       '<button type="button" class="botao" id="ed-criar-plano" disabled>Criar plano</button>' +
       '</div>' +
       '<div class="editais-lista" id="ed-lista">' + editaisListaHtml(filtro) + '</div>' +
@@ -2843,11 +2919,12 @@
         });
       });
     }
+    function valorSel(sel) { const el = m.querySelector(sel); return el ? el.value : ''; }
     function atualizar() {
       filtro.busca = m.querySelector('#ed-f-busca').value;
-      filtro.orgao = m.querySelector('#ed-f-orgao').value;
-      filtro.cargo = m.querySelector('#ed-f-cargo').value;
-      filtro.estado = m.querySelector('#ed-f-estado').value;
+      filtro.orgao = valorSel('#ed-f-orgao');
+      filtro.cargo = valorSel('#ed-f-cargo');
+      filtro.estado = valorSel('#ed-f-estado');
       editavelId = null;
       btnCriar.disabled = true;
       listaEl.innerHTML = editaisListaHtml(filtro);
@@ -2860,11 +2937,12 @@
     });
     m.querySelector('#ed-f-busca').addEventListener('input', atualizar);
     ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) {
-      m.querySelector(sel).addEventListener('change', atualizar);
+      const el = m.querySelector(sel);
+      if (el) el.addEventListener('change', atualizar);
     });
     m.querySelector('#ed-limpar').addEventListener('click', function () {
       m.querySelector('#ed-f-busca').value = '';
-      ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) { m.querySelector(sel).value = ''; });
+      ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) { const el = m.querySelector(sel); if (el) el.value = ''; });
       atualizar();
     });
     m.querySelector('#ed-fechar').addEventListener('click', fecharModal);
@@ -3524,12 +3602,15 @@
     }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
       '<p class="sub">Plano atual, agenda e seu ritmo contra a meta no mesmo lugar.</p></div>' +
-      '<div class="cab-acoes cab-acoes-split"><button class="botao" id="pl-editais">📋 Editais disponíveis</button>' +
-      '<button class="botao-quieto" id="pl-config">⚙ Configurações</button></div></div>';
+      '<div class="cab-acoes"><button class="botao" id="pl-editais">📋 Editais disponíveis</button></div></div>';
 
-    html += checkinSemanalHtml();
-
-    html += planoAtualHtml();
+    // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile.
+    // O ritmo ativo/geração ganham um card próprio logo abaixo do plano atual.
+    const checkin = checkinSemanalHtml();
+    html += '<div class="planejamento-topo' + (checkin ? '' : ' planejamento-topo-solo') + '">' +
+      checkin +
+      '<div class="planejamento-col-direita">' + planoAtualHtml() + ritmoCardHtml() + '</div>' +
+      '</div>';
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
@@ -3569,9 +3650,7 @@
       html += '<div class="agenda-grid">';
       for (let i = 0; i < 7; i++) {
         const data = D.addDias(agendaRef, i);
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === data; }).sort(function (a, b) {
-          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
-        });
+        const blocos = blocosDoDia(data);
         const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
@@ -3580,9 +3659,10 @@
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
             const concluido = blocoAgendaConcluido(b);
-            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
-              '<span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></div>';
+            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
+              '<span class="agenda-bloco-arrasto" aria-hidden="true">⠿</span>' +
+              '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
+              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></span></div>';
           }).join('') +
           '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
       }
@@ -3627,9 +3707,7 @@
 
   // Tela de detalhes de um dia (a partir da visão mensal estilo Google)
   function abrirDetalhesDia(dataISO) {
-    const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === dataISO; }).sort(function (a, b) {
-      return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
-    });
+    const blocos = blocosDoDia(dataISO);
     const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
     const feitos = blocos.filter(blocoAgendaConcluido).length;
     const ymd = dataISO.split('-').map(Number);
@@ -3669,10 +3747,6 @@
   function ligarPlanejamento(raiz) {
     const editais = raiz.querySelector('#pl-editais');
     if (editais) editais.addEventListener('click', abrirEditaisDisponiveis);
-    const config = raiz.querySelector('#pl-config');
-    if (config) config.addEventListener('click', function () {
-      abrirConfiguracoesPlanejamento();
-    });
     const novaDiscCard = raiz.querySelector('#pl-nova-disc-card');
     if (novaDiscCard) novaDiscCard.addEventListener('click', abrirNovaDisciplina);
     const criarDisc = raiz.querySelector('#pl-criar-disc');
@@ -3756,7 +3830,8 @@
       });
     });
 
-    // blocos existentes: clicar edita, arrastar move
+    // blocos existentes: clicar edita, arrastar move/reordena. Cada bloco também é
+    // alvo de soltura: soltar sobre ele insere a disciplina ANTES dele (reordenar).
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirBlocoAgenda(el.getAttribute('data-bloco')); } });
@@ -3765,6 +3840,16 @@
         e.dataTransfer.setData('text/plain', 'mover|' + el.getAttribute('data-bloco'));
         e.dataTransfer.effectAllowed = 'move';
       });
+      const diaBloco = el.getAttribute('data-pos-dia');
+      if (diaBloco) {
+        el.addEventListener('dragover', function (e) { e.preventDefault(); e.stopPropagation(); el.classList.add('drop-antes'); });
+        el.addEventListener('dragleave', function () { el.classList.remove('drop-antes'); });
+        el.addEventListener('drop', function (e) {
+          e.preventDefault(); e.stopPropagation();
+          el.classList.remove('drop-antes');
+          moverOuCriarBlocoNoDia(e.dataTransfer.getData('text/plain'), diaBloco, el.getAttribute('data-bloco'));
+        });
+      }
     });
 
     raiz.querySelectorAll('[data-add-dia]').forEach(function (b) {
@@ -3793,19 +3878,15 @@
     ligarDragTouch(raiz);
   }
 
-  // ação compartilhada por drop nativo e por toque
-  function moverOuCriarBlocoNoDia(dado, dia) {
-    if (!dado || !dia) return;
-    if (dado.indexOf('nova|') === 0) {
-      state.agenda.push({
-        id: window.Store.novoId('agd'), planoId: state.planoAtivoId, data: dia, disciplinaId: dado.slice(5),
-        topicoId: null, duracaoMin: 60, obs: '', feito: false
-      });
+  // ação compartilhada por drop nativo e por toque.
+  // alvoId (opcional): id do bloco antes do qual inserir — permite reordenar
+  // dentro do mesmo dia e posicionar a disciplina solta entre blocos.
+  function moverOuCriarBlocoNoDia(dado, dia, alvoId) {
+    if (!dado || !dia || alvoId === dado.slice(dado.indexOf('|') + 1)) return; // soltar sobre si mesmo
+    const ehNova = dado.indexOf('nova|') === 0;
+    if (reordenarBlocoNoDia(dado, dia, alvoId)) {
       salvar(); render();
-      toast('Bloco de 1h adicionado — toque nele para ajustar', 'sucesso');
-    } else if (dado.indexOf('mover|') === 0) {
-      const b = state.agenda.find(function (x) { return x.id === dado.slice(6); });
-      if (b && b.data !== dia) { b.data = dia; salvar(); render(); toast('Disciplina movida de dia', 'sucesso'); }
+      toast(ehNova ? 'Bloco de 1h adicionado — toque nele para ajustar' : 'Bloco reposicionado', 'sucesso');
     }
   }
 
@@ -3820,10 +3901,13 @@
           ? 'mover|' + el.getAttribute('data-bloco')
           : 'nova|' + el.getAttribute('data-chip');
       }
+      let alvoBloco = null, alvoBlocoId = null;
       function limpar() {
         if (timer) { clearTimeout(timer); timer = null; }
         if (clone) { clone.remove(); clone = null; }
         if (alvo) { alvo.classList.remove('drop-alvo'); alvo = null; }
+        if (alvoBloco) { alvoBloco.classList.remove('drop-antes'); alvoBloco = null; }
+        alvoBlocoId = null;
         ativo = false;
         document.body.classList.remove('arrastando-toque');
       }
@@ -3867,13 +3951,23 @@
           alvo = dia;
           if (alvo) alvo.classList.add('drop-alvo');
         }
+        // bloco sob o dedo (exceto o próprio arrastado) = inserir antes dele
+        const bloco = sob ? sob.closest('[data-bloco]') : null;
+        const bAlvo = (bloco && bloco !== el) ? bloco : null;
+        if (bAlvo !== alvoBloco) {
+          if (alvoBloco) alvoBloco.classList.remove('drop-antes');
+          alvoBloco = bAlvo;
+          alvoBlocoId = bAlvo ? bAlvo.getAttribute('data-bloco') : null;
+          if (alvoBloco) alvoBloco.classList.add('drop-antes');
+        }
       }, { passive: false });
 
       el.addEventListener('touchend', function () {
         if (ativo && alvo) {
           const dia = alvo.getAttribute('data-dia');
+          const idAlvo = alvoBlocoId;
           limpar();
-          moverOuCriarBlocoNoDia(payload, dia);
+          moverOuCriarBlocoNoDia(payload, dia, idAlvo);
         } else {
           limpar();
         }
@@ -4144,17 +4238,17 @@
   // ---------------- TELA: Mais (atalhos no celular) ----------------
   function telaMais() {
     const itens = [
-      ['#planos', 'Planos disponíveis', 'catálogo de concursos e "dá para conciliar?"'],
-      ['#stats', 'Estatísticas', 'gráficos, tempo total e desempenho × meta'],
-      ['#edital', 'Edital verticalizado', 'progresso ○◐● e incidência por tópico'],
-      ['#simulados', 'Simulados', 'gabarito × meta de corte'],
-      ['#historico', 'Histórico', 'sessões do plano ativo ou do site inteiro'],
-      ['#ajustes', 'Configurações', 'planos, editais esquematizados, sincronização e dados']
+      ['#planos', 'Planos disponíveis'],
+      ['#edital', 'Edital verticalizado'],
+      ['#stats', 'Estatísticas'],
+      ['#simulados', 'Simulados'],
+      ['#historico', 'Histórico']
     ];
-    return '<h1>Mais</h1><div class="card card-quieto">' +
+    return '<h1>Mais</h1><div class="card card-quieto mais-menu">' +
       itens.map(function (i) {
-        return '<a href="' + i[0] + '" style="display:block;padding:0.85rem 0.25rem;border-bottom:1px solid var(--grafite-claro);text-decoration:none;color:var(--tinta)">' +
-          '<strong style="color:var(--caneta)">' + i[1] + '</strong><br><span style="font-size:0.82rem;color:var(--grafite)">' + i[2] + '</span></a>';
+        return '<a class="mais-item" href="' + i[0] + '">' +
+          '<span class="mais-item-nome">' + i[1] + '</span>' +
+          '<span class="mais-item-seta" aria-hidden="true">›</span></a>';
       }).join('') + '</div>';
   }
 
