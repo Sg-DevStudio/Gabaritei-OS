@@ -1,6 +1,6 @@
 {
-  "name": "Rota do Bizu",
-  "short_name": "Rota do Bizu",
+  "name": "Gabaritei OS",
+  "short_name": "Gabaritei OS",
   "description": "Gestão pessoal de estudos para concursos: cronograma, sessões, revisões e estatísticas contra a meta de corte.",
   "lang": "pt-BR",
   "start_url": "./index.html",

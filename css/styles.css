@@ -1171,6 +1171,75 @@ html[data-tema="escuro"] .mes-evento {
   text-decoration: underline;
 }
 
+/* Visão mensal estilo Google: bolinhas com a cor das disciplinas */
+.mes-celula-pontos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 92px;
+  padding: 0.4rem 0.3rem;
+}
+.mes-celula-pontos .mes-dia-num {
+  align-self: flex-start;
+  width: 1.7em;
+  height: 1.7em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+.mes-celula-pontos.dia-hoje { box-shadow: none; border-color: var(--linha); }
+.mes-celula-pontos.dia-hoje .mes-dia-num { background: var(--caneta); color: #fff; }
+.mes-celula-pontos.dia-feito { background: color-mix(in srgb, var(--verde, #1F7A4D) 8%, var(--vidro)); }
+.mes-pontos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
+}
+.mes-ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.mes-ponto-mais { font-size: 0.6rem; font-weight: 700; color: var(--grafite); }
+.mes-dia-total {
+  font-size: 0.62rem;
+  font-family: var(--fonte-mono);
+  color: var(--grafite);
+}
+
+/* Tela de detalhes do dia */
+.dia-detalhe-cab h3 { margin: 0; }
+.dia-detalhe-lista { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.75rem 0; }
+.dia-detalhe-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  text-align: left;
+  background: var(--vidro);
+  border: 1px solid var(--linha);
+  border-left: 4px solid var(--disc-cor, var(--caneta));
+  border-radius: var(--raio-s);
+  padding: 0.6rem 0.7rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.dia-detalhe-item:hover { border-color: var(--caneta); }
+.dia-detalhe-cor { width: 12px; height: 12px; border-radius: 999px; flex: 0 0 auto; }
+.dia-detalhe-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.dia-detalhe-disc { font-weight: 700; color: var(--tinta); }
+.dia-detalhe-sub { font-size: 0.78rem; color: var(--grafite); }
+.dia-detalhe-seta { color: var(--grafite); font-size: 1.1rem; }
+.dia-detalhe-item.feito { opacity: 0.62; }
+.dia-detalhe-item.feito .dia-detalhe-disc { text-decoration: line-through; }
+
 @media (max-width: 760px) {
   .planejamento-layout, .planejamento-config-panel { grid-template-columns: 1fr; }
   .plano-atual-card, .catalogo-card { grid-column: auto; grid-row: auto; }
@@ -1188,6 +1257,10 @@ html[data-tema="escuro"] .mes-evento {
   .mes-evento { padding: 1px 2px; font-size: 0.55rem; }
   .mes-evento-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; display: block; }
   .mes-evento-hora { display: none; }
+  .mes-celula-pontos { min-height: 62px; gap: 3px; padding: 0.25rem 0.15rem; }
+  .mes-celula-pontos .mes-dia-num { font-size: 0.66rem; width: 1.6em; height: 1.6em; }
+  .mes-ponto { width: 6px; height: 6px; }
+  .mes-dia-total { display: none; }
 }
 
 /* ============================================================
