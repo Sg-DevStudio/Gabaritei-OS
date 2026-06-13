@@ -3065,12 +3065,12 @@
     }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
       '<p class="sub">Plano atual, agenda e seu ritmo contra a meta no mesmo lugar.</p></div>' +
-      '<div class="cab-acoes cab-acoes-split"><button class="botao" id="pl-editais">📋 Editais disponíveis</button>' +
-      '<button class="botao-quieto" id="pl-config">⚙ Configurações</button></div></div>';
+      '<div class="cab-acoes"><button class="botao" id="pl-editais">📋 Editais disponíveis</button></div></div>';
 
-    html += checkinSemanalHtml();
-
-    html += planoAtualHtml();
+    // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile
+    const checkin = checkinSemanalHtml();
+    html += '<div class="planejamento-topo' + (checkin ? '' : ' planejamento-topo-solo') + '">' +
+      checkin + planoAtualHtml() + '</div>';
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
@@ -3210,10 +3210,6 @@
   function ligarPlanejamento(raiz) {
     const editais = raiz.querySelector('#pl-editais');
     if (editais) editais.addEventListener('click', abrirEditaisDisponiveis);
-    const config = raiz.querySelector('#pl-config');
-    if (config) config.addEventListener('click', function () {
-      abrirConfiguracoesPlanejamento();
-    });
     const novaDiscCard = raiz.querySelector('#pl-nova-disc-card');
     if (novaDiscCard) novaDiscCard.addEventListener('click', abrirNovaDisciplina);
     const criarDisc = raiz.querySelector('#pl-criar-disc');
