@@ -2263,13 +2263,13 @@
       const tags = [e.orgao, e.cargo, e.estado].filter(Boolean).map(function (t) {
         return '<span class="edital-tag">' + esc(t) + '</span>';
       }).join('');
-      return '<div class="fila-item catalogo-item"><span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
+      return '<div class="fila-item catalogo-item" data-ed-sel="' + esc(e.id) + '" role="button" tabindex="0">' +
+        '<span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
         '<div class="fila-info"><div class="fila-titulo">' + esc(e.titulo) + '</div>' +
         (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
         '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
         contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</div></div>' +
-        (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado ✓</span>'
-          : '<button class="botao-mini" data-ed-plano="' + esc(e.id) + '">Criar plano</button>') +
+        (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado ✓</span>' : '') +
         '</div>';
     }).join('');
   }
@@ -2289,7 +2289,7 @@
       disc('DADM', 'Direito Administrativo', '#F59E0B', 3, [t('da-01', 'Atos administrativos', 24, 5), t('da-02', 'Licitações (Lei 14.133)', 26, 5)])
     ];
     return [
-      { titulo: 'TRF3 — Técnico Judiciário 2026', banca: 'FCC', orgao: 'TRF3', cargo: 'Técnico Judiciário', estado: 'SP', notaCorte: 72 },
+      { titulo: 'TRF3 — Técnico Judiciário - Área Administrativa 2026', banca: 'FCC', orgao: 'TRF3', cargo: 'Técnico Judiciário - Área Administrativa', estado: 'SP', notaCorte: 72 },
       { titulo: 'TJ-RJ — Técnico de Atividade Judiciária 2026', banca: 'FGV', orgao: 'TJ-RJ', cargo: 'Técnico Judiciário', estado: 'RJ', notaCorte: 68 },
       { titulo: 'Petrobras — Técnico(a) de Administração e Controle Jr', banca: 'Cebraspe', orgao: 'Petrobras', cargo: 'Técnico de Administração', estado: 'RJ', notaCorte: 65 }
     ].map(function (e, i) {
@@ -2311,11 +2311,7 @@
 
   function abrirEditaisDisponiveis() {
     garantirEditaisMock();
-    // filtros previamente populados com o mock de alta concorrência quando há dados de teste
-    const temMock = state.editais.some(function (e) { return e.mock; });
-    const filtro = temMock
-      ? { orgao: 'TRF3', cargo: 'Técnico Judiciário', estado: 'SP', busca: '' }
-      : { orgao: '', cargo: '', estado: '', busca: '' };
+    const filtro = { orgao: 'TRF3', cargo: 'Técnico Judiciário - Área Administrativa', estado: 'SP', busca: '' };
     function opcoes(campo, rotulo, selecionado) {
       return '<option value="">' + rotulo + '</option>' +
         valoresUnicosEditais(campo).map(function (v) {
@@ -2327,25 +2323,49 @@
       '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>' +
       '<div class="editais-filtros">' +
       '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, banca…)" aria-label="Pesquisa geral" value="' + esc(filtro.busca) + '">' +
-      '<div class="grade-3">' +
-      '<select id="ed-f-orgao" aria-label="Filtrar por órgão">' + opcoes('orgao', 'Órgão: todos', filtro.orgao) + '</select>' +
-      '<select id="ed-f-cargo" aria-label="Filtrar por cargo">' + opcoes('cargo', 'Cargo: todos', filtro.cargo) + '</select>' +
-      '<select id="ed-f-estado" aria-label="Filtrar por estado">' + opcoes('estado', 'Estado: todos', filtro.estado) + '</select>' +
-      '</div></div>' +
+      '<div class="editais-filtros-selects">' +
+      '<select id="ed-f-orgao" aria-label="Filtrar por órgão">' + opcoes('orgao', 'Órgão', filtro.orgao) + '</select>' +
+      '<select id="ed-f-cargo" aria-label="Filtrar por cargo">' + opcoes('cargo', 'Cargo', filtro.cargo) + '</select>' +
+      '<select id="ed-f-estado" aria-label="Filtrar por estado">' + opcoes('estado', 'Estado', filtro.estado) + '</select>' +
+      '</div>' +
+      '<button type="button" class="botao" id="ed-criar-plano" disabled>Criar plano</button>' +
+      '</div>' +
       '<div class="editais-lista" id="ed-lista">' + editaisListaHtml(filtro) + '</div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="ed-limpar">Limpar filtros</button>' +
       '<button type="button" class="botao-quieto" id="ed-fechar">Fechar</button></div>'
     );
     m.classList.add('modal-amplo');
     const listaEl = m.querySelector('#ed-lista');
+    const btnCriar = m.querySelector('#ed-criar-plano');
+    let editavelId = null;
+    function ligarSelecao() {
+      listaEl.querySelectorAll('[data-ed-sel]').forEach(function (item) {
+        item.addEventListener('click', function () {
+          listaEl.querySelectorAll('[data-ed-sel]').forEach(function (i) { i.classList.remove('selecionado'); });
+          item.classList.add('selecionado');
+          editavelId = item.getAttribute('data-ed-sel');
+          btnCriar.disabled = false;
+        });
+        item.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
+        });
+      });
+    }
     function atualizar() {
       filtro.busca = m.querySelector('#ed-f-busca').value;
       filtro.orgao = m.querySelector('#ed-f-orgao').value;
       filtro.cargo = m.querySelector('#ed-f-cargo').value;
       filtro.estado = m.querySelector('#ed-f-estado').value;
+      editavelId = null;
+      btnCriar.disabled = true;
       listaEl.innerHTML = editaisListaHtml(filtro);
-      ligarBotoesPlanoEdital(listaEl);
+      ligarSelecao();
     }
+    btnCriar.addEventListener('click', function () {
+      if (!editavelId) return;
+      fecharModal();
+      criarPlanoDeEdital(editavelId);
+    });
     m.querySelector('#ed-f-busca').addEventListener('input', atualizar);
     ['#ed-f-orgao', '#ed-f-cargo', '#ed-f-estado'].forEach(function (sel) {
       m.querySelector(sel).addEventListener('change', atualizar);
@@ -2356,16 +2376,7 @@
       atualizar();
     });
     m.querySelector('#ed-fechar').addEventListener('click', fecharModal);
-    ligarBotoesPlanoEdital(listaEl);
-  }
-
-  function ligarBotoesPlanoEdital(raiz) {
-    raiz.querySelectorAll('[data-ed-plano]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        fecharModal();
-        criarPlanoDeEdital(b.getAttribute('data-ed-plano'));
-      });
-    });
+    ligarSelecao();
   }
 
   // RN10 — cartão de check-in semanal + projeção de conclusão (burn-down do edital)

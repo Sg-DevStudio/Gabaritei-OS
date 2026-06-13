@@ -1260,6 +1260,11 @@ html[data-tema="escuro"] .mes-evento {
 /* ---- Modal de editais disponíveis (filtros + lista + empty state) ---- */
 .editais-filtros { display: flex; flex-direction: column; gap: 0.6rem; margin: 0.75rem 0 1rem; }
 .editais-filtros input[type="search"] { width: 100%; }
+.editais-filtros-selects { display: flex; gap: 0.4rem; }
+.editais-filtros-selects select { flex: 1; min-width: 0; font-size: 0.82rem; }
+.editais-filtros #ed-criar-plano { align-self: flex-start; }
+.catalogo-item { cursor: pointer; }
+.catalogo-item.selecionado { border-color: var(--caneta); background: var(--caneta-suave); }
 .editais-lista { display: flex; flex-direction: column; gap: 0; max-height: 52vh; overflow-y: auto; }
 .editais-vazio { padding: 1.5rem 1rem; text-align: center; }
 .edital-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.2rem 0; }
