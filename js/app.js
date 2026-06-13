@@ -2433,7 +2433,9 @@
       '<span class="checkin-rotulo">semanas até a meta</span></div></div>' +
       '<div class="barra checkin-barra"><span style="width:' + burn.pctConcluido + '%"></span></div>' +
       '<p class="checkin-projecao">' + projecao + '</p>' +
-      checkLinha + '</div>';
+      checkLinha +
+      '<div class="compact-actions" style="margin-top:0.6rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
+      '</div>';
   }
 
   function abrirConfiguracoesPlanejamento() {
@@ -2564,17 +2566,39 @@
     return (Number.isInteger(valor) ? String(valor) : String(valor).replace('.', ',')) + 'h na semana';
   }
 
+  // Gera o cronograma hierárquico. opcoes:
+  //   horasSemana, ordemAtaque ('edital'|'incidencia')
+  //   inicio        — segunda-feira da semana 1 (default: semana corrente)
+  //   semanaBase    — deslocamento na numeração das semanas (recálculo adaptativo)
+  //   concluidos    — Set de ids de tópicos já vencidos: saem da teoria e entram
+  //                   em manutenção/questões (Regra 4 + antecipação da Parte 3)
+  //   relatorio     — objeto preenchido com {teoriaTotal, teoriaAgendada} para
+  //                   o chamador detectar se a teoria coube no prazo
   function gerarCronogramaHierarquico(disciplinas, semanas, opcoes) {
     opcoes = opcoes || {};
     const horasSemana = opcoes.horasSemana || 20;
     const porIncidencia = opcoes.ordemAtaque === 'incidencia'; // Regra 2 — 80/20
-    const inicio = D.segundaDaSemana(D.hojeISO());
+    const inicio = opcoes.inicio || D.segundaDaSemana(D.hojeISO());
+    const semanaBase = opcoes.semanaBase || 0;
+    const concluidos = opcoes.concluidos || null;
+    const relatorio = opcoes.relatorio || {};
     const semanasCron = [];
     for (let i = 0; i < semanas; i++) {
-      semanasCron.push({ semana: i + 1, inicio: D.addDias(inicio, i * 7), blocos: [], marcos: [] });
+      semanasCron.push({ semana: semanaBase + i + 1, inicio: D.addDias(inicio, i * 7), blocos: [], marcos: [] });
     }
+    // tópicos já concluídos antes deste cálculo → modo manutenção (Regra 4)
+    const manutencao = [];
+    let teoriaTotal = 0, teoriaAgendada = 0;
     const docs = disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d, idx) {
-      const topicos = d.topicos.filter(function (t) { return !t.orfao; }).map(function (t, ordem) {
+      const naoOrfaos = d.topicos.filter(function (t) { return !t.orfao; });
+      if (concluidos) {
+        naoOrfaos.forEach(function (t) {
+          if (concluidos.has(t.id)) manutencao.push({ disciplina: d.id, topico: t.id, inc: t.incidencia_pct || 0 });
+        });
+      }
+      const topicos = naoOrfaos.filter(function (t) {
+        return !(concluidos && concluidos.has(t.id));
+      }).map(function (t, ordem) {
         const sugerida = t.semana_sugerida ? Math.max(1, Math.min(semanas, Math.round((t.semana_sugerida / 28) * semanas))) : ordem + 1;
         return { topico: t, ordem, sugerida };
       }).sort(function (a, b) {
@@ -2586,6 +2610,7 @@
         return a.sugerida - b.sugerida || (a.topico.prioridade || 2) - (b.topico.prioridade || 2) ||
           (b.topico.incidencia_pct || 0) - (a.topico.incidencia_pct || 0) || a.ordem - b.ordem;
       });
+      teoriaTotal += topicos.length;
       const incidencia = topicos.reduce(function (n, t) { return n + (t.topico.incidencia_pct || 0); }, 0);
       const prioridade = topicos.reduce(function (n, t) { return n + (4 - (t.topico.prioridade || 2)); }, 0);
       return {
@@ -2622,6 +2647,7 @@
         const item = d.topicos[d.cursor++];
         if (!item) return;
         const t = item.topico;
+        teoriaAgendada++;
         semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'teoria' });
         semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'questoes' });
         (estudadosPorSemana[s] = estudadosPorSemana[s] || []).push({ disciplina: d.disciplina.id, topico: t.id });
@@ -2632,10 +2658,21 @@
           semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
         });
       }
+      // Regra 4 — disciplinas antigas (já concluídas) entram em manutenção/questões,
+      // rotacionando pelos tópicos de maior incidência sem sobrecarregar a semana.
+      if (manutencao.length > 0 && s % 2 === 1) {
+        for (let k = 0; k < Math.min(2, manutencao.length); k++) {
+          const b = manutencao[(s + k) % manutencao.length];
+          semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
+        }
+        if (s === 1) semanasCron[0].marcos.push('Manutenção das disciplinas já vencidas');
+      }
       if (s > Math.round(semanas * 0.78) && s % 3 === 0) {
         semanasCron[s - 1].marcos.push('Simulado e revisão por questões');
       }
     }
+    relatorio.teoriaTotal = teoriaTotal;
+    relatorio.teoriaAgendada = teoriaAgendada;
     return semanasCron;
   }
 
@@ -2658,6 +2695,7 @@
     entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana };
     entrada.plano.ritmoAtivo = chave;
     entrada.plano.gerado_em = D.hojeISO();
+    entrada.plano.ultimaRecalcSemana = D.segundaDaSemana(D.hojeISO());
     window.Store.hidratar(state);
     sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
     salvar();
@@ -2667,6 +2705,87 @@
 
   function aplicarPlanosDuracaoAoAtivo(silencioso) {
     return aplicarPlanoDuracaoAoAtivo(6, null, silencioso);
+  }
+
+  // ---------- Parte 3 / Regra 6 — Recálculo adaptativo semanal ----------
+  // Reconstrói o cronograma das semanas a partir da atual com base no progresso
+  // REAL: tópicos já concluídos saem da teoria (a disciplina chega antes à
+  // manutenção → antecipação) e os pendentes são redistribuídos nas semanas que
+  // faltam. Se a teoria não couber no prazo, estende o prazo e a data de término.
+  // As semanas passadas ficam congeladas (histórico); blocos manuais da agenda
+  // são preservados. Retorna um resumo do que mudou (ou null se não se aplica).
+  function recalcularPlanoAdaptativo() {
+    const entrada = entradaPlanoAtivo();
+    if (!entrada || !entrada.plano || !entrada.plano.ritmos) return null;
+    const chave = entrada.plano.ritmoAtivo;
+    const ritmo = chave && entrada.plano.ritmos[chave];
+    if (!ritmo || !ritmo.semanas) return null;
+
+    const hoje = D.hojeISO();
+    const inicioPlano = D.segundaDaSemana(entrada.plano.gerado_em || hoje);
+    const inicioAtual = D.segundaDaSemana(hoje);
+    const semanasDecorridas = Math.max(0, Math.round(D.diffDias(inicioPlano, inicioAtual) / 7));
+    if (semanasDecorridas <= 0) return null; // plano ainda na 1ª semana: nada a refazer
+
+    entrada.cronogramas = entrada.cronogramas || {};
+    const cronAntigo = entrada.cronogramas[chave] || [];
+    const passadas = cronAntigo.filter(function (s) { return s.inicio < inicioAtual; }); // semanas finalizadas = histórico congelado
+
+    // tópicos já vencidos (teoria concluída ou dominados) — não voltam para a teoria
+    const concluidos = new Set();
+    entrada.disciplinas.forEach(function (d) {
+      if (d.id === 'ORF') return;
+      (d.topicos || []).forEach(function (t) {
+        if (!t.orfao && (t.status === 'teoria_concluida' || t.status === 'dominado')) concluidos.add(t.id);
+      });
+    });
+
+    const semanasAlvo = Math.max(1, ritmo.semanas - semanasDecorridas);
+    const ordem = entrada.plano.ordemAtaque || 'edital';
+    // tenta encaixar toda a teoria pendente; se não couber, estende o prazo
+    let semanasUsar = semanasAlvo, futuras, rel, tentativas = 0;
+    do {
+      rel = {};
+      futuras = gerarCronogramaHierarquico(entrada.disciplinas, semanasUsar, {
+        horasSemana: ritmo.h_semana, ordemAtaque: ordem,
+        inicio: inicioAtual, semanaBase: semanasDecorridas, concluidos: concluidos, relatorio: rel
+      });
+      if (rel.teoriaAgendada >= rel.teoriaTotal) break;
+      semanasUsar += 4; tentativas++;
+    } while (tentativas < 26);
+
+    const estendido = semanasUsar > semanasAlvo;
+    const semanasTotaisNovas = semanasDecorridas + semanasUsar;
+
+    entrada.cronogramas[chave] = passadas.concat(futuras);
+    if (estendido) {
+      ritmo.semanas = semanasTotaisNovas;
+      ritmo.meses = Math.round((semanasTotaisNovas / 4.345) * 10) / 10;
+    }
+    entrada.plano.ultimaRecalcSemana = inicioAtual;
+
+    window.Store.hidratar(state);
+    // regenera a agenda da semana atual em diante (preserva blocos manuais e o passado)
+    futuras.forEach(function (sem) { gerarBlocosSemanaAgenda(sem.inicio); });
+    salvar();
+    return { estendido: estendido, semanasTotais: semanasTotaisNovas, meses: ritmo.meses, semanasDecorridas: semanasDecorridas };
+  }
+
+  // dispara o recálculo no máximo uma vez por semana (toda segunda há um plano novo)
+  function verificarRecalculoSemanal() {
+    const entrada = entradaPlanoAtivo();
+    if (!entrada || !entrada.plano || !entrada.plano.ritmos || !entrada.plano.ritmoAtivo) return;
+    const inicioAtual = D.segundaDaSemana(D.hojeISO());
+    if (entrada.plano.ultimaRecalcSemana === inicioAtual) return; // já recalculado nesta semana
+    const r = recalcularPlanoAdaptativo();
+    if (!r) {
+      // marca a semana mesmo sem recálculo aplicável, para não reavaliar a cada render
+      entrada.plano.ultimaRecalcSemana = inicioAtual;
+      return;
+    }
+    toast(r.estendido
+      ? 'Plano recalculado: no seu ritmo o término foi ajustado para ~' + String(r.meses).replace('.', ',') + ' meses.'
+      : 'Plano da semana recalculado com base no seu progresso.', r.estendido ? 'erro' : 'sucesso');
   }
 
   function abrirGerarPlano() {
@@ -2977,32 +3096,82 @@
       }
       html += '</div>';
     } else {
-      // visão mensal compacta (planejamento do mês)
+      // visão mensal estilo Google: bolinhas com a cor de cada disciplina do dia.
+      // Tocar num dia abre a tela de detalhes daquele dia.
       const primeiroDia = mesRef + '-01';
       const iniGrade = D.segundaDaSemana(primeiroDia);
-      html += '<div class="mes-grid">' + DIAS_CURTOS.map(function (n) { return '<div class="mes-rotulo">' + n + '</div>'; }).join('');
+      html += '<div class="mes-grid mes-grid-pontos">' + DIAS_CURTOS.map(function (n) { return '<div class="mes-rotulo">' + n + '</div>'; }).join('');
       let cursor = iniGrade;
       for (let c = 0; c < 42; c++) {
         const noMes = cursor.slice(0, 7) === mesRef;
         if (c >= 35 && !noMes) break;
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; }).sort(function (a, b) {
-          return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; });
+        // uma bolinha por disciplina presente no dia (cor da disciplina), na ordem de entrada
+        const discsDia = [];
+        blocos.forEach(function (b) {
+          if (discsDia.indexOf(b.disciplinaId) < 0) discsDia.push(b.disciplinaId);
         });
-        html += '<div class="mes-celula' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') + '" data-vai-semana="' + esc(cursor) + '" role="button" tabindex="0">' +
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+        const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
+        const pontos = discsDia.slice(0, 5).map(function (id) {
+          const d = D.disciplinaPorId(state, id);
+          return '<span class="mes-ponto" style="background:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc(d ? d.nome : id) + '"></span>';
+        }).join('') + (discsDia.length > 5 ? '<span class="mes-ponto-mais">+' + (discsDia.length - 5) + '</span>' : '');
+        html += '<div class="mes-celula mes-celula-pontos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
+          (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
+          D.formatarDataBR(cursor) + (blocos.length ? ' — ' + blocos.length + ' blocos' : ' — sem blocos') + '">' +
           '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
-          (blocos.length > 0 ? '<div class="mes-eventos">' + blocos.slice(0, 3).map(function (b) {
-            const d = D.disciplinaPorId(state, b.disciplinaId);
-            const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
-            return '<div class="mes-evento' + (blocoAgendaConcluido(b) ? ' feito' : '') + '" style="--disc-cor:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc((d ? d.nome : b.disciplinaId) + (t ? ' · ' + t.nome : '')) + '">' +
-              '<span class="mes-evento-nome">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="mes-evento-hora">' + rotuloHorarioAgenda(b) + '</span></div>';
-          }).join('') + (blocos.length > 3 ? '<span class="mes-mais">Mais ' + (blocos.length - 3) + '</span>' : '') + '</div>' : '') +
+          (blocos.length > 0
+            ? '<div class="mes-pontos">' + pontos + '</div>' +
+              '<span class="mes-dia-total">' + D.formatarMin(totalMin) + '</span>'
+            : '') +
           '</div>';
         cursor = D.addDias(cursor, 1);
       }
-      html += '</div><p style="font-size:0.78rem;color:var(--grafite);margin-top:0.5rem">Toque em um dia para abrir a semana dele.</p>';
+      html += '</div><p style="font-size:0.78rem;color:var(--grafite);margin-top:0.5rem">Toque em um dia para ver os detalhes.</p>';
     }
     return html;
+  }
+
+  // Tela de detalhes de um dia (a partir da visão mensal estilo Google)
+  function abrirDetalhesDia(dataISO) {
+    const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === dataISO; }).sort(function (a, b) {
+      return (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id);
+    });
+    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+    const feitos = blocos.filter(blocoAgendaConcluido).length;
+    const ymd = dataISO.split('-').map(Number);
+    const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(ymd[0], ymd[1] - 1, ymd[2]).getDay()];
+    const listaHtml = blocos.length === 0
+      ? '<div class="estado-vazio" style="padding:1.5rem 0"><span class="bolha bolha-pendente"></span><strong>Nenhum bloco neste dia</strong>Adicione um bloco de estudo abaixo.</div>'
+      : '<div class="dia-detalhe-lista">' + blocos.map(function (b) {
+          const d = D.disciplinaPorId(state, b.disciplinaId);
+          const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+          const concluido = blocoAgendaConcluido(b);
+          const tipo = b.obs === 'questoes' ? 'Questões' : b.obs === 'revisao' ? 'Revisão' : b.obs === 'teoria' ? 'Teoria' : (b.obs || '');
+          return '<button class="dia-detalhe-item' + (concluido ? ' feito' : '') + '" data-dia-bloco="' + esc(b.id) + '" style="--disc-cor:' + esc(d ? d.cor : '#9A9DA3') + '">' +
+            '<span class="dia-detalhe-cor" style="background:' + esc(d ? d.cor : '#9A9DA3') + '"></span>' +
+            '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + esc(d ? d.nome : b.disciplinaId) + (concluido ? ' ✓' : '') + '</span>' +
+            '<span class="dia-detalhe-sub">' + D.formatarMin(b.duracaoMin || 0) + (tipo ? ' · ' + esc(tipo) : '') + (t ? ' · ' + esc(t.nome) : '') + '</span></span>' +
+            '<span class="dia-detalhe-seta">›</span></button>';
+        }).join('') + '</div>';
+    const m = abrirModal(
+      '<div class="dia-detalhe-cab"><div><h3>' + D.formatarDataBR(dataISO) + '</h3>' +
+      '<p class="sub">' + diaSemana + (blocos.length ? ' · ' + blocos.length + ' blocos · ' + D.formatarMin(totalMin) + ' · ' + feitos + '/' + blocos.length + ' feitos' : ' · dia livre') + '</p></div></div>' +
+      listaHtml +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="dd-semana">Abrir semana</button>' +
+      '<button type="button" class="botao" id="dd-add">+ Adicionar bloco</button></div>'
+    );
+    m.querySelectorAll('[data-dia-bloco]').forEach(function (el) {
+      el.addEventListener('click', function () { fecharModal(); abrirBlocoAgenda(el.getAttribute('data-dia-bloco')); });
+    });
+    m.querySelector('#dd-add').addEventListener('click', function () { fecharModal(); abrirNovoBlocoAgenda(dataISO); });
+    m.querySelector('#dd-semana').addEventListener('click', function () {
+      fecharModal();
+      agendaRef = D.segundaDaSemana(dataISO);
+      agendaModo = 'semana';
+      render();
+    });
   }
 
   function ligarPlanejamento(raiz) {
@@ -3044,6 +3213,15 @@
     const acaoExcluir = raiz.querySelector('#pl-acao-excluir');
     if (acaoExcluir) acaoExcluir.addEventListener('click', function () {
       if (state.planoAtivoId) excluirPlano(state.planoAtivoId, true);
+    });
+    const recalcular = raiz.querySelector('#pl-recalcular');
+    if (recalcular) recalcular.addEventListener('click', function () {
+      const r = recalcularPlanoAdaptativo();
+      if (!r) { toast('Nada a recalcular ainda — o plano está na primeira semana.', 'erro'); return; }
+      render();
+      toast(r.estendido
+        ? 'Plano recalculado: término ajustado para ~' + String(r.meses).replace('.', ',') + ' meses no seu ritmo.'
+        : 'Plano recalculado com base no seu progresso real.', r.estendido ? 'erro' : 'sucesso');
     });
 
     // navegação do calendário (semana/mês)
@@ -3112,15 +3290,11 @@
       });
     });
 
-    // visão mensal: clicar num dia abre a semana dele
-    raiz.querySelectorAll('[data-vai-semana]').forEach(function (cel) {
-      const abrir = function () {
-        agendaRef = D.segundaDaSemana(cel.getAttribute('data-vai-semana'));
-        agendaModo = 'semana';
-        render();
-      };
+    // visão mensal: clicar num dia abre a tela de detalhes daquele dia
+    raiz.querySelectorAll('[data-dia-detalhe]').forEach(function (cel) {
+      const abrir = function () { abrirDetalhesDia(cel.getAttribute('data-dia-detalhe')); };
       cel.addEventListener('click', abrir);
-      cel.addEventListener('keydown', function (e) { if (e.key === 'Enter') abrir(); });
+      cel.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); abrir(); } });
     });
 
     // arrastar e soltar por toque (mobile), sem quebrar o scroll nativo
@@ -3572,6 +3746,7 @@
 
   function render() {
     aplicarTema();
+    verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
