@@ -819,22 +819,39 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   text-align: center;
   text-align-last: center;
   border: none !important;
-  background: transparent !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-radius: 999px;
   color: #fff !important;
   font-size: 1.34rem;
   font-weight: 800;
-  padding: 0.15rem 1.4rem;
+  padding: 0.2rem 1.4rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.timer-disc-select:hover { background: rgba(255, 255, 255, 0.12) !important; }
+/* lista suspensa legível: sem isto o navegador desenha texto branco sobre fundo branco no PC */
+.timer-disc-select option,
+.tela-timer select option {
+  color: var(--tinta);
+  background: var(--papel-card);
+  font-weight: 600;
 }
 .timer-assunto-btn {
-  min-height: 34px;
-  padding: 0.2rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 32px;
+  padding: 0.25rem 0.85rem;
   background: transparent;
-  border: none;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 999px;
   box-shadow: none;
-  color: #fff;
+  color: rgba(255,255,255,.82);
   font-weight: 500;
+  font-size: 0.86rem;
 }
-.timer-assunto-btn:hover { background: rgba(255,255,255,.08); box-shadow: none; }
+.timer-assunto-btn:hover { background: rgba(255,255,255,.1); box-shadow: none; color: #fff; }
+.timer-assunto-caret { font-size: 0.78rem; opacity: 0.75; }
 .timer-assunto-escolhido { min-height: 1.2em; color: rgba(255,255,255,.72); font-size: 0.86rem; }
 .timer-modos-wrap { margin-top: 0.85rem; }
 .timer-topico-ativo { color: #B9BBC1; font-size: 0.92rem; }

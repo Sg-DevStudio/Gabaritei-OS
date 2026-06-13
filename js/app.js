@@ -939,7 +939,7 @@
       }).join('');
       selecao =
         '<div class="timer-disciplina-topo"><select id="timer-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
-        '<button type="button" class="timer-assunto-btn" id="timer-assunto-btn">Adicionar assunto (Opcional)⌄</button>' +
+        '<button type="button" class="timer-assunto-btn" id="timer-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +
         '<input type="hidden" id="timer-topico" value="' + esc(timerPreselecao || '') + '">' +
         '<div class="timer-assunto-escolhido" id="timer-assunto-escolhido"></div></div>' +
         '<div class="timer-modos-wrap"><span class="seletor-modo">' +
@@ -959,9 +959,10 @@
       selecao +
       '<div class="timer-relogio-frame">' +
       '<svg class="timer-clock-svg" viewBox="0 0 300 300" aria-hidden="true">' +
-      '<circle cx="150" cy="150" r="136" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="16"/>' +
-      '<path d="M132 106 L132 194 L204 150 Z" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round"/>' +
-      '<line id="timer-hand" x1="150" y1="150" x2="150" y2="30" stroke="rgba(255,255,255,.9)" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="150" cy="150" r="138" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="5"/>' +
+      '<g stroke="rgba(255,255,255,.85)">' + ticksSvg + '</g>' +
+      '<line id="timer-hand" x1="150" y1="150" x2="150" y2="34" stroke="rgba(255,255,255,.92)" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="150" cy="150" r="5" fill="rgba(255,255,255,.92)"/>' +
       '</svg>' +
       '<div class="timer-display" id="timer-display">' + tempoIni + '</div>' +
       '</div>' +
