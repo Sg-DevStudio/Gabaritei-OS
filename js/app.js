@@ -3389,9 +3389,9 @@
     const emBranco = m.querySelector('#pl-em-branco-2');
     if (emBranco) emBranco.addEventListener('click', function () { fecharModal(); criarPlanoManualComPrompt(); });
     const excluir = m.querySelector('#cfg-excluir-plano');
-    if (excluir) excluir.addEventListener('click', function () {
+    if (excluir) excluir.addEventListener('click', async function () {
       const id = state.planoAtivoId;
-      if (id && excluirPlano(id, true)) fecharModal();
+      if (id && await excluirPlano(id, true)) fecharModal();
     });
   }
 
@@ -3418,13 +3418,14 @@
     return item && (item.planoId === planoId || (!item.planoId && state.planoAtivoId === planoId));
   }
 
-  function excluirPlano(planoId, limparHistorico) {
+  async function excluirPlano(planoId, limparHistorico) {
     const p = state.planos.find(function (x) { return x.id === planoId; });
     if (!p) return false;
     const msg = limparHistorico
       ? 'Excluir o plano "' + p.plano.concurso + '" e também sessões, revisões, simulados e agenda dele?'
       : 'Excluir o plano "' + p.plano.concurso + '"? As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
     if (!confirm(msg)) return false;
+    const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
     if (limparHistorico) {
       state.sessoes = state.sessoes.filter(function (s) { return !pertenceAoPlano(s, planoId); });
       state.revisoes = state.revisoes.filter(function (r) { return !pertenceAoPlano(r, planoId); });
@@ -3435,7 +3436,9 @@
     editalAbertas = new Set();
     salvar();
     render();
-    toast('Plano excluído' + (limparHistorico ? ' com os dados vinculados' : ''), 'sucesso');
+    toast('Plano excluído' + (limparHistorico ? ' com os dados vinculados' : '') +
+      (calendar.removidos ? ' e Calendar limpo' : '') +
+      (calendar.pendentes ? ' · Calendar pendente de autorizacao' : ''), calendar.pendentes ? 'erro' : 'sucesso');
     return true;
   }
 
@@ -4003,7 +4006,7 @@
       '<div class="agenda-nav">' +
       '<button class="botao-mini ' + (agendaModo === 'semana' ? '' : 'botao-quieto') + '" data-modo-ag="semana">Semanal</button>' +
       '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button>' +
-      '<button class="botao-mini botao-quieto" id="pl-exportar-ics" title="Exportar blocos e revisões para Google Calendar, Apple ou Outlook">📅 Calendário</button></div></div>';
+      '<button class="botao-mini botao-quieto" id="pl-sync-calendar" title="Sincronizar a semana aberta com o Google Calendar">↻ Sincronizar semana</button></div></div>';
 
     if (agendaModo === 'semana') {
       html += '<div class="agenda-grid">';
@@ -4136,8 +4139,8 @@
     const acaoPerfil = raiz.querySelector('#pl-acao-perfil');
     if (acaoPerfil) acaoPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
     const acaoExcluir = raiz.querySelector('#pl-acao-excluir');
-    if (acaoExcluir) acaoExcluir.addEventListener('click', function () {
-      if (state.planoAtivoId) excluirPlano(state.planoAtivoId, true);
+    if (acaoExcluir) acaoExcluir.addEventListener('click', async function () {
+      if (state.planoAtivoId) await excluirPlano(state.planoAtivoId, true);
     });
     const recalcular = raiz.querySelector('#pl-recalcular');
     if (recalcular) recalcular.addEventListener('click', function () {
@@ -4174,8 +4177,16 @@
       mesRef = D.hojeISO().slice(0, 7);
       render();
     });
-    const exportarIcsBtn = raiz.querySelector('#pl-exportar-ics');
-    if (exportarIcsBtn) exportarIcsBtn.addEventListener('click', abrirExportarCalendario);
+    const syncCalendarBtn = raiz.querySelector('#pl-sync-calendar');
+    if (syncCalendarBtn) syncCalendarBtn.addEventListener('click', function () {
+      syncCalendarBtn.disabled = true;
+      sincronizarGoogleCalendarSemana().catch(function (e) {
+        console.warn('Falha ao sincronizar Google Calendar', e);
+        toast('Nao consegui sincronizar o Google Calendar: ' + e.message, 'erro');
+      }).finally(function () {
+        syncCalendarBtn.disabled = false;
+      });
+    });
     raiz.querySelectorAll('[data-modo-ag]').forEach(function (b) {
       b.addEventListener('click', function () { agendaModo = b.getAttribute('data-modo-ag'); render(); });
     });
@@ -4549,6 +4560,258 @@
     render();
     const extra = r.pendentes > 0 ? ' · ' + D.formatarMin(r.pendentes) + ' ficaram sem encaixe' : '';
     toast('Semana ' + r.semana.semana + ' gerada respeitando sua rotina' + extra, r.pendentes > 0 ? 'erro' : 'sucesso');
+  }
+
+  // ================= Sincronizacao semanal com Google Calendar =================
+  const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+
+  function googleCalendarConfig() {
+    if (!state.config.googleCalendar) state.config.googleCalendar = { clientId: '', calendarId: 'primary', eventos: {} };
+    if (!state.config.googleCalendar.calendarId) state.config.googleCalendar.calendarId = 'primary';
+    if (!state.config.googleCalendar.eventos) state.config.googleCalendar.eventos = {};
+    return state.config.googleCalendar;
+  }
+
+  function googleCalendarEventos() {
+    return googleCalendarConfig().eventos;
+  }
+
+  function fusoHorarioLocal() {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo'; }
+    catch (e) { return 'America/Sao_Paulo'; }
+  }
+
+  function obterTokenGoogleCalendar() {
+    const cfg = googleCalendarConfig();
+    if (!cfg.clientId) {
+      toast('Informe o Client ID OAuth em Configuracoes > Google Calendar.', 'erro');
+      if (location.hash !== '#ajustes') location.hash = '#ajustes';
+      return Promise.reject(new Error('Client ID OAuth ausente'));
+    }
+    if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+      toast('Google Identity ainda esta carregando. Tente de novo em alguns segundos.', 'erro');
+      return Promise.reject(new Error('Google Identity indisponivel'));
+    }
+    if (googleCalendarToken && googleCalendarToken.expiraEm > Date.now() + 60000) {
+      return Promise.resolve(googleCalendarToken.accessToken);
+    }
+    return new Promise(function (resolve, reject) {
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: cfg.clientId,
+        scope: GOOGLE_CALENDAR_SCOPE,
+        callback: function (resp) {
+          if (!resp || resp.error) {
+            reject(new Error(resp && resp.error ? resp.error : 'Autorizacao cancelada'));
+            return;
+          }
+          googleCalendarToken = {
+            accessToken: resp.access_token,
+            expiraEm: Date.now() + ((parseInt(resp.expires_in, 10) || 3600) * 1000)
+          };
+          resolve(googleCalendarToken.accessToken);
+        }
+      });
+      try {
+        tokenClient.requestAccessToken({ prompt: googleCalendarToken ? '' : 'consent' });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  async function googleCalendarRequest(token, path, opcoes) {
+    opcoes = opcoes || {};
+    const headers = Object.assign({
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/json'
+    }, opcoes.headers || {});
+    if (opcoes.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    const resp = await fetch('https://www.googleapis.com/calendar/v3' + path, Object.assign({}, opcoes, { headers: headers }));
+    let dados = null;
+    if (resp.status !== 204) {
+      const texto = await resp.text();
+      if (texto) {
+        try { dados = JSON.parse(texto); } catch (e) { dados = { message: texto }; }
+      }
+    }
+    if (!resp.ok) {
+      const erro = new Error((dados && dados.error && dados.error.message) || (dados && dados.message) || ('HTTP ' + resp.status));
+      erro.status = resp.status;
+      throw erro;
+    }
+    return dados;
+  }
+
+  function calendarPathEventos(sufixo) {
+    const calId = encodeURIComponent(googleCalendarConfig().calendarId || 'primary');
+    return '/calendars/' + calId + '/events' + (sufixo || '');
+  }
+
+  function intervaloBlocoCalendar(bloco, cursores) {
+    const dur = Math.max(5, bloco.duracaoMin || 60);
+    let iniMin;
+    if (bloco.horaInicio) iniMin = hhmmParaMin(bloco.horaInicio);
+    else iniMin = cursores[bloco.data] == null ? 480 : cursores[bloco.data];
+    const fimMin = iniMin + dur;
+    cursores[bloco.data] = fimMin;
+    return { inicio: minParaHHMM(iniMin), fim: minParaHHMM(fimMin) };
+  }
+
+  function eventoCalendarDoBloco(bloco, cursores, semanaInicio) {
+    const d = D.disciplinaPorId(state, bloco.disciplinaId);
+    const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
+    const h = intervaloBlocoCalendar(bloco, cursores);
+    const tz = fusoHorarioLocal();
+    const partesDesc = [
+      state.plano ? state.plano.concurso : '',
+      t ? 'Topico: ' + t.nome : '',
+      bloco.obs ? 'Observacao: ' + bloco.obs : '',
+      'Sincronizado pelo Gabaritei OS'
+    ].filter(Boolean);
+    return {
+      uid: 'agd:' + bloco.id,
+      planoId: bloco.planoId || state.planoAtivoId || '',
+      semanaInicio: semanaInicio,
+      tipo: 'agenda',
+      payload: {
+        summary: 'Estudo: ' + (d ? d.nome : bloco.disciplinaId),
+        description: partesDesc.join('\n'),
+        start: { dateTime: bloco.data + 'T' + h.inicio + ':00', timeZone: tz },
+        end: { dateTime: bloco.data + 'T' + h.fim + ':00', timeZone: tz },
+        reminders: { useDefault: true },
+        extendedProperties: { private: { gabaritei: '1', tipo: 'agenda', planoId: bloco.planoId || state.planoAtivoId || '', localId: bloco.id } }
+      }
+    };
+  }
+
+  function eventoCalendarDaRevisao(revisao, semanaInicio) {
+    const t = D.topicoPorId(state, revisao.topicoId);
+    const d = D.disciplinaDoTopico(state, revisao.topicoId);
+    return {
+      uid: 'rev:' + revisao.id,
+      planoId: revisao.planoId || state.planoAtivoId || '',
+      semanaInicio: semanaInicio,
+      tipo: 'revisao',
+      payload: {
+        summary: 'Revisao ' + revisao.tipo + ': ' + (t ? t.nome : revisao.topicoId),
+        description: [d ? d.nome : '', state.plano ? state.plano.concurso : '', 'Sincronizado pelo Gabaritei OS'].filter(Boolean).join('\n'),
+        start: { date: revisao.dataAgendada },
+        end: { date: D.addDias(revisao.dataAgendada, 1) },
+        reminders: { useDefault: true },
+        extendedProperties: { private: { gabaritei: '1', tipo: 'revisao', planoId: revisao.planoId || state.planoAtivoId || '', localId: revisao.id } }
+      }
+    };
+  }
+
+  function eventosCalendarDaSemana(semanaInicio) {
+    const fim = D.addDias(semanaInicio, 7);
+    const cursores = {};
+    const blocos = doAtivo(state.agenda)
+      .filter(function (a) { return a.data >= semanaInicio && a.data < fim; })
+      .sort(compararAgenda);
+    const eventos = blocos.map(function (b) { return eventoCalendarDoBloco(b, cursores, semanaInicio); });
+    doAtivo(state.revisoes)
+      .filter(function (r) { return !r.dataConcluida && r.dataAgendada >= semanaInicio && r.dataAgendada < fim && D.topicoPorId(state, r.topicoId); })
+      .forEach(function (r) { eventos.push(eventoCalendarDaRevisao(r, semanaInicio)); });
+    return eventos;
+  }
+
+  async function inserirEventoGoogleCalendar(token, item) {
+    return googleCalendarRequest(token, calendarPathEventos('?sendUpdates=none'), {
+      method: 'POST',
+      body: JSON.stringify(item.payload)
+    });
+  }
+
+  async function atualizarEventoGoogleCalendar(token, eventId, item) {
+    return googleCalendarRequest(token, calendarPathEventos('/' + encodeURIComponent(eventId) + '?sendUpdates=none'), {
+      method: 'PUT',
+      body: JSON.stringify(item.payload)
+    });
+  }
+
+  async function excluirEventoGoogleCalendar(token, eventId) {
+    try {
+      await googleCalendarRequest(token, calendarPathEventos('/' + encodeURIComponent(eventId) + '?sendUpdates=none'), { method: 'DELETE' });
+    } catch (e) {
+      if (e.status !== 404 && e.status !== 410) throw e;
+    }
+  }
+
+  async function upsertEventoGoogleCalendar(token, item) {
+    const mapa = googleCalendarEventos();
+    const existente = mapa[item.uid];
+    let salvo;
+    if (existente && existente.eventId) {
+      try {
+        salvo = await atualizarEventoGoogleCalendar(token, existente.eventId, item);
+      } catch (e) {
+        if (e.status !== 404 && e.status !== 410) throw e;
+      }
+    }
+    if (!salvo) salvo = await inserirEventoGoogleCalendar(token, item);
+    mapa[item.uid] = {
+      eventId: salvo.id,
+      htmlLink: salvo.htmlLink || '',
+      planoId: item.planoId,
+      semanaInicio: item.semanaInicio,
+      tipo: item.tipo,
+      atualizadoEm: new Date().toISOString()
+    };
+    return salvo;
+  }
+
+  async function sincronizarGoogleCalendarSemana() {
+    if (!state.planoAtivoId) { toast('Escolha um plano antes de sincronizar o Calendar.', 'erro'); return; }
+    const inicioAlvo = agendaModo === 'semana' ? agendaRef : D.segundaDaSemana(D.hojeISO());
+    if (inicioAlvo === D.segundaDaSemana(D.hojeISO())) verificarRecalculoSemanal();
+    const gerada = gerarBlocosSemanaAgenda(inicioAlvo);
+    const semanaInicio = gerada && gerada.inicio ? gerada.inicio : inicioAlvo;
+    const eventos = eventosCalendarDaSemana(semanaInicio);
+    if (eventos.length === 0) { toast('Nada nesta semana para sincronizar.', 'erro'); return; }
+    const token = await obterTokenGoogleCalendar();
+    const mapa = googleCalendarEventos();
+    const ativos = new Set(eventos.map(function (e) { return e.uid; }));
+    const antigos = Object.keys(mapa).filter(function (uid) {
+      const info = mapa[uid];
+      return info && info.planoId === state.planoAtivoId && info.semanaInicio === semanaInicio && !ativos.has(uid);
+    });
+    let removidos = 0, salvos = 0;
+    for (const uid of antigos) {
+      if (mapa[uid] && mapa[uid].eventId) await excluirEventoGoogleCalendar(token, mapa[uid].eventId);
+      delete mapa[uid];
+      removidos++;
+    }
+    for (const item of eventos) {
+      await upsertEventoGoogleCalendar(token, item);
+      salvos++;
+    }
+    salvar();
+    agendaRef = semanaInicio;
+    agendaModo = 'semana';
+    render();
+    toast('Google Calendar sincronizado: ' + salvos + ' eventos' + (removidos ? ' · ' + removidos + ' removidos' : ''), 'sucesso');
+  }
+
+  async function excluirEventosPlanoGoogleCalendar(planoId) {
+    const mapa = googleCalendarEventos();
+    const uids = Object.keys(mapa).filter(function (uid) { return mapa[uid] && mapa[uid].planoId === planoId; });
+    if (uids.length === 0) return { removidos: 0, pendentes: 0 };
+    const cfg = googleCalendarConfig();
+    if (!cfg.clientId) return { removidos: 0, pendentes: uids.length };
+    try {
+      const token = await obterTokenGoogleCalendar();
+      let removidos = 0;
+      for (const uid of uids) {
+        if (mapa[uid] && mapa[uid].eventId) await excluirEventoGoogleCalendar(token, mapa[uid].eventId);
+        delete mapa[uid];
+        removidos++;
+      }
+      return { removidos: removidos, pendentes: 0 };
+    } catch (e) {
+      console.warn('Falha ao limpar eventos do Google Calendar', e);
+      return { removidos: 0, pendentes: uids.length };
+    }
   }
 
   // ================= Exportar para o calendário (.ics) =================
