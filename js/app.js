@@ -2311,7 +2311,7 @@
 
   function abrirEditaisDisponiveis() {
     garantirEditaisMock();
-    const filtro = { orgao: 'TRF3', cargo: 'Técnico Judiciário - Área Administrativa', estado: 'SP', busca: '' };
+    const filtro = { orgao: '', cargo: '', estado: '', busca: '' };
     function opcoes(campo, rotulo, selecionado) {
       return '<option value="">' + rotulo + '</option>' +
         valoresUnicosEditais(campo).map(function (v) {
@@ -2584,7 +2584,7 @@
             (a.topico.prioridade || 2) - (b.topico.prioridade || 2) || a.sugerida - b.sugerida || a.ordem - b.ordem;
         }
         return a.sugerida - b.sugerida || (a.topico.prioridade || 2) - (b.topico.prioridade || 2) ||
-          b.topico.incidencia_pct - a.topico.incidencia_pct || a.ordem - b.ordem;
+          (b.topico.incidencia_pct || 0) - (a.topico.incidencia_pct || 0) || a.ordem - b.ordem;
       });
       const incidencia = topicos.reduce(function (n, t) { return n + (t.topico.incidencia_pct || 0); }, 0);
       const prioridade = topicos.reduce(function (n, t) { return n + (4 - (t.topico.prioridade || 2)); }, 0);
