@@ -1014,6 +1014,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .frase-dia {
   font-size: 0.88rem;
   color: var(--tinta);
+  border: 1px solid var(--linha);
   border-left: 3px solid var(--caneta);
   padding: 0.7rem 0.95rem;
   margin: 0.6rem 0 0.9rem;
