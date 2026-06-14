@@ -840,15 +840,20 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 /* Card "Data provável" independente: topo (desktop) ou card próprio (mobile) */
 .prova-card-solo { margin: 0; }
 .home-cab { margin-bottom: 0.5rem; }
+.home-cab-esq { min-width: 0; }
+.home-cab-esq .frase-dia { margin-top: 0.9rem; }
 /* base (mobile): mostra a versão em card; esconde a do topo */
 .home-cab-prova { display: none; }
 .prova-card-mobile { display: block; margin-bottom: 0.9rem; }
 @media (min-width: 761px) {
-  /* desktop: saudação no topo à esquerda (como antes) e a data provável como
-     conteúdo "solto" (sem moldura de card) no canto superior direito */
-  .home-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
-  .home-cab .cab-home { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
-  .home-cab-prova { display: block; flex: 0 0 auto; width: auto; }
+  /* desktop: saudação + frase do dia à esquerda; data provável como conteúdo
+     "solto" (sem moldura de card) no canto superior direito. A frase sobe e
+     ocupa o vão do meio, terminando junto ao pé do card de data provável. */
+  .home-cab { display: flex; align-items: stretch; justify-content: space-between; gap: 1.5rem; }
+  .home-cab-esq { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+  .home-cab-esq .cab-home { margin-bottom: 0; }
+  .home-cab-esq .frase-dia { margin-top: 0.9rem; flex: 1 1 auto; display: flex; align-items: center; }
+  .home-cab-prova { display: flex; align-items: flex-start; justify-content: flex-end; flex: 0 0 auto; width: auto; }
   .home-cab-prova .prova-card-solo {
     background: transparent; border: 0; box-shadow: none; padding: 0; margin: 0;
     transform: scale(0.92); transform-origin: top right;
@@ -856,6 +861,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   .home-cab-prova .prova-card-solo:hover { transform: scale(0.92); box-shadow: none; }
   .prova-card-mobile { display: none; }
 }
+
+/* Evita rolagem horizontal indesejada em telas menores (clip não cria
+   container de rolagem nem afeta o eixo vertical, ao contrário de hidden) */
+#conteudo { overflow-x: clip; }
 
 .prova-status-pill {
   display: inline-flex;
@@ -1943,9 +1952,20 @@ td.num, th.num { text-align: right; }
 .agenda-bloco-arrasto { color: var(--grafite); font-size: 0.85rem; line-height: 1.1; cursor: grab; flex: 0 0 auto; opacity: 0.7; }
 .agenda-bloco-texto { min-width: 0; flex: 1; }
 .agenda-bloco .agenda-bloco-sub { display: block; font-weight: 500; font-size: 0.7rem; color: var(--grafite); }
+.agenda-bloco-titulo { display: block; overflow: hidden; text-overflow: ellipsis; }
 /* indicador de inserção ao reordenar (soltar antes deste bloco) */
 .agenda-bloco.drop-antes { box-shadow: inset 0 3px 0 var(--caneta); }
 .agenda-bloco.feito { opacity: 0.55; }
+
+/* Em monitores menores (mas ainda desktop), a semana cabe melhor mostrando
+   só o nome da disciplina. O detalhe (horário, tópico) sai da grade e fica
+   no tooltip do bloco e no modal aberto ao clicar. */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .agenda-bloco { font-size: 0.74rem; padding: 0.28rem 0.4rem; }
+  .agenda-bloco .agenda-bloco-sub { display: none; }
+  .agenda-bloco .agenda-bloco-titulo { white-space: nowrap; }
+  .agenda-bloco-arrasto { display: none; }
+}
 .agenda-bloco.feito .agenda-bloco-titulo,
 .agenda-bloco.feito .agenda-bloco-sub { text-decoration: line-through; }
 

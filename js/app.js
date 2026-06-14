@@ -1137,14 +1137,19 @@
     // acima do mapa de constância (mantém a posição atual). Renderizamos as duas
     // variantes e o CSS mostra a adequada a cada tela.
     const provaCard = state.plano ? '<div class="card prova-card prova-card-solo">' + provaEstimadaConteudoHtml() + '</div>' : '';
+    const fraseHtml = '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
 
+    // Coluna esquerda (saudação + frase do dia) ao lado do card de data provável.
+    // No desktop a frase sobe para preencher o vão do meio; no mobile tudo empilha.
     let html = '<div class="home-cab">' +
+      '<div class="home-cab-esq">' +
       '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacaoCompleta(saudacao) + '</h1>' +
       '<p class="sub">' + resumoDia + '</p></div></div>' +
+      fraseHtml +
+      '</div>' +
       (provaCard ? '<div class="home-cab-prova">' + provaCard + '</div>' : '') +
       '</div>';
 
-    html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
     html += linksApoioHojeHtml();
 
     // versão mobile do card de data provável (acima do mapa de constância)
@@ -4354,6 +4359,8 @@
     const cargaRotulo = temReal ? 'Carga horária real / semana' : 'Carga horária planejada / semana';
 
     // Prévia da semana corrente — o aluno antecipa, no último dia, se vai fechar.
+    // Quando o plano foi gerado nesta semana, mostramos só um marcador discreto
+    // (badge) e movemos a explicação completa para um tooltip do card inteiro.
     let semanaAtualLinha = '';
     if (planSemana > 0) {
       const ok = restanteSemana <= 0.1;
@@ -4362,9 +4369,7 @@
       const classe = apertou ? 'alerta' : (ok ? 'ok' : '');
       let msg;
       if (planoNovoEstaSemana) {
-        // A agenda já preenche a semana atual; o acompanhamento (e o recálculo
-        // automático) passa a valer a partir da próxima segunda.
-        msg = 'plano recém-gerado — a semana já está planejada; o acompanhamento começa na próxima segunda.';
+        msg = 'semana já planejada — passe o mouse no card para entender.';
       } else if (ok) {
         msg = 'meta da semana batida 👏';
       } else if (apertou) {
@@ -4393,7 +4398,10 @@
             ? 'superávit de ' + check.saldo + 'h — carga futura aliviada'
             : 'na meta 👏') + '</span></div>';
     }
-    return '<div class="card checkin-card checkin-' + sit.classe + '">' +
+    const dicaCard = planoNovoEstaSemana
+      ? 'Plano recém-gerado: a semana atual já está toda planejada na agenda. O acompanhamento (e o recálculo automático) começa na próxima segunda.'
+      : '';
+    return '<div class="card checkin-card checkin-' + sit.classe + '"' + (dicaCard ? ' title="' + esc(dicaCard) + '"' : '') + '>' +
       '<div class="checkin-head"><div class="card-kpi-rotulo">Check-in semanal</div>' +
       '<span class="checkin-badge checkin-badge-' + sit.classe + '">' + sit.icone + ' ' + sit.rotulo + '</span></div>' +
       '<div class="checkin-grid checkin-grid-2">' +
@@ -5241,10 +5249,15 @@
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
             const concluido = blocoAgendaConcluido(b);
-            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
+            const sub = rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '');
+            // No modo compacto (telas estreitas) só o título aparece; o detalhe
+            // completo vai no title do bloco e fica acessível ao clicar/passar
+            // o mouse, evitando que a grade da semana fique muito carregada.
+            const dica = (d ? d.nome : b.disciplinaId) + ' · ' + (rotuloHorarioAgenda(b) + (t ? ' · ' + t.nome : '') + (concluido ? ' · feito ✓' : ''));
+            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0" title="' + esc(dica) + '">' +
               '<span class="agenda-bloco-arrasto" aria-hidden="true">⠿</span>' +
               '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></span></div>';
+              '<span class="agenda-bloco-sub">' + sub + '</span></span></div>';
           }).join('') +
           '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
       }
@@ -6320,9 +6333,6 @@
     document.querySelectorAll('[data-rota]').forEach(function (el) {
       el.classList.toggle('ativo', el.getAttribute('data-rota') === rota);
     });
-    const concurso = document.getElementById('sidebar-concurso');
-    if (concurso) concurso.textContent = state.plano ? state.plano.concurso : 'Nenhum plano importado';
-
     const nVencidas = doAtivo(state.revisoes).filter(function (r) {
       return !r.dataConcluida && r.dataAgendada <= D.hojeISO() && D.topicoPorId(state, r.topicoId);
     }).length;
