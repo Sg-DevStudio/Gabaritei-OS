@@ -5095,33 +5095,70 @@
       const cfg = rotina.dias[d.id];
       return { data: D.addDias(ini, d.offset), restante: cfg.minutos || 0 };
     });
+    function colocar(slot, disciplina, bloco, dur) {
+      const topico = bloco.topico ? D.topicoPorId(state, bloco.topico) : null;
+      const obj = {
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
+        data: slot.data, disciplinaId: disciplina.id,
+        topicoId: bloco.topico || null,
+        duracaoMin: dur,
+        obs: bloco.tipo === 'teoria' ? 'teoria' : bloco.tipo,
+        feito: topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
+        gerado: true
+      };
+      state.agenda.push(obj);
+      slot.ultimoBloco = obj;
+      return obj;
+    }
+
     let slotIdx = 0;
     let pendentes = 0;
     tarefas.forEach(function (tarefa) {
       while (slotIdx < slots.length && slots[slotIdx].restante < Math.min(minBloco, tarefa.duracaoMin)) slotIdx++;
       if (slotIdx >= slots.length) { pendentes += tarefa.duracaoMin; return; }
-      const slot = slots[slotIdx];
+      let slot = slots[slotIdx];
       if (tarefa.duracaoMin > slot.restante && slot.restante >= minBloco) {
         pendentes += tarefa.duracaoMin - slot.restante;
         tarefa.duracaoMin = slot.restante;
       } else if (tarefa.duracaoMin > slot.restante) {
         slotIdx++;
         if (slotIdx >= slots.length || tarefa.duracaoMin > slots[slotIdx].restante) { pendentes += tarefa.duracaoMin; return; }
+        slot = slots[slotIdx];
       }
-      const alvo = slots[slotIdx];
-      const topico = tarefa.bloco.topico ? D.topicoPorId(state, tarefa.bloco.topico) : null;
-      state.agenda.push({
-        id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
-        data: alvo.data, disciplinaId: tarefa.disciplina.id,
-        topicoId: tarefa.bloco.topico || null,
-        duracaoMin: tarefa.duracaoMin,
-        obs: tarefa.bloco.tipo === 'teoria' ? 'teoria' : tarefa.bloco.tipo,
-        feito: topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
-        gerado: true
-      });
-      alvo.restante -= tarefa.duracaoMin;
+      colocar(slot, tarefa.disciplina, tarefa.bloco, tarefa.duracaoMin);
+      slot.restante -= tarefa.duracaoMin;
     });
-    return { semana: dist.semana, inicio: ini, pendentes: pendentes };
+
+    // Sobras: o min/max de sessão é a regra inicial, mas o tempo que sobra em
+    // cada dia é alocado entre as outras disciplinas (rodízio por peso) e o que
+    // ainda restar abaixo do mínimo vira exceção, estendendo o último bloco do
+    // dia. Assim a semana usa TODA a carga configurada — sem isso, as horas
+    // perdidas distorceriam a conclusão estimada (3/6/9 meses) e o card.
+    const poolResidual = [];
+    dist.itens.forEach(function (item) {
+      const teoria = item.blocos.filter(function (b) { return b.tipo === 'teoria'; })[0];
+      const pratica = item.blocos.filter(function (b) { return b.tipo !== 'teoria'; })[0];
+      if (teoria) poolResidual.push({ disciplina: item.disciplina, bloco: teoria });
+      if (pratica) poolResidual.push({ disciplina: item.disciplina, bloco: pratica });
+    });
+    let poolIdx = 0;
+    let excedente = 0;
+    if (poolResidual.length) {
+      slots.forEach(function (slot) {
+        while (slot.restante >= minBloco) {
+          const u = poolResidual[poolIdx++ % poolResidual.length];
+          const dur = Math.min(maxBloco, slot.restante);
+          colocar(slot, u.disciplina, u.bloco, dur);
+          slot.restante -= dur;
+        }
+        if (slot.restante > 0) {
+          if (slot.ultimoBloco) { slot.ultimoBloco.duracaoMin += slot.restante; excedente += slot.restante; }
+          else { const u = poolResidual[poolIdx++ % poolResidual.length]; colocar(slot, u.disciplina, u.bloco, slot.restante); }
+          slot.restante = 0;
+        }
+      });
+    }
+    return { semana: dist.semana, inicio: ini, pendentes: pendentes, excedente: excedente };
   }
 
   function gerarSemanaNaAgenda() {
