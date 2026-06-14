@@ -1486,9 +1486,10 @@ td.num, th.num { text-align: right; }
 }
 
 @media (max-width: 760px) {
-  .constancia-card-grid { grid-template-columns: 1fr; }
-  .constancia-centro { grid-column: auto; }
-  .constancia-prova.prova-card { grid-row: auto; justify-self: center; margin-top: 0.25rem; }
+  .constancia-card-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+  /* No mobile a "Data provável" vem acima do mapa de constância */
+  .constancia-centro { grid-column: auto; order: 2; }
+  .constancia-prova.prova-card { grid-row: auto; order: 1; justify-self: stretch; margin: 0 0 0.5rem; }
   .home-kpis .card-kpi:not(.prova-card) { display: none; }
   .conquistas-card {
     max-width: 720px;
@@ -1501,6 +1502,10 @@ td.num, th.num { text-align: right; }
     grid-template-columns: 1fr;
     gap: 0.55rem;
   }
+  /* "Ver mais": esconde o excedente até o usuário expandir */
+  .painel-disc-extra { display: none; }
+  .painel-disciplinas-mobile.expandido .painel-disc-extra { display: grid; }
+  .painel-disc-vermais { width: 100%; justify-content: center; margin-top: 0.15rem; }
   .painel-disc-mobile {
     width: 100%;
     display: grid;
@@ -2542,21 +2547,105 @@ canvas.grafico {
 }
 .conquistas-card h3 { display: flex; align-items: center; gap: 0.5rem; }
 .conquistas-contador { font-family: var(--fonte-mono); font-size: 0.82rem; font-weight: 600; color: var(--caneta); background: var(--caneta-suave); border-radius: 999px; padding: 0.1rem 0.5rem; }
+/* Linha de liga/desliga no Perfil (ex.: som das conquistas) */
+.pf-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+  margin-top: 0.85rem; padding: 0.55rem 0.7rem;
+  border: 1px solid var(--linha); border-radius: var(--raio-s); background: var(--papel-elevado);
+  cursor: pointer;
+}
+.pf-toggle span { display: flex; flex-direction: column; gap: 0.1rem; }
+.pf-toggle small { font-size: 0.76rem; color: var(--grafite); }
+.pf-toggle input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--caneta); cursor: pointer; }
+
+.conquistas-dica { margin: 0.15rem 0 0; font-size: 0.78rem; }
 .conquistas-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 0.55rem; margin-top: 0.6rem; }
 .medalha {
   display: flex; flex-direction: column; align-items: center; gap: 0.25rem; text-align: center;
   padding: 0.6rem 0.4rem; border: 1px solid var(--linha); border-radius: var(--raio-s);
   background: var(--papel-elevado); opacity: 0.45; filter: grayscale(1);
   transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+  cursor: pointer; font: inherit; color: var(--tinta); width: 100%; box-shadow: none;
 }
+.medalha:hover { transform: translateY(-2px); filter: grayscale(0.6); opacity: 0.7; box-shadow: none; }
 .medalha.ganha { opacity: 1; filter: none; border-color: var(--caneta-suave); box-shadow: var(--sombra); }
-.medalha.ganha:hover { transform: translateY(-2px); }
+.medalha.ganha:hover { transform: translateY(-2px); box-shadow: var(--sombra); }
 .medalha-icone { font-size: 1.5rem; line-height: 1; }
 .medalha-titulo { font-size: 0.72rem; font-weight: 600; line-height: 1.15; color: var(--tinta); }
 .medalha:not(.ganha) .medalha-titulo { color: var(--grafite); }
+.medalha.ganha.medalha-lendaria { border-color: #C9A227; box-shadow: 0 0 0 1px #C9A22755, var(--sombra); }
+.medalha.ganha.medalha-epica { border-color: #8B5CF6; }
+.medalha.ganha.medalha-rara { border-color: #2E86DE; }
 @media (max-width: 480px) {
   .conquistas-grade { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
 }
+
+/* Cores de raridade (estilo "troféu") */
+.raridade-lendaria { color: #B98900; }
+.raridade-epica { color: #8B5CF6; }
+.raridade-rara { color: #2E86DE; }
+.raridade-incomum { color: var(--correto); }
+.raridade-comum { color: var(--grafite); }
+
+/* Detalhe da conquista (modal) */
+.conquista-detalhe { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.35rem; padding: 0.4rem 0 0.2rem; }
+.conquista-detalhe-icone { font-size: 3.2rem; line-height: 1; }
+.conquista-detalhe-icone.bloqueada { filter: grayscale(1); opacity: 0.5; }
+.conquista-detalhe-raridade { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.conquista-detalhe h3 { margin: 0.1rem 0 0; }
+.conquista-detalhe-dica { margin: 0; max-width: 30ch; }
+.conquista-detalhe-status { font-size: 0.85rem; font-weight: 700; margin: 0.2rem 0 0; }
+
+/* Overlay de comemoração ("troféu desbloqueado") */
+.celebra-fundo {
+  position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 11, 20, 0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  animation: celebra-fade 0.25s ease both; cursor: pointer; padding: 1.2rem;
+}
+.celebra-fundo.saindo { animation: celebra-fade 0.25s ease reverse both; }
+.celebra-cartao {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.3rem;
+  background: var(--papel-card); border: 1px solid var(--linha); border-radius: var(--raio);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4); padding: 1.6rem 1.8rem; max-width: 340px;
+  animation: celebra-pop 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.celebra-faixa { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.celebra-icone { font-size: 4.2rem; line-height: 1; display: inline-block; }
+.celebra-rotulo { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--caneta); }
+.celebra-titulo { font-size: 1.3rem; }
+.celebra-dica { font-size: 0.82rem; color: var(--grafite); max-width: 28ch; }
+.celebra-lendaria .celebra-cartao { border-color: #C9A227; box-shadow: 0 0 0 2px #C9A22766, 0 24px 60px rgba(0,0,0,0.45); }
+.celebra-epica .celebra-cartao { border-color: #8B5CF6; }
+.celebra-rara .celebra-cartao { border-color: #2E86DE; }
+
+@keyframes celebra-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes celebra-pop { from { opacity: 0; transform: scale(0.8) translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* Animações específicas por selo (aplicadas ao ícone do cartão) */
+.celebra-anim-plano .celebra-icone { animation: anim-foguete 1.1s ease-in-out infinite; }
+.celebra-anim-streak7 .celebra-icone,
+.celebra-anim-streak30 .celebra-icone { animation: anim-fogo 0.5s ease-in-out infinite alternate; }
+.celebra-anim-q100 .celebra-icone,
+.celebra-anim-q1000 .celebra-icone { animation: anim-pulso 0.7s ease-in-out infinite; }
+.celebra-anim-h50 .celebra-icone { animation: anim-girar 1.4s linear infinite; }
+.celebra-anim-dom10 .celebra-icone { animation: anim-flutua 1.6s ease-in-out infinite; }
+.celebra-anim-meio .celebra-icone { animation: anim-flutua 1.6s ease-in-out infinite; }
+.celebra-anim-edital .celebra-icone { animation: anim-trofeu 1s ease-in-out infinite; }
+.celebra-anim-sim .celebra-icone { animation: anim-balanca 1.1s ease-in-out infinite; }
+
+@keyframes anim-foguete { 0%,100% { transform: translateY(2px) rotate(-6deg); } 50% { transform: translateY(-10px) rotate(-6deg); } }
+@keyframes anim-fogo { from { transform: scale(1) translateY(0); filter: brightness(1); } to { transform: scale(1.12) translateY(-3px); filter: brightness(1.25); } }
+@keyframes anim-pulso { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+@keyframes anim-girar { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes anim-flutua { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes anim-trofeu { 0%,100% { transform: rotate(-8deg) scale(1); } 50% { transform: rotate(8deg) scale(1.1); } }
+@keyframes anim-balanca { 0%,100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .celebra-fundo, .celebra-cartao, .celebra-cartao .celebra-icone { animation: none !important; }
+}
+.celebra-fundo.sem-anima .celebra-cartao,
+.celebra-fundo.sem-anima .celebra-icone { animation: none !important; }
 
 /* ============================================================
    Check-in semanal enxuto + Timer rápido em modal
