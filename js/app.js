@@ -16,6 +16,7 @@
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
   let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
+  let autenticacaoExpirou = false; // rede de seguranca: se o Firebase nunca responder, libera a tela de login
   let pintarTimerAtual = null;
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let audioCtx = null;
@@ -155,6 +156,25 @@
 
   function usuarioLogado() {
     return !!usuarioAtual();
+  }
+
+  // Enquanto o Firebase ainda nao confirmou se existe sessao salva, mostramos um
+  // splash neutro em vez da tela de login — assim quem ja esta logado entra direto,
+  // sem o login "piscar". A flag autenticacaoExpirou garante que nunca travamos aqui.
+  function autenticacaoPendente() {
+    if (usuarioLogado() || autenticacaoExpirou) return false;
+    const e = firebaseStatus && firebaseStatus.estado;
+    return e === 'autenticando' || e === 'carregando';
+  }
+
+  function telaCarregandoAuth() {
+    return '<section class="login-shell auth-splash">' +
+      '<div class="auth-splash-card">' +
+      '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
+      '<div class="auth-splash-spinner" role="status" aria-label="Carregando"></div>' +
+      '<p class="auth-splash-texto">Verificando sua sessão…</p>' +
+      '</div>' +
+      '</section>';
   }
 
   function usuarioAdmin() {
@@ -5951,6 +5971,11 @@
     if (!usuarioLogado()) {
       document.body.classList.add('login-gate');
       if (pintarTimerAtual) pintarTimerAtual = null;
+      if (autenticacaoPendente()) {
+        conteudo.innerHTML = telaCarregandoAuth();
+        atualizarSyncUi();
+        return;
+      }
       try {
         conteudo.innerHTML = telaLogin();
         ligarLogin(conteudo);
@@ -6037,6 +6062,14 @@
   if (estadoInicialTimer && estadoInicialTimer.limiteAtingido) avisarLimiteTimer(estadoInicialTimer);
 
   render();
+
+  // Se o Firebase nao confirmar a sessao em poucos segundos (offline, bloqueado),
+  // desistimos do splash e mostramos a tela de login para nao deixar o usuario preso.
+  setTimeout(function () {
+    if (autenticacaoExpirou) return;
+    autenticacaoExpirou = true;
+    if (!usuarioLogado()) render();
+  }, 4000);
 
   const opcoesSyncBase = {
     obterEstado: function () { return state; },

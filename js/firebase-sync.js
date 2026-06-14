@@ -51,9 +51,10 @@ let envioPendente = null;
 let enviando = false;
 let aplicandoRemoto = false;
 let statusAtual = {
-  estado: 'deslogado',
-  texto: 'Entre com Google para sincronizar',
-  fonte: 'Firebase Firestore',
+  // 'autenticando' = ainda nao sabemos se ha sessao salva; evita piscar a tela de login
+  estado: 'autenticando',
+  texto: 'Verificando sua sessão…',
+  fonte: 'Firebase',
   usuario: null
 };
 
@@ -190,7 +191,9 @@ function observarMudancas() {
 
 function iniciar(novasOpcoes) {
   opcoes = novasOpcoes || {};
-  definirStatus('deslogado', 'Entre com Google para sincronizar');
+  // Mantem 'autenticando' ate o onAuthStateChanged confirmar se ha sessao salva,
+  // assim quem ja esta logado entra direto sem ver a tela de login piscar.
+  definirStatus('autenticando', 'Verificando sua sessão…');
   onAuthStateChanged(auth, function (user) {
     usuario = user;
     if (cancelarSnapshot) { cancelarSnapshot(); cancelarSnapshot = null; }
