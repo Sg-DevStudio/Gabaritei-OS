@@ -163,14 +163,66 @@
     }
   }
 
-  function pedirNotificacaoSePossivel(limiteMin) {
-    if (!limiteMin || !('Notification' in window) || Notification.permission !== 'default') return;
+  // Pede permissão de notificação ao iniciar qualquer cronômetro — é o que
+  // permite o contador aparecer na bandeja quando o app vai para segundo plano.
+  function pedirPermissaoNotificacao() {
+    if (!('Notification' in window) || Notification.permission !== 'default') return;
     Notification.requestPermission().catch(function () {});
+  }
+
+  // ---- Notificação "em andamento" do cronômetro (contador em segundo plano) ----
+  const TAG_NOTIF_TIMER = 'estudos-timer';
+  let ultimaNotifTimerMs = 0;
+  let notifTimerAtiva = false;
+
+  function textoNotifTimer(e) {
+    if (e.modo === 'pomodoro') {
+      return (e.pomoFase === 'foco' ? '🎯 Foco' : '☕ Pausa') + ' · ' + window.Timer.formatar(e.pomoRestanteMs) + ' restantes';
+    }
+    if (e.limiteMin) {
+      return e.limiteRestanteMs > 0
+        ? '⏱️ ' + window.Timer.formatar(e.limiteRestanteMs) + ' restantes'
+        : '🎉 +' + window.Timer.formatar(e.decorridoMs - e.limiteMs) + ' além do planejado';
+    }
+    return '⏱️ ' + window.Timer.formatar(e.decorridoMs) + ' estudando';
+  }
+
+  function mostrarNotificacaoTimer(e, forcar) {
+    if (!e || !('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!navigator.serviceWorker || !navigator.serviceWorker.ready) return;
+    const agora = Date.now();
+    if (!forcar && agora - ultimaNotifTimerMs < 4000) return; // evita spam (atualiza ~a cada 4s)
+    ultimaNotifTimerMs = agora;
+    notifTimerAtiva = true;
+    navigator.serviceWorker.ready.then(function (reg) {
+      reg.showNotification(nomeTopicoCompleto(e.topicoId) || 'Estudo em andamento', {
+        tag: TAG_NOTIF_TIMER,
+        body: textoNotifTimer(e),
+        icon: 'icons/icone-192.png',
+        badge: 'icons/icone-192.png',
+        silent: true,
+        renotify: false,
+        requireInteraction: true
+      }).catch(function () {});
+    }).catch(function () {});
+  }
+
+  function limparNotificacaoTimer() {
+    ultimaNotifTimerMs = 0;
+    if (!notifTimerAtiva) return;
+    notifTimerAtiva = false;
+    if (!('Notification' in window) || !navigator.serviceWorker) return;
+    navigator.serviceWorker.ready.then(function (reg) {
+      reg.getNotifications({ tag: TAG_NOTIF_TIMER }).then(function (ns) {
+        ns.forEach(function (n) { n.close(); });
+      }).catch(function () {});
+    }).catch(function () {});
   }
 
   function atualizarTituloTimer(e) {
     if (!e) {
       document.title = TITULO_PADRAO;
+      limparNotificacaoTimer();
       return;
     }
     if (e.limiteAvisado && e.limiteRestanteMs === 0) {
@@ -201,6 +253,9 @@
     }
     if (pintarTimerAtual && location.hash.replace('#', '') === 'timer') pintarTimerAtual(e);
     if (pintarTimerModal) pintarTimerModal(e);
+    // Contador na bandeja quando o app está em segundo plano (oculto).
+    if (e && e.rodando && document.hidden) mostrarNotificacaoTimer(e);
+    else limparNotificacaoTimer();
   }
 
   function confete() {
@@ -283,6 +338,17 @@
   }
 
   function doAtivo(lista) { return D.doPlanoAtivo(state, lista); }
+
+  // Horas REALMENTE agendadas (blocos do calendário) numa semana — é o número
+  // que o aluno vê no calendário. Usado no check-in para bater com a agenda.
+  function horasAgendadasSemana(inicioISO) {
+    const fim = D.addDias(inicioISO, 7);
+    let min = 0;
+    doAtivo(state.agenda).forEach(function (a) {
+      if (a.data >= inicioISO && a.data < fim) min += a.duracaoMin || 0;
+    });
+    return Math.round((min / 60) * 10) / 10;
+  }
 
   function primeiroNome(valor) {
     return String(valor || '').trim().split(/\s+/)[0] || '';
@@ -1211,7 +1277,7 @@
             return;
           }
           prepararAudio();
-          pedirNotificacaoSePossivel(limiteMin);
+          pedirPermissaoNotificacao();
           window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin });
           timerPreselecao = null;
           render();
@@ -1296,7 +1362,7 @@
           (e.rodando ? '<button class="botao-quieto" id="tr-pausar">Pausar</button>' : '<button class="botao-quieto" id="tr-retomar">Retomar</button>') +
           '<button id="tr-encerrar">Encerrar</button>' +
           '<button class="botao-quieto" id="tr-descartar">Descartar</button></div>' +
-          '<div class="modal-acoes" style="margin-top:0.3rem"><button class="botao-quieto botao-mini" id="tr-fechar">Continuar em 2º plano</button>' +
+          '<div class="modal-acoes" style="margin-top:0.3rem">' +
           '<a class="botao-quieto botao-mini" href="#timer" id="tr-abrir-tela">Abrir em tela cheia</a></div>';
         const bp = corpo.querySelector('#tr-pausar');
         if (bp) bp.addEventListener('click', function () { window.Timer.pausar(); desenhar(); });
@@ -1312,7 +1378,6 @@
           confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado será apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: '🗑️' })
             .then(function (ok) { if (ok) { window.Timer.descartar(); atualizarTituloTimer(null); fecharModal(); render(); } });
         });
-        corpo.querySelector('#tr-fechar').addEventListener('click', fecharModal);
         const abrirTela = corpo.querySelector('#tr-abrir-tela');
         if (abrirTela) abrirTela.addEventListener('click', fecharModal);
         pintar(e);
@@ -1381,7 +1446,7 @@
           const limiteMin = limiteEl && limiteEl.value ? parseInt(limiteEl.value, 10) : null;
           if (limiteEl && limiteEl.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) { toast('Informe um tempo máximo entre 1 e 720 minutos.', 'erro'); return; }
           prepararAudio();
-          pedirNotificacaoSePossivel(limiteMin);
+          pedirPermissaoNotificacao();
           window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin: limiteMin });
           timerPreselecao = null;
           desenhar();
@@ -3671,25 +3736,40 @@
     };
     const sit = mapaSit[burn.situacao] || mapaSit.no_prazo;
 
+    // Números coerentes com o que o aluno vê no calendário:
+    // - planejado da semana = horas REALMENTE agendadas nesta semana (não a capacidade bruta);
+    // - carga "real" só quando já há estudo registrado, senão mostramos a planejada.
+    const inicioSemana = D.segundaDaSemana(D.hojeISO());
+    const planSemana = horasAgendadasSemana(inicioSemana);
+    const feitoSemana = check.atual ? check.atual.realizado : 0;
+    const restanteSemana = Math.round(Math.max(0, planSemana - feitoSemana) * 10) / 10;
+    const temReal = burn.horasFeitas > 0;
+    const planoNovoEstaSemana = state.plano.gerado_em && state.plano.gerado_em >= inicioSemana;
+    const cargaValor = temReal ? burn.ritmoReal : planSemana;
+    const cargaRotulo = temReal ? 'Carga horária real / semana' : 'Carga horária planejada / semana';
+
     // Prévia da semana corrente — o aluno antecipa, no último dia, se vai fechar.
     let semanaAtualLinha = '';
-    if (check.atual && check.planejado > 0) {
-      const a = check.atual;
-      const ok = a.restante <= 0.1;
-      const classe = a.naoVaiFechar ? 'alerta' : (ok ? 'ok' : '');
+    if (planSemana > 0) {
+      const ok = restanteSemana <= 0.1;
+      const ehUltimoDia = check.atual && check.atual.ehUltimoDia;
+      const apertou = ehUltimoDia && restanteSemana > 8;
+      const classe = apertou ? 'alerta' : (ok ? 'ok' : '');
       let msg;
-      if (ok) {
+      if (planoNovoEstaSemana) {
+        msg = 'plano gerado nesta semana — a semana cheia começa na próxima segunda.';
+      } else if (ok) {
         msg = 'meta da semana batida 👏';
-      } else if (a.naoVaiFechar) {
-        msg = 'faltam ' + a.restante + 'h e hoje é o último dia do plano — provavelmente não fecha. O excedente já foi redistribuído nas próximas semanas; na segunda o plano recalcula com o que você fechar hoje.';
-      } else if (a.ehUltimoDia) {
-        msg = 'faltam ' + a.restante + 'h e hoje é o último dia do plano — dá um gás para fechar a semana.';
+      } else if (apertou) {
+        msg = 'faltam ' + restanteSemana + 'h e hoje é o último dia da semana — o que não fechar entra no recálculo de segunda.';
+      } else if (ehUltimoDia) {
+        msg = 'faltam ' + restanteSemana + 'h e hoje é o último dia da semana — dá um gás para fechar.';
       } else {
-        msg = 'faltam ' + a.restante + 'h para a meta desta semana.';
+        msg = 'faltam ' + restanteSemana + 'h para a meta desta semana.';
       }
       semanaAtualLinha = '<div class="checkin-comparativo ' + classe + '">' +
-        '<span>Esta semana · planejado <strong>' + formatarHorasSemana(a.planejado).replace(' na semana', '') + '</strong>' +
-        ' · feito <strong>' + a.realizado + 'h</strong></span>' +
+        '<span>Esta semana · planejado <strong>' + planSemana + 'h</strong>' +
+        ' · feito <strong>' + feitoSemana + 'h</strong></span>' +
         '<span class="checkin-saldo">' + msg + '</span></div>';
     }
 
@@ -3710,8 +3790,8 @@
       '<div class="checkin-head"><div class="card-kpi-rotulo">Check-in semanal</div>' +
       '<span class="checkin-badge checkin-badge-' + sit.classe + '">' + sit.icone + ' ' + sit.rotulo + '</span></div>' +
       '<div class="checkin-grid checkin-grid-2">' +
-      '<div class="checkin-kpi"><span class="checkin-num">' + burn.ritmoReal + 'h</span>' +
-      '<span class="checkin-rotulo">Carga horária real / semana</span></div>' +
+      '<div class="checkin-kpi"><span class="checkin-num">' + cargaValor + 'h</span>' +
+      '<span class="checkin-rotulo">' + cargaRotulo + '</span></div>' +
       '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo">' + esc(formatarSemanasDias(burn.semanasRestantes)) + '</span>' +
       '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
       semanaAtualLinha +
@@ -5015,33 +5095,70 @@
       const cfg = rotina.dias[d.id];
       return { data: D.addDias(ini, d.offset), restante: cfg.minutos || 0 };
     });
+    function colocar(slot, disciplina, bloco, dur) {
+      const topico = bloco.topico ? D.topicoPorId(state, bloco.topico) : null;
+      const obj = {
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
+        data: slot.data, disciplinaId: disciplina.id,
+        topicoId: bloco.topico || null,
+        duracaoMin: dur,
+        obs: bloco.tipo === 'teoria' ? 'teoria' : bloco.tipo,
+        feito: topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
+        gerado: true
+      };
+      state.agenda.push(obj);
+      slot.ultimoBloco = obj;
+      return obj;
+    }
+
     let slotIdx = 0;
     let pendentes = 0;
     tarefas.forEach(function (tarefa) {
       while (slotIdx < slots.length && slots[slotIdx].restante < Math.min(minBloco, tarefa.duracaoMin)) slotIdx++;
       if (slotIdx >= slots.length) { pendentes += tarefa.duracaoMin; return; }
-      const slot = slots[slotIdx];
+      let slot = slots[slotIdx];
       if (tarefa.duracaoMin > slot.restante && slot.restante >= minBloco) {
         pendentes += tarefa.duracaoMin - slot.restante;
         tarefa.duracaoMin = slot.restante;
       } else if (tarefa.duracaoMin > slot.restante) {
         slotIdx++;
         if (slotIdx >= slots.length || tarefa.duracaoMin > slots[slotIdx].restante) { pendentes += tarefa.duracaoMin; return; }
+        slot = slots[slotIdx];
       }
-      const alvo = slots[slotIdx];
-      const topico = tarefa.bloco.topico ? D.topicoPorId(state, tarefa.bloco.topico) : null;
-      state.agenda.push({
-        id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
-        data: alvo.data, disciplinaId: tarefa.disciplina.id,
-        topicoId: tarefa.bloco.topico || null,
-        duracaoMin: tarefa.duracaoMin,
-        obs: tarefa.bloco.tipo === 'teoria' ? 'teoria' : tarefa.bloco.tipo,
-        feito: topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
-        gerado: true
-      });
-      alvo.restante -= tarefa.duracaoMin;
+      colocar(slot, tarefa.disciplina, tarefa.bloco, tarefa.duracaoMin);
+      slot.restante -= tarefa.duracaoMin;
     });
-    return { semana: dist.semana, inicio: ini, pendentes: pendentes };
+
+    // Sobras: o min/max de sessão é a regra inicial, mas o tempo que sobra em
+    // cada dia é alocado entre as outras disciplinas (rodízio por peso) e o que
+    // ainda restar abaixo do mínimo vira exceção, estendendo o último bloco do
+    // dia. Assim a semana usa TODA a carga configurada — sem isso, as horas
+    // perdidas distorceriam a conclusão estimada (3/6/9 meses) e o card.
+    const poolResidual = [];
+    dist.itens.forEach(function (item) {
+      const teoria = item.blocos.filter(function (b) { return b.tipo === 'teoria'; })[0];
+      const pratica = item.blocos.filter(function (b) { return b.tipo !== 'teoria'; })[0];
+      if (teoria) poolResidual.push({ disciplina: item.disciplina, bloco: teoria });
+      if (pratica) poolResidual.push({ disciplina: item.disciplina, bloco: pratica });
+    });
+    let poolIdx = 0;
+    let excedente = 0;
+    if (poolResidual.length) {
+      slots.forEach(function (slot) {
+        while (slot.restante >= minBloco) {
+          const u = poolResidual[poolIdx++ % poolResidual.length];
+          const dur = Math.min(maxBloco, slot.restante);
+          colocar(slot, u.disciplina, u.bloco, dur);
+          slot.restante -= dur;
+        }
+        if (slot.restante > 0) {
+          if (slot.ultimoBloco) { slot.ultimoBloco.duracaoMin += slot.restante; excedente += slot.restante; }
+          else { const u = poolResidual[poolIdx++ % poolResidual.length]; colocar(slot, u.disciplina, u.bloco, slot.restante); }
+          slot.restante = 0;
+        }
+      });
+    }
+    return { semana: dist.semana, inicio: ini, pendentes: pendentes, excedente: excedente };
   }
 
   function gerarSemanaNaAgenda() {
@@ -5626,6 +5743,14 @@
   if (botaoTimerRapido) botaoTimerRapido.addEventListener('click', abrirTimerRapido);
 
   window.Timer.aoAtualizar(tratarTickTimer);
+
+  // Ao sair do app (segundo plano) com o cronômetro rodando, o contador
+  // aparece na bandeja; ao voltar, a notificação some (o relógio está na tela).
+  document.addEventListener('visibilitychange', function () {
+    const e = window.Timer.estado();
+    if (document.hidden) { if (e && e.rodando) mostrarNotificacaoTimer(e, true); }
+    else limparNotificacaoTimer();
+  });
 
   const recuperado = window.Timer.recuperar();
   if (recuperado) {

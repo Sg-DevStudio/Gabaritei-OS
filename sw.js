@@ -1,10 +1,10 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v39';
+const CACHE = 'estudos-v42';
 const ESTATICOS = [
   './',
   './index.html',
   './manifest.json',
-  './css/styles.css?v=20260614c-rodada3',
+  './css/styles.css?v=20260614f-sobras',
   './js/frases.js',
   './js/domain.js',
   './js/store.js',
@@ -12,7 +12,7 @@ const ESTATICOS = [
   './js/firebase-sync.js',
   './js/timer.js',
   './js/charts.js',
-  './js/app.js?v=20260614c-rodada3',
+  './js/app.js?v=20260614f-sobras',
   './icons/icone.svg'
 ];
 
@@ -46,5 +46,18 @@ self.addEventListener('fetch', (e) => {
         return resp;
       })
       .catch(() => caches.match(e.request))
+  );
+});
+
+/* Toque na notificação do cronômetro: foca a aba aberta ou abre o app no Timer */
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((lista) => {
+      for (const c of lista) {
+        if ('focus' in c) { c.focus(); if ('navigate' in c) c.navigate(c.url.split('#')[0] + '#timer').catch(() => {}); return; }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow('./#timer');
+    })
   );
 });
