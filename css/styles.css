@@ -213,10 +213,6 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
   max-width: none;
 }
 
-#conteudo > * {
-  max-width: 1180px;
-}
-
 /* Menu superior fixo: tema, configurações e perfil */
 #topbar {
   position: fixed;

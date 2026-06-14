@@ -24,6 +24,7 @@
   let disciplinaDetalheId = null;
   let catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
   let adminBusca = '';
+  let adminPedidosGlobais = null;
   let googleCalendarToken = null;
 
   // ---------------- utilidades de UI ----------------
@@ -66,6 +67,35 @@
     return editaisDoCatalogo().find(function (e) { return e.id === id; }) || null;
   }
 
+  function limparEditalParaCatalogo(e) {
+    const c = clonarJson(e);
+    delete c._global;
+    return c;
+  }
+
+  function carregarCatalogoGlobalFirebase() {
+    if (!window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) return Promise.resolve([]);
+    return window.FirebaseSync.carregarCatalogoGlobal().then(function (lista) {
+      catalogoGlobalEditais = normalizarCatalogoGlobal(lista || []);
+      render();
+      return catalogoGlobalEditais;
+    }).catch(function (e) {
+      console.warn('Nao consegui carregar catalogo global.', e);
+      return catalogoGlobalEditais;
+    });
+  }
+
+  function publicarCatalogoAdmin() {
+    if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
+    const editais = (state.editais || []).filter(function (e) { return !e.arquivado; }).map(limparEditalParaCatalogo);
+    return window.FirebaseSync.publicarCatalogoGlobal(editais).then(function () {
+      catalogoGlobalEditais = normalizarCatalogoGlobal(editais);
+    }).catch(function (e) {
+      console.warn('Nao consegui publicar catalogo global.', e);
+      toast('Não consegui publicar o catálogo global no Firebase.', 'erro');
+    });
+  }
+
   function salvar(opcoes) {
     opcoes = opcoes || {};
     window.Store.salvar(state, opcoes);
@@ -95,7 +125,7 @@
   function prepararEstadoParaUsuario(u) {
     if (!u || !u.uid) return;
     const ultimo = localStorage.getItem(CHAVE_ULTIMO_USUARIO);
-    if (ultimo !== u.uid) {
+    if (ultimo && ultimo !== u.uid) {
       state = window.Store.estadoVazio();
       window.Store.salvar(state, { marcarAlterado: false });
     }
@@ -109,6 +139,41 @@
     el.textContent = msg;
     raiz.appendChild(el);
     setTimeout(function () { el.remove(); }, 3200);
+  }
+
+  function abrirPedidoEdital(filtro) {
+    filtro = filtro || {};
+    const sugestao = [
+      filtro.orgao ? 'Órgão: ' + filtro.orgao : '',
+      filtro.cargo ? 'Cargo: ' + filtro.cargo : '',
+      filtro.estado ? 'Estado: ' + filtro.estado : '',
+      filtro.busca ? 'Observação: ' + filtro.busca : ''
+    ].filter(Boolean).join('\n');
+    const m = abrirModal('<h3>Pedir um edital</h3>' +
+      '<p class="sub">Descreva o concurso/cargo que você quer ver no catálogo. O pedido vai para o painel do administrador.</p>' +
+      '<label for="pedido-edital-txt">Edital desejado</label>' +
+      '<textarea id="pedido-edital-txt" placeholder="Ex.: TJSP Escrevente 2026, banca Vunesp, SP">' + esc(sugestao) + '</textarea>' +
+      '<div class="modal-acoes"><button class="botao-quieto" id="pedido-cancelar">Cancelar</button>' +
+      '<button id="pedido-enviar">Enviar pedido</button></div>');
+    m.querySelector('#pedido-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#pedido-enviar').addEventListener('click', function () {
+      const txt = (m.querySelector('#pedido-edital-txt').value || '').trim();
+      if (!txt) { toast('Descreva o edital que você quer pedir.', 'erro'); return; }
+      if (window.FirebaseSync && window.FirebaseSync.enviarPedidoEdital) {
+        m.querySelector('#pedido-enviar').disabled = true;
+        window.FirebaseSync.enviarPedidoEdital({ texto: txt }).then(function () {
+          fecharModal();
+          toast('Pedido enviado ao administrador.', 'sucesso');
+        }).catch(function () {
+          const assunto = encodeURIComponent('Pedido de edital');
+          const corpo = encodeURIComponent(txt);
+          location.href = 'mailto:' + EMAIL_SUPORTE + '?subject=' + assunto + '&body=' + corpo;
+          m.querySelector('#pedido-enviar').disabled = false;
+        });
+      } else {
+        location.href = 'mailto:' + EMAIL_SUPORTE + '?subject=' + encodeURIComponent('Pedido de edital') + '&body=' + encodeURIComponent(txt);
+      }
+    });
   }
 
   function telaLogin() {
@@ -2314,7 +2379,7 @@
   }
 
   function pedidosEditalHtml() {
-    const pedidos = state.config.pedidosEdital || [];
+    const pedidos = adminPedidosGlobais || state.config.pedidosEdital || [];
     let h = '<div class="admin-pedidos"><strong style="font-size:0.9rem">Pedidos de edital recebidos</strong>' +
       '<p class="sub">Registre aqui os pedidos que chegarem por e-mail e marque quando atender.</p>';
     if (pedidos.length) {
@@ -2375,13 +2440,33 @@
       });
       m.querySelectorAll('[data-pedido-ok]').forEach(function (b) {
         b.addEventListener('click', function () {
-          state.config.pedidosEdital = (state.config.pedidosEdital || []).filter(function (p) { return p.id !== b.getAttribute('data-pedido-ok'); });
+          const id = b.getAttribute('data-pedido-ok');
+          if (window.FirebaseSync && window.FirebaseSync.marcarPedidoAtendido && adminPedidosGlobais) {
+            window.FirebaseSync.marcarPedidoAtendido(id).then(function () {
+              adminPedidosGlobais = adminPedidosGlobais.filter(function (p) { return p.id !== id; });
+              pintar(); toast('Pedido marcado como atendido');
+            }).catch(function () { toast('Não consegui atualizar o pedido.', 'erro'); });
+            return;
+          }
+          state.config.pedidosEdital = (state.config.pedidosEdital || []).filter(function (p) { return p.id !== id; });
           salvar(); pintar(); toast('Pedido marcado como atendido');
         });
       });
       m.querySelector('#ped-fechar').addEventListener('click', fecharModal);
     }
-    pintar();
+    m.querySelector('#ped-corpo').innerHTML = '<p class="sub">Carregando pedidos...</p>';
+    if (window.FirebaseSync && window.FirebaseSync.carregarPedidosEdital) {
+      window.FirebaseSync.carregarPedidosEdital().then(function (pedidos) {
+        adminPedidosGlobais = pedidos || [];
+        pintar();
+      }).catch(function () {
+        adminPedidosGlobais = null;
+        pintar();
+        toast('Não consegui carregar os pedidos da nuvem.', 'erro');
+      });
+    } else {
+      pintar();
+    }
   }
 
   function editaisEsquematizadosHtml() {
@@ -2560,7 +2645,7 @@
         confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
           if (!ok) return;
           state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
-          salvar(); render();
+          salvar(); publicarCatalogoAdmin().finally(render);
           toast('Edital excluído');
         });
       });
@@ -2640,7 +2725,7 @@
     if (lista.length === 0) {
       html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum plano disponível ainda</strong>' +
         'Não encontrou seu concurso? Peça o cadastro ao suporte.' +
-        '<p style="margin-top:1rem"><a class="botao" href="mailto:' + EMAIL_SUPORTE + '?subject=' + encodeURIComponent('Pedido de edital') + '">✉ Pedir um edital</a></p></div>';
+        '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
       return html;
     }
     html += '<div class="catalogo-grade">' + lista.map(catalogoCard).join('') + '</div>';
@@ -2667,7 +2752,7 @@
       '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
     if (lista.length === 0) {
       html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum edital encontrado</strong>' +
-        '<p style="margin-top:1rem"><a class="botao" href="mailto:' + EMAIL_SUPORTE + '?subject=' + encodeURIComponent('Pedido de edital') + '">✉ Pedir um edital</a></p></div>';
+        '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
       return html;
     }
     html += '<div class="catalogo-grade">' + lista.map(catalogoCardCompacto).join('') + '</div>';
@@ -2691,6 +2776,9 @@
     if (limpar) limpar.addEventListener('click', function () {
       catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
       render();
+    });
+    raiz.querySelectorAll('[data-pedir-edital]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirPedidoEdital(catalogoFiltro); });
     });
     raiz.querySelectorAll('[data-pl-detalhes]').forEach(function (b) {
       b.addEventListener('click', function () { abrirDetalhesEdital(b.getAttribute('data-pl-detalhes')); });
@@ -3121,6 +3209,7 @@
       state.editais.push(registro);
     }
     salvar();
+    publicarCatalogoAdmin();
     fecharModal();
     render();
     toast('Edital salvo: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
@@ -3677,12 +3766,7 @@
         '<strong>Nenhum edital encontrado</strong>' +
         'Não encontrou seu edital? Faça um pedido.' +
         '<p style="margin-top:1rem">' +
-        '<a class="botao" href="mailto:' + EMAIL_SUPORTE +
-        '?subject=' + encodeURIComponent('Pedido de edital') +
-        '&body=' + encodeURIComponent('Olá! Gostaria de pedir o cadastro do seguinte edital:\n\nÓrgão: ' +
-          (filtro.orgao || '') + '\nCargo: ' + (filtro.cargo || '') + '\nEstado: ' + (filtro.estado || '') +
-          '\nNome/observação: ' + (filtro.busca || '')) +
-        '">✉ Pedir este edital ao suporte</a></p></div>';
+        '<button class="botao" type="button" data-pedir-edital-modal>✉ Pedir este edital</button></p></div>';
     }
     return lista.map(function (e) {
       const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
@@ -3794,6 +3878,8 @@
     const btnCriar = m.querySelector('#ed-criar-plano');
     let editavelId = null;
     function ligarSelecao() {
+      const pedir = listaEl.querySelector('[data-pedir-edital-modal]');
+      if (pedir) pedir.addEventListener('click', function () { abrirPedidoEdital(filtro); });
       listaEl.querySelectorAll('[data-ed-sel]').forEach(function (item) {
         item.addEventListener('click', function () {
           listaEl.querySelectorAll('[data-ed-sel]').forEach(function (i) { i.classList.remove('selecionado'); });
@@ -5921,6 +6007,11 @@
         if (novoStatus && novoStatus.usuario) prepararEstadoParaUsuario(novoStatus.usuario);
         firebaseStatus = novoStatus;
         atualizarSyncUi();
+        if (novoStatus && novoStatus.usuario) {
+          carregarCatalogoGlobalFirebase().then(function () {
+            if (usuarioAdmin()) publicarCatalogoAdmin();
+          });
+        }
         if (usuarioAntes !== usuarioDepois || !usuarioLogado()) render();
       }
     }));

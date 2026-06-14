@@ -11,12 +11,16 @@ import {
   signOut
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 import {
+  addDoc,
+  collection,
   doc,
   getDoc,
+  getDocs,
   getFirestore,
   onSnapshot,
   serverTimestamp,
-  setDoc
+  setDoc,
+  updateDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -36,6 +40,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+const refCatalogo = doc(db, 'public', 'catalogo');
+const pedidosCollection = collection(db, 'pedidosEdital');
 
 let opcoes = null;
 let usuario = null;
@@ -221,5 +227,65 @@ function logout() {
 function status() { return statusAtual; }
 function ativo() { return !!usuario; }
 
-window.FirebaseSync = { iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo };
+async function carregarCatalogoGlobal() {
+  const snap = await getDoc(refCatalogo);
+  if (!snap.exists()) return [];
+  const dados = snap.data();
+  return Array.isArray(dados.editais) ? dados.editais : [];
+}
+
+async function publicarCatalogoGlobal(editais) {
+  if (!usuario || String(usuario.email || '').toLowerCase() !== 'casar70@gmail.com') {
+    throw new Error('Apenas o administrador pode publicar o catalogo global.');
+  }
+  await setDoc(refCatalogo, {
+    editais: Array.isArray(editais) ? editais : [],
+    atualizadoEm: new Date().toISOString(),
+    atualizadoPor: usuario.email,
+    savedAt: serverTimestamp()
+  }, { merge: true });
+}
+
+async function enviarPedidoEdital(pedido) {
+  if (!usuario) throw new Error('Entre para pedir um edital.');
+  const texto = String((pedido && pedido.texto) || '').trim();
+  if (!texto) throw new Error('Descreva o edital desejado.');
+  await addDoc(pedidosCollection, {
+    texto,
+    status: 'novo',
+    criadoEm: new Date().toISOString(),
+    usuario: {
+      uid: usuario.uid,
+      email: usuario.email || '',
+      nome: usuario.displayName || ''
+    },
+    savedAt: serverTimestamp()
+  });
+}
+
+async function carregarPedidosEdital() {
+  if (!usuario || String(usuario.email || '').toLowerCase() !== 'casar70@gmail.com') {
+    throw new Error('Apenas o administrador pode ler pedidos.');
+  }
+  const snap = await getDocs(pedidosCollection);
+  const pedidos = [];
+  snap.forEach(function (d) {
+    const dados = d.data() || {};
+    if (dados.status !== 'atendido') pedidos.push(Object.assign({ id: d.id }, dados));
+  });
+  return pedidos.sort(function (a, b) { return String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')); });
+}
+
+async function marcarPedidoAtendido(id) {
+  if (!usuario || String(usuario.email || '').toLowerCase() !== 'casar70@gmail.com') {
+    throw new Error('Apenas o administrador pode atualizar pedidos.');
+  }
+  await updateDoc(doc(db, 'pedidosEdital', id), { status: 'atendido', atendidoEm: new Date().toISOString() });
+}
+
+window.FirebaseSync = {
+  iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo,
+  carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
+  carregarPedidosEdital, marcarPedidoAtendido
+};
 window.dispatchEvent(new CustomEvent('firebase-sync-ready'));
