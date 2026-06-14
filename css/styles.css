@@ -1112,12 +1112,6 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
 
 .constancia-card {
   width: 100%;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-  transform-origin: center;
-}
-.constancia-card:hover {
-  transform: scale(1.012);
-  box-shadow: 0 18px 38px rgba(23, 24, 28, 0.13);
 }
 .constancia-card-grid {
   display: grid;
@@ -1132,8 +1126,8 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
 }
 .constancia-centro h3 { margin-bottom: 0.75rem; }
 .constancia-prova.prova-card {
-  grid-column: 3;
-  justify-self: end;
+  grid-column: 1;
+  justify-self: center;
   width: min(100%, 260px);
   min-height: 0;
   padding: 0;
