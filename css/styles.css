@@ -844,11 +844,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .home-cab-prova { display: none; }
 .prova-card-mobile { display: block; margin-bottom: 0.9rem; }
 @media (min-width: 761px) {
-  /* desktop: data provável ao lado da saudação, alinhada ao topo */
-  .home-cab { display: flex; align-items: stretch; justify-content: space-between; gap: 1.2rem; }
+  /* desktop: saudação no topo à esquerda (como antes) e a data provável como
+     conteúdo "solto" (sem moldura de card) no canto superior direito */
+  .home-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
   .home-cab .cab-home { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
-  .home-cab-prova { display: block; flex: 0 0 auto; width: min(300px, 36%); }
-  .home-cab-prova .prova-card-solo { height: 100%; }
+  .home-cab-prova { display: block; flex: 0 0 auto; width: auto; }
+  .home-cab-prova .prova-card-solo {
+    background: transparent; border: 0; box-shadow: none; padding: 0; margin: 0;
+    transform: scale(0.92); transform-origin: top right;
+  }
+  .home-cab-prova .prova-card-solo:hover { transform: scale(0.92); box-shadow: none; }
   .prova-card-mobile { display: none; }
 }
 
@@ -2419,15 +2424,23 @@ canvas.grafico {
 .comparar-summary .sub { font-size: 0.82rem; }
 .comparar-secao[open] .comparar-summary { margin-bottom: 0.7rem; }
 .comparar-corpo { display: block; }
-.comparar-selects { display: flex; align-items: flex-end; gap: 0.6rem; flex-wrap: wrap; }
-.comparar-campo { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.78rem; color: var(--grafite); flex: 1 1 200px; min-width: 0; }
-.comparar-campo select { width: 100%; }
-.comparar-x { font-weight: 800; color: var(--grafite); padding-bottom: 0.55rem; }
+.comparar-hint { font-size: 0.82rem; color: var(--grafite); margin: 0.5rem 0 0; }
 .comparar-resultado { margin-top: 0.8rem; }
-@media (max-width: 560px) {
-  .comparar-x { display: none; }
-  .comparar-campo { flex-basis: 100%; }
+.comparar-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.4rem; }
+.comparar-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--caneta-suave); color: var(--caneta-forte);
+  border-radius: 999px; padding: 0.25rem 0.3rem 0.25rem 0.7rem; font-size: 0.82rem; font-weight: 600;
 }
+.comparar-chip-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(0,0,0,0.08); color: inherit; font-size: 1rem; line-height: 1; padding: 0;
+}
+.comparar-chip-x:hover { background: rgba(0,0,0,0.16); box-shadow: none; }
+/* card selecionado para comparação + botão "Comparando" */
+.catalogo-card-comparando { border-color: var(--caneta); box-shadow: 0 0 0 1px var(--caneta) inset, var(--sombra-suave); }
+.catalogo-comparar-on { background: var(--caneta); color: #fff; }
 @media (max-width: 760px) {
   .catalogo-grade { grid-template-columns: 1fr; }
   /* Corte, Nível e Prova lado a lado no celular */
