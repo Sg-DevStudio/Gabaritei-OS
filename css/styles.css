@@ -375,6 +375,16 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
 
 .msg-coach { font-size: 0.84rem; font-weight: 600; color: var(--caneta-forte); line-height: 1.35; }
 
+/* Cards laterais da Home (horas, questões, margem de acertos) centralizados */
+.home-kpis .card-kpi:not(.prova-card) {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+.home-kpis .card-kpi:not(.prova-card) .barra { width: 100%; }
+.home-kpis .card-kpi:not(.prova-card) .meta-q-editar { justify-content: center; }
+
 button, .botao {
   font-family: var(--fonte-ui);
   font-size: 0.95rem;
@@ -585,8 +595,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   100% { transform: scale(1); box-shadow: 0 0 0 4px rgba(31, 122, 77, 0.12), 0 0 18px rgba(31, 122, 77, 0.28); }
 }
 
-.prova-card { position: relative; gap: 0.45rem; }
-.prova-card-topo { display: flex; align-items: center; gap: 0.65rem; }
+.prova-card {
+  position: relative;
+  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.prova-card-topo { display: flex; align-items: center; gap: 0.65rem; justify-content: center; }
 .alvo-emoji { font-size: 1.35rem; line-height: 1; }
 .prova-periodo {
   font-size: 0.84rem;
@@ -594,20 +611,129 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   color: var(--tinta);
   line-height: 1.2;
 }
-.prova-countdown {
+.prova-editar { align-self: center; margin-top: 0.1rem; }
+
+.prova-status-pill {
   display: inline-flex;
-  width: max-content;
-  max-width: 100%;
-  padding: 0.18rem 0.55rem;
+  padding: 0.2rem 0.7rem;
   border-radius: 999px;
-  background: var(--caneta-suave);
-  color: var(--caneta-forte);
-  font-size: 1.02rem;
-  font-weight: 800;
+  background: var(--papel-elevado, rgba(255,255,255,0.06));
+  color: var(--grafite);
+  font-size: 0.9rem;
+  font-weight: 700;
 }
-.prova-editar {
-  align-self: flex-start;
-  margin-top: 0.15rem;
+.prova-status-ativo { background: var(--caneta-suave); color: var(--caneta-forte); }
+
+/* ---- Widget de calendário animado (countdown da prova) ---- */
+.cal-countdown {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.2rem 0 0.1rem;
+  outline: none;
+}
+.cal-widget {
+  position: relative;
+  width: 116px;
+  height: 118px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #1E4274 0%, #112C55 100%);
+  box-shadow: 0 12px 28px rgba(16, 33, 70, 0.38), inset 0 1px 0 rgba(255,255,255,0.08);
+  overflow: visible;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.cal-countdown:hover .cal-widget,
+.cal-countdown:focus-visible .cal-widget {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 18px 36px rgba(16, 33, 70, 0.5);
+}
+.cal-top {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(180deg, #C03B2B 0%, #A52F22 100%);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.cal-anel {
+  position: absolute;
+  top: -7px;
+  width: 8px;
+  height: 16px;
+  border-radius: 4px;
+  background: #E8EBF2;
+  box-shadow: inset 0 -2px 2px rgba(0,0,0,0.18);
+  z-index: 2;
+}
+.cal-anel-e { left: 26px; }
+.cal-anel-d { right: 26px; }
+.cal-body {
+  height: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+}
+.cal-num {
+  font-family: var(--fonte-mono, 'IBM Plex Mono', monospace);
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  animation: cal-num-pulso 2.6s ease-in-out infinite;
+}
+.cal-unidade {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.78);
+  text-transform: uppercase;
+}
+@keyframes cal-num-pulso {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cal-num { animation: none; }
+}
+.cal-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--tinta, #14161c);
+  color: #fff;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 5;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+}
+.cal-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--tinta, #14161c);
+}
+.cal-countdown:hover .cal-tooltip,
+.cal-countdown:focus-visible .cal-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .etiqueta {
@@ -832,18 +958,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   display: flex;
   flex-direction: column;
 }
-.timer-title-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.55rem;
-}
-.timer-title-row h1 { margin: 0; }
-.timer-title-row span {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--linha), transparent);
-}
 .tela-timer {
   background: linear-gradient(180deg, #112C55 0%, #1E4274 100%);
   color: #F7F8F6;
@@ -952,6 +1066,32 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 }
 .timer-limite { max-width: 180px; margin: 0.85rem auto 0; text-align: left; }
 .timer-limite input { text-align: center; }
+.timer-limite-auto {
+  margin: 0.85rem auto 0;
+  max-width: 320px;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: #C9CCD4;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* Tempo extra: estudou além do planejado → fica verde */
+.timer-display.timer-extra,
+.timer-mini-clock .timer-display.timer-extra { color: #4ADE80; text-shadow: 0 0 14px rgba(74, 222, 128, 0.55); }
+.timer-info-extra { color: #4ADE80; font-weight: 700; }
+.timer-relogio-frame.timer-frame-extra .timer-clock-svg {
+  filter: drop-shadow(0 0 18px rgba(74, 222, 128, 0.6));
+  animation: timer-extra-glow 1.8s ease-in-out infinite;
+}
+@keyframes timer-extra-glow {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(74, 222, 128, 0.45)); }
+  50% { filter: drop-shadow(0 0 22px rgba(74, 222, 128, 0.75)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timer-relogio-frame.timer-frame-extra .timer-clock-svg { animation: none; }
+}
 
 .seletor-modo { display: inline-flex; border: 1px solid #3A3D45; border-radius: var(--raio-s); overflow: hidden; background: rgba(255, 255, 255, 0.03); }
 .seletor-modo button {
@@ -1076,11 +1216,6 @@ td.num, th.num { text-align: right; }
 
 @media (max-width: 760px) {
   .home-kpis .card-kpi:not(.prova-card) { display: none; }
-  /* card "Data provável" centralizado no celular */
-  .prova-card { align-items: center; text-align: center; }
-  .prova-card-topo { justify-content: center; text-align: left; }
-  .prova-card .prova-countdown { align-self: center; }
-  .prova-card .prova-editar { align-self: center; }
   .conquistas-card {
     max-width: 720px;
     margin-left: auto;
@@ -1128,6 +1263,68 @@ td.num, th.num { text-align: right; }
   .topico-check-wrap { min-width: 150px; }
   .tag-incidencia { font-size: 0.64rem; padding-inline: 0.38rem; }
 }
+
+/* ============================================================
+   Assistente "Gerar plano" (wizard passo a passo)
+   ============================================================ */
+.gp-wizard { display: flex; flex-direction: column; }
+.gp-passos {
+  display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.gp-passo {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.78rem; font-weight: 600; color: var(--grafite);
+  padding: 0.25rem 0.55rem 0.25rem 0.3rem; border-radius: 999px;
+  cursor: default; transition: color 0.15s ease, background 0.15s ease;
+}
+.gp-passo b {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--linha); color: var(--grafite); font-size: 0.74rem;
+}
+.gp-passo.ativo { color: var(--tinta); background: var(--caneta-suave); }
+.gp-passo.ativo b { background: var(--caneta); color: #fff; }
+.gp-passo.concluido { cursor: pointer; }
+.gp-passo.concluido b { background: var(--correto, #1E7D46); color: #fff; }
+
+.gp-step h3 { margin: 0 0 0.3rem; }
+.gp-step > .sub { margin-top: 0; }
+
+.gp-prazo-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-top: 0.6rem; }
+@media (max-width: 560px) { .gp-prazo-cards { grid-template-columns: 1fr; } }
+.gp-prazo-card {
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
+  padding: 1.1rem 0.8rem; border-radius: var(--raio-s, 10px);
+  border: 1.5px solid var(--linha); background: var(--papel-card);
+  color: var(--tinta); text-align: center; box-shadow: none; min-height: auto;
+}
+.gp-prazo-card:hover { border-color: var(--caneta); box-shadow: none; transform: none; }
+.gp-prazo-card.ativo { border-color: var(--caneta); background: var(--caneta-suave); }
+.gp-prazo-num { font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--caneta-forte); }
+.gp-prazo-unid { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grafite); font-weight: 700; }
+.gp-prazo-nome { font-size: 0.82rem; color: var(--grafite); margin-top: 0.3rem; line-height: 1.25; }
+
+.gp-dif-lista { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem; }
+.gp-dif-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.65rem; border-radius: var(--raio-s, 10px);
+  background: var(--papel-elevado, rgba(255,255,255,0.03)); border: 1px solid var(--linha);
+}
+.gp-dif-nome { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+.gp-dif-opts { display: inline-flex; border: 1px solid var(--linha); border-radius: 999px; overflow: hidden; }
+.gp-dif-opt {
+  background: transparent; color: var(--grafite); border: none; border-radius: 0;
+  font-size: 0.78rem; font-weight: 600; padding: 0.32rem 0.7rem; min-height: 34px; box-shadow: none;
+}
+.gp-dif-opt:hover { background: var(--papel-card); box-shadow: none; }
+.gp-dif-opt.ativo { color: #fff; }
+.gp-dif-opt.gp-dif-facil.ativo { background: var(--correto, #1E7D46); }
+.gp-dif-opt.gp-dif-media.ativo { background: var(--caneta, #2454D6); }
+.gp-dif-opt.gp-dif-dificil.ativo { background: var(--errado, #C03B2B); }
+
+.gp-nav { justify-content: space-between; align-items: center; }
+.gp-nav #gp-cancelar { margin-right: auto; }
 
 /* ============================================================
    Heatmap de constância (estilo GitHub/TecConcursos)
@@ -1566,6 +1763,21 @@ html[data-tema="escuro"] .mes-evento {
 .modal h3 { font-size: 1.1rem; }
 .modal-acoes { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.25rem; flex-wrap: wrap; }
 
+/* Diálogos amigáveis (confirmar / pedirTexto) — empilham acima de outros modais */
+.modal-fundo-dialogo { z-index: 200; }
+.modal-dialogo { max-width: 420px; text-align: center; animation: dialogo-entra 0.18s ease; }
+.modal-dialogo h3 { margin: 0.2rem 0 0.4rem; }
+.modal-dialogo .dialogo-msg { margin: 0 auto; max-width: 34ch; }
+.modal-dialogo .dialogo-icone {
+  font-size: 2rem; line-height: 1; margin-bottom: 0.4rem;
+}
+.modal-dialogo .modal-acoes { justify-content: center; margin-top: 1.3rem; }
+.modal-dialogo input[type="text"] { text-align: center; margin-top: 0.4rem; }
+@keyframes dialogo-entra {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
 #toast-raiz {
   position: fixed; bottom: calc(var(--abas-alt) + 1rem); left: 50%;
   transform: translateX(-50%); z-index: 200; display: flex;
@@ -1661,6 +1873,8 @@ body.arrastando-toque .agenda-dia.drop-alvo { outline: 2px dashed var(--caneta);
 @media (max-width: 620px) { .checkin-grid { grid-template-columns: repeat(2, 1fr); } }
 .checkin-kpi { display: flex; flex-direction: column; gap: 0.1rem; }
 .checkin-num { font-size: 1.25rem; font-weight: 700; font-family: 'IBM Plex Mono', monospace; color: var(--tinta); }
+.checkin-num-prazo { font-size: 1.02rem; line-height: 1.2; }
+.checkin-nota { font-size: 0.76rem; color: var(--grafite); line-height: 1.4; margin: 0.5rem 0 0; }
 .checkin-rotulo { font-size: 0.74rem; color: var(--grafite); }
 .checkin-barra { margin: 0.4rem 0 0.7rem; }
 .checkin-projecao { font-size: 0.9rem; line-height: 1.45; margin: 0.4rem 0; }

@@ -62,6 +62,60 @@
 
   function fecharModal() { pintarTimerModal = null; document.getElementById('modal-raiz').innerHTML = ''; }
 
+  // Diálogos amigáveis no lugar de window.confirm / window.prompt.
+  // Empilham num overlay próprio (document.body), sem sobrescrever modais já abertos.
+  function confirmar(opcoes) {
+    opcoes = typeof opcoes === 'string' ? { mensagem: opcoes } : (opcoes || {});
+    return new Promise(function (resolve) {
+      const fundo = document.createElement('div');
+      fundo.className = 'modal-fundo modal-fundo-dialogo';
+      fundo.innerHTML = '<div class="modal modal-dialogo" role="alertdialog" aria-modal="true">' +
+        (opcoes.icone ? '<div class="dialogo-icone" aria-hidden="true">' + esc(opcoes.icone) + '</div>' : '') +
+        '<h3>' + esc(opcoes.titulo || 'Confirmar') + '</h3>' +
+        (opcoes.mensagem ? '<p class="sub dialogo-msg">' + esc(opcoes.mensagem) + '</p>' : '') +
+        '<div class="modal-acoes">' +
+        '<button type="button" class="botao-quieto" data-cf="cancelar">' + esc(opcoes.cancelar || 'Cancelar') + '</button>' +
+        '<button type="button"' + (opcoes.perigo ? ' class="botao-perigo"' : '') + ' data-cf="ok">' + esc(opcoes.confirmar || 'Confirmar') + '</button>' +
+        '</div></div>';
+      document.body.appendChild(fundo);
+      function fechar(v) { document.removeEventListener('keydown', aoTecla); fundo.remove(); resolve(v); }
+      function aoTecla(e) { if (e.key === 'Escape') fechar(false); }
+      fundo.addEventListener('click', function (e) { if (e.target === fundo) fechar(false); });
+      fundo.querySelector('[data-cf="cancelar"]').addEventListener('click', function () { fechar(false); });
+      fundo.querySelector('[data-cf="ok"]').addEventListener('click', function () { fechar(true); });
+      document.addEventListener('keydown', aoTecla);
+      const ok = fundo.querySelector('[data-cf="ok"]');
+      setTimeout(function () { ok.focus(); }, 20);
+    });
+  }
+
+  function pedirTexto(opcoes) {
+    opcoes = opcoes || {};
+    return new Promise(function (resolve) {
+      const fundo = document.createElement('div');
+      fundo.className = 'modal-fundo modal-fundo-dialogo';
+      fundo.innerHTML = '<div class="modal modal-dialogo" role="dialog" aria-modal="true">' +
+        '<h3>' + esc(opcoes.titulo || 'Informe') + '</h3>' +
+        (opcoes.mensagem ? '<p class="sub dialogo-msg">' + esc(opcoes.mensagem) + '</p>' : '') +
+        '<form data-cf-form>' +
+        '<input type="text" data-cf-input maxlength="' + (parseInt(opcoes.maxlength, 10) || 80) + '" placeholder="' + esc(opcoes.placeholder || '') + '" value="' + esc(opcoes.valor || '') + '">' +
+        '<div class="modal-acoes"><button type="button" class="botao-quieto" data-cf="cancelar">Cancelar</button>' +
+        '<button type="submit">' + esc(opcoes.confirmar || 'Salvar') + '</button></div></form></div>';
+      document.body.appendChild(fundo);
+      const input = fundo.querySelector('[data-cf-input]');
+      function fechar(v) { document.removeEventListener('keydown', aoTecla); fundo.remove(); resolve(v); }
+      function aoTecla(e) { if (e.key === 'Escape') fechar(null); }
+      fundo.addEventListener('click', function (e) { if (e.target === fundo) fechar(null); });
+      fundo.querySelector('[data-cf="cancelar"]').addEventListener('click', function () { fechar(null); });
+      fundo.querySelector('[data-cf-form]').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fechar(input.value.trim() || null);
+      });
+      document.addEventListener('keydown', aoTecla);
+      setTimeout(function () { input.focus(); input.select(); }, 20);
+    });
+  }
+
   // ---------------- tema claro/escuro ----------------
   function aplicarTema() {
     const tema = state.config && state.config.tema === 'escuro' ? 'escuro' : 'claro';
@@ -270,19 +324,74 @@
     return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
   }
 
-  function countdownProva(janela) {
-    if (!janela || !janela[0] || !janela[1]) return 'sem data definida';
+  // 25.9 semanas é difícil de visualizar: vira "25 semanas e 6 dias".
+  function formatarSemanasDias(semanasDecimais) {
+    const totalDias = Math.max(0, Math.round((parseFloat(semanasDecimais) || 0) * 7));
+    const semanas = Math.floor(totalDias / 7);
+    const dias = totalDias - semanas * 7;
+    if (semanas === 0) return plural(dias, 'dia', 'dias');
+    if (dias === 0) return plural(semanas, 'semana', 'semanas');
+    return plural(semanas, 'semana', 'semanas') + ' e ' + plural(dias, 'dia', 'dias');
+  }
+
+  // Quebra um total de dias em meses, semanas e dias (aproximação de mês = 30 dias)
+  // para o detalhamento que aparece ao passar o mouse no widget de calendário.
+  function decomporDias(diasTotais) {
+    let dias = Math.max(0, parseInt(diasTotais, 10) || 0);
+    const meses = Math.floor(dias / 30);
+    dias -= meses * 30;
+    const semanas = Math.floor(dias / 7);
+    dias -= semanas * 7;
+    return { meses: meses, semanas: semanas, dias: dias };
+  }
+
+  function plural(n, sing, plur) {
+    return n + ' ' + (n === 1 ? sing : plur);
+  }
+
+  function countdownDetalhado(diasTotais) {
+    const d = decomporDias(diasTotais);
+    const partes = [];
+    if (d.meses) partes.push(plural(d.meses, 'mês', 'meses'));
+    if (d.semanas) partes.push(plural(d.semanas, 'semana', 'semanas'));
+    if (d.dias || partes.length === 0) partes.push(plural(d.dias, 'dia', 'dias'));
+    let txt;
+    if (partes.length === 1) txt = partes[0];
+    else if (partes.length === 2) txt = partes[0] + ' e ' + partes[1];
+    else txt = partes[0] + ', ' + partes[1] + ' e ' + partes[2];
+    return 'faltam ≈ ' + txt;
+  }
+
+  // Widget de calendário animado: número de dias em destaque no centro,
+  // detalhamento (meses/semanas/dias) ao passar o mouse.
+  function calendarioCountdownHtml(janela) {
+    if (!janela || !janela[0] || !janela[1]) {
+      return '<div class="prova-status-pill">sem data definida</div>';
+    }
     const hoje = D.hojeISO();
     const inicio = janela[0] + '-01';
     const fim = ultimoDiaMesISO(janela[1]);
-    if (!fim) return 'sem data definida';
-    if (hoje < inicio) {
-      const dias = D.diffDias(hoje, inicio);
-      return 'faltam ' + dias + (dias === 1 ? ' dia' : ' dias');
+    if (!fim) return '<div class="prova-status-pill">sem data definida</div>';
+    if (hoje >= inicio && hoje <= fim) {
+      return '<div class="prova-status-pill prova-status-ativo">📝 janela da prova em andamento</div>';
     }
-    if (hoje <= fim) return 'janela da prova em andamento';
-    const passou = D.diffDias(fim, hoje);
-    return 'janela passou há ' + passou + (passou === 1 ? ' dia' : ' dias');
+    if (hoje > fim) {
+      const passou = D.diffDias(fim, hoje);
+      return '<div class="prova-status-pill">janela passou há ' + plural(passou, 'dia', 'dias') + '</div>';
+    }
+    const dias = D.diffDias(hoje, inicio);
+    const detalhe = countdownDetalhado(dias) + ' para a prova';
+    const mesAlvo = D.formatarMesBR(janela[0]).split(' ')[0].toUpperCase();
+    return '<div class="cal-countdown" tabindex="0" role="img" aria-label="' + esc(detalhe) + '">' +
+      '<div class="cal-widget">' +
+      '<span class="cal-anel cal-anel-e" aria-hidden="true"></span>' +
+      '<span class="cal-anel cal-anel-d" aria-hidden="true"></span>' +
+      '<div class="cal-top">' + esc(mesAlvo) + '</div>' +
+      '<div class="cal-body"><span class="cal-num">' + dias + '</span>' +
+      '<span class="cal-unidade">' + (dias === 1 ? 'dia' : 'dias') + '</span></div>' +
+      '</div>' +
+      '<div class="cal-tooltip" role="tooltip">' + esc(detalhe) + '</div>' +
+      '</div>';
   }
 
   function checkEstudoHtml(feito, acao, id, tipo, titulo) {
@@ -314,7 +423,7 @@
       '<div><div class="card-kpi-rotulo">Data provável · ' + esc(nomeCurtoConcurso()) + '</div>' +
       '<div class="card-kpi-extra">confiança ' + esc(confianca) + '</div></div></div>' +
       '<div class="prova-periodo num">' + esc(periodo) + '</div>' +
-      '<div class="prova-countdown">' + esc(countdownProva(janela)) + '</div>' +
+      calendarioCountdownHtml(janela) +
       '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' +
       '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar</button>' +
       '</div>';
@@ -754,7 +863,7 @@
       '<div class="barra' + (pctQ >= 100 ? ' barra-verde' : '') + '" style="margin-top:0.4rem"><span style="width:' + pctQ + '%"></span></div></div>';
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
     const pctSemana = meta.qFeitas > 0 ? Math.round((meta.qCertas / meta.qFeitas) * 100) : D.desempenhoGeral(state);
-    html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Acertos' + (meta.qFeitas > 0 ? ' na semana' : '') + '</div>' +
+    html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Margem de acertos' + (meta.qFeitas > 0 ? ' na semana' : '') + '</div>' +
       '<div class="card-kpi-valor card-kpi-valor-compacto">' + (pctSemana === null ? '—' : pctSemana + '%') + '</div>' +
       '<div class="msg-coach">' + mensagemCoach(pctSemana, metaPct) + '</div></div>';
     html += '</div>';
@@ -954,7 +1063,7 @@
 
   function telaTimer() {
     if (state.disciplinas.length === 0) {
-      return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="card"><div class="estado-vazio">' +
+      return '<section class="timer-page"><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
         'Importe o plano para escolher um tópico e cronometrar o estudo.' +
         '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div></section>';
@@ -975,8 +1084,9 @@
         '<div class="timer-modos-wrap"><span class="seletor-modo">' +
         '<button type="button" data-modo="cronometro" class="ativo">Cronômetro</button>' +
         '<button type="button" data-modo="pomodoro">Pomodoro 25/5</button></span></div>' +
-        '<div class="timer-limite"><label for="timer-limite">Tempo máximo (min)</label>' +
-        '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>';
+        '<div class="timer-limite" id="timer-limite-wrap"><label for="timer-limite">Tempo máximo (min)</label>' +
+        '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>' +
+        '<div class="timer-limite-auto oculto" id="timer-limite-auto">⏱️ Limite automático: 25 min de foco por ciclo</div>';
     } else {
       const discAtiva = D.disciplinaDoTopico(state, ativo.topicoId);
       selecao = '<div class="timer-disciplina-topo"><h2>' + esc(discAtiva ? nomeDiscCurto(discAtiva.nome) : 'Estudo') + '</h2>' +
@@ -985,7 +1095,7 @@
 
     const ticksSvg = gerarTicksTimer();
     const tempoIni = ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00';
-    return '<section class="timer-page"><div class="timer-title-row"><h1>Timer</h1><span></span></div><div class="tela-timer"><div class="timer-conteudo">' +
+    return '<section class="timer-page"><div class="tela-timer"><div class="timer-conteudo">' +
       selecao +
       '<div class="timer-relogio-frame">' +
       '<svg class="timer-clock-svg" viewBox="0 0 300 300" aria-hidden="true">' +
@@ -1007,6 +1117,7 @@
     const info = raiz.querySelector('#timer-info');
     const acoes = raiz.querySelector('#timer-acoes');
     const limiteInput = raiz.querySelector('#timer-limite');
+    const frame = raiz.querySelector('.timer-relogio-frame');
     let modoEscolhido = 'cronometro';
 
     // Estado vazio (sem plano): a tela não tem os controles do relógio.
@@ -1041,15 +1152,21 @@
           atualizarAssunto();
         });
       });
+      const limiteWrap = raiz.querySelector('#timer-limite-wrap');
+      const limiteAuto = raiz.querySelector('#timer-limite-auto');
       raiz.querySelectorAll('[data-modo]').forEach(function (b) {
         b.addEventListener('click', function () {
           modoEscolhido = b.getAttribute('data-modo');
           raiz.querySelectorAll('[data-modo]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+          // Pomodoro define o limite sozinho (25 min por ciclo): esconde o campo manual.
+          const ehPomo = modoEscolhido === 'pomodoro';
+          if (limiteWrap) limiteWrap.classList.toggle('oculto', ehPomo);
+          if (limiteAuto) limiteAuto.classList.toggle('oculto', !ehPomo);
           // ao escolher Pomodoro o relógio já mostra 25:00 (foco); cronômetro volta a 00:00
           if (!window.Timer.estado()) {
-            if (display) display.textContent = modoEscolhido === 'pomodoro'
+            if (display) display.textContent = ehPomo
               ? window.Timer.formatar(window.Timer.POMO_FOCO_MIN * 60000) : '00:00';
-            if (info) info.textContent = modoEscolhido === 'pomodoro'
+            if (info) info.textContent = ehPomo
               ? 'Pomodoro 25/5 — 25 min de foco, 5 min de pausa' : '';
           }
         });
@@ -1065,16 +1182,21 @@
         var secs = (e.decorridoMs / 1000) % 60;
         timerHand.setAttribute('transform', 'rotate(' + (secs * 6).toFixed(2) + ',150,150)');
       }
+      // Passou do tempo planejado → destaque verde "tempo extra" (estudou além da meta).
+      const passouLimite = e.modo !== 'pomodoro' && e.limiteMin && e.decorridoMs >= e.limiteMs;
+      const extraMin = passouLimite ? Math.floor((e.decorridoMs - e.limiteMs) / 60000) : 0;
+      if (display) display.classList.toggle('timer-extra', !!passouLimite);
+      if (frame) frame.classList.toggle('timer-frame-extra', !!passouLimite);
       if (info) {
         if (e.modo === 'pomodoro') {
           info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
+        } else if (passouLimite) {
+          info.innerHTML = '<span class="timer-info-extra">🎉 +' + extraMin + ' min além do planejado</span>';
         } else {
           info.textContent = e.rodando ? 'Estudando' : 'Pausado';
         }
-        if (e.limiteMin) {
-          info.textContent += e.limiteRestanteMs > 0
-            ? ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs)
-            : ' · limite atingido';
+        if (e.limiteMin && !passouLimite) {
+          info.textContent += ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs);
         }
       }
       atualizarTituloTimer(e);
@@ -1122,7 +1244,8 @@
         render();
       });
       acoes.querySelector('#t-descartar').addEventListener('click', function () {
-        if (confirm('Descartar o tempo cronometrado sem registrar?')) { window.Timer.descartar(); atualizarTituloTimer(null); render(); }
+        confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado será apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: '🗑️' })
+          .then(function (ok) { if (ok) { window.Timer.descartar(); atualizarTituloTimer(null); render(); } });
       });
     }
 
@@ -1148,14 +1271,19 @@
       const info = m.querySelector('#tr-info');
       if (!e || !disp) return;
       disp.textContent = window.Timer.formatar(e.modo === 'pomodoro' ? e.pomoRestanteMs : e.decorridoMs);
+      const passouLimite = e.modo !== 'pomodoro' && e.limiteMin && e.decorridoMs >= e.limiteMs;
+      const extraMin = passouLimite ? Math.floor((e.decorridoMs - e.limiteMs) / 60000) : 0;
+      disp.classList.toggle('timer-extra', !!passouLimite);
       if (info) {
         if (e.modo === 'pomodoro') {
           info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
+        } else if (passouLimite) {
+          info.innerHTML = '<span class="timer-info-extra">🎉 +' + extraMin + ' min além do planejado</span>';
         } else {
           info.textContent = e.rodando ? 'Estudando' : 'Pausado';
         }
-        if (e.limiteMin) {
-          info.textContent += e.limiteRestanteMs > 0 ? ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs) : ' · limite atingido';
+        if (e.limiteMin && !passouLimite) {
+          info.textContent += ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs);
         }
       }
     }
@@ -1184,7 +1312,8 @@
           render();
         });
         corpo.querySelector('#tr-descartar').addEventListener('click', function () {
-          if (confirm('Descartar o tempo cronometrado sem registrar?')) { window.Timer.descartar(); atualizarTituloTimer(null); fecharModal(); render(); }
+          confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado será apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: '🗑️' })
+            .then(function (ok) { if (ok) { window.Timer.descartar(); atualizarTituloTimer(null); fecharModal(); render(); } });
         });
         corpo.querySelector('#tr-fechar').addEventListener('click', fecharModal);
         const abrirTela = corpo.querySelector('#tr-abrir-tela');
@@ -1916,10 +2045,13 @@
     if (mais) mais.addEventListener('click', function () { historicoLimite += 50; render(); });
     raiz.querySelectorAll('[data-excluir]').forEach(function (b) {
       b.addEventListener('click', function () {
-        if (!confirm('Excluir esta sessão? Os percentuais de desempenho serão recalculados.')) return;
-        state.sessoes = state.sessoes.filter(function (s) { return s.id !== b.getAttribute('data-excluir'); });
-        salvar(); render();
-        toast('Sessão excluída');
+        const id = b.getAttribute('data-excluir');
+        confirmar({ titulo: 'Excluir sessão?', mensagem: 'Os percentuais de desempenho serão recalculados.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
+          if (!ok) return;
+          state.sessoes = state.sessoes.filter(function (s) { return s.id !== id; });
+          salvar(); render();
+          toast('Sessão excluída');
+        });
       });
     });
   }
@@ -2241,10 +2373,12 @@
       b.addEventListener('click', function () {
         const e = state.editais.find(function (x) { return x.id === b.getAttribute('data-ed-excluir'); });
         if (!e) return;
-        if (!confirm('Excluir o edital "' + e.titulo + '"? Os planos já criados a partir dele continuam existindo.')) return;
-        state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
-        salvar(); render();
-        toast('Edital excluído');
+        confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
+          if (!ok) return;
+          state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
+          salvar(); render();
+          toast('Edital excluído');
+        });
       });
     });
   }
@@ -2461,7 +2595,12 @@
       const edB = outros.find(function (x) { return x.id === sel.value; });
       if (!edB) return;
       const r = D.conciliarPlanos(edA, edB, { horasSemana: horasSemanaDisponiveis() });
-      if (r.nivel === 'nao_recomendado' && !confirm('A compatibilidade é baixa (' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis). Gerar o plano combinado mesmo assim?')) return;
+      if (r.nivel === 'nao_recomendado') {
+        confirmar({ titulo: 'Compatibilidade baixa', mensagem: 'Seriam ~' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis. Gerar o plano combinado mesmo assim?', confirmar: 'Gerar mesmo assim', icone: '⚠️' }).then(function (ok) {
+          if (ok) gerarPlanoCombinado(edA, edB);
+        });
+        return;
+      }
       gerarPlanoCombinado(edA, edB);
     });
     recalc();
@@ -2945,12 +3084,13 @@
     ligarEditaisEsquematizados(raiz);
 
     raiz.querySelector('#zr-limpar').addEventListener('click', function () {
-      if (!confirm('Apagar TODOS os dados (plano, sessões, revisões, simulados)? Esta ação não tem volta.')) return;
-      if (!confirm('Última confirmação: isso também sobrescreve os dados sincronizados no Firebase. Continuar?')) return;
-      state = window.Store.estadoVazio();
-      state.config.apagadoEm = new Date().toISOString();
-      salvar(); render();
-      toast('Dados apagados');
+      confirmar({ titulo: 'Apagar todos os dados?', mensagem: 'Plano, sessões, revisões e simulados serão apagados — e isso também sobrescreve os dados sincronizados no Firebase. Esta ação não tem volta.', confirmar: 'Apagar tudo', perigo: true, icone: '⚠️' }).then(function (ok) {
+        if (!ok) return;
+        state = window.Store.estadoVazio();
+        state.config.apagadoEm = new Date().toISOString();
+        salvar(); render();
+        toast('Dados apagados');
+      });
     });
   }
 
@@ -3532,10 +3672,11 @@
       '<div class="checkin-grid checkin-grid-2">' +
       '<div class="checkin-kpi"><span class="checkin-num">' + burn.ritmoReal + 'h</span>' +
       '<span class="checkin-rotulo">Carga horária real / semana</span></div>' +
-      '<div class="checkin-kpi"><span class="checkin-num">' + burn.semanasRestantes + '</span>' +
-      '<span class="checkin-rotulo">Semanas até a meta</span></div></div>' +
+      '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo">' + esc(formatarSemanasDias(burn.semanasRestantes)) + '</span>' +
+      '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
       checkLinha +
-      '<div class="compact-actions" style="margin-top:0.6rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
+      '<p class="checkin-nota">↻ O plano é recalculado a cada semana, comparando o que você registrou com o que estava previsto, e se reajusta à sua realidade.</p>' +
+      '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
       '</div>';
   }
 
@@ -3579,11 +3720,12 @@
   }
 
   function criarPlanoManualComPrompt() {
-    const nome = prompt('Nome do plano (ex.: INSS 2027, Estudos livres):', 'Meus estudos');
-    if (!nome) return;
-    criarPlanoManual(nome);
-    render();
-    toast('Plano "' + nome.trim() + '" criado', 'sucesso');
+    pedirTexto({ titulo: 'Novo plano manual', mensagem: 'Dê um nome para o plano.', placeholder: 'Ex.: INSS 2027, Estudos livres', valor: 'Meus estudos', confirmar: 'Criar plano' }).then(function (nome) {
+      if (!nome) return;
+      criarPlanoManual(nome);
+      render();
+      toast('Plano "' + nome.trim() + '" criado', 'sucesso');
+    });
   }
 
   function pertenceAoPlano(item, planoId) {
@@ -3594,9 +3736,9 @@
     const p = state.planos.find(function (x) { return x.id === planoId; });
     if (!p) return false;
     const msg = limparHistorico
-      ? 'Excluir o plano "' + p.plano.concurso + '" e também sessões, revisões, simulados e agenda dele?'
-      : 'Excluir o plano "' + p.plano.concurso + '"? As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
-    if (!confirm(msg)) return false;
+      ? 'O plano "' + p.plano.concurso + '" será excluído junto com sessões, revisões, simulados e agenda dele.'
+      : 'O plano "' + p.plano.concurso + '" será excluído. As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
+    if (!(await confirmar({ titulo: 'Excluir plano?', mensagem: msg, confirmar: 'Excluir', perigo: true, icone: '🗑️' }))) return false;
     const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
     if (limparHistorico) {
       state.sessoes = state.sessoes.filter(function (s) { return !pertenceAoPlano(s, planoId); });
@@ -3643,6 +3785,16 @@
     { meses: 6, nome: 'Regular' },
     { meses: 9, nome: 'Construção de base (pré-edital)' }
   ];
+
+  const NIVEIS_DIF = [
+    { id: 'facil', rotulo: 'Tranquila', dica: 'Já domino, preciso de menos tempo.' },
+    { id: 'media', rotulo: 'Normal', dica: 'Tempo equilibrado.' },
+    { id: 'dificil', rotulo: 'Difícil', dica: 'Tenho dificuldade, preciso de mais tempo.' }
+  ];
+  function rotuloDif(k) {
+    const n = NIVEIS_DIF.find(function (x) { return x.id === k; });
+    return n ? n.rotulo : 'Normal';
+  }
 
   function semanasPorMeses(meses) {
     return meses === 3 ? 13 : meses === 9 ? 39 : 26;
@@ -3955,17 +4107,62 @@
         '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
         '</label>';
     }).join('');
+    // Passo 1 — Prazo: cartões em vez de um <select> denso.
+    const prazoCards = MACRO_PLANOS.map(function (p) {
+      return '<button type="button" class="gp-prazo-card' + (p.meses === mesesAtual ? ' ativo' : '') + '" data-gp-meses="' + p.meses + '">' +
+        '<span class="gp-prazo-num">' + p.meses + '</span><span class="gp-prazo-unid">meses</span>' +
+        '<span class="gp-prazo-nome">' + esc(p.nome) + '</span></button>';
+    }).join('');
+
+    // Passo 3 — Dificuldade por disciplina (alimenta o algoritmo de distribuição de horas).
+    const difHtml = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
+      const atual = d.dificuldade || 'media';
+      return '<div class="gp-dif-row" data-dif-disc="' + esc(d.id) + '">' +
+        '<span class="gp-dif-nome"><span class="tag-disc" style="background:' + esc(d.cor || '#9A9DA3') + '">' + esc(d.id) + '</span>' + esc(nomeDiscCurto(d.nome)) + '</span>' +
+        '<div class="gp-dif-opts" role="radiogroup" aria-label="Dificuldade em ' + esc(nomeDiscCurto(d.nome)) + '">' +
+        NIVEIS_DIF.map(function (n) {
+          return '<button type="button" class="gp-dif-opt gp-dif-' + n.id + (atual === n.id ? ' ativo' : '') + '" data-dif="' + n.id + '" title="' + esc(n.dica) + '">' + esc(n.rotulo) + '</button>';
+        }).join('') +
+        '</div></div>';
+    }).join('');
+
     const m = abrirModal(
-      '<h3>Gerar plano de estudos</h3>' +
-      '<p class="sub">Defina sua rotina. O sistema vai respeitar dias, horas disponíveis e blocos máximos por disciplina.</p>' +
+      '<div class="gp-wizard">' +
+      '<div class="gp-passos" id="gp-passos">' +
+      ['Prazo', 'Rotina', 'Dificuldade', 'Estratégia'].map(function (t, i) {
+        return '<span class="gp-passo' + (i === 0 ? ' ativo' : '') + '" data-passo-dot="' + (i + 1) + '"><b>' + (i + 1) + '</b>' + t + '</span>';
+      }).join('') +
+      '</div>' +
       '<form id="form-gerar-plano-rotina">' +
-      '<div class="grade-2"><div><label for="gp-meses">Terminar edital em</label><select id="gp-meses">' +
-      MACRO_PLANOS.map(function (p) {
-        return '<option value="' + p.meses + '"' + (p.meses === mesesAtual ? ' selected' : '') + '>' + p.meses + ' meses · ' + p.nome + '</option>';
-      }).join('') + '</select></div>' +
+
+      // ---- Passo 1: prazo ----
+      '<section class="gp-step" data-step="1">' +
+      '<h3>Em quanto tempo quer fechar o edital?</h3>' +
+      '<p class="sub">Escolha o ritmo. Nas próximas telas o sistema confere se a sua rotina cabe nesse prazo.</p>' +
+      '<input type="hidden" id="gp-meses" value="' + mesesAtual + '">' +
+      '<div class="gp-prazo-cards">' + prazoCards + '</div>' +
+      '</section>' +
+
+      // ---- Passo 2: rotina (dias e horas) ----
+      '<section class="gp-step oculto" data-step="2">' +
+      '<h3>Quais dias e quantas horas você estuda?</h3>' +
+      '<p class="sub">Marque os dias e ajuste as horas. O total aparece em tempo real.</p>' +
+      '<div class="rotina-dias">' + diasHtml + '</div>' +
       '<div class="rotina-totais"><div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + formatarHorasSemana(totalAtual / 60) + '</div></div>' +
-      '<div><label>Total ideal</label><div class="rotina-total rotina-total-ideal" id="gp-total-ideal">' + formatarHorasSemana(idealAtual) + '</div></div></div></div>' +
+      '<div><label>Total ideal</label><div class="rotina-total rotina-total-ideal" id="gp-total-ideal">' + formatarHorasSemana(idealAtual) + '</div></div></div>' +
       '<p class="rotina-feedback" id="gp-feedback"></p>' +
+      '</section>' +
+
+      // ---- Passo 3: dificuldade por disciplina ----
+      '<section class="gp-step oculto" data-step="3">' +
+      '<h3>Como você se sente em cada disciplina?</h3>' +
+      '<p class="sub">Isso ajuda o sistema a reservar mais tempo para o que é mais difícil para você e menos para o que você já domina.</p>' +
+      '<div class="gp-dif-lista">' + (difHtml || '<p class="sub">Nenhuma disciplina para configurar.</p>') + '</div>' +
+      '</section>' +
+
+      // ---- Passo 4: estratégia + blocos ----
+      '<section class="gp-step oculto" data-step="4">' +
+      '<h3>Estratégia de estudo</h3>' +
       '<label>Ordem de ataque ao conteúdo</label>' +
       '<div class="toggle-ordem" role="radiogroup" aria-label="Ordem de ataque ao conteúdo">' +
       '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="edital"' + (ordemAtual === 'edital' ? ' checked' : '') + '>' +
@@ -3973,15 +4170,40 @@
       '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="incidencia"' + (ordemAtual === 'incidencia' ? ' checked' : '') + '>' +
       '<span><strong>Ordem de incidência (80/20)</strong><small>Ataca primeiro os tópicos mais cobrados nas provas.</small></span></label>' +
       '</div>' +
-      '<label>Quais dias e quantas horas pretende estudar?</label>' +
-      '<div class="rotina-dias">' + diasHtml + '</div>' +
-      '<label>Qual mínimo e máximo de tempo que deseja estudar uma mesma disciplina?</label>' +
+      '<label>Quanto tempo em cada disciplina por bloco? (mínimo e máximo)</label>' +
       '<div class="grade-2"><div><select id="gp-min-bloco">' + optsMin + '</select></div>' +
       '<div><select id="gp-max-bloco">' + optsMax + '</select></div></div>' +
-      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="gp-cancelar">Cancelar</button>' +
-      '<button type="submit">Gerar plano</button></div></form>'
+      '<p class="rotina-feedback" id="gp-resumo"></p>' +
+      '</section>' +
+
+      '<div class="modal-acoes gp-nav">' +
+      '<button type="button" class="botao-quieto" id="gp-cancelar">Cancelar</button>' +
+      '<button type="button" class="botao-quieto oculto" id="gp-voltar">← Voltar</button>' +
+      '<button type="button" id="gp-proximo">Próximo →</button>' +
+      '<button type="submit" class="oculto" id="gp-gerar">Gerar plano</button>' +
+      '</div></form></div>'
     );
     m.classList.add('modal-amplo');
+
+    // navegação do assistente
+    let passo = 1;
+    const TOTAL_PASSOS = 4;
+    function mostrarPasso(n) {
+      passo = Math.max(1, Math.min(TOTAL_PASSOS, n));
+      m.querySelectorAll('.gp-step').forEach(function (s) {
+        s.classList.toggle('oculto', parseInt(s.getAttribute('data-step'), 10) !== passo);
+      });
+      m.querySelectorAll('[data-passo-dot]').forEach(function (d) {
+        const i = parseInt(d.getAttribute('data-passo-dot'), 10);
+        d.classList.toggle('ativo', i === passo);
+        d.classList.toggle('concluido', i < passo);
+      });
+      m.querySelector('#gp-voltar').classList.toggle('oculto', passo === 1);
+      m.querySelector('#gp-proximo').classList.toggle('oculto', passo === TOTAL_PASSOS);
+      m.querySelector('#gp-gerar').classList.toggle('oculto', passo !== TOTAL_PASSOS);
+      if (passo === TOTAL_PASSOS) atualizarResumo();
+    }
+
     function rotinaDoModal() {
       const cfg = { dias: {}, minBloco: parseInt(m.querySelector('#gp-min-bloco').value, 10), maxBloco: parseInt(m.querySelector('#gp-max-bloco').value, 10) };
       ROTINA_DIAS.forEach(function (d) {
@@ -4014,21 +4236,77 @@
           : 'Com a quantidade planejada, provavelmente não será possível fechar o edital em ' + meses + ' meses. Aumente as horas, escolha um prazo maior ou reduza o escopo.';
       }
     }
+    // resumo final do assistente (passo 4)
+    function atualizarResumo() {
+      const resumo = m.querySelector('#gp-resumo');
+      if (!resumo) return;
+      const meses = parseInt(m.querySelector('#gp-meses').value, 10);
+      const total = totalMinutosRotina(rotinaDoModal()) / 60;
+      const ideal = horasIdeaisSemanaPlano(entrada, meses);
+      const ok = total >= ideal;
+      resumo.classList.toggle('alerta', !ok);
+      resumo.classList.toggle('ok', ok);
+      resumo.textContent = 'Resumo: terminar em ' + meses + ' meses, ' + formatarHorasSemana(total) + '. ' +
+        (ok ? 'Rotina compatível com o prazo. 👍' : 'A rotina pode não fechar o edital nesse prazo — reveja os dias/horas ou aumente o prazo.');
+    }
+
     atualizarTotal();
-    m.querySelectorAll('[data-rot-ativo], [data-rot-horas], #gp-meses, #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
+    m.querySelectorAll('[data-rot-ativo], [data-rot-horas], #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
       el.addEventListener('change', atualizarTotal);
       el.addEventListener('input', atualizarTotal);
     });
+
+    // Passo 1 — escolha do prazo por cartões
+    m.querySelectorAll('[data-gp-meses]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+        m.querySelector('#gp-meses').value = b.getAttribute('data-gp-meses');
+        atualizarTotal();
+      });
+    });
+
+    // Passo 3 — botões de dificuldade por disciplina
+    m.querySelectorAll('.gp-dif-row').forEach(function (row) {
+      row.querySelectorAll('[data-dif]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          row.querySelectorAll('[data-dif]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+        });
+      });
+    });
+
+    // navegação
     m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#gp-voltar').addEventListener('click', function () { mostrarPasso(passo - 1); });
+    m.querySelector('#gp-proximo').addEventListener('click', function () {
+      if (passo === 2 && totalMinutosRotina(rotinaDoModal()) < 1) {
+        toast('Marque pelo menos um dia com tempo de estudo.', 'erro');
+        return;
+      }
+      mostrarPasso(passo + 1);
+    });
+    m.querySelectorAll('[data-passo-dot]').forEach(function (d) {
+      d.addEventListener('click', function () {
+        const alvo = parseInt(d.getAttribute('data-passo-dot'), 10);
+        if (alvo <= passo) mostrarPasso(alvo); // só permite voltar pelos passos
+      });
+    });
+
     m.querySelector('#form-gerar-plano-rotina').addEventListener('submit', function (e) {
       e.preventDefault();
       const meses = parseInt(m.querySelector('#gp-meses').value, 10);
       const rotinaNova = rotinaDoModal();
       const totalMinutos = totalMinutosRotina(rotinaNova);
-      if (totalMinutos < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); return; }
+      if (totalMinutos < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); mostrarPasso(2); return; }
       const horas = Math.max(1, Math.round(totalMinutos / 60));
       const ordemEl = m.querySelector('input[name="gp-ordem"]:checked');
       const ordemAtaque = ordemEl ? ordemEl.value : 'edital';
+      // grava a dificuldade escolhida em cada disciplina (entra no cálculo do cronograma)
+      m.querySelectorAll('.gp-dif-row').forEach(function (row) {
+        const id = row.getAttribute('data-dif-disc');
+        const sel = row.querySelector('[data-dif].ativo');
+        const disc = state.disciplinas.find(function (x) { return x.id === id; });
+        if (disc && sel) disc.dificuldade = sel.getAttribute('data-dif');
+      });
       state.config.rotinaEstudos = rotinaNova;
       if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque)) return;
       fecharModal();
@@ -4039,6 +4317,8 @@
       const macro = MACRO_PLANOS.find(function (p) { return p.meses === meses; });
       toast('Plano ' + (macro ? macro.nome.split(' (')[0] : meses + ' meses') + ' gerado — calendário preenchido', 'sucesso');
     });
+
+    mostrarPasso(1);
   }
 
   function normalizarCabecalho(s) {
