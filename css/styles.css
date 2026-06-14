@@ -1010,15 +1010,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .etiqueta-agenda { background: var(--caneta-suave); color: var(--caneta); }
 
 .frase-dia {
-  font-size: 0.96rem;
+  font-size: 0.88rem;
   color: var(--tinta);
-  border-left: 4px solid var(--caneta);
-  padding: 0.9rem 1rem;
-  margin: 0.85rem 0 1.2rem;
+  border-left: 3px solid var(--caneta);
+  padding: 0.45rem 0.85rem;
+  margin: 0.6rem 0 0.9rem;
   font-style: italic;
-  background: rgba(255, 255, 255, 0.86);
-  border-radius: var(--raio);
-  box-shadow: var(--sombra-suave);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: var(--raio-s);
+  box-shadow: none;
 }
 .frase-dia .autor { display: block; font-style: normal; font-size: 0.8rem; color: var(--grafite); margin-top: 0.25rem; font-weight: 600; }
 html[data-tema="escuro"] .frase-dia {
