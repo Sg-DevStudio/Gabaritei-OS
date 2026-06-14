@@ -284,6 +284,17 @@
 
   function doAtivo(lista) { return D.doPlanoAtivo(state, lista); }
 
+  // Horas REALMENTE agendadas (blocos do calendário) numa semana — é o número
+  // que o aluno vê no calendário. Usado no check-in para bater com a agenda.
+  function horasAgendadasSemana(inicioISO) {
+    const fim = D.addDias(inicioISO, 7);
+    let min = 0;
+    doAtivo(state.agenda).forEach(function (a) {
+      if (a.data >= inicioISO && a.data < fim) min += a.duracaoMin || 0;
+    });
+    return Math.round((min / 60) * 10) / 10;
+  }
+
   function primeiroNome(valor) {
     return String(valor || '').trim().split(/\s+/)[0] || '';
   }
@@ -3671,25 +3682,40 @@
     };
     const sit = mapaSit[burn.situacao] || mapaSit.no_prazo;
 
+    // Números coerentes com o que o aluno vê no calendário:
+    // - planejado da semana = horas REALMENTE agendadas nesta semana (não a capacidade bruta);
+    // - carga "real" só quando já há estudo registrado, senão mostramos a planejada.
+    const inicioSemana = D.segundaDaSemana(D.hojeISO());
+    const planSemana = horasAgendadasSemana(inicioSemana);
+    const feitoSemana = check.atual ? check.atual.realizado : 0;
+    const restanteSemana = Math.round(Math.max(0, planSemana - feitoSemana) * 10) / 10;
+    const temReal = burn.horasFeitas > 0;
+    const planoNovoEstaSemana = state.plano.gerado_em && state.plano.gerado_em >= inicioSemana;
+    const cargaValor = temReal ? burn.ritmoReal : planSemana;
+    const cargaRotulo = temReal ? 'Carga horária real / semana' : 'Carga horária planejada / semana';
+
     // Prévia da semana corrente — o aluno antecipa, no último dia, se vai fechar.
     let semanaAtualLinha = '';
-    if (check.atual && check.planejado > 0) {
-      const a = check.atual;
-      const ok = a.restante <= 0.1;
-      const classe = a.naoVaiFechar ? 'alerta' : (ok ? 'ok' : '');
+    if (planSemana > 0) {
+      const ok = restanteSemana <= 0.1;
+      const ehUltimoDia = check.atual && check.atual.ehUltimoDia;
+      const apertou = ehUltimoDia && restanteSemana > 8;
+      const classe = apertou ? 'alerta' : (ok ? 'ok' : '');
       let msg;
-      if (ok) {
+      if (planoNovoEstaSemana) {
+        msg = 'plano gerado nesta semana — a semana cheia começa na próxima segunda.';
+      } else if (ok) {
         msg = 'meta da semana batida 👏';
-      } else if (a.naoVaiFechar) {
-        msg = 'faltam ' + a.restante + 'h e hoje é o último dia do plano — provavelmente não fecha. O excedente já foi redistribuído nas próximas semanas; na segunda o plano recalcula com o que você fechar hoje.';
-      } else if (a.ehUltimoDia) {
-        msg = 'faltam ' + a.restante + 'h e hoje é o último dia do plano — dá um gás para fechar a semana.';
+      } else if (apertou) {
+        msg = 'faltam ' + restanteSemana + 'h e hoje é o último dia da semana — o que não fechar entra no recálculo de segunda.';
+      } else if (ehUltimoDia) {
+        msg = 'faltam ' + restanteSemana + 'h e hoje é o último dia da semana — dá um gás para fechar.';
       } else {
-        msg = 'faltam ' + a.restante + 'h para a meta desta semana.';
+        msg = 'faltam ' + restanteSemana + 'h para a meta desta semana.';
       }
       semanaAtualLinha = '<div class="checkin-comparativo ' + classe + '">' +
-        '<span>Esta semana · planejado <strong>' + formatarHorasSemana(a.planejado).replace(' na semana', '') + '</strong>' +
-        ' · feito <strong>' + a.realizado + 'h</strong></span>' +
+        '<span>Esta semana · planejado <strong>' + planSemana + 'h</strong>' +
+        ' · feito <strong>' + feitoSemana + 'h</strong></span>' +
         '<span class="checkin-saldo">' + msg + '</span></div>';
     }
 
@@ -3710,8 +3736,8 @@
       '<div class="checkin-head"><div class="card-kpi-rotulo">Check-in semanal</div>' +
       '<span class="checkin-badge checkin-badge-' + sit.classe + '">' + sit.icone + ' ' + sit.rotulo + '</span></div>' +
       '<div class="checkin-grid checkin-grid-2">' +
-      '<div class="checkin-kpi"><span class="checkin-num">' + burn.ritmoReal + 'h</span>' +
-      '<span class="checkin-rotulo">Carga horária real / semana</span></div>' +
+      '<div class="checkin-kpi"><span class="checkin-num">' + cargaValor + 'h</span>' +
+      '<span class="checkin-rotulo">' + cargaRotulo + '</span></div>' +
       '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo">' + esc(formatarSemanasDias(burn.semanasRestantes)) + '</span>' +
       '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
       semanaAtualLinha +
