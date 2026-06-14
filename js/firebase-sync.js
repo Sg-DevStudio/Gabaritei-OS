@@ -152,11 +152,15 @@ async function reconciliarComRemoto(silencioso) {
     const remotoMs = dataMs(atualizadoEm(remoto.state) || remoto.updatedAt);
     const localTemDados = temDados(local);
     const remotoTemDados = temDados(remoto.state);
+    // Exclusão local recente (plano/dados apagados): não deixa a nuvem
+    // ressuscitar os dados — neste caso o estado local (vazio) é que vale.
+    const apagouLocal = local.config && local.config.apagadoEm &&
+      dataMs(local.config.apagadoEm) > remotoMs + FOLGA_RELOGIO_MS;
 
-    if (!localTemDados && remotoTemDados) {
+    if (!localTemDados && remotoTemDados && !apagouLocal) {
       aplicarRemoto(remoto.state, silencioso);
       definirStatus('sincronizado', 'Sincronizado com Firebase');
-    } else if (localMs > remotoMs + FOLGA_RELOGIO_MS) {
+    } else if (localMs > remotoMs + FOLGA_RELOGIO_MS || apagouLocal) {
       await gravarRemoto(local);
     } else if (remotoMs > localMs + FOLGA_RELOGIO_MS) {
       aplicarRemoto(remoto.state, silencioso);
@@ -179,7 +183,9 @@ function observarMudancas() {
     const local = opcoes.obterEstado();
     const remotoMs = dataMs(atualizadoEm(remoto.state) || remoto.updatedAt);
     const localMs = dataMs(atualizadoEm(local));
-    if (remotoMs > localMs + FOLGA_RELOGIO_MS) {
+    const apagouLocal = local.config && local.config.apagadoEm &&
+      dataMs(local.config.apagadoEm) > remotoMs + FOLGA_RELOGIO_MS;
+    if (remotoMs > localMs + FOLGA_RELOGIO_MS && !apagouLocal) {
       aplicarRemoto(remoto.state, true);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
     }
