@@ -849,10 +849,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   /* desktop: saudação + frase do dia à esquerda; data provável como conteúdo
      "solto" (sem moldura de card) no canto superior direito. A frase sobe e
      ocupa o vão do meio, terminando junto ao pé do card de data provável. */
-  .home-cab { display: flex; align-items: stretch; justify-content: space-between; gap: 1.5rem; }
+  .home-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
   .home-cab-esq { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
   .home-cab-esq .cab-home { margin-bottom: 0; }
-  .home-cab-esq .frase-dia { margin-top: 0.9rem; flex: 1 1 auto; display: flex; align-items: center; }
+  /* A frase fica logo abaixo da saudação com altura natural — não esticada para
+     acompanhar o card de data provável (o que deixava o card alto demais). */
+  .home-cab-esq .frase-dia { margin-top: 0.8rem; flex: 0 0 auto; }
   .home-cab-prova { display: flex; align-items: flex-start; justify-content: flex-end; flex: 0 0 auto; width: auto; }
   .home-cab-prova .prova-card-solo {
     background: transparent; border: 0; box-shadow: none; padding: 0; margin: 0;
