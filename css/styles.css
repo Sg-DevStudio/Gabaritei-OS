@@ -2410,6 +2410,24 @@ canvas.grafico {
 .catalogo-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
 /* "plano criado ✓" aparece logo abaixo do subtítulo do edital */
 .catalogo-feito { align-self: flex-start; margin: 0.15rem 0 0; }
+
+/* Seção "Comparar dois editais" (topo da aba Planos) */
+.comparar-secao { margin-bottom: 1rem; padding: 0.85rem 1rem; }
+.comparar-summary { cursor: pointer; list-style: none; display: flex; flex-direction: column; gap: 0.1rem; }
+.comparar-summary::-webkit-details-marker { display: none; }
+.comparar-summary-tit { font-weight: 700; font-size: 1rem; }
+.comparar-summary .sub { font-size: 0.82rem; }
+.comparar-secao[open] .comparar-summary { margin-bottom: 0.7rem; }
+.comparar-corpo { display: block; }
+.comparar-selects { display: flex; align-items: flex-end; gap: 0.6rem; flex-wrap: wrap; }
+.comparar-campo { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.78rem; color: var(--grafite); flex: 1 1 200px; min-width: 0; }
+.comparar-campo select { width: 100%; }
+.comparar-x { font-weight: 800; color: var(--grafite); padding-bottom: 0.55rem; }
+.comparar-resultado { margin-top: 0.8rem; }
+@media (max-width: 560px) {
+  .comparar-x { display: none; }
+  .comparar-campo { flex-basis: 100%; }
+}
 @media (max-width: 760px) {
   .catalogo-grade { grid-template-columns: 1fr; }
   /* Corte, Nível e Prova lado a lado no celular */

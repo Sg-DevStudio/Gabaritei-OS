@@ -24,6 +24,7 @@
   let planejamentoConfigAberta = false;
   let disciplinaDetalheId = null;
   let catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
+  let comparacaoSel = { a: '', b: '' }; // seleção da seção "Comparar dois editais" (aba Planos)
   let adminBusca = '';
   let adminPedidosGlobais = null;
   let googleCalendarToken = null;
@@ -1955,7 +1956,6 @@
     let html = '<div class="cab-pagina"><div><h1>Edital verticalizado</h1>' +
       '<p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos com teoria concluída (' + prog.pct + '%) · % = incidência nas últimas provas</p></div></div>';
 
-    html += compatibilidadeEditaisHtml();
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
     state.disciplinas.forEach(function (d) {
       const aberta = editalAbertas.has(d.id);
@@ -3000,6 +3000,7 @@
       '<input id="cat-busca" type="search" placeholder="Pesquisar edital" value="' + esc(catalogoFiltro.busca || '') + '">' +
       '<div class="catalogo-filtros">' + selectFiltro('orgao', 'Órgão') + selectFiltro('cargo', 'Cargo') + selectFiltro('estado', 'Estado') +
       '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
+    html += secaoCompararHtml();
     if (lista.length === 0) {
       html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum edital encontrado</strong>' +
         '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
@@ -3009,7 +3010,73 @@
     return html;
   }
 
+  // Seção "Comparar dois editais" no topo da aba Planos — mostra a viabilidade
+  // de conciliar dois concursos e permite gerar um plano combinado direto daqui.
+  function secaoCompararHtml() {
+    const editais = editaisDoCatalogo().filter(function (e) { return !e.arquivado; });
+    if (editais.length < 2) return '';
+    const existe = function (id) { return editais.some(function (e) { return e.id === id; }); };
+    const idA = existe(comparacaoSel.a) ? comparacaoSel.a : editais[0].id;
+    let idB = existe(comparacaoSel.b) && comparacaoSel.b !== idA ? comparacaoSel.b : '';
+    if (!idB) { const outro = editais.find(function (e) { return e.id !== idA; }); idB = outro ? outro.id : ''; }
+    comparacaoSel.a = idA; comparacaoSel.b = idB;
+    function opts(sel) {
+      return editais.map(function (e) {
+        return '<option value="' + esc(e.id) + '"' + (e.id === sel ? ' selected' : '') + '>' + esc(e.titulo) + '</option>';
+      }).join('');
+    }
+    return '<details class="card comparar-secao" id="cmp-secao" open>' +
+      '<summary class="comparar-summary"><span class="comparar-summary-tit">🔀 Comparar dois editais</span>' +
+      '<span class="sub">Veja se dá para conciliar dois concursos na sua rotina (~' + horasSemanaDisponiveis() + 'h/semana).</span></summary>' +
+      '<div class="comparar-corpo">' +
+      '<div class="comparar-selects">' +
+      '<label class="comparar-campo">Edital A<select id="cmp-a">' + opts(idA) + '</select></label>' +
+      '<span class="comparar-x" aria-hidden="true">×</span>' +
+      '<label class="comparar-campo">Edital B<select id="cmp-b">' + opts(idB) + '</select></label>' +
+      '</div>' +
+      '<div id="cmp-sec-resultado" class="comparar-resultado"></div>' +
+      '<div class="compact-actions" style="margin-top:0.6rem;justify-content:flex-end">' +
+      '<button class="botao-mini" id="cmp-sec-combinar">Gerar plano combinado</button></div>' +
+      '</div></details>';
+  }
+
+  function atualizarResultadoComparacao(raiz) {
+    const resEl = raiz.querySelector('#cmp-sec-resultado');
+    if (!resEl) return;
+    const editais = editaisDoCatalogo().filter(function (e) { return !e.arquivado; });
+    const edA = editais.find(function (e) { return e.id === comparacaoSel.a; });
+    const edB = editais.find(function (e) { return e.id === comparacaoSel.b; });
+    if (!edA || !edB) { resEl.innerHTML = '<p class="sub">Selecione dois editais.</p>'; return; }
+    if (edA.id === edB.id) { resEl.innerHTML = '<p class="sub">Escolha dois editais diferentes para comparar.</p>'; return; }
+    resEl.innerHTML = vereditoConciliacaoHtml(D.conciliarPlanos(edA, edB, { horasSemana: horasSemanaDisponiveis() }));
+  }
+
+  function ligarSecaoComparar(raiz) {
+    const selA = raiz.querySelector('#cmp-a');
+    const selB = raiz.querySelector('#cmp-b');
+    if (!selA || !selB) return;
+    selA.addEventListener('change', function () { comparacaoSel.a = selA.value; atualizarResultadoComparacao(raiz); });
+    selB.addEventListener('change', function () { comparacaoSel.b = selB.value; atualizarResultadoComparacao(raiz); });
+    const combinar = raiz.querySelector('#cmp-sec-combinar');
+    if (combinar) combinar.addEventListener('click', function () {
+      const editais = editaisDoCatalogo().filter(function (e) { return !e.arquivado; });
+      const edA = editais.find(function (e) { return e.id === comparacaoSel.a; });
+      const edB = editais.find(function (e) { return e.id === comparacaoSel.b; });
+      if (!edA || !edB || edA.id === edB.id) { toast('Escolha dois editais diferentes.', 'erro'); return; }
+      const r = D.conciliarPlanos(edA, edB, { horasSemana: horasSemanaDisponiveis() });
+      if (r.nivel === 'nao_recomendado') {
+        confirmar({ titulo: 'Compatibilidade baixa', mensagem: 'Seriam ~' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis. Gerar o plano combinado mesmo assim?', confirmar: 'Gerar mesmo assim', icone: '⚠️' }).then(function (ok) {
+          if (ok) gerarPlanoCombinado(edA, edB);
+        });
+        return;
+      }
+      gerarPlanoCombinado(edA, edB);
+    });
+    atualizarResultadoComparacao(raiz);
+  }
+
   function ligarPlanos(raiz) {
+    ligarSecaoComparar(raiz);
     const busca = raiz.querySelector('#cat-busca');
     if (busca) {
       const aplicarBusca = function () { catalogoFiltro.busca = busca.value; render(); };
