@@ -327,7 +327,29 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
 .mais-item:last-child { border-bottom: none; }
 .mais-item:hover, .mais-item:active { background: var(--vidro); }
 .mais-item-nome { font-weight: 700; font-size: 1.02rem; color: var(--caneta); }
-.mais-item-seta { color: var(--grafite); font-size: 1.4rem; line-height: 1; }
+.mais-item-seta { color: var(--grafite); font-size: 1.4rem; line-height: 1; transition: transform 0.15s ease; }
+.mais-item:hover .mais-item-seta, .mais-item:active .mais-item-seta { transform: translateX(3px); }
+
+/* Entrada animada do menu "Mais" (aparece ao abrir a aba) */
+.mais-menu-anima { animation: maisCartao 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; margin-top: 0.5rem; }
+.mais-menu-anima .mais-item { animation: maisItem 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.mais-menu-anima .mais-item:nth-child(1) { animation-delay: 0.05s; }
+.mais-menu-anima .mais-item:nth-child(2) { animation-delay: 0.10s; }
+.mais-menu-anima .mais-item:nth-child(3) { animation-delay: 0.15s; }
+.mais-menu-anima .mais-item:nth-child(4) { animation-delay: 0.20s; }
+.mais-menu-anima .mais-item:nth-child(5) { animation-delay: 0.25s; }
+.mais-menu-anima .mais-item:nth-child(6) { animation-delay: 0.30s; }
+@keyframes maisCartao {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes maisItem {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mais-menu-anima, .mais-menu-anima .mais-item { animation: none; }
+}
 
 .linha-cards {
   display: grid;
