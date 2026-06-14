@@ -1959,8 +1959,8 @@ td.num, th.num { text-align: right; }
 
 /* Em monitores menores (mas ainda desktop), a semana cabe melhor mostrando
    só o nome da disciplina. O detalhe (horário, tópico) sai da grade e fica
-   no tooltip do bloco e no modal aberto ao clicar. */
-@media (min-width: 761px) and (max-width: 1180px) {
+   no tooltip do bloco e no modal aberto ao clicar. 1440px cobre 1366x768. */
+@media (min-width: 761px) and (max-width: 1440px) {
   .agenda-bloco { font-size: 0.74rem; padding: 0.28rem 0.4rem; }
   .agenda-bloco .agenda-bloco-sub { display: none; }
   .agenda-bloco .agenda-bloco-titulo { white-space: nowrap; }

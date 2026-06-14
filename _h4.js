@@ -1,0 +1,26 @@
+const fs=require('fs');const {JSDOM}=require('jsdom');
+const pf=JSON.parse(fs.readFileSync('data/plano-trf3-tecnico.json','utf8'));
+const pid='pln';
+// Plano gerado nesta semana p/ disparar o caso "planoNovoEstaSemana"
+const state={versao:2,planos:[{id:pid,criadoEm:'2026-06-12',plano:Object.assign({},pf.plano,{ritmoAtivo:'sustentavel',gerado_em:'2026-06-13',radar:{janela_prova:['2026-11','2027-02'],reavaliar_em:null}}),disciplinas:pf.disciplinas,cronogramas:pf.cronogramas||{sustentavel:[],hardcore:[]},links:[]}],planoAtivoId:pid,sessoes:[],revisoes:[],simulados:[],agenda:[{id:'a1',planoId:pid,data:'2026-06-08',disciplinaId:(pf.disciplinas[0]||{}).id||'DTRIB',topicoId:null,duracaoMin:60,obs:'teoria',feito:false,gerado:true}],editais:[],config:{tema:'escuro',criadoEm:'2026-06-12',atualizadoEm:'2026-06-12',googleCalendar:{calendarId:'primary',eventos:{}}}};
+const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{runScripts:'outside-only',pretendToBeVisual:true,url:'https://example.com/'});
+const {window}=dom;global.window=window;
+window.Chart=function(){return{destroy(){},update(){}};};window.matchMedia=function(){return{matches:false,addEventListener(){},addListener(){}};};
+window.scrollTo=function(){};window.confirm=()=>false;window.fetch=()=>Promise.reject(new Error('no net'));
+window.FirebaseSync={status(){return{estado:'sincronizado',texto:'ok',fonte:'Firebase',usuario:{email:'casar70@gmail.com',uid:'u1'}};},iniciar(){},agendarEnvio(){},sincronizarAgora(){return Promise.resolve();},login(){return Promise.resolve();},logout(){return Promise.resolve();},ativo(){return true;},carregarCatalogoGlobal(){return Promise.resolve([]);}};
+window.localStorage.setItem('estudos.v1',JSON.stringify(state));
+const errs=[];window.addEventListener('error',e=>errs.push(e.error&&e.error.stack||e.message));
+['js/frases.js','js/domain.js','js/store.js','js/sync.js','js/timer.js','js/charts.js','js/app.js'].forEach(f=>window.eval(fs.readFileSync(f,'utf8')));
+window.dispatchEvent(new window.Event('firebase-sync-ready'));
+window.document.dispatchEvent(new window.Event('DOMContentLoaded',{bubbles:true}));window.dispatchEvent(new window.Event('load'));
+const main=window.document.getElementById('conteudo');
+window.location.hash='#hoje';window.dispatchEvent(new window.Event('hashchange'));
+console.log('hoje', errs.length?('ERR '+errs[0]):'ok');
+console.log('home-cab-esq present:', !!main.querySelector('.home-cab-esq'));
+console.log('frase inside home-cab-esq:', !!main.querySelector('.home-cab-esq .frase-dia'));
+window.location.hash='#planejamento';window.dispatchEvent(new window.Event('hashchange'));
+console.log('planejamento', errs.length?('ERR '+errs[0]):'ok');
+console.log('inline "plano recém-gerado" gone:', main.innerHTML.indexOf('plano recém-gerado')<0);
+console.log('inline "semana já planejada" gone:', main.innerHTML.indexOf('semana já planejada')<0);
+const cc=main.querySelector('.checkin-card');
+console.log('checkin tooltip present:', cc && (cc.getAttribute('title')||'').indexOf('Plano recém-gerado')>=0);
