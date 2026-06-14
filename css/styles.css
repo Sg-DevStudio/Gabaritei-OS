@@ -375,13 +375,15 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
 
 .msg-coach { font-size: 0.84rem; font-weight: 600; color: var(--caneta-forte); line-height: 1.35; }
 
-/* Cards laterais da Home (horas, questões, margem de acertos) centralizados */
+/* Cards laterais da Home (horas, questões, margem de acertos):
+   título no topo e alinhado entre os cards; valor/conteúdo centralizado abaixo. */
 .home-kpis .card-kpi:not(.prova-card) {
   align-items: center;
   text-align: center;
-  justify-content: center;
-  gap: 0.35rem;
+  justify-content: flex-start;
+  gap: 0.45rem;
 }
+.home-kpis .card-kpi:not(.prova-card) .card-kpi-rotulo { align-self: stretch; }
 .home-kpis .card-kpi:not(.prova-card) .barra { width: 100%; }
 .home-kpis .card-kpi:not(.prova-card) .meta-q-editar { justify-content: center; }
 
@@ -603,14 +605,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   align-items: center;
   text-align: center;
 }
-.prova-card-topo { display: flex; align-items: center; gap: 0.65rem; justify-content: center; }
-.alvo-emoji { font-size: 1.35rem; line-height: 1; }
-.prova-periodo {
-  font-size: 0.84rem;
-  font-weight: 700;
-  color: var(--tinta);
-  line-height: 1.2;
-}
+.prova-card { justify-content: flex-start; }
+.prova-card-topo { display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
+.alvo-emoji { font-size: 1.15rem; line-height: 1; }
 .prova-editar { align-self: center; margin-top: 0.1rem; }
 
 .prova-status-pill {
@@ -708,19 +705,26 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background: var(--tinta, #14161c);
-  color: #fff;
-  padding: 0.4rem 0.7rem;
+  /* fundo escuro fixo: legível tanto no tema claro quanto no escuro */
+  background: #1C2230;
+  color: #F2F4F9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.75rem;
   border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
   font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
+  text-align: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease, transform 0.18s ease;
   z-index: 5;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.4);
 }
+.cal-tooltip-periodo { color: #9FB4F2; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.76rem; }
 .cal-tooltip::after {
   content: '';
   position: absolute;
@@ -728,7 +732,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: var(--tinta, #14161c);
+  border-top-color: #1C2230;
 }
 .cal-countdown:hover .cal-tooltip,
 .cal-countdown:focus-visible .cal-tooltip {
@@ -1285,7 +1289,7 @@ td.num, th.num { text-align: right; }
 .gp-passo.ativo { color: var(--tinta); background: var(--caneta-suave); }
 .gp-passo.ativo b { background: var(--caneta); color: #fff; }
 .gp-passo.concluido { cursor: pointer; }
-.gp-passo.concluido b { background: var(--correto, #1E7D46); color: #fff; }
+.gp-passo.concluido b { background: var(--caneta-forte); color: #fff; }
 
 .gp-step h3 { margin: 0 0 0.3rem; }
 .gp-step > .sub { margin-top: 0; }
@@ -1319,7 +1323,7 @@ td.num, th.num { text-align: right; }
 }
 .gp-dif-opt:hover { background: var(--papel-card); box-shadow: none; }
 .gp-dif-opt.ativo { color: #fff; }
-.gp-dif-opt.gp-dif-facil.ativo { background: var(--correto, #1E7D46); }
+.gp-dif-opt.gp-dif-facil.ativo { background: #6B8FF0; }
 .gp-dif-opt.gp-dif-media.ativo { background: var(--caneta, #2454D6); }
 .gp-dif-opt.gp-dif-dificil.ativo { background: var(--errado, #C03B2B); }
 
@@ -1332,14 +1336,14 @@ td.num, th.num { text-align: right; }
 .heatmap-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
 .heatmap {
   display: grid;
-  grid-template-rows: repeat(7, 13px);
+  grid-template-rows: repeat(7, 16px);
   grid-auto-flow: column;
-  gap: 3px;
+  gap: 4px;
   overflow-x: auto;
-  padding: 0.55rem 0.25rem;
+  padding: 0.6rem 0.25rem;
   max-width: 100%;
 }
-.heatmap-celula { width: 13px; height: 13px; border-radius: 3px; background: var(--hm0); }
+.heatmap-celula { width: 16px; height: 16px; border-radius: 4px; background: var(--hm0); }
 .heatmap-n1 { background: var(--hm1); }
 .heatmap-n2 { background: var(--hm2); }
 .heatmap-n3 { background: var(--hm3); }
@@ -1349,6 +1353,57 @@ td.num, th.num { text-align: right; }
 .streak-resumo { font-size: 0.92rem; color: var(--tinta); font-weight: 600; text-align: center; }
 .streak-resumo strong { color: var(--caneta); }
 .streak-emojis { display: inline-flex; gap: 0.25rem; margin-left: 0.25rem; }
+
+/* Cabeçalho de card com ação à direita (ex.: Histórico de registros + Adicionar) */
+.card-cab-acao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+/* Botão "Voltar" flutuante: canto superior esquerdo no PC,
+   canto inferior esquerdo no celular, com leve animação de flutuação. */
+.det-voltar-flutuante {
+  position: fixed;
+  z-index: 60;
+  top: calc(var(--topbar-alt) + 1rem);
+  left: calc(var(--sidebar-larg) + 1rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  background: var(--caneta);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  box-shadow: 0 8px 22px rgba(36, 84, 214, 0.4);
+  animation: voltar-flutua 2.6s ease-in-out infinite;
+}
+.det-voltar-flutuante:hover { background: var(--caneta-forte); box-shadow: 0 12px 28px rgba(36, 84, 214, 0.5); }
+.det-voltar-flutuante span[aria-hidden] { font-size: 1.1rem; line-height: 1; }
+@keyframes voltar-flutua {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .det-voltar-flutuante { animation: none; }
+}
+@media (max-width: 760px) {
+  /* sem sidebar fixa: ancora no canto inferior esquerdo, acima das abas */
+  .det-voltar-flutuante {
+    top: auto;
+    left: 1rem;
+    bottom: calc(var(--abas-alt) + 1rem);
+    width: 48px; height: 48px; justify-content: center; padding: 0;
+  }
+  .det-voltar-txt { display: none; }
+  .det-voltar-flutuante span[aria-hidden] { font-size: 1.4rem; }
+}
 
 /* ============================================================
    Planejamento manual (calendário semanal/mensal)
@@ -1458,7 +1513,7 @@ td.num, th.num { text-align: right; }
   align-items: center;
   min-height: 32px;
   border-radius: 999px;
-  background: #2FC7AA;
+  background: var(--caneta);
   color: #fff;
   font-weight: 800;
 }
@@ -1480,17 +1535,17 @@ td.num, th.num { text-align: right; }
   min-height: 42px;
   padding: 0.4rem 0.8rem;
   border-radius: var(--raio-s);
-  background: rgba(47, 199, 170, 0.12);
-  color: #0E7F6B;
+  background: var(--caneta-suave);
+  color: var(--caneta-forte);
   font-weight: 700;
 }
 .rotina-total-ideal {
-  background: rgba(48, 93, 222, 0.12);
-  color: var(--azul);
+  background: var(--papel-elevado);
+  color: var(--grafite);
 }
 .rotina-total-ok {
-  background: rgba(47, 199, 170, 0.12);
-  color: #0E7F6B;
+  background: var(--caneta-suave);
+  color: var(--caneta-forte);
 }
 .rotina-total-alerta {
   background: var(--errado-suave);
@@ -1501,7 +1556,7 @@ td.num, th.num { text-align: right; }
   font-size: 0.86rem;
   font-weight: 700;
 }
-.rotina-feedback.ok { color: #0E7F6B; }
+.rotina-feedback.ok { color: var(--caneta-forte); }
 .rotina-feedback.alerta { color: var(--errado); }
 
 .agenda-toolbar {
@@ -2064,6 +2119,43 @@ canvas.grafico {
 
 /* painel admin de editais */
 .admin-acoes { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.5rem 0; }
+
+/* Campo de busca compacto (Planos cadastrados): não ocupar a largura toda */
+.campo-busca-compacto {
+  max-width: 340px;
+  min-height: 38px;
+  margin-bottom: 0.7rem;
+  font-size: 0.9rem;
+}
+@media (max-width: 560px) { .campo-busca-compacto { max-width: 100%; } }
+
+/* Configurações: Sincronização e Google Calendar lado a lado */
+.ajustes-sync-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.85rem;
+  align-items: start;
+}
+.ajustes-sync-grid .card { margin-bottom: 0; }
+
+/* Edital verticalizado: tag de origem do plano + banner de compatibilidade */
+.disc-origem {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--caneta-forte);
+  background: var(--caneta-suave);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  margin-left: 0.4rem;
+  white-space: nowrap;
+}
+.compat-editais { border-left: 4px solid var(--caneta); }
+.compat-editais.compat-alerta { border-left-color: var(--alerta); }
+.compat-topo { display: flex; align-items: center; gap: 0.6rem; }
+.compat-icone { font-size: 1.3rem; line-height: 1; }
+.compat-editais .sub { margin: 0.5rem 0 0; }
 
 /* Planos cadastrados (painel admin): cabeçalho + busca + capa nos cards */
 .planos-cadastrados-cab {

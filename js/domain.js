@@ -668,13 +668,16 @@
 
   function combinarEditais(edA, edB) {
     const discMap = {};
-    function addDisc(d) {
+    const rotuloA = tituloCurtoConc(edA.titulo);
+    const rotuloB = tituloCurtoConc(edB.titulo);
+    function addDisc(d, origemRotulo) {
       const k = normalizarNomeConc(d.nome);
       if (!k) return;
       if (!discMap[k]) {
-        discMap[k] = { id: '', nome: d.nome, cor: d.cor || '#3B82F6', peso: d.peso || 1, dificuldade: d.dificuldade || 'media', base_teorica: d.base_teorica || 'pdf', _top: {}, topicos: [] };
+        discMap[k] = { id: '', nome: d.nome, cor: d.cor || '#3B82F6', peso: d.peso || 1, dificuldade: d.dificuldade || 'media', base_teorica: d.base_teorica || 'pdf', _origem: {}, _top: {}, topicos: [] };
       }
       const alvo = discMap[k];
+      if (origemRotulo) alvo._origem[origemRotulo] = true;
       alvo.peso = Math.max(alvo.peso, d.peso || 1);
       (d.topicos || []).forEach(function (t) {
         const tk = normalizarNomeConc(t.nome);
@@ -690,10 +693,13 @@
         }
       });
     }
-    (edA.disciplinas || []).forEach(addDisc);
-    (edB.disciplinas || []).forEach(addDisc);
+    (edA.disciplinas || []).forEach(function (d) { addDisc(d, rotuloA); });
+    (edB.disciplinas || []).forEach(function (d) { addDisc(d, rotuloB); });
     const disciplinas = Object.keys(discMap).map(function (k) {
-      const d = discMap[k]; delete d._top; return d;
+      const d = discMap[k];
+      d.origem = Object.keys(d._origem).join(' + ');
+      delete d._origem; delete d._top;
+      return d;
     });
     const inis = [edA.janelaProva && edA.janelaProva.inicio, edB.janelaProva && edB.janelaProva.inicio].filter(Boolean).sort();
     return {
