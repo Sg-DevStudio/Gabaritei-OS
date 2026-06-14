@@ -5132,7 +5132,7 @@
       ['#historico', 'Histórico'],
       ['#ajustes', 'Configurações']
     ];
-    return '<h1>Mais</h1><div class="card card-quieto mais-menu">' +
+    return '<div class="card card-quieto mais-menu mais-menu-anima">' +
       itens.map(function (i) {
         return '<a class="mais-item" href="' + i[0] + '">' +
           '<span class="mais-item-nome">' + i[1] + '</span>' +
