@@ -1952,9 +1952,20 @@ td.num, th.num { text-align: right; }
 .agenda-bloco-arrasto { color: var(--grafite); font-size: 0.85rem; line-height: 1.1; cursor: grab; flex: 0 0 auto; opacity: 0.7; }
 .agenda-bloco-texto { min-width: 0; flex: 1; }
 .agenda-bloco .agenda-bloco-sub { display: block; font-weight: 500; font-size: 0.7rem; color: var(--grafite); }
+.agenda-bloco-titulo { display: block; overflow: hidden; text-overflow: ellipsis; }
 /* indicador de inserção ao reordenar (soltar antes deste bloco) */
 .agenda-bloco.drop-antes { box-shadow: inset 0 3px 0 var(--caneta); }
 .agenda-bloco.feito { opacity: 0.55; }
+
+/* Em monitores menores (mas ainda desktop), a semana cabe melhor mostrando
+   só o nome da disciplina. O detalhe (horário, tópico) sai da grade e fica
+   no tooltip do bloco e no modal aberto ao clicar. */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .agenda-bloco { font-size: 0.74rem; padding: 0.28rem 0.4rem; }
+  .agenda-bloco .agenda-bloco-sub { display: none; }
+  .agenda-bloco .agenda-bloco-titulo { white-space: nowrap; }
+  .agenda-bloco-arrasto { display: none; }
+}
 .agenda-bloco.feito .agenda-bloco-titulo,
 .agenda-bloco.feito .agenda-bloco-sub { text-decoration: line-through; }
 
