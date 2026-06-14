@@ -714,11 +714,11 @@
     const periodo = janela && janela[0] && janela[1]
       ? D.formatarMesBR(janela[0]) + ' – ' + D.formatarMesBR(janela[1])
       : 'Definir período';
-    const reavaliar = radar && radar.reavaliar_em ? D.formatarDataBR(radar.reavaliar_em) : 'sem revisão marcada';
+    const reavaliar = radar && radar.reavaliar_em ? D.formatarDataBR(radar.reavaliar_em) : '';
     return '<div class="prova-card-topo"><span class="alvo-emoji" aria-hidden="true">🎯</span>' +
       '<div class="card-kpi-rotulo">Data provável · ' + esc(nomeCurtoConcurso()) + '</div></div>' +
       calendarioCountdownHtml(janela, periodo) +
-      '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' +
+      (reavaliar ? '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' : '') +
       '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar</button>';
   }
 
@@ -727,10 +727,7 @@
   }
 
   function linksApoioHojeHtml() {
-    return '<div class="apoio-links">' +
-      '<a class="apoio-link" href="https://www.notion.so/login" target="_blank" rel="noopener">Notion</a>' +
-      '<a class="apoio-link" href="https://notebooklm.google.com/" target="_blank" rel="noopener">NotebookLM</a>' +
-      '</div>';
+    return '';
   }
 
   function chaveBlocoVinculado(inicioSemana, topicoId, tipo) {
@@ -1064,16 +1061,22 @@
     });
   }
 
+  // No mobile mostramos só as primeiras disciplinas; o resto fica atrás do "Ver mais".
+  const PAINEL_DISC_LIMITE_MOBILE = 4;
+
   function painelDisciplinasHojeHtml() {
     const linhas = dadosPainelDisciplinas();
     if (linhas.length === 0) return '';
+    const ocultas = Math.max(0, linhas.length - PAINEL_DISC_LIMITE_MOBILE);
     return '<div class="card painel-disciplinas-card"><h3 class="painel-titulo">Painel de disciplinas</h3>' +
-      '<div class="painel-disciplinas-mobile">' + linhas.map(function (d) {
-        return '<button type="button" class="painel-disc-mobile" data-disc-detalhe="' + esc(d.id) + '" style="--disc-cor:' + esc(d.cor) + '">' +
+      '<div class="painel-disciplinas-mobile">' + linhas.map(function (d, i) {
+        return '<button type="button" class="painel-disc-mobile' + (i >= PAINEL_DISC_LIMITE_MOBILE ? ' painel-disc-extra' : '') + '" data-disc-detalhe="' + esc(d.id) + '" style="--disc-cor:' + esc(d.cor) + '">' +
           '<span class="painel-disc-mobile-nome">' + esc(nomeDiscCurto(d.nome)) + '</span>' +
           pizzaAcertosHtml(d.certas, d.erros, { classe: 'pizza-sm', titulo: d.nome }) +
           '</button>';
-      }).join('') + '</div>' +
+      }).join('') +
+      (ocultas > 0 ? '<button type="button" class="painel-disc-vermais botao-mini botao-quieto" data-painel-vermais aria-expanded="false">Ver mais ' + ocultas + ' disciplina' + (ocultas > 1 ? 's' : '') + '</button>' : '') +
+      '</div>' +
       '<div class="painel-scroll"><table class="painel-disciplinas"><thead><tr>' +
       '<th>Matéria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
       linhas.map(function (d) {
@@ -1238,19 +1241,121 @@
   }
 
   // ---------------- Conquistas (gamificação discreta) ----------------
+  // Dica amigável (como conquistar) + raridade aproximada (% de usuários da
+  // plataforma que têm cada selo). A raridade é curada — quanto menor, mais raro.
+  const CONQUISTA_INFO = {
+    plano:    { raridade: 92, dica: 'Crie seu primeiro plano de estudos a partir de um edital.' },
+    streak7:  { raridade: 41, dica: 'Estude em 7 dias seguidos, sem furar nenhum.' },
+    streak30: { raridade: 9,  dica: 'Mantenha a constância por 30 dias seguidos — pouca gente chega aqui.' },
+    q100:     { raridade: 55, dica: 'Resolva 100 questões somando todas as suas sessões.' },
+    q1000:    { raridade: 14, dica: 'Resolva 1.000 questões no total. Volume vira aprovação.' },
+    h50:      { raridade: 33, dica: 'Acumule 50 horas de estudo registradas (timer ou manual).' },
+    dom10:    { raridade: 22, dica: 'Marque 10 tópicos como dominados.' },
+    meio:     { raridade: 18, dica: 'Conclua 50% dos tópicos do seu edital.' },
+    edital:   { raridade: 3,  dica: 'Conclua 100% do edital — a conquista mais rara da plataforma.' },
+    sim:      { raridade: 48, dica: 'Registre pelo menos um simulado.' }
+  };
+
+  function nivelRaridade(pct) {
+    if (pct <= 5) return { classe: 'lendaria', texto: 'Lendária' };
+    if (pct <= 15) return { classe: 'epica', texto: 'Épica' };
+    if (pct <= 35) return { classe: 'rara', texto: 'Rara' };
+    if (pct <= 60) return { classe: 'incomum', texto: 'Incomum' };
+    return { classe: 'comum', texto: 'Comum' };
+  }
+
   function conquistasHtml() {
     if (!state.plano && (!state.sessoes || state.sessoes.length === 0)) return '';
     const c = D.conquistas(state, D.hojeISO());
     return '<div class="card conquistas-card"><h3>Conquistas <span class="conquistas-contador">' + c.ganhas + '/' + c.total + '</span></h3>' +
+      '<p class="conquistas-dica sub">Toque em uma conquista para ver como desbloquear e sua raridade.</p>' +
       '<div class="conquistas-grade">' + c.lista.map(function (m) {
-        return '<div class="medalha' + (m.ganha ? ' ganha' : '') + '" title="' + esc(m.titulo + ' — ' + m.desc) + '">' +
+        const info = CONQUISTA_INFO[m.id] || { raridade: 50 };
+        const niv = nivelRaridade(info.raridade);
+        return '<button type="button" class="medalha' + (m.ganha ? ' ganha' : '') + ' medalha-' + niv.classe + '" data-conquista="' + esc(m.id) + '">' +
           '<span class="medalha-icone" aria-hidden="true">' + m.icone + '</span>' +
-          '<span class="medalha-titulo">' + esc(m.titulo) + '</span></div>';
+          '<span class="medalha-titulo">' + esc(m.titulo) + '</span></button>';
       }).join('') + '</div></div>';
   }
 
-  // Festeja conquistas recém-obtidas (uma vez). Usuários já existentes têm o
-  // estado inicial registrado sem festa retroativa.
+  // Detalhe de uma conquista (estilo "troféu"): como obter + raridade.
+  function abrirConquista(id) {
+    const c = D.conquistas(state, D.hojeISO());
+    const m = c.lista.find(function (x) { return x.id === id; });
+    if (!m) return;
+    const info = CONQUISTA_INFO[id] || { raridade: 50, dica: m.desc };
+    const niv = nivelRaridade(info.raridade);
+    const modal = abrirModal(
+      '<div class="conquista-detalhe conquista-detalhe-' + niv.classe + (m.ganha ? ' ganha' : '') + '">' +
+      '<span class="conquista-detalhe-icone' + (m.ganha ? '' : ' bloqueada') + '" aria-hidden="true">' + m.icone + '</span>' +
+      '<span class="conquista-detalhe-raridade raridade-' + niv.classe + '">' + niv.texto + ' · ' + info.raridade + '% dos usuários têm</span>' +
+      '<h3>' + esc(m.titulo) + '</h3>' +
+      '<p class="sub conquista-detalhe-dica">' + esc(info.dica || m.desc) + '</p>' +
+      '<p class="conquista-detalhe-status">' + (m.ganha ? '✅ Desbloqueada' : '🔒 Ainda não conquistada') + '</p>' +
+      '</div>' +
+      '<div class="modal-acoes"><button type="button" id="conq-ok">Fechar</button></div>'
+    );
+    modal.classList.add('modal-dialogo');
+    modal.querySelector('#conq-ok').addEventListener('click', fecharModal);
+  }
+
+  // Som curto de comemoração via Web Audio (sem arquivos). O timbre/escala muda
+  // conforme a raridade: selos raros ganham um arpejo mais "épico".
+  let _audioCtx = null;
+  function tocarSomConquista(raridade) {
+    if (state.config && state.config.somConquistasOff) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      _audioCtx = _audioCtx || new Ctx();
+      const ctx = _audioCtx;
+      if (ctx.state === 'suspended') ctx.resume();
+      // escala maior (comum) vs. acorde mais brilhante/longo (raro)
+      const raro = raridade <= 15;
+      const notas = raro ? [523.25, 659.25, 783.99, 1046.5, 1318.5] : [523.25, 659.25, 783.99];
+      const passo = raro ? 0.12 : 0.1;
+      const t0 = ctx.currentTime;
+      notas.forEach(function (f, i) {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = raro ? 'triangle' : 'sine';
+        osc.frequency.value = f;
+        const ini = t0 + i * passo;
+        g.gain.setValueAtTime(0.0001, ini);
+        g.gain.exponentialRampToValueAtTime(0.22, ini + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ini + passo + 0.18);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(ini); osc.stop(ini + passo + 0.2);
+      });
+    } catch (e) { /* áudio é opcional — silencia falhas */ }
+  }
+
+  // Overlay de comemoração com animação específica por selo + som + confete.
+  function celebrarConquista(m) {
+    const info = CONQUISTA_INFO[m.id] || { raridade: 50, dica: m.desc };
+    const niv = nivelRaridade(info.raridade);
+    const reduz = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduz) confete();
+    tocarSomConquista(info.raridade);
+    const fundo = document.createElement('div');
+    fundo.className = 'celebra-fundo celebra-' + niv.classe + (reduz ? ' sem-anima' : '');
+    fundo.innerHTML = '<div class="celebra-cartao celebra-anim-' + esc(m.id) + '">' +
+      '<span class="celebra-faixa raridade-' + niv.classe + '">' + niv.texto + ' · ' + info.raridade + '%</span>' +
+      '<span class="celebra-icone" aria-hidden="true">' + m.icone + '</span>' +
+      '<span class="celebra-rotulo">Conquista desbloqueada!</span>' +
+      '<strong class="celebra-titulo">' + esc(m.titulo) + '</strong>' +
+      '<span class="celebra-dica">' + esc(info.dica || m.desc) + '</span>' +
+      '</div>';
+    function fechar() { document.removeEventListener('keydown', aoTecla); fundo.classList.add('saindo'); setTimeout(function () { fundo.remove(); }, 280); }
+    function aoTecla(e) { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') fechar(); }
+    fundo.addEventListener('click', fechar);
+    document.addEventListener('keydown', aoTecla);
+    document.body.appendChild(fundo);
+    setTimeout(fechar, 4200); // some sozinho; o usuário também pode tocar para fechar
+  }
+
+  // Festeja conquistas recém-obtidas (uma vez), uma de cada vez. Usuários já
+  // existentes têm o estado inicial registrado sem festa retroativa.
   function celebrarConquistasNovas() {
     const c = D.conquistas(state, D.hojeISO());
     const ganhasIds = c.lista.filter(function (m) { return m.ganha; }).map(function (m) { return m.id; });
@@ -1263,15 +1368,32 @@
     if (novas.length === 0) return;
     state.config.conquistasVistas = state.config.conquistasVistas.concat(novas);
     salvar({ sincronizar: false });
-    const nomes = c.lista.filter(function (m) { return novas.indexOf(m.id) >= 0; }).map(function (m) { return m.icone + ' ' + m.titulo; });
-    confete();
-    toast('Nova conquista: ' + nomes.join(' · '), 'sucesso');
+    const novasMedalhas = c.lista.filter(function (m) { return novas.indexOf(m.id) >= 0; });
+    // mostra as comemorações em sequência (uma de cada vez)
+    novasMedalhas.forEach(function (m, i) {
+      setTimeout(function () { celebrarConquista(m); }, i * 1200);
+    });
   }
 
   function ligarHoje(raiz) {
     celebrarConquistasNovas();
     const provaEditar = raiz.querySelector('#prova-editar');
     if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
+    raiz.querySelectorAll('[data-conquista]').forEach(function (el) {
+      el.addEventListener('click', function () { abrirConquista(el.getAttribute('data-conquista')); });
+    });
+    const verMais = raiz.querySelector('[data-painel-vermais]');
+    if (verMais) verMais.addEventListener('click', function () {
+      const lista = verMais.closest('.painel-disciplinas-mobile');
+      if (!lista) return;
+      const aberto = lista.classList.toggle('expandido');
+      verMais.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+      if (aberto) { verMais.textContent = 'Ver menos'; }
+      else {
+        const n = lista.querySelectorAll('.painel-disc-extra').length;
+        verMais.textContent = 'Ver mais ' + n + ' disciplina' + (n > 1 ? 's' : '');
+      }
+    });
     const metaQBtn = raiz.querySelector('[data-editar-meta]');
     if (metaQBtn) metaQBtn.addEventListener('click', editarMetaQuestoes);
     raiz.querySelectorAll('[data-disc-detalhe]').forEach(function (linha) {
@@ -4086,6 +4208,34 @@
     ligarSelecao();
   }
 
+  // Explicação do recálculo: antes era um parágrafo fixo no card (poluía a tela).
+  // Agora aparece só sob demanda — ao tocar em "Recalcular" ou no 1º recálculo automático.
+  const EXPLICACAO_RECALCULO = 'O plano é recalculado a cada semana: o sistema compara o que você registrou com o que estava previsto e redistribui o que faltou nas semanas seguintes, ajustando o plano à sua realidade.';
+
+  function abrirExplicacaoRecalculo(opcoes) {
+    opcoes = opcoes || {};
+    const resultado = opcoes.resultado;
+    let linhaResultado = '';
+    if (resultado === 'auto') {
+      linhaResultado = '<p class="dialogo-msg" style="margin-top:0.6rem"><strong>O plano desta semana acabou de ser recalculado</strong> com base no seu progresso real.</p>';
+    } else if (resultado && resultado.aplicado) {
+      linhaResultado = '<p class="dialogo-msg" style="margin-top:0.6rem">' + (resultado.estendido
+        ? '<strong>Término ajustado para ~' + esc(String(resultado.meses).replace('.', ',')) + ' meses</strong> no seu ritmo atual.'
+        : '<strong>Plano recalculado</strong> com base no seu progresso real.') + '</p>';
+    } else if (resultado && resultado.aplicado === false) {
+      linhaResultado = '<p class="dialogo-msg" style="margin-top:0.6rem">Ainda não há o que recalcular — o plano está na primeira semana. A partir da próxima segunda o ajuste passa a valer.</p>';
+    }
+    const m = abrirModal(
+      '<div class="dialogo-icone" aria-hidden="true">↻</div>' +
+      '<h3>Recálculo do plano</h3>' +
+      '<p class="sub dialogo-msg">' + esc(EXPLICACAO_RECALCULO) + '</p>' +
+      linhaResultado +
+      '<div class="modal-acoes"><button type="button" id="recalc-ok">Entendi</button></div>'
+    );
+    m.classList.add('modal-dialogo');
+    m.querySelector('#recalc-ok').addEventListener('click', fecharModal);
+  }
+
   // RN10 — cartão de check-in semanal + projeção de conclusão (burn-down do edital)
   function checkinSemanalHtml() {
     const burn = D.burndownEdital(state, D.hojeISO());
@@ -4121,7 +4271,9 @@
       const classe = apertou ? 'alerta' : (ok ? 'ok' : '');
       let msg;
       if (planoNovoEstaSemana) {
-        msg = 'plano gerado nesta semana — a semana cheia começa na próxima segunda.';
+        // A agenda já preenche a semana atual; o acompanhamento (e o recálculo
+        // automático) passa a valer a partir da próxima segunda.
+        msg = 'plano recém-gerado — a semana já está planejada; o acompanhamento começa na próxima segunda.';
       } else if (ok) {
         msg = 'meta da semana batida 👏';
       } else if (apertou) {
@@ -4160,8 +4312,7 @@
       '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
-      '<p class="checkin-nota">↻ O plano é recalculado a cada semana, comparando o que você registrou com o que estava previsto, e se reajusta à sua realidade.</p>' +
-      '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
+      '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular" title="' + esc(EXPLICACAO_RECALCULO) + '">↻ Recalcular plano agora</button></div>' +
       '</div>';
   }
 
@@ -4532,9 +4683,16 @@
       entrada.plano.ultimaRecalcSemana = inicioAtual;
       return;
     }
-    toast(r.estendido
-      ? 'Plano recalculado: no seu ritmo o término foi ajustado para ~' + String(r.meses).replace('.', ',') + ' meses.'
-      : 'Plano da semana recalculado com base no seu progresso.', r.estendido ? 'erro' : 'sucesso');
+    // No 1º recálculo automático, explica em um modal central (depois é só toast).
+    if (!state.config.explicacaoRecalculoVista) {
+      state.config.explicacaoRecalculoVista = true;
+      salvar({ sincronizar: false });
+      abrirExplicacaoRecalculo({ resultado: 'auto' });
+    } else {
+      toast(r.estendido
+        ? 'Plano recalculado: no seu ritmo o término foi ajustado para ~' + String(r.meses).replace('.', ',') + ' meses.'
+        : 'Plano da semana recalculado com base no seu progresso.', r.estendido ? 'erro' : 'sucesso');
+    }
   }
 
   function abrirGerarPlano() {
@@ -5113,11 +5271,9 @@
     const recalcular = raiz.querySelector('#pl-recalcular');
     if (recalcular) recalcular.addEventListener('click', function () {
       const r = recalcularPlanoAdaptativo();
-      if (!r) { toast('Nada a recalcular ainda — o plano está na primeira semana.', 'erro'); return; }
-      render();
-      toast(r.estendido
-        ? 'Plano recalculado: término ajustado para ~' + String(r.meses).replace('.', ',') + ' meses no seu ritmo.'
-        : 'Plano recalculado com base no seu progresso real.', r.estendido ? 'erro' : 'sucesso');
+      if (r) render();
+      // A explicação some do card e só aparece aqui, quando o usuário toca no botão.
+      abrirExplicacaoRecalculo({ resultado: r ? { aplicado: true, estendido: r.estendido, meses: r.meses } : { aplicado: false } });
     });
 
     // navegação do calendário (semana/mês)
