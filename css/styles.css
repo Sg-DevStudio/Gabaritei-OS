@@ -433,10 +433,10 @@ body.login-gate #conteudo > * {
     right: 0;
     position: fixed;
     padding: 0 1rem;
-    border-bottom-left-radius: 22px;
-    border-bottom-right-radius: 22px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 10px 24px rgba(23, 24, 28, 0.1);
+    box-shadow: none;
   }
 
   #conteudo { padding: calc(var(--topbar-alt) + 0.85rem) 1rem calc(var(--abas-alt) + 1.4rem); }
@@ -536,6 +536,7 @@ body.login-gate #conteudo > * {
   gap: 0.85rem;
   margin-bottom: 1.1rem;
 }
+.home-kpis { align-items: start; }
 
 .card-kpi {
   padding: 1.05rem 1.05rem;
@@ -561,6 +562,8 @@ body.login-gate #conteudo > * {
   text-align: center;
   justify-content: flex-start;
   gap: 0.45rem;
+  min-height: 118px;
+  align-self: start;
 }
 .home-kpis .card-kpi:not(.prova-card) .card-kpi-rotulo { align-self: stretch; }
 .home-kpis .card-kpi:not(.prova-card) .barra { width: 100%; }
@@ -1523,7 +1526,20 @@ td.num, th.num { text-align: right; }
   max-width: 100%;
   justify-content: center;
 }
-.heatmap-celula { width: 16px; height: 16px; border-radius: 4px; background: var(--hm0); }
+.heatmap-celula {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--hm0);
+  transform-origin: center;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, outline-color 0.16s ease;
+}
+.heatmap-celula:hover {
+  transform: translateY(-2px) scale(1.24);
+  box-shadow: 0 7px 16px rgba(23, 24, 28, 0.18);
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  z-index: 1;
+}
 .heatmap-n1 { background: var(--hm1); }
 .heatmap-n2 { background: var(--hm2); }
 .heatmap-n3 { background: var(--hm3); }
@@ -1533,6 +1549,11 @@ td.num, th.num { text-align: right; }
 .streak-resumo { font-size: 0.92rem; color: var(--tinta); font-weight: 600; text-align: center; }
 .streak-resumo strong { color: var(--caneta); }
 .streak-emojis { display: inline-flex; gap: 0.25rem; margin-left: 0.25rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .heatmap-celula { transition: none; }
+  .heatmap-celula:hover { transform: none; }
+}
 
 /* Cabeçalho de card com ação à direita (ex.: Histórico de registros + Adicionar) */
 .card-cab-acao {

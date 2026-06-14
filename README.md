@@ -53,14 +53,34 @@ Para a sincronização em nuvem funcionar no GitHub Pages:
 2. Em **Authentication > Settings > Authorized domains**, confirme `localhost` e adicione
    `samuelgomes01.github.io`.
 3. Em **Firestore Database**, crie o banco em modo produção.
-4. Em **Rules**, publique regras permitindo que cada conta leia/escreva apenas seus dados:
+4. Em **Rules**, publique as regras do arquivo `firestore.rules`. Elas mantem cada conta presa ao proprio perfil, liberam leitura do catalogo global para usuarios logados e permitem que apenas `casar70@gmail.com` publique o catalogo:
 
 ```js
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == "casar70@gmail.com";
+    }
+
+    match /users/{userId}/state/current {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /public/catalogo {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /pedidosEdital/{pedidoId} {
+      allow create: if signedIn()
+        && request.resource.data.status == "novo"
+        && request.resource.data.usuario.uid == request.auth.uid;
+      allow read, update, delete: if isAdmin();
     }
   }
 }

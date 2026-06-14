@@ -26,6 +26,10 @@
   let adminBusca = '';
   let adminPedidosGlobais = null;
   let googleCalendarToken = null;
+  let catalogoGlobalTentado = false;
+  let catalogoGlobalPromise = null;
+  let catalogoPublicacaoErro = '';
+  let catalogoPublicacaoOkEm = '';
 
   // ---------------- utilidades de UI ----------------
   function esc(s) {
@@ -74,6 +78,42 @@
   }
 
   function carregarCatalogoGlobalFirebase() {
+    if (catalogoGlobalPromise) return catalogoGlobalPromise;
+    if (catalogoGlobalTentado || !window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) return Promise.resolve(catalogoGlobalEditais);
+    catalogoGlobalTentado = true;
+    catalogoGlobalPromise = window.FirebaseSync.carregarCatalogoGlobal().then(function (lista) {
+      catalogoGlobalEditais = normalizarCatalogoGlobal(lista || []);
+      render();
+      return catalogoGlobalEditais;
+    }).catch(function (e) {
+      console.warn('Nao consegui carregar catalogo global.', e);
+      return catalogoGlobalEditais;
+    }).finally(function () {
+      catalogoGlobalPromise = null;
+    });
+    return catalogoGlobalPromise;
+  }
+
+  function publicarCatalogoAdmin(opcoes) {
+    opcoes = opcoes || {};
+    if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
+    const editais = (state.editais || []).filter(function (e) { return !e.arquivado; }).map(limparEditalParaCatalogo);
+    return window.FirebaseSync.publicarCatalogoGlobal(editais).then(function () {
+      catalogoGlobalEditais = normalizarCatalogoGlobal(editais);
+      catalogoGlobalTentado = false;
+      catalogoPublicacaoErro = '';
+      catalogoPublicacaoOkEm = new Date().toISOString();
+      if (opcoes.toast) toast('Catalogo global publicado para todos os usuarios.', 'sucesso');
+    }).catch(function (e) {
+      console.warn('Nao consegui publicar catalogo global.', e);
+      catalogoPublicacaoOkEm = '';
+      catalogoPublicacaoErro = 'Nao consegui publicar o catalogo global. Atualize as regras do Firestore para liberar public/catalogo ao admin.';
+      if (opcoes.toast) toast(catalogoPublicacaoErro, 'erro');
+      render();
+    });
+  }
+
+  function carregarCatalogoGlobalFirebaseAntigo() {
     if (!window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) return Promise.resolve([]);
     return window.FirebaseSync.carregarCatalogoGlobal().then(function (lista) {
       catalogoGlobalEditais = normalizarCatalogoGlobal(lista || []);
@@ -85,7 +125,7 @@
     });
   }
 
-  function publicarCatalogoAdmin() {
+  function publicarCatalogoAdminAntigo() {
     if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
     const editais = (state.editais || []).filter(function (e) { return !e.arquivado; }).map(limparEditalParaCatalogo);
     return window.FirebaseSync.publicarCatalogoGlobal(editais).then(function () {
@@ -962,7 +1002,7 @@
     const inicio = dias.length ? dias[0].data : hoje;
     const fim = dias.length ? dias[dias.length - 1].data : hoje;
     return '<div class="constancia-faixa">' +
-      '<div class="constancia-faixa-topo"><div><div class="card-kpi-rotulo">Constância nos estudos</div>' +
+      '<div class="constancia-faixa-topo"><div><div class="card-kpi-rotulo">⚡ Constância nos estudos</div>' +
       '<p>Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia' : ' dias') + '</strong> sem falhar! Seu recorde é de <strong>' + st.recorde + (st.recorde === 1 ? ' dia' : ' dias') + '</strong>.</p></div>' +
       '<div class="constancia-periodo"><button class="botao-mini botao-quieto" type="button" disabled>‹</button><span>' + D.formatarDataBR(inicio).slice(0, 5) + ' ~ ' + D.formatarDataBR(fim).slice(0, 5) + '</span><button class="botao-mini botao-quieto" type="button" disabled>›</button></div></div>' +
       '<div class="constancia-trilho">' + dias.map(function (d) {
@@ -2042,7 +2082,7 @@
       '<div class="card-kpi-extra">' + (totalQ > 0 ? Math.round((totalC / totalQ) * 100) + '% de acerto' : '—') + '</div></div>' +
       '<div class="card card-kpi"><div class="card-kpi-rotulo">Desempenho × meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
       '<div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Constância</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">⚡ Constância</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
       '<div class="card-kpi-extra">recorde: ' + st.recorde + ' · edital: ' + prog.pct + '%</div></div>' +
       '</div>';
 
@@ -2483,6 +2523,14 @@
     let html = '<div class="card"><h3>Planos cadastrados</h3>' +
       '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '">';
 
+    if (catalogoPublicacaoErro) {
+      html += '<div class="aviso aviso-erro" style="margin-top:0.65rem">' + esc(catalogoPublicacaoErro) + '</div>';
+    } else if (catalogoPublicacaoOkEm) {
+      html += '<p class="sub" style="margin:0.55rem 0 0">Catalogo global publicado. Outras contas ja podem carregar estes planos.</p>';
+    } else {
+      html += '<p class="sub" style="margin:0.55rem 0 0">Publique o catalogo global para outras contas enxergarem os planos do admin.</p>';
+    }
+
     if (ativos.length > 0) {
       html += '<div class="planos-grade">';
       ativos.forEach(function (e) { html += adminEditalCard(e, false); });
@@ -2501,6 +2549,7 @@
     html += '<div class="admin-acoes" style="margin-top:0.85rem">' +
       '<button class="botao botao-mini" id="adm-novo">+ Novo edital</button>' +
       '<button class="botao-secundario botao-mini" id="adm-importar">Importar arquivo</button>' +
+      '<button class="botao-secundario botao-mini" id="adm-publicar-global">Publicar catalogo global</button>' +
       '<button class="botao-quieto botao-mini" id="adm-pedidos">Lista de pedidos</button>' +
       '</div>';
     html += '</div>';
@@ -2632,6 +2681,14 @@
     if (importar) importar.addEventListener('click', abrirImportarEdital);
     const pedidos = raiz.querySelector('#adm-pedidos');
     if (pedidos) pedidos.addEventListener('click', abrirListaPedidos);
+    const publicar = raiz.querySelector('#adm-publicar-global');
+    if (publicar) publicar.addEventListener('click', function () {
+      publicar.disabled = true;
+      publicarCatalogoAdmin({ toast: true }).finally(function () {
+        publicar.disabled = false;
+        render();
+      });
+    });
     raiz.querySelectorAll('[data-ed-editar]').forEach(function (b) {
       b.addEventListener('click', function () { abrirEditorEdital(b.getAttribute('data-ed-editar'), 'editar'); });
     });
@@ -2645,7 +2702,7 @@
         confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
           if (!ok) return;
           state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
-          salvar(); publicarCatalogoAdmin().finally(render);
+          salvar(); publicarCatalogoAdmin({ toast: true }).finally(render);
           toast('Edital excluído');
         });
       });
@@ -3209,7 +3266,7 @@
       state.editais.push(registro);
     }
     salvar();
-    publicarCatalogoAdmin();
+    publicarCatalogoAdmin({ toast: true });
     fecharModal();
     render();
     toast('Edital salvo: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
@@ -6009,7 +6066,7 @@
         atualizarSyncUi();
         if (novoStatus && novoStatus.usuario) {
           carregarCatalogoGlobalFirebase().then(function () {
-            if (usuarioAdmin()) publicarCatalogoAdmin();
+            if (usuarioAdmin()) publicarCatalogoAdmin({ toast: false });
           });
         }
         if (usuarioAntes !== usuarioDepois || !usuarioLogado()) render();
