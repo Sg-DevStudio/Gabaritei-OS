@@ -6154,6 +6154,9 @@
       '<h3>Perfil</h3>' +
       '<label for="pf-nome">Seu nome na tela Hoje</label>' +
       '<input id="pf-nome" type="text" maxlength="40" value="' + esc(state.config.nomeUsuario || nomeUsuario()) + '">' +
+      '<label class="pf-toggle" for="pf-som-conquistas">' +
+      '<span><strong>Som das conquistas</strong><small>Toca um efeito ao desbloquear uma conquista.</small></span>' +
+      '<input id="pf-som-conquistas" type="checkbox"' + (state.config.somConquistasOff ? '' : ' checked') + '></label>' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
@@ -6170,8 +6173,15 @@
         toast('Você saiu da conta', 'sucesso');
       }).catch(function () { toast('Não consegui sair agora.', 'erro'); });
     });
+    const pfSom = m.querySelector('#pf-som-conquistas');
+    if (pfSom) pfSom.addEventListener('change', function () {
+      state.config.somConquistasOff = !pfSom.checked;
+      salvar({ sincronizar: false });
+      if (pfSom.checked) tocarSomConquista(50); // prévia do som ao reativar
+    });
     m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
+      state.config.somConquistasOff = pfSom ? !pfSom.checked : state.config.somConquistasOff;
       salvar();
       fecharModal();
       render();

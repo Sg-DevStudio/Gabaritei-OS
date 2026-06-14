@@ -2547,6 +2547,17 @@ canvas.grafico {
 }
 .conquistas-card h3 { display: flex; align-items: center; gap: 0.5rem; }
 .conquistas-contador { font-family: var(--fonte-mono); font-size: 0.82rem; font-weight: 600; color: var(--caneta); background: var(--caneta-suave); border-radius: 999px; padding: 0.1rem 0.5rem; }
+/* Linha de liga/desliga no Perfil (ex.: som das conquistas) */
+.pf-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+  margin-top: 0.85rem; padding: 0.55rem 0.7rem;
+  border: 1px solid var(--linha); border-radius: var(--raio-s); background: var(--papel-elevado);
+  cursor: pointer;
+}
+.pf-toggle span { display: flex; flex-direction: column; gap: 0.1rem; }
+.pf-toggle small { font-size: 0.76rem; color: var(--grafite); }
+.pf-toggle input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--caneta); cursor: pointer; }
+
 .conquistas-dica { margin: 0.15rem 0 0; font-size: 0.78rem; }
 .conquistas-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 0.55rem; margin-top: 0.6rem; }
 .medalha {
