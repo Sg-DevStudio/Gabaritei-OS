@@ -163,14 +163,66 @@
     }
   }
 
-  function pedirNotificacaoSePossivel(limiteMin) {
-    if (!limiteMin || !('Notification' in window) || Notification.permission !== 'default') return;
+  // Pede permissão de notificação ao iniciar qualquer cronômetro — é o que
+  // permite o contador aparecer na bandeja quando o app vai para segundo plano.
+  function pedirPermissaoNotificacao() {
+    if (!('Notification' in window) || Notification.permission !== 'default') return;
     Notification.requestPermission().catch(function () {});
+  }
+
+  // ---- Notificação "em andamento" do cronômetro (contador em segundo plano) ----
+  const TAG_NOTIF_TIMER = 'estudos-timer';
+  let ultimaNotifTimerMs = 0;
+  let notifTimerAtiva = false;
+
+  function textoNotifTimer(e) {
+    if (e.modo === 'pomodoro') {
+      return (e.pomoFase === 'foco' ? '🎯 Foco' : '☕ Pausa') + ' · ' + window.Timer.formatar(e.pomoRestanteMs) + ' restantes';
+    }
+    if (e.limiteMin) {
+      return e.limiteRestanteMs > 0
+        ? '⏱️ ' + window.Timer.formatar(e.limiteRestanteMs) + ' restantes'
+        : '🎉 +' + window.Timer.formatar(e.decorridoMs - e.limiteMs) + ' além do planejado';
+    }
+    return '⏱️ ' + window.Timer.formatar(e.decorridoMs) + ' estudando';
+  }
+
+  function mostrarNotificacaoTimer(e, forcar) {
+    if (!e || !('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!navigator.serviceWorker || !navigator.serviceWorker.ready) return;
+    const agora = Date.now();
+    if (!forcar && agora - ultimaNotifTimerMs < 4000) return; // evita spam (atualiza ~a cada 4s)
+    ultimaNotifTimerMs = agora;
+    notifTimerAtiva = true;
+    navigator.serviceWorker.ready.then(function (reg) {
+      reg.showNotification(nomeTopicoCompleto(e.topicoId) || 'Estudo em andamento', {
+        tag: TAG_NOTIF_TIMER,
+        body: textoNotifTimer(e),
+        icon: 'icons/icone-192.png',
+        badge: 'icons/icone-192.png',
+        silent: true,
+        renotify: false,
+        requireInteraction: true
+      }).catch(function () {});
+    }).catch(function () {});
+  }
+
+  function limparNotificacaoTimer() {
+    ultimaNotifTimerMs = 0;
+    if (!notifTimerAtiva) return;
+    notifTimerAtiva = false;
+    if (!('Notification' in window) || !navigator.serviceWorker) return;
+    navigator.serviceWorker.ready.then(function (reg) {
+      reg.getNotifications({ tag: TAG_NOTIF_TIMER }).then(function (ns) {
+        ns.forEach(function (n) { n.close(); });
+      }).catch(function () {});
+    }).catch(function () {});
   }
 
   function atualizarTituloTimer(e) {
     if (!e) {
       document.title = TITULO_PADRAO;
+      limparNotificacaoTimer();
       return;
     }
     if (e.limiteAvisado && e.limiteRestanteMs === 0) {
@@ -201,6 +253,9 @@
     }
     if (pintarTimerAtual && location.hash.replace('#', '') === 'timer') pintarTimerAtual(e);
     if (pintarTimerModal) pintarTimerModal(e);
+    // Contador na bandeja quando o app está em segundo plano (oculto).
+    if (e && e.rodando && document.hidden) mostrarNotificacaoTimer(e);
+    else limparNotificacaoTimer();
   }
 
   function confete() {
@@ -1222,7 +1277,7 @@
             return;
           }
           prepararAudio();
-          pedirNotificacaoSePossivel(limiteMin);
+          pedirPermissaoNotificacao();
           window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin });
           timerPreselecao = null;
           render();
@@ -1307,7 +1362,7 @@
           (e.rodando ? '<button class="botao-quieto" id="tr-pausar">Pausar</button>' : '<button class="botao-quieto" id="tr-retomar">Retomar</button>') +
           '<button id="tr-encerrar">Encerrar</button>' +
           '<button class="botao-quieto" id="tr-descartar">Descartar</button></div>' +
-          '<div class="modal-acoes" style="margin-top:0.3rem"><button class="botao-quieto botao-mini" id="tr-fechar">Continuar em 2º plano</button>' +
+          '<div class="modal-acoes" style="margin-top:0.3rem">' +
           '<a class="botao-quieto botao-mini" href="#timer" id="tr-abrir-tela">Abrir em tela cheia</a></div>';
         const bp = corpo.querySelector('#tr-pausar');
         if (bp) bp.addEventListener('click', function () { window.Timer.pausar(); desenhar(); });
@@ -1323,7 +1378,6 @@
           confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado será apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: '🗑️' })
             .then(function (ok) { if (ok) { window.Timer.descartar(); atualizarTituloTimer(null); fecharModal(); render(); } });
         });
-        corpo.querySelector('#tr-fechar').addEventListener('click', fecharModal);
         const abrirTela = corpo.querySelector('#tr-abrir-tela');
         if (abrirTela) abrirTela.addEventListener('click', fecharModal);
         pintar(e);
@@ -1392,7 +1446,7 @@
           const limiteMin = limiteEl && limiteEl.value ? parseInt(limiteEl.value, 10) : null;
           if (limiteEl && limiteEl.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) { toast('Informe um tempo máximo entre 1 e 720 minutos.', 'erro'); return; }
           prepararAudio();
-          pedirNotificacaoSePossivel(limiteMin);
+          pedirPermissaoNotificacao();
           window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin: limiteMin });
           timerPreselecao = null;
           desenhar();
@@ -5652,6 +5706,14 @@
   if (botaoTimerRapido) botaoTimerRapido.addEventListener('click', abrirTimerRapido);
 
   window.Timer.aoAtualizar(tratarTickTimer);
+
+  // Ao sair do app (segundo plano) com o cronômetro rodando, o contador
+  // aparece na bandeja; ao voltar, a notificação some (o relógio está na tela).
+  document.addEventListener('visibilitychange', function () {
+    const e = window.Timer.estado();
+    if (document.hidden) { if (e && e.rodando) mostrarNotificacaoTimer(e, true); }
+    else limparNotificacaoTimer();
+  });
 
   const recuperado = window.Timer.recuperar();
   if (recuperado) {
