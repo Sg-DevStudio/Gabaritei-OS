@@ -290,6 +290,8 @@
       return {
         id: d.id, nome: d.nome, cor: d.cor || '#9A9DA3', peso: d.peso || 1,
         base_teorica: d.base_teorica || 'pdf',
+        dificuldade: d.dificuldade || 'media',
+        origem: d.origem || null,
         topicos: d.topicos.map(function (t) {
           const antigo = statusAntigo[t.id];
           return {
@@ -513,22 +515,51 @@
     };
   }
 
-  // RN10 — Check-in semanal: Planejado vs. Realizado da última semana fechada.
+  // RN10 — Check-in semanal: Planejado vs. Realizado da última semana fechada
+  // + prévia da semana CORRENTE (o aluno antecipa, no último dia, se vai fechar).
   function checkinSemanal(state, hoje) {
     const inicioAtual = segundaDaSemana(hoje);
     const inicioAnterior = addDias(inicioAtual, -7);
-    let realizadoMin = 0, qFeitas = 0;
+    const fimAtual = addDias(inicioAtual, 7);
+    let realizadoMin = 0, qFeitas = 0, realizadoAtualMin = 0;
     for (const s of sessoesDoPlano(state)) {
       if (s.data >= inicioAnterior && s.data < inicioAtual) {
         realizadoMin += s.duracaoMin || 0;
         qFeitas += s.qFeitas || 0;
+      } else if (s.data >= inicioAtual && s.data < fimAtual) {
+        realizadoAtualMin += s.duracaoMin || 0;
       }
     }
     const r = ritmoInfoAtivo(state);
     const planejado = r ? (r.h_semana || 0) : 0;
     const realizado = Math.round((realizadoMin / 60) * 10) / 10;
     const saldo = Math.round((realizado - planejado) * 10) / 10; // <0 déficit, >0 superávit
-    return { inicio: inicioAnterior, planejado, realizado, saldo, qFeitas, temDados: realizadoMin > 0 };
+
+    // Semana corrente: quanto já foi feito e quanto falta para bater o planejado.
+    const realizadoAtual = Math.round((realizadoAtualMin / 60) * 10) / 10;
+    const restanteAtual = Math.round(Math.max(0, planejado - realizadoAtual) * 10) / 10;
+    // último dia útil do plano na semana (segunda = índice 0 ... domingo = 6)
+    const dias = (state.config && state.config.rotinaEstudos && state.config.rotinaEstudos.dias) || null;
+    const ordem = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+    let ultimoIdx = 6;
+    if (dias) {
+      for (let i = ordem.length - 1; i >= 0; i--) {
+        const d = dias[ordem[i]];
+        if (d && d.ativo && (d.minutos || 0) > 0) { ultimoIdx = i; break; }
+      }
+    }
+    const idxHoje = (function () { const n = new Date(hoje + 'T00:00:00').getDay(); return n === 0 ? 6 : n - 1; })();
+    const ehUltimoDia = idxHoje >= ultimoIdx;
+    // >8h restantes num único dia final é irrealista → projeta que não fecha.
+    const naoVaiFechar = ehUltimoDia && restanteAtual > 8;
+
+    return {
+      inicio: inicioAnterior, planejado, realizado, saldo, qFeitas, temDados: realizadoMin > 0,
+      atual: {
+        planejado: planejado, realizado: realizadoAtual, restante: restanteAtual,
+        ehUltimoDia: ehUltimoDia, naoVaiFechar: naoVaiFechar
+      }
+    };
   }
 
   // ---------- Conciliação de planos: "dá para conciliar dois concursos?" ----------

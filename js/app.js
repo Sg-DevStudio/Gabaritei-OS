@@ -407,6 +407,11 @@
       ' title="Registrar estudo" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
   }
 
+  function tituloCurto(t) {
+    const s = String(t || '');
+    return s.split(/\s[—–-]\s/)[0].trim() || s || 'Plano';
+  }
+
   // Nome curto do concurso (antes do primeiro traço): "TRF3 — Técnico…" -> "TRF3"
   function nomeCurtoConcurso() {
     const c = state.plano ? (state.plano.concurso || '') : '';
@@ -831,8 +836,7 @@
       nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
 
     let html = '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacaoCompleta(saudacao) + '</h1>' +
-      '<p class="sub">' + resumoDia + '</p></div>' +
-      '<button class="botao-secundario" id="btn-registrar-livre">Registrar sessão</button></div>';
+      '<p class="sub">' + resumoDia + '</p></div></div>';
 
     html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
     html += linksApoioHojeHtml();
@@ -972,8 +976,6 @@
   }
 
   function ligarHoje(raiz) {
-    const btn = raiz.querySelector('#btn-registrar-livre');
-    if (btn) btn.addEventListener('click', function () { abrirRegistro({}); });
     celebrarConquistasNovas();
     const provaEditar = raiz.querySelector('#prova-editar');
     if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
@@ -1329,7 +1331,9 @@
           '<button type="button" data-trmodo="pomodoro">Pomodoro 25/5</button></span></div>' +
           '<div class="timer-limite" style="margin:0.8rem auto 0"><label for="tr-limite">Tempo máximo (min)</label>' +
           '<input id="tr-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>' +
-          '<div class="modal-acoes"><button class="botao-quieto" id="tr-fechar2">Fechar</button><button id="tr-iniciar">Iniciar</button></div>';
+          '<div class="modal-acoes"><button class="botao-quieto" id="tr-fechar2">Fechar</button>' +
+          '<button class="botao-secundario" id="tr-registrar">Registrar sessão</button>' +
+          '<button id="tr-iniciar">Iniciar</button></div>';
         const selDisc = corpo.querySelector('#tr-disc');
         const selTop = corpo.querySelector('#tr-top');
         const assuntoBtn = corpo.querySelector('#tr-assunto-btn');
@@ -1364,6 +1368,13 @@
           });
         });
         corpo.querySelector('#tr-fechar2').addEventListener('click', fecharModal);
+        // Registrar sessão direto, sem cronometrar (forma prática pedida)
+        corpo.querySelector('#tr-registrar').addEventListener('click', function () {
+          if (!selTop.value) { toast('Escolha um tópico antes de registrar.', 'erro'); return; }
+          const topId = selTop.value;
+          fecharModal();
+          abrirRegistro({ topicoId: topId, aoSalvar: function () { render(); } });
+        });
         corpo.querySelector('#tr-iniciar').addEventListener('click', function () {
           if (!selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
           const limiteEl = corpo.querySelector('#tr-limite');
@@ -1492,38 +1503,19 @@
   }
 
   // ---------------- TELA: Edital verticalizado ----------------
-  // Plano-like → formato que D.conciliarPlanos espera (disciplinas + janela da prova)
-  function planoComoEdital(entrada) {
-    const radar = entrada.plano && entrada.plano.radar;
-    const janela = radar && radar.janela_prova;
-    return {
-      disciplinas: entrada.disciplinas || [],
-      janelaProva: janela && janela[0] ? { inicio: janela[0] } : null
-    };
-  }
-
-  // Banner de compatibilidade — só aparece quando o aluno estuda 2+ planos ao
-  // mesmo tempo. Diz "X% compatíveis" e aconselha quando a conciliação aperta.
+  // Banner de compatibilidade — só aparece quando o plano ATIVO é combinado
+  // (uniu 2 concursos). Com um único concurso, não mostra nada.
   function compatibilidadeEditaisHtml() {
-    if (!state.plano || state.planos.length < 2) return '';
-    const ativo = entradaPlanoAtivo();
-    if (!ativo) return '';
-    const outros = state.planos.filter(function (p) { return p.id !== state.planoAtivoId; });
-    // compara o plano ativo com o outro plano mais sobreposto
-    let melhor = null;
-    outros.forEach(function (p) {
-      const r = D.conciliarPlanos(planoComoEdital(ativo), planoComoEdital(p), { horasSemana: horasSemanaDisponiveis() });
-      if (!melhor || r.detalhes.overlapPct > melhor.r.detalhes.overlapPct) melhor = { p: p, r: r };
-    });
-    if (!melhor) return '';
-    const pct = melhor.r.detalhes.overlapPct;
-    const compativel = melhor.r.nivel === 'alta' || melhor.r.nivel === 'moderada';
+    const comb = state.plano && state.plano.combinado;
+    if (!comb) return '';
+    const compativel = comb.nivel === 'alta' || comb.nivel === 'moderada';
     const classe = compativel ? 'ok' : 'alerta';
     const icone = compativel ? '🤝' : '⚠️';
+    const fontes = (comb.fontes || []).join(' × ');
     return '<div class="card compat-editais compat-' + classe + '">' +
       '<div class="compat-topo"><span class="compat-icone" aria-hidden="true">' + icone + '</span>' +
-      '<div><strong>Estes editais são ' + pct + '% compatíveis</strong> · ' + esc(state.plano.concurso) + ' × ' + esc(melhor.p.plano.concurso) + '</div></div>' +
-      '<p class="sub">' + esc(melhor.r.mensagem) + '</p></div>';
+      '<div><strong>Estes editais são ' + comb.pct + '% compatíveis</strong>' + (fontes ? ' · ' + esc(fontes) : '') + '</div></div>' +
+      (comb.mensagem ? '<p class="sub">' + esc(comb.mensagem) + '</p>' : '') + '</div>';
   }
 
   function telaEdital() {
@@ -1546,7 +1538,7 @@
       const pd = D.progressoDisciplina(d);
       const desemp = D.desempenhoDisciplina(state, d);
       const quentes = idsTopicosQuentes(d.topicos);
-      const origem = d.origem || (state.planos.length > 1 ? nomeCurtoConcurso() : '');
+      const origem = (state.plano && state.plano.combinado && d.origem) ? d.origem : '';
       html += '<button class="disc-cab" data-disc="' + esc(d.id) + '" aria-expanded="' + aberta + '">' +
         '<span style="font-family:var(--fonte-mono);color:var(--grafite)">' + (aberta ? '▾' : '▸') + '</span>' +
         tagDisc(d) + ' ' + esc(nomeDiscCurto(d.nome)) +
@@ -2339,10 +2331,16 @@
   function criarPlanoDeEdital(editalId) {
     const e = state.editais.find(function (x) { return x.id === editalId; });
     if (!e) return;
+    // Semente da "data provável" a partir da janela do edital — assim ela não
+    // se perde ao (re)gerar o plano e segue persistindo/sincronizando.
+    const jp = e.janelaProva || {};
+    const radarSeed = jp.inicio
+      ? { janela_prova: [jp.inicio, jp.fim || jp.inicio], confianca: 'manual', reavaliar_em: null }
+      : null;
     const json = {
       versao: 1,
       gerado_em: D.hojeISO(),
-      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', meta: { corte_pct: e.notaCorte || 70, corte_lista: normalizarListaCorte(e.tipoCorte) }, radar: null, ritmos: null },
+      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', meta: { corte_pct: e.notaCorte || 70, corte_lista: normalizarListaCorte(e.tipoCorte) }, radar: radarSeed, ritmos: null },
       disciplinas: e.disciplinas,
       cronograma: {}
     };
@@ -2626,6 +2624,18 @@
     salvar();
     fecharModal();
     criarPlanoDeEdital(reg.id); // valida, cria o plano, ativa e abre o ajuste de rotina
+    // marca o plano como combinado (a aba Edital usa isso para mostrar
+    // compatibilidade + tags de origem — só quando há de fato 2 concursos)
+    if (state.plano) {
+      const compat = D.conciliarPlanos(edA, edB, { horasSemana: horasSemanaDisponiveis() });
+      state.plano.combinado = {
+        fontes: [tituloCurto(edA.titulo), tituloCurto(edB.titulo)],
+        pct: compat.detalhes.overlapPct,
+        nivel: compat.nivel,
+        mensagem: compat.mensagem
+      };
+      salvar();
+    }
   }
 
   // ================= Editor/conferência de edital (admin) =================
@@ -3660,6 +3670,29 @@
       concluido: { classe: 'ok', rotulo: 'Esforço concluído', icone: '🏁' }
     };
     const sit = mapaSit[burn.situacao] || mapaSit.no_prazo;
+
+    // Prévia da semana corrente — o aluno antecipa, no último dia, se vai fechar.
+    let semanaAtualLinha = '';
+    if (check.atual && check.planejado > 0) {
+      const a = check.atual;
+      const ok = a.restante <= 0.1;
+      const classe = a.naoVaiFechar ? 'alerta' : (ok ? 'ok' : '');
+      let msg;
+      if (ok) {
+        msg = 'meta da semana batida 👏';
+      } else if (a.naoVaiFechar) {
+        msg = 'faltam ' + a.restante + 'h e hoje é o último dia do plano — provavelmente não fecha. O excedente já foi redistribuído nas próximas semanas; na segunda o plano recalcula com o que você fechar hoje.';
+      } else if (a.ehUltimoDia) {
+        msg = 'faltam ' + a.restante + 'h e hoje é o último dia do plano — dá um gás para fechar a semana.';
+      } else {
+        msg = 'faltam ' + a.restante + 'h para a meta desta semana.';
+      }
+      semanaAtualLinha = '<div class="checkin-comparativo ' + classe + '">' +
+        '<span>Esta semana · planejado <strong>' + formatarHorasSemana(a.planejado).replace(' na semana', '') + '</strong>' +
+        ' · feito <strong>' + a.realizado + 'h</strong></span>' +
+        '<span class="checkin-saldo">' + msg + '</span></div>';
+    }
+
     let checkLinha = '';
     if (check.temDados) {
       const deficit = check.saldo < -0.1;
@@ -3681,6 +3714,7 @@
       '<span class="checkin-rotulo">Carga horária real / semana</span></div>' +
       '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo">' + esc(formatarSemanasDias(burn.semanasRestantes)) + '</span>' +
       '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
+      semanaAtualLinha +
       checkLinha +
       '<p class="checkin-nota">↻ O plano é recalculado a cada semana, comparando o que você registrou com o que estava previsto, e se reajusta à sua realidade.</p>' +
       '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
