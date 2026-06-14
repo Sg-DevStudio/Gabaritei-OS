@@ -294,6 +294,13 @@
       ' title="Registrar estudo" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
   }
 
+  // Nome curto do concurso (antes do primeiro traço): "TRF3 — Técnico…" -> "TRF3"
+  function nomeCurtoConcurso() {
+    const c = state.plano ? (state.plano.concurso || '') : '';
+    const curto = c.split(/\s[—–-]\s/)[0].trim();
+    return curto || c || 'prova';
+  }
+
   function provaEstimadaHtml() {
     const radar = state.plano && state.plano.radar;
     const janela = radar && radar.janela_prova;
@@ -304,12 +311,12 @@
     const reavaliar = radar && radar.reavaliar_em ? D.formatarDataBR(radar.reavaliar_em) : 'sem revisão marcada';
     return '<div class="card card-kpi prova-card">' +
       '<div class="prova-card-topo"><span class="alvo-emoji" aria-hidden="true">🎯</span>' +
-      '<div><div class="card-kpi-rotulo">Prova estimada</div>' +
+      '<div><div class="card-kpi-rotulo">Data provável · ' + esc(nomeCurtoConcurso()) + '</div>' +
       '<div class="card-kpi-extra">confiança ' + esc(confianca) + '</div></div></div>' +
       '<div class="prova-periodo num">' + esc(periodo) + '</div>' +
       '<div class="prova-countdown">' + esc(countdownProva(janela)) + '</div>' +
       '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' +
-      '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar data</button>' +
+      '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar</button>' +
       '</div>';
   }
 
@@ -350,8 +357,10 @@
     const radar = state.plano.radar || {};
     const janela = radar.janela_prova || [hojeMesISO(), hojeMesISO()];
     const m = abrirModal(
-      '<h3>Editar prova estimada</h3>' +
+      '<h3>Editar prova</h3>' +
       '<form id="form-prova">' +
+      '<label for="pv-nome">Nome da prova</label>' +
+      '<input id="pv-nome" type="text" maxlength="80" value="' + esc(state.plano.concurso || '') + '" placeholder="Ex.: TRF3 — Técnico Judiciário">' +
       '<div class="grade-2">' +
       '<div><label for="pv-inicio">Início do período</label><input id="pv-inicio" type="month" value="' + esc(janela[0] || hojeMesISO()) + '" required></div>' +
       '<div><label for="pv-fim">Fim do período</label><input id="pv-fim" type="month" value="' + esc(janela[1] || janela[0] || hojeMesISO()) + '" required></div></div>' +
@@ -363,7 +372,7 @@
       '<div><label for="pv-reav">Reavaliar em</label><input id="pv-reav" type="date" value="' + esc(radar.reavaliar_em || '') + '"></div></div>' +
       '<div class="msg-erro oculto" id="pv-erro"></div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="pv-cancelar">Cancelar</button>' +
-      '<button type="submit">Salvar data</button></div></form>'
+      '<button type="submit">Salvar</button></div></form>'
     );
     m.querySelector('#pv-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#form-prova').addEventListener('submit', function (e) {
@@ -376,6 +385,8 @@
         erro.classList.remove('oculto');
         return;
       }
+      const nome = (m.querySelector('#pv-nome').value || '').trim();
+      if (nome) state.plano.concurso = nome;
       state.plano.radar = Object.assign({}, radar, {
         janela_prova: [inicio, fim],
         confianca: m.querySelector('#pv-conf').value,
@@ -384,7 +395,7 @@
       salvar();
       fecharModal();
       render();
-      toast('Data da prova atualizada', 'sucesso');
+      toast('Prova atualizada', 'sucesso');
     });
   }
 
