@@ -2397,7 +2397,8 @@
     html += '</div>'; // .ajustes-sync-grid
 
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
-      '<button class="botao-perigo botao-mini" id="zr-limpar">Apagar todos os dados</button></div>';
+      '<p class="sub">Apaga seus planos, sessões, revisões, simulados e agenda para recomeçar do zero. O catálogo de editais e suas configurações são mantidos.</p>' +
+      '<button class="botao-perigo botao-mini" id="zr-limpar">Apagar meus dados de estudo</button></div>';
     return html;
   }
 
@@ -2716,19 +2717,21 @@
     const json = {
       versao: 1,
       gerado_em: D.hojeISO(),
-      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', meta: { corte_pct: e.notaCorte || 70, corte_lista: normalizarListaCorte(e.tipoCorte) }, radar: radarSeed, ritmos: null },
+      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', foto: e.foto || e.fotoUrl || e.imagem || '', meta: { corte_pct: e.notaCorte || 70, corte_lista: normalizarListaCorte(e.tipoCorte) }, radar: radarSeed, ritmos: null },
       disciplinas: e.disciplinas,
       cronograma: {}
     };
     const v = D.validarPlano(json);
     if (!v.ok) { toast('Edital inválido: ' + v.erros[0], 'erro'); return; }
-    adicionarPlano(json);
+    // Guarda o plano ativo anterior: se o usuário sair do assistente sem concluir,
+    // o plano recém-criado é removido (não fica um plano "fantasma" no catálogo).
+    const planoAnteriorId = state.planoAtivoId;
+    const entrada = adicionarPlano(json);
     aplicarPlanosDuracaoAoAtivo(true);
-    toast('Plano criado a partir do edital — ajuste sua rotina para personalizar', 'sucesso');
     // pushState não dispara hashchange (que fecharia o modal de rotina abaixo)
     if (location.hash !== '#planejamento') history.pushState(null, '', '#planejamento');
     render();
-    abrirGerarPlanoComRotina();
+    abrirGerarPlanoComRotina({ novoPlanoId: entrada.id, planoAnteriorId: planoAnteriorId });
   }
 
   function ligarEditaisEsquematizados(raiz) {
@@ -3510,12 +3513,20 @@
     ligarEditaisEsquematizados(raiz);
 
     raiz.querySelector('#zr-limpar').addEventListener('click', function () {
-      confirmar({ titulo: 'Apagar todos os dados?', mensagem: 'Plano, sessões, revisões e simulados serão apagados — e isso também sobrescreve os dados sincronizados no Firebase. Esta ação não tem volta.', confirmar: 'Apagar tudo', perigo: true, icone: '⚠️' }).then(function (ok) {
+      confirmar({ titulo: 'Recomeçar do zero?', mensagem: 'Seus planos, sessões, revisões, simulados e agenda serão apagados para você começar de novo. O catálogo de editais e suas configurações são mantidos. Esta ação não tem volta.', confirmar: 'Apagar meus dados', perigo: true, icone: '⚠️' }).then(function (ok) {
         if (!ok) return;
-        state = window.Store.estadoVazio();
+        // Zera apenas os dados de estudo do aluno; preserva o catálogo de editais
+        // (catálogo global, no caso do admin) e as configurações pessoais.
+        state.planos = [];
+        state.planoAtivoId = null;
+        state.sessoes = [];
+        state.revisoes = [];
+        state.simulados = [];
+        state.agenda = [];
+        window.Store.hidratar(state);
         state.config.apagadoEm = new Date().toISOString();
         salvar(); render();
-        toast('Dados apagados');
+        toast('Seus dados de estudo foram apagados');
       });
     });
   }
@@ -3828,6 +3839,22 @@
     return nome + (horas ? ' · ' + horas + 'h por semana' : '');
   }
 
+  // Foto 3x4 do órgão para o card "Plano atual": usa a foto semeada na criação
+  // do plano e, na falta dela, procura o edital correspondente no catálogo.
+  function fotoPlanoAtivoHtml() {
+    const plano = state.plano;
+    if (!plano) return '';
+    let src = plano.foto || '';
+    if (!src) {
+      const ed = editaisDoCatalogo().find(function (e) { return e.titulo === plano.concurso; });
+      if (ed) src = ed.foto || ed.fotoUrl || ed.imagem || '';
+    }
+    const iniciais = String(plano.orgao || plano.concurso || 'ED').replace(/[^0-9A-Za-zÀ-ſ ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(function (p) { return p.charAt(0); }).join('').toUpperCase() || 'ED';
+    return src
+      ? '<span class="catalogo-foto plano-atual-foto"><img src="' + esc(src) + '" alt=""></span>'
+      : '<span class="catalogo-foto catalogo-foto-placeholder plano-atual-foto" aria-hidden="true">' + esc(iniciais) + '</span>';
+  }
+
   function planoAtualHtml() {
     if (!state.plano) {
       return '<div class="card planejamento-card plano-atual-card"><div class="card-kpi-rotulo">Plano atual</div>' +
@@ -3836,7 +3863,7 @@
     }
     const progresso = D.progressoEdital(state);
     return '<div class="card planejamento-card plano-atual-card">' +
-      '<div class="plano-atual-head"><div><div class="card-kpi-rotulo">Plano atual</div>' +
+      '<div class="plano-atual-head">' + fotoPlanoAtivoHtml() + '<div><div class="card-kpi-rotulo">Plano atual</div>' +
       '<h3>' + esc(state.plano.concurso) + '</h3>' +
       '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
@@ -4190,6 +4217,16 @@
     return item && (item.planoId === planoId || (!item.planoId && state.planoAtivoId === planoId));
   }
 
+  // Remove sessões, revisões, simulados e blocos de agenda vinculados a um plano.
+  // Precisa rodar ENQUANTO o plano ainda é o ativo (pertenceAoPlano usa planoAtivoId
+  // como fallback para itens antigos sem planoId), portanto chame antes de removê-lo.
+  function limparDadosVinculados(planoId) {
+    state.sessoes = state.sessoes.filter(function (s) { return !pertenceAoPlano(s, planoId); });
+    state.revisoes = state.revisoes.filter(function (r) { return !pertenceAoPlano(r, planoId); });
+    state.simulados = state.simulados.filter(function (s) { return !pertenceAoPlano(s, planoId); });
+    state.agenda = state.agenda.filter(function (a) { return !pertenceAoPlano(a, planoId); });
+  }
+
   async function excluirPlano(planoId, limparHistorico) {
     const p = state.planos.find(function (x) { return x.id === planoId; });
     if (!p) return false;
@@ -4198,13 +4235,11 @@
       : 'O plano "' + p.plano.concurso + '" será excluído. As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
     if (!(await confirmar({ titulo: 'Excluir plano?', mensagem: msg, confirmar: 'Excluir', perigo: true, icone: '🗑️' }))) return false;
     const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
-    if (limparHistorico) {
-      state.sessoes = state.sessoes.filter(function (s) { return !pertenceAoPlano(s, planoId); });
-      state.revisoes = state.revisoes.filter(function (r) { return !pertenceAoPlano(r, planoId); });
-      state.simulados = state.simulados.filter(function (s) { return !pertenceAoPlano(s, planoId); });
-      state.agenda = state.agenda.filter(function (a) { return !pertenceAoPlano(a, planoId); });
-    }
+    if (limparHistorico) limparDadosVinculados(planoId);
     window.Store.removerPlano(state, planoId);
+    // Sem nenhum plano restante, marca a exclusão para que a nuvem não
+    // ressuscite o plano apagado no próximo sync (ver firebase-sync.js).
+    if (state.planos.length === 0) state.config.apagadoEm = new Date().toISOString();
     editalAbertas = new Set();
     salvar();
     render();
@@ -4538,7 +4573,8 @@
     });
   }
 
-  function abrirGerarPlanoComRotina() {
+  function abrirGerarPlanoComRotina(opcoes) {
+    opcoes = opcoes || {};
     if (!state.plano || state.disciplinas.length === 0) {
       toast('Crie ou importe disciplinas antes de gerar o plano.', 'erro');
       return;
@@ -4643,6 +4679,27 @@
     );
     m.classList.add('modal-amplo');
 
+    // Se o assistente foi aberto logo após criar um plano (fluxo "Iniciar plano")
+    // e o usuário sair sem gerar, descartamos o plano recém-criado para não
+    // deixar um plano "fantasma" — o catálogo volta a mostrar "Iniciar plano".
+    let planoGerado = false;
+    function descartarPlanoNovoSeNecessario() {
+      if (planoGerado || !opcoes.novoPlanoId) return;
+      if (!state.planos.some(function (p) { return p.id === opcoes.novoPlanoId; })) return;
+      limparDadosVinculados(opcoes.novoPlanoId);
+      window.Store.removerPlano(state, opcoes.novoPlanoId);
+      if (opcoes.planoAnteriorId && state.planos.some(function (p) { return p.id === opcoes.planoAnteriorId; })) {
+        window.Store.ativarPlano(state, opcoes.planoAnteriorId);
+      }
+      editalAbertas = new Set();
+      salvar();
+      render();
+    }
+    const fundoWizard = m.closest('.modal-fundo');
+    if (fundoWizard) fundoWizard.addEventListener('click', function (ev) {
+      if (ev.target === ev.currentTarget) descartarPlanoNovoSeNecessario();
+    });
+
     // navegação do assistente
     let passo = 1;
     const TOTAL_PASSOS = 4;
@@ -4733,7 +4790,7 @@
     });
 
     // navegação
-    m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#gp-cancelar').addEventListener('click', function () { descartarPlanoNovoSeNecessario(); fecharModal(); });
     m.querySelector('#gp-voltar').addEventListener('click', function () { mostrarPasso(passo - 1); });
     m.querySelector('#gp-proximo').addEventListener('click', function () {
       if (passo === 2 && totalMinutosRotina(rotinaDoModal()) < 1) {
@@ -4767,6 +4824,7 @@
       });
       state.config.rotinaEstudos = rotinaNova;
       if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque)) return;
+      planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
       fecharModal();
       const cron = D.cronogramaAtivo(state);
       agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());

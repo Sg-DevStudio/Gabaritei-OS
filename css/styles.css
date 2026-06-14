@@ -237,6 +237,16 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
   z-index: 80;
 }
 
+/* No modo escuro o menu superior acompanha o tema (sem o degradê claro). */
+html[data-tema="escuro"] #topbar {
+  background: linear-gradient(90deg,
+    rgba(20, 24, 33, 0.82) 0%,
+    rgba(26, 32, 48, 0.82) 42%,
+    rgba(36, 58, 120, 0.84) 78%,
+    rgba(47, 97, 232, 0.86) 100%);
+  border-bottom-color: var(--sb-linha);
+}
+
 .topbar-acoes { display: flex; align-items: center; gap: 0.5rem; }
 
 .topbar-botao {
@@ -1562,8 +1572,10 @@ td.num, th.num { text-align: right; }
   border: 1.5px solid var(--linha); background: var(--papel-card);
   color: var(--tinta); text-align: center; box-shadow: none; min-height: auto;
 }
-.gp-prazo-card:hover { border-color: var(--caneta); box-shadow: none; transform: none; }
-.gp-prazo-card.ativo { border-color: var(--caneta); background: var(--caneta-suave); }
+/* Hover só dá um leve realce; o contorno azul fica reservado para o card escolhido. */
+.gp-prazo-card:hover { border-color: var(--campo-borda); background: var(--papel-elevado); box-shadow: none; transform: none; }
+.gp-prazo-card.ativo,
+.gp-prazo-card.ativo:hover { border-color: var(--caneta); background: var(--caneta-suave); }
 .gp-prazo-num { font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--caneta-forte); }
 .gp-prazo-unid { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grafite); font-weight: 700; }
 .gp-prazo-nome { font-size: 0.82rem; color: var(--grafite); margin-top: 0.3rem; line-height: 1.25; }
@@ -1709,6 +1721,10 @@ td.num, th.num { text-align: right; }
   justify-content: space-between;
   gap: 0.8rem;
 }
+/* Foto 3x4 do órgão dentro do card "Plano atual" */
+.plano-atual-head { align-items: center; }
+.plano-atual-foto { width: 54px; height: 72px; flex: 0 0 54px; }
+.plano-atual-head > :not(.plano-atual-foto):not(.plano-progresso) { flex: 1 1 auto; min-width: 0; }
 .plano-progresso {
   font-size: 1.25rem;
   font-weight: 800;
@@ -2340,9 +2356,9 @@ canvas.grafico {
 .catalogo-card-info { min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
 .catalogo-titulo { font-size: 0.94rem; line-height: 1.35; }
 .catalogo-foto {
-  width: 64px;
-  height: 82px;
-  flex: 0 0 64px;
+  width: 78px;
+  height: 100px;
+  flex: 0 0 78px;
   border-radius: 8px;
   overflow: hidden;
   background: var(--caneta-suave);
@@ -2369,7 +2385,8 @@ canvas.grafico {
 .cm-valor { font-family: var(--fonte-mono); font-size: 0.86rem; font-weight: 600; }
 .catalogo-sub { font-size: 0.8rem; color: var(--grafite); }
 .catalogo-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
-.catalogo-feito { align-self: center; margin: 0; }
+/* "plano criado ✓" fica na mesma linha dos botões, encostado à direita */
+.catalogo-feito { align-self: center; margin: 0 0 0 auto; }
 @media (max-width: 760px) {
   .catalogo-grade { grid-template-columns: 1fr; }
   /* Corte, Nível e Prova lado a lado no celular */
