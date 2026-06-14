@@ -1,5 +1,5 @@
-/* ============================================================
-   app.js — roteamento por hash + renderização das telas
+﻿/* ============================================================
+   app.js â€” roteamento por hash + renderizaÃ§Ã£o das telas
    Telas: #hoje #timer #revisoes #edital #simulados #stats
           #historico #ajustes #mais (atalhos no celular)
    ============================================================ */
@@ -12,12 +12,12 @@
   const CHAVE_ULTIMO_USUARIO = 'estudos.firebase.ultimoUsuario';
   let state = window.Store.carregar();
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
-  let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
+  let timerPreselecao = null;     // tÃ³pico vindo de "Estudar" na fila
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
   let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
   let pintarTimerAtual = null;
-  let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
+  let pintarTimerModal = null; // timer rÃ¡pido em modal (pinta em qualquer rota)
   let audioCtx = null;
   let ultimaRotaRender = null;
   let planejamentoConfigAberta = false;
@@ -132,7 +132,7 @@
       catalogoGlobalEditais = normalizarCatalogoGlobal(editais);
     }).catch(function (e) {
       console.warn('Nao consegui publicar catalogo global.', e);
-      toast('Não consegui publicar o catálogo global no Firebase.', 'erro');
+      toast('NÃ£o consegui publicar o catÃ¡logo global no Firebase.', 'erro');
     });
   }
 
@@ -184,13 +184,13 @@
   function abrirPedidoEdital(filtro) {
     filtro = filtro || {};
     const sugestao = [
-      filtro.orgao ? 'Órgão: ' + filtro.orgao : '',
+      filtro.orgao ? 'Ã“rgÃ£o: ' + filtro.orgao : '',
       filtro.cargo ? 'Cargo: ' + filtro.cargo : '',
       filtro.estado ? 'Estado: ' + filtro.estado : '',
-      filtro.busca ? 'Observação: ' + filtro.busca : ''
+      filtro.busca ? 'ObservaÃ§Ã£o: ' + filtro.busca : ''
     ].filter(Boolean).join('\n');
     const m = abrirModal('<h3>Pedir um edital</h3>' +
-      '<p class="sub">Descreva o concurso/cargo que você quer ver no catálogo. O pedido vai para o painel do administrador.</p>' +
+      '<p class="sub">Descreva o concurso/cargo que vocÃª quer ver no catÃ¡logo. O pedido vai para o painel do administrador.</p>' +
       '<label for="pedido-edital-txt">Edital desejado</label>' +
       '<textarea id="pedido-edital-txt" placeholder="Ex.: TJSP Escrevente 2026, banca Vunesp, SP">' + esc(sugestao) + '</textarea>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="pedido-cancelar">Cancelar</button>' +
@@ -198,7 +198,7 @@
     m.querySelector('#pedido-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#pedido-enviar').addEventListener('click', function () {
       const txt = (m.querySelector('#pedido-edital-txt').value || '').trim();
-      if (!txt) { toast('Descreva o edital que você quer pedir.', 'erro'); return; }
+      if (!txt) { toast('Descreva o edital que vocÃª quer pedir.', 'erro'); return; }
       if (window.FirebaseSync && window.FirebaseSync.enviarPedidoEdital) {
         m.querySelector('#pedido-enviar').disabled = true;
         window.FirebaseSync.enviarPedidoEdital({ texto: txt }).then(function () {
@@ -225,9 +225,9 @@
       '<div class="login-card">' +
       '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
       '<h1>Entre para acessar seus planos</h1>' +
-      '<p>Seu perfil, progresso, agenda e histórico ficam separados por conta. O catálogo global fica disponível para todos os usuários logados.</p>' +
+      '<p>Seu perfil, progresso, agenda e histÃ³rico ficam separados por conta. O catÃ¡logo global fica disponÃ­vel para todos os usuÃ¡rios logados.</p>' +
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
-      '<p class="login-nota">Login por e-mail e senha será adicionado depois. Por enquanto, o acesso usa Google.</p>' +
+      '<p class="login-nota">Login por e-mail e senha serÃ¡ adicionado depois. Por enquanto, o acesso usa Google.</p>' +
       '</div>' +
       '<div class="login-preview" aria-hidden="true">' +
       '<div class="login-preview-top"></div>' +
@@ -244,10 +244,10 @@
     const btn = raiz.querySelector('#login-google');
     if (!btn) return;
     btn.addEventListener('click', function () {
-      if (!window.FirebaseSync) { toast('Login ainda está carregando. Tente de novo em alguns segundos.', 'erro'); return; }
+      if (!window.FirebaseSync) { toast('Login ainda estÃ¡ carregando. Tente de novo em alguns segundos.', 'erro'); return; }
       btn.disabled = true;
       window.FirebaseSync.login().catch(function () {
-        toast('Não consegui abrir o login do Google. Confira o Firebase Auth.', 'erro');
+        toast('NÃ£o consegui abrir o login do Google. Confira o Firebase Auth.', 'erro');
       }).finally(function () {
         btn.disabled = false;
       });
@@ -265,8 +265,8 @@
 
   function fecharModal() { pintarTimerModal = null; document.getElementById('modal-raiz').innerHTML = ''; }
 
-  // Diálogos amigáveis no lugar de window.confirm / window.prompt.
-  // Empilham num overlay próprio (document.body), sem sobrescrever modais já abertos.
+  // DiÃ¡logos amigÃ¡veis no lugar de window.confirm / window.prompt.
+  // Empilham num overlay prÃ³prio (document.body), sem sobrescrever modais jÃ¡ abertos.
   function confirmar(opcoes) {
     opcoes = typeof opcoes === 'string' ? { mensagem: opcoes } : (opcoes || {});
     return new Promise(function (resolve) {
@@ -331,7 +331,7 @@
     state.config.tema = state.config.tema === 'escuro' ? 'claro' : 'escuro';
     salvar();
     aplicarTema();
-    toast(state.config.tema === 'escuro' ? 'Modo escuro ativado 🌙' : 'Modo claro ativado ☀️');
+    toast(state.config.tema === 'escuro' ? 'Modo escuro ativado ðŸŒ™' : 'Modo claro ativado â˜€ï¸');
   }
 
   function prepararAudio() {
@@ -366,28 +366,28 @@
     }
   }
 
-  // Pede permissão de notificação ao iniciar qualquer cronômetro — é o que
+  // Pede permissÃ£o de notificaÃ§Ã£o ao iniciar qualquer cronÃ´metro â€” Ã© o que
   // permite o contador aparecer na bandeja quando o app vai para segundo plano.
   function pedirPermissaoNotificacao() {
     if (!('Notification' in window) || Notification.permission !== 'default') return;
     Notification.requestPermission().catch(function () {});
   }
 
-  // ---- Notificação "em andamento" do cronômetro (contador em segundo plano) ----
+  // ---- NotificaÃ§Ã£o "em andamento" do cronÃ´metro (contador em segundo plano) ----
   const TAG_NOTIF_TIMER = 'estudos-timer';
   let ultimaNotifTimerMs = 0;
   let notifTimerAtiva = false;
 
   function textoNotifTimer(e) {
     if (e.modo === 'pomodoro') {
-      return (e.pomoFase === 'foco' ? '🎯 Foco' : '☕ Pausa') + ' · ' + window.Timer.formatar(e.pomoRestanteMs) + ' restantes';
+      return (e.pomoFase === 'foco' ? 'ðŸŽ¯ Foco' : 'â˜• Pausa') + ' Â· ' + window.Timer.formatar(e.pomoRestanteMs) + ' restantes';
     }
     if (e.limiteMin) {
       return e.limiteRestanteMs > 0
-        ? '⏱️ ' + window.Timer.formatar(e.limiteRestanteMs) + ' restantes'
-        : '🎉 +' + window.Timer.formatar(e.decorridoMs - e.limiteMs) + ' além do planejado';
+        ? 'â±ï¸ ' + window.Timer.formatar(e.limiteRestanteMs) + ' restantes'
+        : 'ðŸŽ‰ +' + window.Timer.formatar(e.decorridoMs - e.limiteMs) + ' alÃ©m do planejado';
     }
-    return '⏱️ ' + window.Timer.formatar(e.decorridoMs) + ' estudando';
+    return 'â±ï¸ ' + window.Timer.formatar(e.decorridoMs) + ' estudando';
   }
 
   function mostrarNotificacaoTimer(e, forcar) {
@@ -429,18 +429,18 @@
       return;
     }
     if (e.limiteAvisado && e.limiteRestanteMs === 0) {
-      document.title = 'Tempo maximo atingido · Estudos';
+      document.title = 'Tempo maximo atingido Â· Estudos';
       return;
     }
     const ms = e.modo === 'pomodoro' ? e.pomoRestanteMs : e.decorridoMs;
-    document.title = window.Timer.formatar(ms) + (e.rodando ? ' · Estudos' : ' pausado · Estudos');
+    document.title = window.Timer.formatar(ms) + (e.rodando ? ' Â· Estudos' : ' pausado Â· Estudos');
   }
 
   function avisarLimiteTimer(e) {
     tocarAlarme(5);
-    toast('Tempo máximo atingido: ' + e.limiteMin + ' min.', 'sucesso');
+    toast('Tempo mÃ¡ximo atingido: ' + e.limiteMin + ' min.', 'sucesso');
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Tempo máximo atingido', {
+      new Notification('Tempo mÃ¡ximo atingido', {
         body: nomeTopicoCompleto(e.topicoId),
         icon: 'icons/icone-192.png'
       });
@@ -452,11 +452,11 @@
     if (e && e.limiteAtingido) avisarLimiteTimer(e);
     if (e && e.pomoTrocouFase) {
       tocarAlarme(5);                                    // alerta de ~5s ao virar a fase (foco/pausa)
-      toast(e.pomoFase === 'foco' ? 'Pausa encerrada — de volta ao foco' : 'Foco concluído — 5 min de pausa', 'sucesso');
+      toast(e.pomoFase === 'foco' ? 'Pausa encerrada â€” de volta ao foco' : 'Foco concluÃ­do â€” 5 min de pausa', 'sucesso');
     }
     if (pintarTimerAtual && location.hash.replace('#', '') === 'timer') pintarTimerAtual(e);
     if (pintarTimerModal) pintarTimerModal(e);
-    // Contador na bandeja quando o app está em segundo plano (oculto).
+    // Contador na bandeja quando o app estÃ¡ em segundo plano (oculto).
     if (e && e.rodando && document.hidden) mostrarNotificacaoTimer(e);
     else limparNotificacaoTimer();
   }
@@ -480,13 +480,13 @@
     return '<span class="tag-disc" style="background:' + esc(disc.cor) + '">' + esc(disc.id) + '</span>';
   }
 
-  // Nome de exibição da disciplina sem o prefixo "Noções de / Noções Dir." —
-  // na prática nunca é só noção e o prefixo só ocupa espaço.
+  // Nome de exibiÃ§Ã£o da disciplina sem o prefixo "NoÃ§Ãµes de / NoÃ§Ãµes Dir." â€”
+  // na prÃ¡tica nunca Ã© sÃ³ noÃ§Ã£o e o prefixo sÃ³ ocupa espaÃ§o.
   function nomeDiscCurto(nome) {
     let s = String(nome || '');
-    s = s.replace(/^No[çc][õo]es\s+Dir\.\s*/i, 'Direito ');
-    s = s.replace(/^No[çc][õo]es\s+de\s+/i, '');
-    s = s.replace(/^No[çc][õo]es\s+/i, '');
+    s = s.replace(/^No[Ã§c][Ãµo]es\s+Dir\.\s*/i, 'Direito ');
+    s = s.replace(/^No[Ã§c][Ãµo]es\s+de\s+/i, '');
+    s = s.replace(/^No[Ã§c][Ãµo]es\s+/i, '');
     return s.trim() || String(nome || '');
   }
 
@@ -495,9 +495,9 @@
   }
 
   function semaforoHtml(pct, meta) {
-    if (pct === null || pct === undefined) return '<span class="semaforo" style="color:var(--grafite)">—</span>';
+    if (pct === null || pct === undefined) return '<span class="semaforo" style="color:var(--grafite)">â€”</span>';
     const cor = D.semaforo(pct, meta);
-    const simbolo = cor === 'verde' ? ' ✓' : cor === 'amarelo' ? ' ⚠' : ' ✗';
+    const simbolo = cor === 'verde' ? ' âœ“' : cor === 'amarelo' ? ' âš ' : ' âœ—';
     return '<span class="semaforo semaforo-' + cor + '">' + pct + '%' + simbolo + '</span>';
   }
 
@@ -515,13 +515,13 @@
 
   function tagIncidenciaHtml(valor, quente) {
     const n = Math.max(0, parseInt(valor || 0, 10));
-    return '<span class="tag-incidencia' + (quente ? ' tag-incidencia-hot' : '') + '" title="Incidência estimada nas provas">' +
-      (quente ? '🔥 ' : '') + n + '%</span>';
+    return '<span class="tag-incidencia' + (quente ? ' tag-incidencia-hot' : '') + '" title="IncidÃªncia estimada nas provas">' +
+      (quente ? 'ðŸ”¥ ' : '') + n + '%</span>';
   }
 
-  // IDs dos tópicos mais recorrentes (maior incidência) DE CADA disciplina — ganham 🔥.
-  // Por disciplina (não global) para que toda matéria destaque os seus campeões
-  // de incidência, ex.: Constitucional também marca os dela.
+  // IDs dos tÃ³picos mais recorrentes (maior incidÃªncia) DE CADA disciplina â€” ganham ðŸ”¥.
+  // Por disciplina (nÃ£o global) para que toda matÃ©ria destaque os seus campeÃµes
+  // de incidÃªncia, ex.: Constitucional tambÃ©m marca os dela.
   function idsTopicosQuentes(topicos, limite) {
     limite = limite || 3;
     const todos = (topicos || [])
@@ -537,13 +537,13 @@
     const t = D.topicoPorId(state, topicoId);
     const d = D.disciplinaDoTopico(state, topicoId);
     if (!t) return topicoId;
-    return (d ? d.id + ' · ' : '') + t.nome;
+    return (d ? d.id + ' Â· ' : '') + t.nome;
   }
 
   function doAtivo(lista) { return D.doPlanoAtivo(state, lista); }
 
-  // Horas REALMENTE agendadas (blocos do calendário) numa semana — é o número
-  // que o aluno vê no calendário. Usado no check-in para bater com a agenda.
+  // Horas REALMENTE agendadas (blocos do calendÃ¡rio) numa semana â€” Ã© o nÃºmero
+  // que o aluno vÃª no calendÃ¡rio. Usado no check-in para bater com a agenda.
   function horasAgendadasSemana(inicioISO) {
     const fim = D.addDias(inicioISO, 7);
     let min = 0;
@@ -571,8 +571,8 @@
 
   function emojisConstancia(st, recordeAnterior) {
     const emojis = [];
-    if (st.atual >= 7) emojis.push('🎉');
-    if (st.atual > 0 && st.atual > recordeAnterior) emojis.push('🏆');
+    if (st.atual >= 7) emojis.push('ðŸŽ‰');
+    if (st.atual > 0 && st.atual > recordeAnterior) emojis.push('ðŸ†');
     return emojis.length ? '<span class="streak-emojis" aria-hidden="true">' + emojis.join('') + '</span>' : '';
   }
 
@@ -593,7 +593,7 @@
     return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
   }
 
-  // 25.9 semanas é difícil de visualizar: vira "25 semanas e 6 dias".
+  // 25.9 semanas Ã© difÃ­cil de visualizar: vira "25 semanas e 6 dias".
   function formatarSemanasDias(semanasDecimais) {
     const totalDias = Math.max(0, Math.round((parseFloat(semanasDecimais) || 0) * 7));
     const semanas = Math.floor(totalDias / 7);
@@ -603,8 +603,8 @@
     return plural(semanas, 'semana', 'semanas') + ' e ' + plural(dias, 'dia', 'dias');
   }
 
-  // Quebra um total de dias em meses, semanas e dias (aproximação de mês = 30 dias)
-  // para o detalhamento que aparece ao passar o mouse no widget de calendário.
+  // Quebra um total de dias em meses, semanas e dias (aproximaÃ§Ã£o de mÃªs = 30 dias)
+  // para o detalhamento que aparece ao passar o mouse no widget de calendÃ¡rio.
   function decomporDias(diasTotais) {
     let dias = Math.max(0, parseInt(diasTotais, 10) || 0);
     const meses = Math.floor(dias / 30);
@@ -621,18 +621,18 @@
   function countdownDetalhado(diasTotais) {
     const d = decomporDias(diasTotais);
     const partes = [];
-    if (d.meses) partes.push(plural(d.meses, 'mês', 'meses'));
+    if (d.meses) partes.push(plural(d.meses, 'mÃªs', 'meses'));
     if (d.semanas) partes.push(plural(d.semanas, 'semana', 'semanas'));
     if (d.dias || partes.length === 0) partes.push(plural(d.dias, 'dia', 'dias'));
     let txt;
     if (partes.length === 1) txt = partes[0];
     else if (partes.length === 2) txt = partes[0] + ' e ' + partes[1];
     else txt = partes[0] + ', ' + partes[1] + ' e ' + partes[2];
-    return 'faltam ≈ ' + txt;
+    return 'faltam â‰ˆ ' + txt;
   }
 
-  // Widget de calendário animado: número de dias em destaque no centro,
-  // período + detalhamento (meses/semanas/dias) ao passar o mouse.
+  // Widget de calendÃ¡rio animado: nÃºmero de dias em destaque no centro,
+  // perÃ­odo + detalhamento (meses/semanas/dias) ao passar o mouse.
   function calendarioCountdownHtml(janela, periodo) {
     if (!janela || !janela[0] || !janela[1]) {
       return '<div class="prova-status-pill">sem data definida</div>';
@@ -642,16 +642,16 @@
     const fim = ultimoDiaMesISO(janela[1]);
     if (!fim) return '<div class="prova-status-pill">sem data definida</div>';
     if (hoje >= inicio && hoje <= fim) {
-      return '<div class="prova-status-pill prova-status-ativo">📝 janela da prova em andamento</div>';
+      return '<div class="prova-status-pill prova-status-ativo">ðŸ“ janela da prova em andamento</div>';
     }
     if (hoje > fim) {
       const passou = D.diffDias(fim, hoje);
-      return '<div class="prova-status-pill">janela passou há ' + plural(passou, 'dia', 'dias') + '</div>';
+      return '<div class="prova-status-pill">janela passou hÃ¡ ' + plural(passou, 'dia', 'dias') + '</div>';
     }
     const dias = D.diffDias(hoje, inicio);
     const detalhe = countdownDetalhado(dias) + ' para a prova';
-    const temPeriodo = periodo && periodo !== 'Definir período';
-    const aria = (temPeriodo ? periodo + ' · ' : '') + detalhe;
+    const temPeriodo = periodo && periodo !== 'Definir perÃ­odo';
+    const aria = (temPeriodo ? periodo + ' Â· ' : '') + detalhe;
     const mesAlvo = D.formatarMesBR(janela[0]).split(' ')[0].toUpperCase();
     return '<div class="cal-countdown" tabindex="0" role="img" aria-label="' + esc(aria) + '">' +
       '<div class="cal-widget">' +
@@ -669,7 +669,7 @@
 
   function checkEstudoHtml(feito, acao, id, tipo, titulo) {
     if (feito) {
-      return '<span class="check-estudo check-estudo-feito" title="Estudo registrado" aria-label="Estudo registrado">✓</span>';
+      return '<span class="check-estudo check-estudo-feito" title="Estudo registrado" aria-label="Estudo registrado">âœ“</span>';
     }
     return '<button type="button" class="check-estudo" data-acao="' + esc(acao) + '" data-id="' + esc(id) + '"' +
       (tipo ? ' data-tipo="' + esc(tipo) + '"' : '') +
@@ -678,13 +678,13 @@
 
   function tituloCurto(t) {
     const s = String(t || '');
-    return s.split(/\s[—–-]\s/)[0].trim() || s || 'Plano';
+    return s.split(/\s[â€”â€“-]\s/)[0].trim() || s || 'Plano';
   }
 
-  // Nome curto do concurso (antes do primeiro traço): "TRF3 — Técnico…" -> "TRF3"
+  // Nome curto do concurso (antes do primeiro traÃ§o): "TRF3 â€” TÃ©cnicoâ€¦" -> "TRF3"
   function nomeCurtoConcurso() {
     const c = state.plano ? (state.plano.concurso || '') : '';
-    const curto = c.split(/\s[—–-]\s/)[0].trim();
+    const curto = c.split(/\s[â€”â€“-]\s/)[0].trim();
     return curto || c || 'prova';
   }
 
@@ -692,12 +692,12 @@
     const radar = state.plano && state.plano.radar;
     const janela = radar && radar.janela_prova;
     const periodo = janela && janela[0] && janela[1]
-      ? D.formatarMesBR(janela[0]) + ' – ' + D.formatarMesBR(janela[1])
-      : 'Definir período';
-    const reavaliar = radar && radar.reavaliar_em ? D.formatarDataBR(radar.reavaliar_em) : 'sem revisão marcada';
+      ? D.formatarMesBR(janela[0]) + ' â€“ ' + D.formatarMesBR(janela[1])
+      : 'Definir perÃ­odo';
+    const reavaliar = radar && radar.reavaliar_em ? D.formatarDataBR(radar.reavaliar_em) : 'sem revisÃ£o marcada';
     return '<div class="card card-kpi prova-card">' +
-      '<div class="prova-card-topo"><span class="alvo-emoji" aria-hidden="true">🎯</span>' +
-      '<div class="card-kpi-rotulo">Data provável · ' + esc(nomeCurtoConcurso()) + '</div></div>' +
+      '<div class="prova-card-topo"><span class="alvo-emoji" aria-hidden="true">ðŸŽ¯</span>' +
+      '<div class="card-kpi-rotulo">Data provÃ¡vel Â· ' + esc(nomeCurtoConcurso()) + '</div></div>' +
       calendarioCountdownHtml(janela, periodo) +
       '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' +
       '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar</button>' +
@@ -721,7 +721,7 @@
       return s.topicoId === topicoId && s.data >= inicioSemana && s.data < fim;
     });
     if (!sessao) {
-      toast('Não encontrei estudo anterior deste tópico nesta semana. Vou abrir o registro.', 'erro');
+      toast('NÃ£o encontrei estudo anterior deste tÃ³pico nesta semana. Vou abrir o registro.', 'erro');
       abrirRegistro({ topicoId: topicoId, tipo: tipo || 'teoria' });
       return;
     }
@@ -744,10 +744,10 @@
       '<h3>Editar prova</h3>' +
       '<form id="form-prova">' +
       '<label for="pv-nome">Nome da prova</label>' +
-      '<input id="pv-nome" type="text" maxlength="80" value="' + esc(state.plano.concurso || '') + '" placeholder="Ex.: TRF3 — Técnico Judiciário">' +
+      '<input id="pv-nome" type="text" maxlength="80" value="' + esc(state.plano.concurso || '') + '" placeholder="Ex.: TRF3 â€” TÃ©cnico JudiciÃ¡rio">' +
       '<div class="grade-2">' +
-      '<div><label for="pv-inicio">Início do período</label><input id="pv-inicio" type="month" value="' + esc(janela[0] || hojeMesISO()) + '" required></div>' +
-      '<div><label for="pv-fim">Fim do período</label><input id="pv-fim" type="month" value="' + esc(janela[1] || janela[0] || hojeMesISO()) + '" required></div></div>' +
+      '<div><label for="pv-inicio">InÃ­cio do perÃ­odo</label><input id="pv-inicio" type="month" value="' + esc(janela[0] || hojeMesISO()) + '" required></div>' +
+      '<div><label for="pv-fim">Fim do perÃ­odo</label><input id="pv-fim" type="month" value="' + esc(janela[1] || janela[0] || hojeMesISO()) + '" required></div></div>' +
       '<label for="pv-reav">Reavaliar em</label><input id="pv-reav" type="date" value="' + esc(radar.reavaliar_em || '') + '">' +
       '<div class="msg-erro oculto" id="pv-erro"></div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="pv-cancelar">Cancelar</button>' +
@@ -760,7 +760,7 @@
       const fim = m.querySelector('#pv-fim').value;
       const erro = m.querySelector('#pv-erro');
       if (!inicio || !fim || fim < inicio) {
-        erro.textContent = 'O fim do período precisa ser igual ou posterior ao início.';
+        erro.textContent = 'O fim do perÃ­odo precisa ser igual ou posterior ao inÃ­cio.';
         erro.classList.remove('oculto');
         return;
       }
@@ -777,7 +777,7 @@
     });
   }
 
-  // ---------------- revisões: agendar/cancelar coerente ----------------
+  // ---------------- revisÃµes: agendar/cancelar coerente ----------------
   function agendarRevisoesSeNecessario(topicoId) {
     const tem = doAtivo(state.revisoes).some(function (r) { return r.topicoId === topicoId; });
     if (!tem) {
@@ -795,11 +795,11 @@
     });
   }
 
-  // ---------------- registro de sessão (F1, ≤3 toques) ----------------
+  // ---------------- registro de sessÃ£o (F1, â‰¤3 toques) ----------------
   function abrirRegistro(opcoes) {
     opcoes = opcoes || {};
     if (state.disciplinas.length === 0) {
-      toast('Importe um plano antes de registrar sessões.', 'erro');
+      toast('Importe um plano antes de registrar sessÃµes.', 'erro');
       location.hash = '#ajustes';
       return;
     }
@@ -807,33 +807,33 @@
     const discIni = topicoIni ? D.disciplinaDoTopico(state, topicoIni) : state.disciplinas[0];
 
     const optsDisc = state.disciplinas.map(function (d) {
-      return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
+      return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.id + ' â€” ' + d.nome) + '</option>';
     }).join('');
 
     const m = abrirModal(
-      '<h3>Registrar sessão</h3>' +
+      '<h3>Registrar sessÃ£o</h3>' +
       '<form id="form-registro">' +
       '<label for="reg-disc">Disciplina</label><select id="reg-disc">' + optsDisc + '</select>' +
-      '<label for="reg-topico">Tópico</label><select id="reg-topico"></select>' +
+      '<label for="reg-topico">TÃ³pico</label><select id="reg-topico"></select>' +
       '<div class="grade-2">' +
       '<div><label for="reg-tipo">Tipo</label><select id="reg-tipo">' +
       '<option value="teoria"' + (opcoes.tipo === 'teoria' ? ' selected' : '') + '>Teoria</option>' +
-      '<option value="questoes"' + (opcoes.tipo === 'questoes' ? ' selected' : '') + '>Questões</option>' +
-      '<option value="revisao"' + (opcoes.tipo === 'revisao' ? ' selected' : '') + '>Revisão</option>' +
+      '<option value="questoes"' + (opcoes.tipo === 'questoes' ? ' selected' : '') + '>QuestÃµes</option>' +
+      '<option value="revisao"' + (opcoes.tipo === 'revisao' ? ' selected' : '') + '>RevisÃ£o</option>' +
       '</select></div>' +
-      '<div><label for="reg-dur">Duração (min)</label><input id="reg-dur" type="number" min="1" max="720" value="' + (opcoes.duracaoMin || 30) + '"></div>' +
+      '<div><label for="reg-dur">DuraÃ§Ã£o (min)</label><input id="reg-dur" type="number" min="1" max="720" value="' + (opcoes.duracaoMin || 30) + '"></div>' +
       '</div>' +
       '<div class="grade-2">' +
-      '<div><label for="reg-feitas">Questões feitas</label><input id="reg-feitas" type="number" min="0" max="999" value="0"></div>' +
+      '<div><label for="reg-feitas">QuestÃµes feitas</label><input id="reg-feitas" type="number" min="0" max="999" value="0"></div>' +
       '<div><label for="reg-certas">Acertos</label><input id="reg-certas" type="number" min="0" max="999" value="0"></div>' +
       '</div>' +
       '<div class="msg-erro oculto" id="reg-erro"></div>' +
-      '<label for="reg-obs">Observação (opcional)</label><textarea id="reg-obs" placeholder="Ex.: travei em prazos de recurso"></textarea>' +
+      '<label for="reg-obs">ObservaÃ§Ã£o (opcional)</label><textarea id="reg-obs" placeholder="Ex.: travei em prazos de recurso"></textarea>' +
       '<label style="display:flex;align-items:center;gap:0.5rem;font-weight:400">' +
-      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Marcar teoria deste tópico como concluída (agenda revisões 24h · 7d · 30d)</label>' +
+      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Marcar teoria deste tÃ³pico como concluÃ­da (agenda revisÃµes 24h Â· 7d Â· 30d)</label>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="reg-cancelar">Cancelar</button>' +
-      '<button type="submit">Registrar sessão</button>' +
+      '<button type="submit">Registrar sessÃ£o</button>' +
       '</div></form>'
     );
 
@@ -843,7 +843,7 @@
     function preencherTopicos() {
       const d = D.disciplinaPorId(state, selDisc.value);
       selTop.innerHTML = d.topicos.map(function (t) {
-        return '<option value="' + esc(t.id) + '"' + (t.id === topicoIni ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
+        return '<option value="' + esc(t.id) + '"' + (t.id === topicoIni ? ' selected' : '') + '>' + esc(t.id + ' â€” ' + t.nome) + '</option>';
       }).join('');
     }
     preencherTopicos();
@@ -857,8 +857,8 @@
       const feitas = parseInt(m.querySelector('#reg-feitas').value, 10) || 0;
       const certas = parseInt(m.querySelector('#reg-certas').value, 10) || 0;
 
-      if (!dur || dur < 1) { erroEl.textContent = 'Informe a duração em minutos (mínimo 1).'; erroEl.classList.remove('oculto'); return; }
-      if (certas > feitas) { erroEl.textContent = 'Acertos (' + certas + ') não podem superar as questões feitas (' + feitas + ').'; erroEl.classList.remove('oculto'); return; }
+      if (!dur || dur < 1) { erroEl.textContent = 'Informe a duraÃ§Ã£o em minutos (mÃ­nimo 1).'; erroEl.classList.remove('oculto'); return; }
+      if (certas > feitas) { erroEl.textContent = 'Acertos (' + certas + ') nÃ£o podem superar as questÃµes feitas (' + feitas + ').'; erroEl.classList.remove('oculto'); return; }
 
       const dados = {
         topicoId: selTop.value,
@@ -868,13 +868,13 @@
         teoriaOk: m.querySelector('#reg-teoria-ok').checked
       };
 
-      // caminho infeliz F1: registro duplicado no mesmo dia/tópico/tipo → confirmar
+      // caminho infeliz F1: registro duplicado no mesmo dia/tÃ³pico/tipo â†’ confirmar
       const hoje = D.hojeISO();
       const duplicada = state.sessoes.some(function (s) {
         return s.data === hoje && s.topicoId === dados.topicoId && s.tipo === dados.tipo;
       });
       if (duplicada && !opcoes.confirmouDuplicada) {
-        erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico hoje. Clique em "Registrar sessão" de novo para confirmar como sessão adicional.';
+        erroEl.innerHTML = 'VocÃª jÃ¡ registrou <strong>' + esc(dados.tipo) + '</strong> deste tÃ³pico hoje. Clique em "Registrar sessÃ£o" de novo para confirmar como sessÃ£o adicional.';
         erroEl.classList.remove('oculto');
         opcoes.confirmouDuplicada = true;
         return;
@@ -903,38 +903,38 @@
       if (dados.teoriaOk && topico.status !== 'dominado') {
         topico.status = 'teoria_concluida';
         if (agendarRevisoesSeNecessario(dados.topicoId)) {
-          toast('Revisões agendadas: 24h · 7d · 30d', 'sucesso');
+          toast('RevisÃµes agendadas: 24h Â· 7d Â· 30d', 'sucesso');
         }
       } else if (topico.status === 'pendente') {
         topico.status = 'em_curso';
       }
       if (topico.reaberto && dados.qFeitas > 0 && !D.sugerirReestudo(dados.qFeitas, dados.qCertas)) {
-        topico.reaberto = false; // desempenho recuperado tira o tópico da fila de reabertos
+        topico.reaberto = false; // desempenho recuperado tira o tÃ³pico da fila de reabertos
       }
     }
 
     salvar();
-    toast('Sessão registrada', 'sucesso');
+    toast('SessÃ£o registrada', 'sucesso');
 
-    // RN07 — sugestão de reestudo (o usuário decide)
+    // RN07 â€” sugestÃ£o de reestudo (o usuÃ¡rio decide)
     const streakDepois = D.streak(D.sessoesDoPlano(state), hoje);
     const ganhouDia = streakDepois.atual > streakAntes.atual;
     if (ganhouDia && streakDepois.atual > streakAntes.recorde) {
       confete();
-      toast('Novo recorde de constância: ' + streakDepois.atual + ' dias! 🏆', 'sucesso');
+      toast('Novo recorde de constÃ¢ncia: ' + streakDepois.atual + ' dias! ðŸ†', 'sucesso');
     } else if (ganhouDia && streakDepois.atual >= 7) {
       confete();
-      toast('Sequência forte: ' + streakDepois.atual + ' dias de constância! 🎉', 'sucesso');
+      toast('SequÃªncia forte: ' + streakDepois.atual + ' dias de constÃ¢ncia! ðŸŽ‰', 'sucesso');
     }
 
     if (D.sugerirReestudo(dados.qFeitas, dados.qCertas)) {
       const m = abrirModal(
         '<h3>Mais erros que acertos</h3>' +
-        '<p>Você errou mais da metade das questões de <strong>' + esc(nomeTopicoCompleto(dados.topicoId)) + '</strong> (' +
+        '<p>VocÃª errou mais da metade das questÃµes de <strong>' + esc(nomeTopicoCompleto(dados.topicoId)) + '</strong> (' +
         (dados.qFeitas - dados.qCertas) + ' de ' + dados.qFeitas + ').</p>' +
-        '<p>Quer mandar o tópico de volta para a fila desta semana?</p>' +
+        '<p>Quer mandar o tÃ³pico de volta para a fila desta semana?</p>' +
         '<div class="modal-acoes">' +
-        '<button type="button" class="botao-quieto" id="rn7-nao">Agora não</button>' +
+        '<button type="button" class="botao-quieto" id="rn7-nao">Agora nÃ£o</button>' +
         '<button type="button" id="rn7-sim">Mandar para a fila</button></div>'
       );
       m.querySelector('#rn7-nao').addEventListener('click', fecharModal);
@@ -942,28 +942,28 @@
         const t = D.topicoPorId(state, dados.topicoId);
         if (t) { t.reaberto = true; if (t.status === 'teoria_concluida') t.status = 'em_curso'; }
         salvar(); fecharModal(); render();
-        toast('Tópico na fila da semana', 'sucesso');
+        toast('TÃ³pico na fila da semana', 'sucesso');
       });
     }
 
-    // micro-celebração: bateu a meta de horas da semana agora
+    // micro-celebraÃ§Ã£o: bateu a meta de horas da semana agora
     const metaDepois = D.metaSemanal(state, hoje);
     if (metaDepois.horasAlvo > 0 &&
         metaAntes.minutos < metaDepois.horasAlvo * 60 &&
         metaDepois.minutos >= metaDepois.horasAlvo * 60) {
       confete();
-      toast('Meta semanal de horas batida! 🎯', 'sucesso');
+      toast('Meta semanal de horas batida! ðŸŽ¯', 'sucesso');
     }
     render();
   }
 
   // ---------------- TELA: Hoje ----------------
   function mensagemCoach(pct, metaPct) {
-    if (pct === null || pct === undefined) return 'Registra umas questões que eu te digo como você está.';
-    if (pct >= metaPct) return 'Ritmo de aprovação — continua assim que a vaga é tua! 🚀';
-    if (pct >= metaPct - 10) return 'Tá no caminho, guerreiro. Mantém o ritmo! 🔥';
-    if (pct >= 50) return 'Base em construção — volta nos erros que esse número sobe.';
-    return 'Precisa melhorar: revisa a teoria e refaz as questões erradas. Bora!';
+    if (pct === null || pct === undefined) return 'Registra umas questÃµes que eu te digo como vocÃª estÃ¡.';
+    if (pct >= metaPct) return 'Ritmo de aprovaÃ§Ã£o â€” continua assim que a vaga Ã© tua! ðŸš€';
+    if (pct >= metaPct - 10) return 'TÃ¡ no caminho, guerreiro. MantÃ©m o ritmo! ðŸ”¥';
+    if (pct >= 50) return 'Base em construÃ§Ã£o â€” volta nos erros que esse nÃºmero sobe.';
+    return 'Precisa melhorar: revisa a teoria e refaz as questÃµes erradas. Bora!';
   }
 
   function heatmapHtml(nDias, comResumo) {
@@ -976,8 +976,8 @@
     if (comResumo) {
       html += '<div class="streak-resumo">' +
         (st.atual > 0
-          ? 'Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia seguido' : ' dias seguidos') + '</strong> estudando · recorde: ' + st.recorde
-          : 'Nenhum estudo registrado hoje' + (st.recorde > 0 ? ' · recorde: ' + st.recorde + ' dias.' : '')) +
+          ? 'VocÃª estÃ¡ hÃ¡ <strong>' + st.atual + (st.atual === 1 ? ' dia seguido' : ' dias seguidos') + '</strong> estudando Â· recorde: ' + st.recorde
+          : 'Nenhum estudo registrado hoje' + (st.recorde > 0 ? ' Â· recorde: ' + st.recorde + ' dias.' : '')) +
         '</div>';
     }
     if (comResumo && st.atual > 0 && extras) {
@@ -986,7 +986,7 @@
     html += '<div class="heatmap">' +
       dias.map(function (d) {
         const n = d.minutos === 0 ? 0 : d.minutos < 30 ? 1 : d.minutos < 60 ? 2 : d.minutos < 120 ? 3 : 4;
-        return '<span class="heatmap-celula' + (n > 0 ? ' heatmap-n' + n : '') + '" title="' + D.formatarDataBR(d.data) + ' — ' + D.formatarMin(d.minutos) + '"></span>';
+        return '<span class="heatmap-celula' + (n > 0 ? ' heatmap-n' + n : '') + '" title="' + D.formatarDataBR(d.data) + ' â€” ' + D.formatarMin(d.minutos) + '"></span>';
       }).join('') + '</div>';
     html += '<div class="heatmap-legenda">menos <span class="heatmap-celula"></span><span class="heatmap-celula heatmap-n1"></span><span class="heatmap-celula heatmap-n2"></span><span class="heatmap-celula heatmap-n3"></span><span class="heatmap-celula heatmap-n4"></span> mais</div>';
     html += '</div>';
@@ -1002,14 +1002,14 @@
     const inicio = dias.length ? dias[0].data : hoje;
     const fim = dias.length ? dias[dias.length - 1].data : hoje;
     return '<div class="constancia-faixa">' +
-      '<div class="constancia-faixa-topo"><div><div class="card-kpi-rotulo">⚡ Constância nos estudos</div>' +
-      '<p>Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia' : ' dias') + '</strong> sem falhar! Seu recorde é de <strong>' + st.recorde + (st.recorde === 1 ? ' dia' : ' dias') + '</strong>.</p></div>' +
-      '<div class="constancia-periodo"><button class="botao-mini botao-quieto" type="button" disabled>‹</button><span>' + D.formatarDataBR(inicio).slice(0, 5) + ' ~ ' + D.formatarDataBR(fim).slice(0, 5) + '</span><button class="botao-mini botao-quieto" type="button" disabled>›</button></div></div>' +
+      '<div class="constancia-faixa-topo"><div><div class="card-kpi-rotulo">âš¡ ConstÃ¢ncia nos estudos</div>' +
+      '<p>VocÃª estÃ¡ hÃ¡ <strong>' + st.atual + (st.atual === 1 ? ' dia' : ' dias') + '</strong> sem falhar! Seu recorde Ã© de <strong>' + st.recorde + (st.recorde === 1 ? ' dia' : ' dias') + '</strong>.</p></div>' +
+      '<div class="constancia-periodo"><button class="botao-mini botao-quieto" type="button" disabled>â€¹</button><span>' + D.formatarDataBR(inicio).slice(0, 5) + ' ~ ' + D.formatarDataBR(fim).slice(0, 5) + '</span><button class="botao-mini botao-quieto" type="button" disabled>â€º</button></div></div>' +
       '<div class="constancia-trilho">' + dias.map(function (d) {
         const fez = d.minutos > 0;
         const classe = fez ? 'feito' : 'falha';
-        const simbolo = fez ? '✓' : '×';
-        return '<span class="constancia-dia constancia-' + classe + '" title="' + D.formatarDataBR(d.data) + ' — ' + D.formatarMin(d.minutos) + '">' + simbolo + '</span>';
+        const simbolo = fez ? 'âœ“' : 'Ã—';
+        return '<span class="constancia-dia constancia-' + classe + '" title="' + D.formatarDataBR(d.data) + ' â€” ' + D.formatarMin(d.minutos) + '">' + simbolo + '</span>';
       }).join('') + '</div></div>';
   }
 
@@ -1053,7 +1053,7 @@
           '</button>';
       }).join('') + '</div>' +
       '<div class="painel-scroll"><table class="painel-disciplinas"><thead><tr>' +
-      '<th>Matéria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
+      '<th>MatÃ©ria</th><th class="num">Tempo</th><th class="num">âœ“</th><th class="num">Ã—</th><th class="num">QuestÃµes</th><th class="num">%</th></tr></thead><tbody>' +
       linhas.map(function (d) {
         const pctClasse = d.pct === null ? 'neutro' : d.pct >= 70 ? 'bom' : d.pct >= 60 ? 'medio' : 'baixo';
         return '<tr data-disc-detalhe="' + esc(d.id) + '" role="button" tabindex="0">' +
@@ -1077,7 +1077,7 @@
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
       return '<div class="cab-pagina"><div><h1>' + saudacaoCompleta(saudacao) + '</h1></div></div>' +
-        '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>' +
+        '<div class="frase-dia">â€œ' + esc(frase.t) + 'â€' + (frase.a ? '<span class="autor">â€” ' + esc(frase.a) + '</span>' : '') + '</div>' +
         linksApoioHojeHtml() +
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
@@ -1092,7 +1092,7 @@
     const meta = D.metaSemanal(state, hoje);
     const sem = state.plano ? D.semanaCorrente(state, hoje) : null;
 
-    // agenda manual do dia entra na fila logo após as revisões
+    // agenda manual do dia entra na fila logo apÃ³s as revisÃµes
     const itensAgenda = agendaHoje.map(function (a) { return { categoria: 'agenda', agenda: a }; });
     let posInsercao = 0;
     while (posInsercao < fila.length && fila[posInsercao].categoria === 'revisao') posInsercao++;
@@ -1102,21 +1102,21 @@
     const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !i.agenda.feito); }).length;
     const pendentes = nRev + nBlocos + fila.filter(function (i) { return i.categoria === 'reaberto'; }).length;
     const resumoDia = pendentes === 0 ? 'Tudo em dia por hoje.' :
-      nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
+      nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisÃ£o te esperam' : ' revisÃµes te esperam') + '.';
 
     let html = '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacaoCompleta(saudacao) + '</h1>' +
       '<p class="sub">' + resumoDia + '</p></div></div>';
 
-    html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
+    html += '<div class="frase-dia">â€œ' + esc(frase.t) + 'â€' + (frase.a ? '<span class="autor">â€” ' + esc(frase.a) + '</span>' : '') + '</div>';
     html += linksApoioHojeHtml();
 
-    // constância em destaque, centralizada (estilo GitHub)
-    html += '<div class="card constancia-card"><h3 style="text-align:center">Mantenha a constância</h3>' + heatmapHtml(119, true) + '</div>';
+    // constÃ¢ncia em destaque, centralizada (estilo GitHub)
+    html += '<div class="card constancia-card"><h3 style="text-align:center">Mantenha a constÃ¢ncia</h3>' + heatmapHtml(119, true) + '</div>';
 
-    // conquistas (gamificação discreta)
+    // conquistas (gamificaÃ§Ã£o discreta)
     html += conquistasHtml();
 
-    // cards: radar + horas + questões + desempenho com mensagem
+    // cards: radar + horas + questÃµes + desempenho com mensagem
     html += '<div class="linha-cards home-kpis">';
     if (state.plano) html += provaEstimadaHtml();
     const pctHoras = meta.horasAlvo > 0 ? Math.min(100, Math.round((meta.minutos / 60 / meta.horasAlvo) * 100)) : 0;
@@ -1125,14 +1125,14 @@
       (meta.horasAlvo > 0 ? '<div class="barra' + (pctHoras >= 100 ? ' barra-verde' : '') + '" style="margin-top:0.4rem"><span style="width:' + pctHoras + '%"></span></div>' :
         '<div class="card-kpi-extra">defina um plano para ter meta semanal</div>') + '</div>';
     const pctQ = meta.questoesAlvo > 0 ? Math.min(100, Math.round((meta.qFeitas / meta.questoesAlvo) * 100)) : 0;
-    html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Questões na semana</div>' +
+    html += '<div class="card card-kpi"><div class="card-kpi-rotulo">QuestÃµes na semana</div>' +
       '<div class="card-kpi-valor card-kpi-valor-compacto">' + meta.qFeitas +
-      '<button type="button" class="meta-q-editar" data-editar-meta title="Ajustar a meta semanal de questões"> / ' + meta.questoesAlvo + ' <span aria-hidden="true">✎</span></button></div>' +
+      '<button type="button" class="meta-q-editar" data-editar-meta title="Ajustar a meta semanal de questÃµes"> / ' + meta.questoesAlvo + ' <span aria-hidden="true">âœŽ</span></button></div>' +
       '<div class="barra' + (pctQ >= 100 ? ' barra-verde' : '') + '" style="margin-top:0.4rem"><span style="width:' + pctQ + '%"></span></div></div>';
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
     const pctSemana = meta.qFeitas > 0 ? Math.round((meta.qCertas / meta.qFeitas) * 100) : D.desempenhoGeral(state);
     html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Margem de acertos' + (meta.qFeitas > 0 ? ' na semana' : '') + '</div>' +
-      '<div class="card-kpi-valor card-kpi-valor-compacto">' + (pctSemana === null ? '—' : pctSemana + '%') + '</div>' +
+      '<div class="card-kpi-valor card-kpi-valor-compacto">' + (pctSemana === null ? 'â€”' : pctSemana + '%') + '</div>' +
       '<div class="msg-coach">' + mensagemCoach(pctSemana, metaPct) + '</div></div>';
     html += '</div>';
 
@@ -1141,17 +1141,17 @@
     // fila do dia (RN06 + agenda manual)
     html += '<div class="card estudar-hoje-card"><h3 style="margin-bottom:0.25rem">O que estudar hoje</h3>';
     if (sem && sem.futura) {
-      html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma começa em ' + D.formatarDataBR(sem.proxima.inicio) + ' (semana 1). Revisões e tópicos reabertos já aparecem aqui.</p>';
+      html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma comeÃ§a em ' + D.formatarDataBR(sem.proxima.inicio) + ' (semana 1). RevisÃµes e tÃ³picos reabertos jÃ¡ aparecem aqui.</p>';
     } else if (sem && sem.encerrado) {
-      html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma planejado terminou — reimporte um plano atualizado ou siga pelas revisões e simulados.</p>';
+      html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma planejado terminou â€” reimporte um plano atualizado ou siga pelas revisÃµes e simulados.</p>';
     } else if (sem) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">Semana ' + sem.semana + ' do plano (' + esc(state.plano.ritmoAtivo) + ')' +
-        (sem.marcos && sem.marcos.length ? ' · ' + esc(sem.marcos.join(' · ')) : '') + '</p>';
+        (sem.marcos && sem.marcos.length ? ' Â· ' + esc(sem.marcos.join(' Â· ')) : '') + '</p>';
     }
 
     if (fila.length === 0) {
       html += '<div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Nada pendente</strong>Sem revisões vencidas nem blocos para hoje. Planeje a semana ou adiante um tópico pelo Edital.' +
+        '<strong>Nada pendente</strong>Sem revisÃµes vencidas nem blocos para hoje. Planeje a semana ou adiante um tÃ³pico pelo Edital.' +
         '<p style="margin-top:1rem"><a class="botao botao-secundario" href="#planejamento">Abrir planejamento</a></p></div>';
     } else {
       for (let i = 0; i < fila.length; i++) {
@@ -1165,8 +1165,8 @@
           html += '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
             checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
             '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div>' +
-            '<div class="fila-sub">planejado por você · ' + D.formatarMin(a.duracaoMin || 0) + (a.obs ? ' · ' + esc(a.obs) : '') + '</div></div>' +
-            (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
+            '<div class="fila-sub">planejado por vocÃª Â· ' + D.formatarMin(a.duracaoMin || 0) + (a.obs ? ' Â· ' + esc(a.obs) : '') + '</div></div>' +
+            (a.feito ? '<span class="etiqueta etiqueta-feito">Feito âœ“</span>' :
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
               '<div class="fila-acoes">' +
               '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
@@ -1179,17 +1179,17 @@
         let etiqueta, sub, acoes;
         if (item.categoria === 'revisao') {
           const atraso = D.diffDias(item.revisao.dataAgendada, hoje);
-          etiqueta = '<span class="etiqueta etiqueta-revisao">Revisão ' + esc(item.revisao.tipo) + '</span>';
-          sub = atraso > 0 ? 'vencida há ' + atraso + (atraso === 1 ? ' dia' : ' dias') : 'vence hoje';
+          etiqueta = '<span class="etiqueta etiqueta-revisao">RevisÃ£o ' + esc(item.revisao.tipo) + '</span>';
+          sub = atraso > 0 ? 'vencida hÃ¡ ' + atraso + (atraso === 1 ? ' dia' : ' dias') : 'vence hoje';
           acoes = '<button class="botao-mini" data-acao="concluir-revisao" data-id="' + esc(item.revisao.id) + '">Concluir</button>';
         } else if (item.categoria === 'bloco') {
           etiqueta = item.feito
-            ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>'
-            : '<span class="etiqueta etiqueta-bloco">' + (item.tipoBloco === 'teoria' ? 'Teoria' : 'Questões') + '</span>';
+            ? '<span class="etiqueta etiqueta-feito">Feito âœ“</span>'
+            : '<span class="etiqueta etiqueta-bloco">' + (item.tipoBloco === 'teoria' ? 'Teoria' : 'QuestÃµes') + '</span>';
           sub = 'bloco da semana ' + item.semana;
           acoes = item.feito ? '' :
             '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
-            '<button class="botao-mini botao-quieto" data-acao="vincular-bloco" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '" data-inicio="' + esc(sem && sem.inicio ? sem.inicio : hoje) + '">Já estudei</button>' +
+            '<button class="botao-mini botao-quieto" data-acao="vincular-bloco" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '" data-inicio="' + esc(sem && sem.inicio ? sem.inicio : hoje) + '">JÃ¡ estudei</button>' +
             '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '">Registrar</button>';
         } else {
           etiqueta = '<span class="etiqueta etiqueta-reaberto">Reaberto</span>';
@@ -1213,19 +1213,19 @@
     return html;
   }
 
-  // ---------------- Conquistas (gamificação discreta) ----------------
+  // ---------------- Conquistas (gamificaÃ§Ã£o discreta) ----------------
   function conquistasHtml() {
     if (!state.plano && (!state.sessoes || state.sessoes.length === 0)) return '';
     const c = D.conquistas(state, D.hojeISO());
     return '<div class="card conquistas-card"><h3>Conquistas <span class="conquistas-contador">' + c.ganhas + '/' + c.total + '</span></h3>' +
       '<div class="conquistas-grade">' + c.lista.map(function (m) {
-        return '<div class="medalha' + (m.ganha ? ' ganha' : '') + '" title="' + esc(m.titulo + ' — ' + m.desc) + '">' +
+        return '<div class="medalha' + (m.ganha ? ' ganha' : '') + '" title="' + esc(m.titulo + ' â€” ' + m.desc) + '">' +
           '<span class="medalha-icone" aria-hidden="true">' + m.icone + '</span>' +
           '<span class="medalha-titulo">' + esc(m.titulo) + '</span></div>';
       }).join('') + '</div></div>';
   }
 
-  // Festeja conquistas recém-obtidas (uma vez). Usuários já existentes têm o
+  // Festeja conquistas recÃ©m-obtidas (uma vez). UsuÃ¡rios jÃ¡ existentes tÃªm o
   // estado inicial registrado sem festa retroativa.
   function celebrarConquistasNovas() {
     const c = D.conquistas(state, D.hojeISO());
@@ -1241,11 +1241,25 @@
     salvar({ sincronizar: false });
     const nomes = c.lista.filter(function (m) { return novas.indexOf(m.id) >= 0; }).map(function (m) { return m.icone + ' ' + m.titulo; });
     confete();
-    toast('Nova conquista: ' + nomes.join(' · '), 'sucesso');
+    toast('Nova conquista: ' + nomes.join(' Â· '), 'sucesso');
   }
 
   function ligarHoje(raiz) {
     celebrarConquistasNovas();
+    const tituloConstancia = raiz.querySelector('.constancia-card h3');
+    if (tituloConstancia) tituloConstancia.textContent = '\u26A1 Mantenha a constancia!';
+    if (window.matchMedia('(min-width: 761px)').matches) {
+      const constancia = raiz.querySelector('.constancia-card');
+      const prova = raiz.querySelector('.home-kpis .prova-card');
+      const conquistas = raiz.querySelector('.conquistas-card');
+      if (constancia && prova && conquistas) {
+        const topo = document.createElement('div');
+        topo.className = 'home-topo';
+        topo.appendChild(constancia);
+        topo.appendChild(prova);
+        raiz.insertBefore(topo, conquistas);
+      }
+    }
     const provaEditar = raiz.querySelector('#prova-editar');
     if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
     const metaQBtn = raiz.querySelector('[data-editar-meta]');
@@ -1276,7 +1290,7 @@
           if (acao === 'timer-agenda') {
             const topId = blocoAg.topicoId || (D.disciplinaPorId(state, blocoAg.disciplinaId) || { topicos: [] }).topicos.map(function (t) { return t.id; })[0];
             if (topId) { timerPreselecao = topId; location.hash = '#timer'; }
-            else toast('Crie um tópico para esta disciplina antes de usar o timer.', 'erro');
+            else toast('Crie um tÃ³pico para esta disciplina antes de usar o timer.', 'erro');
           } else {
             registrarDeAgenda(blocoAg);
           }
@@ -1305,7 +1319,7 @@
     if (!d) return;
     const topicos = d.topicos.filter(function (t) { return !t.orfao; });
     const m = abrirModal(
-      '<div class="assuntos-modal-cab"><h3>Assuntos</h3><button type="button" class="modal-x" id="ass-fechar" aria-label="Fechar">×</button></div>' +
+      '<div class="assuntos-modal-cab"><h3>Assuntos</h3><button type="button" class="modal-x" id="ass-fechar" aria-label="Fechar">Ã—</button></div>' +
       '<input id="ass-busca" type="search" placeholder="Digite um assunto">' +
       '<div class="assuntos-lista" id="ass-lista"></div>'
     );
@@ -1331,7 +1345,7 @@
     if (state.disciplinas.length === 0) {
       return '<section class="timer-page"><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
-        'Importe o plano para escolher um tópico e cronometrar o estudo.' +
+        'Importe o plano para escolher um tÃ³pico e cronometrar o estudo.' +
         '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div></section>';
     }
 
@@ -1344,19 +1358,19 @@
       }).join('');
       selecao =
         '<div class="timer-disciplina-topo"><select id="timer-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
-        '<button type="button" class="timer-assunto-btn" id="timer-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +
+        '<button type="button" class="timer-assunto-btn" id="timer-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">âŒ„</span></button>' +
         '<input type="hidden" id="timer-topico" value="' + esc(timerPreselecao || '') + '">' +
         '<div class="timer-assunto-escolhido" id="timer-assunto-escolhido"></div></div>' +
         '<div class="timer-modos-wrap"><span class="seletor-modo">' +
-        '<button type="button" data-modo="cronometro" class="ativo">Cronômetro</button>' +
+        '<button type="button" data-modo="cronometro" class="ativo">CronÃ´metro</button>' +
         '<button type="button" data-modo="pomodoro">Pomodoro 25/5</button></span></div>' +
-        '<div class="timer-limite" id="timer-limite-wrap"><label for="timer-limite">Tempo máximo (min)</label>' +
+        '<div class="timer-limite" id="timer-limite-wrap"><label for="timer-limite">Tempo mÃ¡ximo (min)</label>' +
         '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>' +
-        '<div class="timer-limite-auto oculto" id="timer-limite-auto">⏱️ Limite automático: 25 min de foco por ciclo</div>';
+        '<div class="timer-limite-auto oculto" id="timer-limite-auto">â±ï¸ Limite automÃ¡tico: 25 min de foco por ciclo</div>';
     } else {
       const discAtiva = D.disciplinaDoTopico(state, ativo.topicoId);
       selecao = '<div class="timer-disciplina-topo"><h2>' + esc(discAtiva ? nomeDiscCurto(discAtiva.nome) : 'Estudo') + '</h2>' +
-        '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId).replace((discAtiva ? discAtiva.id + ' · ' : ''), '')) + '</p></div>';
+        '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId).replace((discAtiva ? discAtiva.id + ' Â· ' : ''), '')) + '</p></div>';
     }
 
     const ticksSvg = gerarTicksTimer();
@@ -1386,7 +1400,7 @@
     const frame = raiz.querySelector('.timer-relogio-frame');
     let modoEscolhido = 'cronometro';
 
-    // Estado vazio (sem plano): a tela não tem os controles do relógio.
+    // Estado vazio (sem plano): a tela nÃ£o tem os controles do relÃ³gio.
     if (!acoes) return;
 
     const selDisc = raiz.querySelector('#timer-disc');
@@ -1396,9 +1410,9 @@
       const assuntoEscolhido = raiz.querySelector('#timer-assunto-escolhido');
       const atualizarAssunto = function () {
         const t = selTop && selTop.value ? D.topicoPorId(state, selTop.value) : null;
-        // o nome do assunto escolhido fica DENTRO da própria caixa, não embaixo
+        // o nome do assunto escolhido fica DENTRO da prÃ³pria caixa, nÃ£o embaixo
         if (assuntoBtn) assuntoBtn.innerHTML = (t ? esc(t.nome) : 'Adicionar assunto') +
-          ' <span class="timer-assunto-caret" aria-hidden="true">⌄</span>';
+          ' <span class="timer-assunto-caret" aria-hidden="true">âŒ„</span>';
         if (assuntoBtn) assuntoBtn.classList.toggle('tem-assunto', !!t);
         if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
       };
@@ -1428,12 +1442,12 @@
           const ehPomo = modoEscolhido === 'pomodoro';
           if (limiteWrap) limiteWrap.classList.toggle('oculto', ehPomo);
           if (limiteAuto) limiteAuto.classList.toggle('oculto', !ehPomo);
-          // ao escolher Pomodoro o relógio já mostra 25:00 (foco); cronômetro volta a 00:00
+          // ao escolher Pomodoro o relÃ³gio jÃ¡ mostra 25:00 (foco); cronÃ´metro volta a 00:00
           if (!window.Timer.estado()) {
             if (display) display.textContent = ehPomo
               ? window.Timer.formatar(window.Timer.POMO_FOCO_MIN * 60000) : '00:00';
             if (info) info.textContent = ehPomo
-              ? 'Pomodoro 25/5 — 25 min de foco, 5 min de pausa' : '';
+              ? 'Pomodoro 25/5 â€” 25 min de foco, 5 min de pausa' : '';
           }
         });
       });
@@ -1448,21 +1462,21 @@
         var secs = (e.decorridoMs / 1000) % 60;
         timerHand.setAttribute('transform', 'rotate(' + (secs * 6).toFixed(2) + ',150,150)');
       }
-      // Passou do tempo planejado → destaque verde "tempo extra" (estudou além da meta).
+      // Passou do tempo planejado â†’ destaque verde "tempo extra" (estudou alÃ©m da meta).
       const passouLimite = e.modo !== 'pomodoro' && e.limiteMin && e.decorridoMs >= e.limiteMs;
       const extraMin = passouLimite ? Math.floor((e.decorridoMs - e.limiteMs) / 60000) : 0;
       if (display) display.classList.toggle('timer-extra', !!passouLimite);
       if (frame) frame.classList.toggle('timer-frame-extra', !!passouLimite);
       if (info) {
         if (e.modo === 'pomodoro') {
-          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
+          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' Â· ciclo ' + (e.pomoCiclos + 1) + ' Â· total ' + window.Timer.formatar(e.decorridoMs);
         } else if (passouLimite) {
-          info.innerHTML = '<span class="timer-info-extra">🎉 +' + extraMin + ' min além do planejado</span>';
+          info.innerHTML = '<span class="timer-info-extra">ðŸŽ‰ +' + extraMin + ' min alÃ©m do planejado</span>';
         } else {
           info.textContent = e.rodando ? 'Estudando' : 'Pausado';
         }
         if (e.limiteMin && !passouLimite) {
-          info.textContent += ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs);
+          info.textContent += ' Â· limite em ' + window.Timer.formatar(e.limiteRestanteMs);
         }
       }
       atualizarTituloTimer(e);
@@ -1473,10 +1487,10 @@
       if (!e) {
         acoes.innerHTML = '<button id="t-iniciar">Iniciar</button>';
         acoes.querySelector('#t-iniciar').addEventListener('click', function () {
-          if (!selTop || !selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
+          if (!selTop || !selTop.value) { toast('Escolha um tÃ³pico antes de iniciar.', 'erro'); return; }
           const limiteMin = limiteInput && limiteInput.value ? parseInt(limiteInput.value, 10) : null;
           if (limiteInput && limiteInput.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) {
-            toast('Informe um tempo máximo entre 1 e 720 minutos.', 'erro');
+            toast('Informe um tempo mÃ¡ximo entre 1 e 720 minutos.', 'erro');
             return;
           }
           prepararAudio();
@@ -1510,7 +1524,7 @@
         render();
       });
       acoes.querySelector('#t-descartar').addEventListener('click', function () {
-        confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado será apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: '🗑️' })
+        confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado serÃ¡ apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: 'ðŸ—‘ï¸' })
           .then(function (ok) { if (ok) { window.Timer.descartar(); atualizarTituloTimer(null); render(); } });
       });
     }
@@ -1520,14 +1534,14 @@
     pintar(window.Timer.estado());
   }
 
-  // Timer rápido em modal central — cronometra de qualquer tela sem ir para a aba.
+  // Timer rÃ¡pido em modal central â€” cronometra de qualquer tela sem ir para a aba.
   function abrirTimerRapido() {
     if (state.disciplinas.length === 0) {
       toast('Importe ou crie um plano para cronometrar.', 'erro');
       if (location.hash !== '#planejamento') location.hash = '#planejamento';
       return;
     }
-    const m = abrirModal('<h3>Timer rápido</h3><div id="tr-corpo"></div>');
+    const m = abrirModal('<h3>Timer rÃ¡pido</h3><div id="tr-corpo"></div>');
     m.classList.add('timer-modal');
     const corpo = m.querySelector('#tr-corpo');
     let modoEscolhido = 'cronometro';
@@ -1542,14 +1556,14 @@
       disp.classList.toggle('timer-extra', !!passouLimite);
       if (info) {
         if (e.modo === 'pomodoro') {
-          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
+          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' Â· ciclo ' + (e.pomoCiclos + 1) + ' Â· total ' + window.Timer.formatar(e.decorridoMs);
         } else if (passouLimite) {
-          info.innerHTML = '<span class="timer-info-extra">🎉 +' + extraMin + ' min além do planejado</span>';
+          info.innerHTML = '<span class="timer-info-extra">ðŸŽ‰ +' + extraMin + ' min alÃ©m do planejado</span>';
         } else {
           info.textContent = e.rodando ? 'Estudando' : 'Pausado';
         }
         if (e.limiteMin && !passouLimite) {
-          info.textContent += ' · limite em ' + window.Timer.formatar(e.limiteRestanteMs);
+          info.textContent += ' Â· limite em ' + window.Timer.formatar(e.limiteRestanteMs);
         }
       }
     }
@@ -1578,7 +1592,7 @@
           render();
         });
         corpo.querySelector('#tr-descartar').addEventListener('click', function () {
-          confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado será apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: '🗑️' })
+          confirmar({ titulo: 'Descartar tempo?', mensagem: 'O tempo cronometrado serÃ¡ apagado sem registrar o estudo.', confirmar: 'Descartar', perigo: true, icone: 'ðŸ—‘ï¸' })
             .then(function (ok) { if (ok) { window.Timer.descartar(); atualizarTituloTimer(null); fecharModal(); render(); } });
         });
         const abrirTela = corpo.querySelector('#tr-abrir-tela');
@@ -1591,16 +1605,16 @@
         }).join('');
         corpo.innerHTML =
           '<div class="timer-disciplina-topo"><select id="tr-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
-          '<button type="button" class="timer-assunto-btn" id="tr-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +
+          '<button type="button" class="timer-assunto-btn" id="tr-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">âŒ„</span></button>' +
           '<input type="hidden" id="tr-top" value="' + esc(timerPreselecao || '') + '">' +
           '<div class="timer-assunto-escolhido" id="tr-assunto-escolhido"></div></div>' +
           '<div style="margin-top:0.8rem;text-align:center"><span class="seletor-modo">' +
-          '<button type="button" data-trmodo="cronometro" class="ativo">Cronômetro</button>' +
+          '<button type="button" data-trmodo="cronometro" class="ativo">CronÃ´metro</button>' +
           '<button type="button" data-trmodo="pomodoro">Pomodoro 25/5</button></span></div>' +
-          '<div class="timer-limite" style="margin:0.8rem auto 0"><label for="tr-limite">Tempo máximo (min)</label>' +
+          '<div class="timer-limite" style="margin:0.8rem auto 0"><label for="tr-limite">Tempo mÃ¡ximo (min)</label>' +
           '<input id="tr-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>' +
           '<div class="modal-acoes"><button class="botao-quieto" id="tr-fechar2">Fechar</button>' +
-          '<button class="botao-secundario" id="tr-registrar">Registrar sessão</button>' +
+          '<button class="botao-secundario" id="tr-registrar">Registrar sessÃ£o</button>' +
           '<button id="tr-iniciar">Iniciar</button></div>';
         const selDisc = corpo.querySelector('#tr-disc');
         const selTop = corpo.querySelector('#tr-top');
@@ -1609,7 +1623,7 @@
         const atualizarAssunto = function () {
           const t = selTop && selTop.value ? D.topicoPorId(state, selTop.value) : null;
           if (assuntoBtn) assuntoBtn.innerHTML = (t ? esc(t.nome) : 'Adicionar assunto') +
-            ' <span class="timer-assunto-caret" aria-hidden="true">⌄</span>';
+            ' <span class="timer-assunto-caret" aria-hidden="true">âŒ„</span>';
           if (assuntoBtn) assuntoBtn.classList.toggle('tem-assunto', !!t);
           if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
         };
@@ -1636,18 +1650,18 @@
           });
         });
         corpo.querySelector('#tr-fechar2').addEventListener('click', fecharModal);
-        // Registrar sessão direto, sem cronometrar (forma prática pedida)
+        // Registrar sessÃ£o direto, sem cronometrar (forma prÃ¡tica pedida)
         corpo.querySelector('#tr-registrar').addEventListener('click', function () {
-          if (!selTop.value) { toast('Escolha um tópico antes de registrar.', 'erro'); return; }
+          if (!selTop.value) { toast('Escolha um tÃ³pico antes de registrar.', 'erro'); return; }
           const topId = selTop.value;
           fecharModal();
           abrirRegistro({ topicoId: topId, aoSalvar: function () { render(); } });
         });
         corpo.querySelector('#tr-iniciar').addEventListener('click', function () {
-          if (!selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
+          if (!selTop.value) { toast('Escolha um tÃ³pico antes de iniciar.', 'erro'); return; }
           const limiteEl = corpo.querySelector('#tr-limite');
           const limiteMin = limiteEl && limiteEl.value ? parseInt(limiteEl.value, 10) : null;
-          if (limiteEl && limiteEl.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) { toast('Informe um tempo máximo entre 1 e 720 minutos.', 'erro'); return; }
+          if (limiteEl && limiteEl.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) { toast('Informe um tempo mÃ¡ximo entre 1 e 720 minutos.', 'erro'); return; }
           prepararAudio();
           pedirPermissaoNotificacao();
           window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin: limiteMin });
@@ -1661,16 +1675,16 @@
     desenhar();
   }
 
-  // ---------------- TELA: Revisões (F4) ----------------
+  // ---------------- TELA: RevisÃµes (F4) ----------------
   function abrirConcluirRevisao(revisaoId) {
     const rev = state.revisoes.find(function (r) { return r.id === revisaoId; });
     if (!rev) return;
     const m = abrirModal(
-      '<h3>Concluir revisão ' + esc(rev.tipo) + '</h3>' +
+      '<h3>Concluir revisÃ£o ' + esc(rev.tipo) + '</h3>' +
       '<p>' + esc(nomeTopicoCompleto(rev.topicoId)) + '</p>' +
       '<form id="form-rev">' +
       '<div class="grade-2">' +
-      '<div><label for="rev-feitas">Questões feitas (opcional)</label><input id="rev-feitas" type="number" min="0" max="999" value="0"></div>' +
+      '<div><label for="rev-feitas">QuestÃµes feitas (opcional)</label><input id="rev-feitas" type="number" min="0" max="999" value="0"></div>' +
       '<div><label for="rev-certas">Acertos</label><input id="rev-certas" type="number" min="0" max="999" value="0"></div>' +
       '</div>' +
       '<div class="grade-2"><div><label for="rev-dur">Tempo (min)</label><input id="rev-dur" type="number" min="1" max="300" value="15"></div></div>' +
@@ -1686,17 +1700,17 @@
       const certas = parseInt(m.querySelector('#rev-certas').value, 10) || 0;
       const dur = parseInt(m.querySelector('#rev-dur').value, 10) || 15;
       const erroEl = m.querySelector('#rev-erro');
-      if (certas > feitas) { erroEl.textContent = 'Acertos não podem superar as questões feitas.'; erroEl.classList.remove('oculto'); return; }
+      if (certas > feitas) { erroEl.textContent = 'Acertos nÃ£o podem superar as questÃµes feitas.'; erroEl.classList.remove('oculto'); return; }
 
       rev.dataConcluida = D.hojeISO();
       rev.resultadoPct = feitas > 0 ? Math.round((certas / feitas) * 100) : null;
 
       state.sessoes.push({
         id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: rev.dataConcluida, topicoId: rev.topicoId,
-        tipo: 'revisao', duracaoMin: dur, qFeitas: feitas, qCertas: certas, obs: 'Revisão ' + rev.tipo
+        tipo: 'revisao', duracaoMin: dur, qFeitas: feitas, qCertas: certas, obs: 'RevisÃ£o ' + rev.tipo
       });
 
-      // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
+      // Curva do esquecimento adaptativa: o desempenho da revisÃ£o ajusta o tÃ³pico.
       const aj = D.ajustePosRevisao(rev, rev.resultadoPct);
       const t = D.topicoPorId(state, rev.topicoId);
       if (t) {
@@ -1711,13 +1725,13 @@
         ));
       }
       if (aj.reabrir) {
-        toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
+        toast('Desempenho baixo â€” tÃ³pico reaberto, prioridade elevada e reforÃ§o em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.revisaoExtraDias != null) {
-        toast('Abaixo de 70% — prioridade elevada e revisão de reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
+        toast('Abaixo de 70% â€” prioridade elevada e revisÃ£o de reforÃ§o em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.dominar) {
-        toast('Mandou bem (≥85%) — tópico marcado como dominado ●.', 'sucesso');
+        toast('Mandou bem (â‰¥85%) â€” tÃ³pico marcado como dominado â—.', 'sucesso');
       } else {
-        toast('Revisão concluída — bolha preenchida ●', 'sucesso');
+        toast('RevisÃ£o concluÃ­da â€” bolha preenchida â—', 'sucesso');
       }
       salvar(); fecharModal(); render();
     });
@@ -1729,18 +1743,18 @@
       .filter(function (r) { return !r.dataConcluida && D.topicoPorId(state, r.topicoId); })
       .sort(function (a, b) { return a.dataAgendada.localeCompare(b.dataAgendada); });
 
-    let html = '<div class="cab-pagina"><div><h1>Revisões</h1>' +
-      '<p class="sub">Agendadas automaticamente: 24h, 7 dias e 30 dias após concluir a teoria.</p></div></div>';
+    let html = '<div class="cab-pagina"><div><h1>RevisÃµes</h1>' +
+      '<p class="sub">Agendadas automaticamente: 24h, 7 dias e 30 dias apÃ³s concluir a teoria.</p></div></div>';
 
     if (pendentes.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 7d · 30d.</div></div>';
+        '<strong>Nenhuma revisÃ£o pendente</strong>Conclua a teoria de um tÃ³pico (no registro de sessÃ£o ou no Edital) para agendar o ciclo 24h Â· 7d Â· 30d.</div></div>';
     }
 
     const grupos = [
       { titulo: 'Vencidas', filtro: function (r) { return r.dataAgendada < hoje; }, classe: 'etiqueta-revisao' },
       { titulo: 'Hoje', filtro: function (r) { return r.dataAgendada === hoje; }, classe: 'etiqueta-bloco' },
-      { titulo: 'Próximas (7 dias)', filtro: function (r) { return r.dataAgendada > hoje && r.dataAgendada <= D.addDias(hoje, 7); }, classe: 'etiqueta-feito' },
+      { titulo: 'PrÃ³ximas (7 dias)', filtro: function (r) { return r.dataAgendada > hoje && r.dataAgendada <= D.addDias(hoje, 7); }, classe: 'etiqueta-feito' },
       { titulo: 'Mais adiante', filtro: function (r) { return r.dataAgendada > D.addDias(hoje, 7); }, classe: 'etiqueta-feito' }
     ];
 
@@ -1771,18 +1785,18 @@
   }
 
   // ---------------- TELA: Edital verticalizado ----------------
-  // Banner de compatibilidade — só aparece quando o plano ATIVO é combinado
-  // (uniu 2 concursos). Com um único concurso, não mostra nada.
+  // Banner de compatibilidade â€” sÃ³ aparece quando o plano ATIVO Ã© combinado
+  // (uniu 2 concursos). Com um Ãºnico concurso, nÃ£o mostra nada.
   function compatibilidadeEditaisHtml() {
     const comb = state.plano && state.plano.combinado;
     if (!comb) return '';
     const compativel = comb.nivel === 'alta' || comb.nivel === 'moderada';
     const classe = compativel ? 'ok' : 'alerta';
-    const icone = compativel ? '🤝' : '⚠️';
-    const fontes = (comb.fontes || []).join(' × ');
+    const icone = compativel ? 'ðŸ¤' : 'âš ï¸';
+    const fontes = (comb.fontes || []).join(' Ã— ');
     return '<div class="card compat-editais compat-' + classe + '">' +
       '<div class="compat-topo"><span class="compat-icone" aria-hidden="true">' + icone + '</span>' +
-      '<div><strong>Estes editais são ' + comb.pct + '% compatíveis</strong>' + (fontes ? ' · ' + esc(fontes) : '') + '</div></div>' +
+      '<div><strong>Estes editais sÃ£o ' + comb.pct + '% compatÃ­veis</strong>' + (fontes ? ' Â· ' + esc(fontes) : '') + '</div></div>' +
       (comb.mensagem ? '<p class="sub">' + esc(comb.mensagem) + '</p>' : '') + '</div>';
   }
 
@@ -1797,7 +1811,7 @@
     const prog = D.progressoEdital(state);
     const meta = state.plano.meta ? state.plano.meta.corte_pct : 70;
     let html = '<div class="cab-pagina"><div><h1>Edital verticalizado</h1>' +
-      '<p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos com teoria concluída (' + prog.pct + '%) · % = incidência nas últimas provas</p></div></div>';
+      '<p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tÃ³picos com teoria concluÃ­da (' + prog.pct + '%) Â· % = incidÃªncia nas Ãºltimas provas</p></div></div>';
 
     html += compatibilidadeEditaisHtml();
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
@@ -1808,17 +1822,17 @@
       const quentes = idsTopicosQuentes(d.topicos);
       const origem = (state.plano && state.plano.combinado && d.origem) ? d.origem : '';
       html += '<button class="disc-cab" data-disc="' + esc(d.id) + '" aria-expanded="' + aberta + '">' +
-        '<span style="font-family:var(--fonte-mono);color:var(--grafite)">' + (aberta ? '▾' : '▸') + '</span>' +
+        '<span style="font-family:var(--fonte-mono);color:var(--grafite)">' + (aberta ? 'â–¾' : 'â–¸') + '</span>' +
         tagDisc(d) + ' ' + esc(nomeDiscCurto(d.nome)) +
         (origem ? '<span class="disc-origem" title="Origem da disciplina">' + esc(origem) + '</span>' : '') +
-        '<span class="disc-prog">' + pd.concluidos + '/' + pd.total + ' · ' + semaforoHtml(desemp, meta) + '</span></button>';
+        '<span class="disc-prog">' + pd.concluidos + '/' + pd.total + ' Â· ' + semaforoHtml(desemp, meta) + '</span></button>';
       if (aberta) {
         d.topicos.forEach(function (t) {
           const dt = D.desempenhoTopico(state.sessoes, t.id);
           const erros = Math.max(0, dt.feitas - dt.certas);
           html += '<div class="topico-linha' + (t.orfao ? ' topico-orfao' : '') + '" data-topico="' + esc(t.id) + '" role="button" tabindex="0">' +
             bolha(t.status) +
-            '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(órfão — fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + '</span>' +
+            '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(Ã³rfÃ£o â€” fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + '</span>' +
             '<span class="topico-meta topico-meta-pizza">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) +
             tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</span></div>';
         });
@@ -1834,10 +1848,10 @@
     if (!t) return;
     const dt = D.desempenhoTopico(state.sessoes, t.id);
     const statusOpcoes = [
-      { val: 'pendente', ic: '○', label: 'Pendente' },
-      { val: 'em_curso', ic: '◐', label: 'Em curso' },
-      { val: 'teoria_concluida', ic: '✓', label: 'Teoria concluída' },
-      { val: 'dominado', ic: '🧠', label: 'Dominado' }
+      { val: 'pendente', ic: 'â—‹', label: 'Pendente' },
+      { val: 'em_curso', ic: 'â—', label: 'Em curso' },
+      { val: 'teoria_concluida', ic: 'âœ“', label: 'Teoria concluÃ­da' },
+      { val: 'dominado', ic: 'ðŸ§ ', label: 'Dominado' }
     ];
     const radioHtml = statusOpcoes.map(function (o) {
       return '<label class="status-opt">' +
@@ -1847,9 +1861,9 @@
     }).join('');
     const m = abrirModal(
       '<h3>' + (d ? tagDisc(d) + ' ' : '') + esc(t.nome) + '</h3>' +
-      '<p style="font-size:0.85rem;color:var(--grafite)">Incidência: ' + (t.incidencia_pct || 0) + '% · ' +
-      (t.horas_estimadas ? '~' + t.horas_estimadas + 'h estimadas · ' : '') +
-      'Desempenho: ' + (dt.pct !== null ? dt.certas + '/' + dt.feitas + ' (' + dt.pct + '%)' : 'sem questões ainda') + '</p>' +
+      '<p style="font-size:0.85rem;color:var(--grafite)">IncidÃªncia: ' + (t.incidencia_pct || 0) + '% Â· ' +
+      (t.horas_estimadas ? '~' + t.horas_estimadas + 'h estimadas Â· ' : '') +
+      'Desempenho: ' + (dt.pct !== null ? dt.certas + '/' + dt.feitas + ' (' + dt.pct + '%)' : 'sem questÃµes ainda') + '</p>' +
       '<div class="status-radio-group">' + radioHtml + '</div>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="top-fechar">Fechar</button>' +
@@ -1866,7 +1880,7 @@
       const antes = t.status;
       t.status = novo;
       if ((novo === 'teoria_concluida' || novo === 'dominado') && antes !== 'teoria_concluida' && antes !== 'dominado') {
-        if (agendarRevisoesSeNecessario(t.id)) toast('Revisões agendadas: 24h · 7d · 30d', 'sucesso');
+        if (agendarRevisoesSeNecessario(t.id)) toast('RevisÃµes agendadas: 24h Â· 7d Â· 30d', 'sucesso');
       }
       if ((novo === 'pendente' || novo === 'em_curso') && (antes === 'teoria_concluida' || antes === 'dominado')) {
         removerRevisoesPendentes(t.id);
@@ -1908,7 +1922,7 @@
     const simuladosAtivos = doAtivo(state.simulados);
     if (simuladosAtivos.length === 0) {
       html += '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
-        '<strong>Nenhum simulado registrado</strong>Registre o resultado por disciplina e veja a distância até a zona de nomeação.</div></div>';
+        '<strong>Nenhum simulado registrado</strong>Registre o resultado por disciplina e veja a distÃ¢ncia atÃ© a zona de nomeaÃ§Ã£o.</div></div>';
       return html;
     }
 
@@ -1918,27 +1932,27 @@
       sim.acertos.forEach(function (a) { totalC += a.certas; totalQ += a.total; });
       const pctGeral = totalQ > 0 ? Math.round((totalC / totalQ) * 100) : null;
       html += '<div class="card"><h3>' + (sim.tipo === 'total' ? 'Simulado total' : 'Simulado parcial') +
-        ' — ' + D.formatarDataBR(sim.data) + ' · geral: ' + semaforoHtml(pctGeral, meta) + '</h3>' +
+        ' â€” ' + D.formatarDataBR(sim.data) + ' Â· geral: ' + semaforoHtml(pctGeral, meta) + '</h3>' +
         '<table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">%</th><th class="num">vs. meta ' + meta + '%</th></tr></thead><tbody>';
       sim.acertos.forEach(function (a) {
         const d = D.disciplinaPorId(state, a.disciplinaId);
         const pct = a.total > 0 ? Math.round((a.certas / a.total) * 100) : null;
         html += '<tr><td>' + (d ? tagDisc(d) + ' ' + esc(d.nome) : esc(a.disciplinaId)) + '</td>' +
           '<td class="num">' + a.certas + '/' + a.total + '</td>' +
-          '<td class="num">' + (pct === null ? '—' : pct + '%') + '</td>' +
+          '<td class="num">' + (pct === null ? 'â€”' : pct + '%') + '</td>' +
           '<td class="num">' + semaforoHtml(pct, meta) + '</td></tr>';
       });
       html += '</tbody></table></div>';
     });
 
-    // 3 piores tópicos com dados (para realimentar a fila)
+    // 3 piores tÃ³picos com dados (para realimentar a fila)
     const piores = D.pioresTopicos(state, 3);
     if (piores.length > 0) {
-      html += '<div class="card"><h3>Piores tópicos com registro (mín. 5 questões)</h3>';
+      html += '<div class="card"><h3>Piores tÃ³picos com registro (mÃ­n. 5 questÃµes)</h3>';
       piores.forEach(function (p) {
         html += '<div class="fila-item">' + bolha(p.topico.status) +
           '<div class="fila-info"><div class="fila-titulo">' + tagDisc(p.disciplina) + ' ' + esc(p.topico.nome) + '</div>' +
-          '<div class="fila-sub">' + p.pct + '% de acerto em ' + p.feitas + ' questões</div></div>' +
+          '<div class="fila-sub">' + p.pct + '% de acerto em ' + p.feitas + ' questÃµes</div></div>' +
           (p.topico.reaberto
             ? '<span class="etiqueta etiqueta-reaberto">na fila</span>'
             : '<button class="botao-mini" data-fila="' + esc(p.topico.id) + '">Mandar para a fila</button>') +
@@ -1957,8 +1971,8 @@
       '<div class="grade-2"><div><label for="sim-tipo">Tipo</label><select id="sim-tipo">' +
       '<option value="parcial">Parcial</option><option value="total">Total</option></select></div>' +
       '<div><label for="sim-data">Data</label><input id="sim-data" type="date" value="' + D.hojeISO() + '"></div></div>' +
-      '<p style="font-size:0.82rem;color:var(--grafite);margin-top:0.75rem">Preencha só as disciplinas que caíram no simulado.</p>' +
-      '<table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">Questões</th></tr></thead><tbody>' +
+      '<p style="font-size:0.82rem;color:var(--grafite);margin-top:0.75rem">Preencha sÃ³ as disciplinas que caÃ­ram no simulado.</p>' +
+      '<table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">QuestÃµes</th></tr></thead><tbody>' +
       discs.map(function (d) {
         return '<tr><td>' + tagDisc(d) + ' ' + esc(d.nome) + '</td>' +
           '<td class="num"><input type="number" min="0" max="200" data-sim-certas="' + esc(d.id) + '" style="width:70px;min-height:36px;padding:0.2rem 0.4rem"></td>' +
@@ -1982,7 +1996,7 @@
         const c = inC.value === '' ? null : parseInt(inC.value, 10);
         const t = inT.value === '' ? null : parseInt(inT.value, 10);
         if (c === null && t === null) return;
-        if (c === null || t === null || t === 0) { problema = d.id + ': preencha acertos E total de questões.'; return; }
+        if (c === null || t === null || t === 0) { problema = d.id + ': preencha acertos E total de questÃµes.'; return; }
         if (c > t) { problema = d.id + ': acertos (' + c + ') maiores que o total (' + t + ').'; return; }
         acertos.push({ disciplinaId: d.id, certas: c, total: t });
       });
@@ -2008,12 +2022,12 @@
         const t = D.topicoPorId(state, b.getAttribute('data-fila'));
         if (t) { t.reaberto = true; if (t.status === 'teoria_concluida') t.status = 'em_curso'; }
         salvar(); render();
-        toast('Tópico na fila da semana', 'sucesso');
+        toast('TÃ³pico na fila da semana', 'sucesso');
       });
     });
   }
 
-  // ---------------- TELA: Estatísticas ----------------
+  // ---------------- TELA: EstatÃ­sticas ----------------
   function dadosHorasPorDisciplina() {
     const porDisc = {};
     state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).forEach(function (d) {
@@ -2033,7 +2047,7 @@
 
   function encurtarTexto(txt, max) {
     txt = String(txt || '');
-    return txt.length > max ? txt.slice(0, max - 1) + '…' : txt;
+    return txt.length > max ? txt.slice(0, max - 1) + 'â€¦' : txt;
   }
 
   function dadosTopicosDesempenho() {
@@ -2063,9 +2077,9 @@
   function telaStats() {
     const hoje = D.hojeISO();
     if (D.sessoesDoPlano(state).length === 0) {
-      return '<h1>Estatísticas</h1><div class="card"><div class="estado-vazio">' +
+      return '<h1>EstatÃ­sticas</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Sem dados ainda</strong>' +
-        'Registre a primeira sessão de estudo e os números aparecem aqui.</div></div>';
+        'Registre a primeira sessÃ£o de estudo e os nÃºmeros aparecem aqui.</div></div>';
     }
     const st = D.streak(state.sessoes, hoje);
     const meta = D.metaSemanal(state, hoje);
@@ -2075,15 +2089,15 @@
     let totalMin = 0, totalQ = 0, totalC = 0;
     D.sessoesDoPlano(state).forEach(function (s) { totalMin += s.duracaoMin || 0; totalQ += s.qFeitas || 0; totalC += s.qCertas || 0; });
 
-    let html = '<h1>Estatísticas</h1><div class="linha-cards">' +
+    let html = '<h1>EstatÃ­sticas</h1><div class="linha-cards">' +
       '<div class="card card-kpi"><div class="card-kpi-rotulo">Tempo total</div><div class="card-kpi-valor">' + D.formatarMin(totalMin) + '</div>' +
       '<div class="card-kpi-extra">' + D.formatarMin(meta.minutos) + ' nesta semana</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + totalQ + '</div>' +
-      '<div class="card-kpi-extra">' + (totalQ > 0 ? Math.round((totalC / totalQ) * 100) + '% de acerto' : '—') + '</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Desempenho × meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">QuestÃµes</div><div class="card-kpi-valor">' + totalQ + '</div>' +
+      '<div class="card-kpi-extra">' + (totalQ > 0 ? Math.round((totalC / totalQ) * 100) + '% de acerto' : 'â€”') + '</div></div>' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">Desempenho Ã— meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
       '<div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">⚡ Constância</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
-      '<div class="card-kpi-extra">recorde: ' + st.recorde + ' · edital: ' + prog.pct + '%</div></div>' +
+      '<div class="card card-kpi"><div class="card-kpi-rotulo">âš¡ ConstÃ¢ncia</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
+      '<div class="card-kpi-extra">recorde: ' + st.recorde + ' Â· edital: ' + prog.pct + '%</div></div>' +
       '</div>';
 
     html += '<div class="card">' + constanciaFaixaHtml(30) + '</div>';
@@ -2093,16 +2107,16 @@
     const hDisc = Math.max(260, Math.min(560, horasDisc.length * 44 + 78));
     const hTop = Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
-    html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
-    html += '<div class="card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
-    html += '<div class="card"><h3>Desempenho por disciplina × meta de corte</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
-    html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
+    html += '<div class="card"><h3>EvoluÃ§Ã£o semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
+    html += '<div class="card"><h3>Disciplinas Ã— horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
+    html += '<div class="card"><h3>Desempenho por disciplina Ã— meta de corte</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+    html += '<div class="card"><h3>TÃ³picos Ã— desempenho</h3>' +
       (topicosDesempenho.length > 0
         ? '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>'
-        : '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem questões por tópico</strong>Registre questões nas sessões para ver o gráfico.</div>') +
+        : '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem questÃµes por tÃ³pico</strong>Registre questÃµes nas sessÃµes para ver o grÃ¡fico.</div>') +
       '</div>';
     if (!window.Graficos.disponivel()) {
-      html += '<div class="aviso aviso-info">Os gráficos precisam de internet na primeira carga (Chart.js via CDN). Os demais números continuam funcionando offline.</div>';
+      html += '<div class="aviso aviso-info">Os grÃ¡ficos precisam de internet na primeira carga (Chart.js via CDN). Os demais nÃºmeros continuam funcionando offline.</div>';
     }
     return html;
   }
@@ -2164,23 +2178,23 @@
     disciplinaDetalheId = disc.id;
     const m = metricasDisciplina(disc);
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
-    let html = '<button class="det-voltar-flutuante" id="det-voltar" aria-label="Voltar"><span aria-hidden="true">←</span><span class="det-voltar-txt">Voltar</span></button>';
+    let html = '<button class="det-voltar-flutuante" id="det-voltar" aria-label="Voltar"><span aria-hidden="true">â†</span><span class="det-voltar-txt">Voltar</span></button>';
     html += '<div class="cab-pagina detalhe-disc-cab"><div><span class="rotulo-pagina">' + esc(state.plano ? state.plano.concurso : 'Plano manual') + '</span>' +
       '<h1>' + esc(nomeDiscCurto(disc.nome)) + '</h1></div></div>';
 
     html += '<div class="linha-cards detalhe-metricas">' +
       '<div class="card card-kpi detalhe-card-tempo"><div class="card-kpi-rotulo">Tempo de estudo</div><div class="card-kpi-valor">' + D.formatarMin(m.minutos) + '</div></div>' +
-      '<div class="card card-kpi detalhe-card-desempenho"><div class="card-kpi-rotulo">Desempenho</div><div class="detalhe-card-pizza">' + pizzaAcertosHtml(m.certas, m.erros, { titulo: disc.nome }) + '</div><div class="card-kpi-extra"><span class="painel-acertos">' + m.certas + ' acertos</span> · <span class="painel-erros">' + m.erros + ' erros</span></div></div>' +
-      '<div class="card card-kpi detalhe-card-progresso"><div class="card-kpi-rotulo">Progresso no edital</div><div class="card-kpi-extra">' + m.progresso.concluidos + ' tópicos concluídos<br>' + (m.progresso.total - m.progresso.concluidos) + ' pendentes</div><div class="card-kpi-valor">' + m.progresso.pct + '%</div></div>' +
-      '<div class="card card-kpi detalhe-card-questoes"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + m.feitas + '</div><div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
+      '<div class="card card-kpi detalhe-card-desempenho"><div class="card-kpi-rotulo">Desempenho</div><div class="detalhe-card-pizza">' + pizzaAcertosHtml(m.certas, m.erros, { titulo: disc.nome }) + '</div><div class="card-kpi-extra"><span class="painel-acertos">' + m.certas + ' acertos</span> Â· <span class="painel-erros">' + m.erros + ' erros</span></div></div>' +
+      '<div class="card card-kpi detalhe-card-progresso"><div class="card-kpi-rotulo">Progresso no edital</div><div class="card-kpi-extra">' + m.progresso.concluidos + ' tÃ³picos concluÃ­dos<br>' + (m.progresso.total - m.progresso.concluidos) + ' pendentes</div><div class="card-kpi-valor">' + m.progresso.pct + '%</div></div>' +
+      '<div class="card card-kpi detalhe-card-questoes"><div class="card-kpi-rotulo">QuestÃµes</div><div class="card-kpi-valor">' + m.feitas + '</div><div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
       '</div>';
 
-    html += '<div class="card"><div class="card-cab-acao"><div class="card-kpi-rotulo">Histórico de registros</div>' +
+    html += '<div class="card"><div class="card-cab-acao"><div class="card-kpi-rotulo">HistÃ³rico de registros</div>' +
       '<button class="botao-mini" id="det-add">+ Adicionar estudo</button></div>';
     if (m.sessoes.length === 0) {
-      html += '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem registros nesta disciplina</strong>Use o botão Adicionar estudo para começar.</div>';
+      html += '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem registros nesta disciplina</strong>Use o botÃ£o Adicionar estudo para comeÃ§ar.</div>';
     } else {
-      html += '<div class="painel-scroll"><table><thead><tr><th>Data</th><th>Categoria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">%</th><th>Tópico</th></tr></thead><tbody>' +
+      html += '<div class="painel-scroll"><table><thead><tr><th>Data</th><th>Categoria</th><th class="num">Tempo</th><th class="num">âœ“</th><th class="num">Ã—</th><th class="num">%</th><th>TÃ³pico</th></tr></thead><tbody>' +
         m.sessoes.slice(0, 12).map(function (s) {
           const t = D.topicoPorId(state, s.topicoId);
           const pct = s.qFeitas > 0 ? Math.round((s.qCertas / s.qFeitas) * 100) : null;
@@ -2194,13 +2208,13 @@
     html += '</div>';
 
     html += '<div class="card edital-disc-card"><div class="card-kpi-rotulo">Edital verticalizado</div>' +
-      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">✓</th><th class="num edital-qtd-col">×</th><th class="num edital-qtd-col">Questões</th><th class="num">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
+      '<div class="painel-scroll"><table><thead><tr><th>TÃ³picos</th><th class="num edital-qtd-col">âœ“</th><th class="num edital-qtd-col">Ã—</th><th class="num edital-qtd-col">QuestÃµes</th><th class="num">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
       (function () { const quentes = idsTopicosQuentes(disc.topicos); return disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
         const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
         const erros = Math.max(0, dt.feitas - dt.certas);
         return '<tr data-topico-detalhe="' + esc(t.id) + '" role="button" tabindex="0">' +
-          '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tópico">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
+          '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tÃ³pico">' + (feito ? 'âœ“' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
           '<td class="num painel-acertos edital-qtd-col">' + dt.certas + '</td><td class="num painel-erros edital-qtd-col">' + erros + '</td>' +
           '<td class="num edital-qtd-col">' + dt.feitas + '</td><td class="num">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) + '</td>' +
           '<td class="num">' + tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</td></tr>';
@@ -2226,7 +2240,7 @@
         t.status = feito ? 'em_curso' : 'teoria_concluida';
         if (!feito) agendarRevisoesSeNecessario(t.id);
         salvar(); render();
-        toast(feito ? 'Tópico reaberto' : 'Tópico concluído', 'sucesso');
+        toast(feito ? 'TÃ³pico reaberto' : 'TÃ³pico concluÃ­do', 'sucesso');
       });
     });
     raiz.querySelectorAll('[data-topico-detalhe]').forEach(function (linha) {
@@ -2236,11 +2250,11 @@
     });
   }
 
-  // ---------------- TELA: Histórico ----------------
+  // ---------------- TELA: HistÃ³rico ----------------
   let historicoLimite = 50;
-  let historicoEscopo = 'plano'; // 'plano' = só o plano ativo | 'site' = tudo registrado no site
+  let historicoEscopo = 'plano'; // 'plano' = sÃ³ o plano ativo | 'site' = tudo registrado no site
 
-  // procura o tópico em todos os planos (para o histórico do site inteiro)
+  // procura o tÃ³pico em todos os planos (para o histÃ³rico do site inteiro)
   function infoTopicoGlobal(topicoId) {
     for (let i = 0; i < state.planos.length; i++) {
       const p = state.planos[i];
@@ -2262,21 +2276,21 @@
   function telaHistorico() {
     const doSite = historicoEscopo === 'site';
     const lista = doSite ? state.sessoes : D.sessoesDoPlano(state);
-    let html = '<div class="cab-pagina"><div><h1>Histórico</h1><p class="sub">' +
-      lista.length + (doSite ? ' sessões em todo o site' : ' sessões deste plano') + '</p></div>' +
+    let html = '<div class="cab-pagina"><div><h1>HistÃ³rico</h1><p class="sub">' +
+      lista.length + (doSite ? ' sessÃµes em todo o site' : ' sessÃµes deste plano') + '</p></div>' +
       '<div class="cab-acoes">' +
       '<button class="botao-mini ' + (doSite ? 'botao-quieto' : '') + '" data-hist-escopo="plano">Plano de estudos</button>' +
       '<button class="botao-mini ' + (doSite ? '' : 'botao-quieto') + '" data-hist-escopo="site">Site inteiro</button>' +
       '</div></div>';
     if (lista.length === 0) {
       return html + '<div class="card"><div class="estado-vazio">' +
-        '<span class="bolha bolha-pendente"></span><strong>Nenhuma sessão registrada' + (doSite ? '' : ' neste plano') + '</strong>' +
-        'Cada sessão registrada (timer ou manual) aparece aqui.</div></div>';
+        '<span class="bolha bolha-pendente"></span><strong>Nenhuma sessÃ£o registrada' + (doSite ? '' : ' neste plano') + '</strong>' +
+        'Cada sessÃ£o registrada (timer ou manual) aparece aqui.</div></div>';
     }
     const ordenadas = [...lista].sort(function (a, b) { return b.data.localeCompare(a.data) || b.id.localeCompare(a.id); });
     const visiveis = ordenadas.slice(0, historicoLimite);
     html += '<div class="card" style="overflow-x:auto"><table><thead><tr>' +
-      '<th>Data</th><th>Tópico</th>' + (doSite ? '<th>Plano</th>' : '') + '<th>Tipo</th><th class="num">Tempo</th><th class="num">Questões</th><th></th></tr></thead><tbody>';
+      '<th>Data</th><th>TÃ³pico</th>' + (doSite ? '<th>Plano</th>' : '') + '<th>Tipo</th><th class="num">Tempo</th><th class="num">QuestÃµes</th><th></th></tr></thead><tbody>';
     visiveis.forEach(function (s) {
       let d = D.disciplinaDoTopico(state, s.topicoId);
       let t = D.topicoPorId(state, s.topicoId);
@@ -2289,8 +2303,8 @@
         (doSite ? '<td style="font-size:0.8rem">' + esc(nomePlanoDaSessao(s)) + '</td>' : '') +
         '<td>' + esc(s.tipo) + '</td>' +
         '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td>' +
-        '<td class="num">' + (s.qFeitas > 0 ? s.qCertas + '/' + s.qFeitas : '—') + '</td>' +
-        '<td><button class="botao-mini botao-quieto" data-excluir="' + esc(s.id) + '" title="Excluir sessão">✕</button></td></tr>';
+        '<td class="num">' + (s.qFeitas > 0 ? s.qCertas + '/' + s.qFeitas : 'â€”') + '</td>' +
+        '<td><button class="botao-mini botao-quieto" data-excluir="' + esc(s.id) + '" title="Excluir sessÃ£o">âœ•</button></td></tr>';
     });
     html += '</tbody></table>';
     if (ordenadas.length > historicoLimite) {
@@ -2313,40 +2327,40 @@
     raiz.querySelectorAll('[data-excluir]').forEach(function (b) {
       b.addEventListener('click', function () {
         const id = b.getAttribute('data-excluir');
-        confirmar({ titulo: 'Excluir sessão?', mensagem: 'Os percentuais de desempenho serão recalculados.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
+        confirmar({ titulo: 'Excluir sessÃ£o?', mensagem: 'Os percentuais de desempenho serÃ£o recalculados.', confirmar: 'Excluir', perigo: true, icone: 'ðŸ—‘ï¸' }).then(function (ok) {
           if (!ok) return;
           state.sessoes = state.sessoes.filter(function (s) { return s.id !== id; });
           salvar(); render();
-          toast('Sessão excluída');
+          toast('SessÃ£o excluÃ­da');
         });
       });
     });
   }
 
-  // ---------------- TELA: Configurações (F2) ----------------
+  // ---------------- TELA: ConfiguraÃ§Ãµes (F2) ----------------
   function telaAjustes() {
-    // Esta aba foca no painel do edital. Nome do usuário fica no Perfil (topo);
-    // meta de questões da semana é editada na Hoje; o ritmo do cronograma é
-    // definido ao criar o plano (aba Planos), após escolher o edital.
+    // Esta aba foca no painel do edital. Nome do usuÃ¡rio fica no Perfil (topo);
+    // meta de questÃµes da semana Ã© editada na Hoje; o ritmo do cronograma Ã©
+    // definido ao criar o plano (aba Planos), apÃ³s escolher o edital.
     const u = usuarioAtual();
     let html = '';
     if (usuarioAdmin()) {
       html += editaisEsquematizadosHtml();
     } else {
       html += '<div class="card"><h3>Minha conta</h3>' +
-        '<p class="sub">Você está logado como <strong>' + esc(u && u.email ? u.email : 'usuário') + '</strong>.</p>' +
-        '<p class="sub">Seu perfil tem acesso ao catálogo global e pode gerar planos próprios. O painel administrativo fica restrito ao administrador.</p></div>';
+        '<p class="sub">VocÃª estÃ¡ logado como <strong>' + esc(u && u.email ? u.email : 'usuÃ¡rio') + '</strong>.</p>' +
+        '<p class="sub">Seu perfil tem acesso ao catÃ¡logo global e pode gerar planos prÃ³prios. O painel administrativo fica restrito ao administrador.</p></div>';
     }
 
     html += '<div class="ajustes-sync-grid">';
 
     const syncAtual = statusSincronizacao();
-    const syncTexto = syncAtual && syncAtual.texto ? syncAtual.texto : 'Verificando sincronização';
-    const syncFonte = syncAtual && syncAtual.fonte ? syncAtual.fonte : (syncStatus && syncStatus.endpoint ? syncStatus.endpoint : 'servidor local não detectado');
+    const syncTexto = syncAtual && syncAtual.texto ? syncAtual.texto : 'Verificando sincronizaÃ§Ã£o';
+    const syncFonte = syncAtual && syncAtual.fonte ? syncAtual.fonte : (syncStatus && syncStatus.endpoint ? syncStatus.endpoint : 'servidor local nÃ£o detectado');
     const contaSync = firebaseStatus && firebaseStatus.usuario && firebaseStatus.usuario.email
       ? '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">' + esc(firebaseStatus.usuario.email) + '</strong></p>'
-      : '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">não conectada</strong></p>';
-    html += '<div class="card"><h3>Sincronização entre aparelhos</h3>' +
+      : '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">nÃ£o conectada</strong></p>';
+    html += '<div class="card"><h3>SincronizaÃ§Ã£o entre aparelhos</h3>' +
       '<p style="font-size:0.88rem;color:var(--grafite)">Status: <strong id="sync-status">' + esc(syncTexto) + '</strong></p>' +
       '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">' + esc(syncFonte) + '</span></p>' +
       contaSync +
@@ -2382,8 +2396,8 @@
     return (e.disciplinas || []).reduce(function (n, d) { return n + (d.topicos || []).length; }, 0);
   }
 
-  // ---- metadados de catálogo (campos opcionais, retrocompatíveis) ----
-  const NIVEIS_EDITAL = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
+  // ---- metadados de catÃ¡logo (campos opcionais, retrocompatÃ­veis) ----
+  const NIVEIS_EDITAL = { facil: 'FÃ¡cil', medio: 'MÃ©dio', dificil: 'DifÃ­cil' };
   function nivelEdital(e) { return e && e.nivel && NIVEIS_EDITAL[e.nivel] ? e.nivel : 'medio'; }
   function horasEsforcoEdital(e) { return Math.round(D.totalHorasTeoria((e && e.disciplinas) || []) * 1.8); }
   function tempoMedioMesesEdital(e) { return Math.max(1, Math.round(horasEsforcoEdital(e) / (12 * 4.345))); }
@@ -2399,7 +2413,7 @@
     try {
       const min = totalMinutosRotina(rotinaEstudosAtual());
       if (min > 0) return Math.round(min / 60);
-    } catch (e) { /* rotina indisponível */ }
+    } catch (e) { /* rotina indisponÃ­vel */ }
     return 18;
   }
 
@@ -2410,8 +2424,8 @@
       '<div class="plano-mini-tit"><strong>' + esc(e.titulo) + '</strong>' +
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') +
       (global ? ' <span class="etiqueta">global</span>' : '') + '</div></div>' +
-      '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
-      contarTopicosEdital(e) + ' tóp · corte ~' + (e.notaCorte || 70) + '% · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
+      '<p class="sub">' + esc(e.banca || 'banca nÃ£o informada') + ' Â· ' + (e.disciplinas || []).length + ' disc Â· ' +
+      contarTopicosEdital(e) + ' tÃ³p Â· corte ~' + (e.notaCorte || 70) + '% Â· ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
       '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
       '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">' + (global ? 'Personalizar' : 'Editar') + '</button>' +
@@ -2430,34 +2444,34 @@
       h += '<p class="sub">Nenhum pedido pendente.</p>';
     }
     h += '<div class="grade-2" style="margin-top:0.4rem">' +
-      '<input id="adm-pedido-txt" type="text" placeholder="Ex.: TJSP Escrevente 2026 (pedido do João)">' +
+      '<input id="adm-pedido-txt" type="text" placeholder="Ex.: TJSP Escrevente 2026 (pedido do JoÃ£o)">' +
       '<button class="botao-secundario botao-mini" id="adm-pedido-add">Adicionar pedido</button></div></div>';
     return h;
   }
 
-  // Formulário de importação (usado dentro do modal "Importar arquivo")
+  // FormulÃ¡rio de importaÃ§Ã£o (usado dentro do modal "Importar arquivo")
   function importarEditalFormHtml() {
-    return '<p class="sub">Importe o JSON da skill/IA ou uma planilha. Antes de salvar você confere e ajusta tudo.</p>' +
+    return '<p class="sub">Importe o JSON da skill/IA ou uma planilha. Antes de salvar vocÃª confere e ajusta tudo.</p>' +
       '<div class="grade-2" style="margin-top:0.4rem">' +
-      '<div><label for="ed-titulo">Nome do edital</label><input id="ed-titulo" type="text" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
+      '<div><label for="ed-titulo">Nome do edital</label><input id="ed-titulo" type="text" placeholder="Ex.: TRF3 TÃ©cnico JudiciÃ¡rio 2026"></div>' +
       '<div><label for="ed-banca">Banca</label><input id="ed-banca" type="text" placeholder="Ex.: FCC"></div></div>' +
       '<div class="grade-3">' +
-      '<div><label for="ed-orgao">Órgão</label><input id="ed-orgao" type="text" placeholder="Ex.: TRF 3ª Região"></div>' +
-      '<div><label for="ed-cargo">Cargo</label><input id="ed-cargo" type="text" placeholder="Ex.: Técnico Judiciário"></div>' +
+      '<div><label for="ed-orgao">Ã“rgÃ£o</label><input id="ed-orgao" type="text" placeholder="Ex.: TRF 3Âª RegiÃ£o"></div>' +
+      '<div><label for="ed-cargo">Cargo</label><input id="ed-cargo" type="text" placeholder="Ex.: TÃ©cnico JudiciÃ¡rio"></div>' +
       '<div><label for="ed-estado">Estado (UF)</label><input id="ed-estado" type="text" maxlength="2" placeholder="Ex.: SP" style="text-transform:uppercase"></div></div>' +
       '<label for="ed-corte">Nota de corte estimada (%)</label>' +
       '<input id="ed-corte" type="number" min="0" max="100" value="70" style="max-width:160px">' +
-      '<label for="ed-arquivo">Tópicos detalhados (arquivo .json, .xlsx ou .csv)</label>' +
+      '<label for="ed-arquivo">TÃ³picos detalhados (arquivo .json, .xlsx ou .csv)</label>' +
       '<input type="file" id="ed-arquivo" accept=".json,.xlsx,.csv,application/json,text/csv">' +
       '<label for="ed-json">ou cole o JSON com as disciplinas</label>' +
-      '<textarea id="ed-json" placeholder=\'{"disciplinas":[{"id":"POR","nome":"Português","topicos":[...]}]}\'></textarea>';
+      '<textarea id="ed-json" placeholder=\'{"disciplinas":[{"id":"POR","nome":"PortuguÃªs","topicos":[...]}]}\'></textarea>';
   }
 
   function abrirImportarEdital() {
     if (!usuarioAdmin()) { toast('Apenas o administrador pode importar editais.', 'erro'); return; }
     const m = abrirModal('<h3>Importar arquivo</h3>' + importarEditalFormHtml() +
       '<div class="modal-acoes"><button class="botao-quieto" id="ed-cancelar">Cancelar</button>' +
-      '<button id="ed-cadastrar">Conferir importação</button></div>');
+      '<button id="ed-cadastrar">Conferir importaÃ§Ã£o</button></div>');
     m.classList.add('modal-amplo');
     m.querySelector('#ed-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#ed-cadastrar').addEventListener('click', function () { cadastrarEditalEsquematizado(m); });
@@ -2485,7 +2499,7 @@
             window.FirebaseSync.marcarPedidoAtendido(id).then(function () {
               adminPedidosGlobais = adminPedidosGlobais.filter(function (p) { return p.id !== id; });
               pintar(); toast('Pedido marcado como atendido');
-            }).catch(function () { toast('Não consegui atualizar o pedido.', 'erro'); });
+            }).catch(function () { toast('NÃ£o consegui atualizar o pedido.', 'erro'); });
             return;
           }
           state.config.pedidosEdital = (state.config.pedidosEdital || []).filter(function (p) { return p.id !== id; });
@@ -2502,7 +2516,7 @@
       }).catch(function () {
         adminPedidosGlobais = null;
         pintar();
-        toast('Não consegui carregar os pedidos da nuvem.', 'erro');
+        toast('NÃ£o consegui carregar os pedidos da nuvem.', 'erro');
       });
     } else {
       pintar();
@@ -2521,7 +2535,7 @@
     const arquivados = listaCatalogo.filter(function (e) { return e.arquivado && correspondeBusca(e); });
 
     let html = '<div class="card"><h3>Planos cadastrados</h3>' +
-      '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '">';
+      '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por Ã³rgÃ£o, cargo, estadoâ€¦" value="' + esc(adminBusca || '') + '">';
 
     if (catalogoPublicacaoErro) {
       html += '<div class="aviso aviso-erro" style="margin-top:0.65rem">' + esc(catalogoPublicacaoErro) + '</div>';
@@ -2575,9 +2589,9 @@
     return {
       titulo: (json.titulo || '').toString().trim(),
       banca: (json.banca || '').toString().trim(),
-      orgao: (json.orgao || json['órgão'] || '').toString().trim(),
+      orgao: (json.orgao || json['Ã³rgÃ£o'] || '').toString().trim(),
       cargo: (json.cargo || '').toString().trim(),
-      area: (json.area || json['área'] || '').toString().trim(),
+      area: (json.area || json['Ã¡rea'] || '').toString().trim(),
       estado: (json.estado || json.uf || '').toString().trim().toUpperCase().slice(0, 2),
       nivel: (json.nivel || '').toString().trim(),
       notaCorte: corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null,
@@ -2601,7 +2615,7 @@
     let meta = {};                                       // metadados vindos do JSON da skill
     try {
       if (file && /\.xlsx$/i.test(file.name)) {
-        if (!window.XLSX) { toast('Leitor de Excel indisponível. Salve como CSV ou JSON.', 'erro'); return; }
+        if (!window.XLSX) { toast('Leitor de Excel indisponÃ­vel. Salve como CSV ou JSON.', 'erro'); return; }
         const wb = window.XLSX.read(await lerArquivo(file, true), { type: 'array' });
         const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
         disciplinas = planoJsonDeLinhas(rows, tituloForm).disciplinas;
@@ -2615,12 +2629,12 @@
         disciplinas = disciplinasDeEntradaEdital(json, tituloForm || meta.titulo);
       }
     } catch (e) {
-      toast('Não consegui ler o edital: ' + e.message, 'erro');
+      toast('NÃ£o consegui ler o edital: ' + e.message, 'erro');
       return;
     }
-    // O que o usuário digitou no formulário tem prioridade; o JSON autopreenche o resto.
+    // O que o usuÃ¡rio digitou no formulÃ¡rio tem prioridade; o JSON autopreenche o resto.
     const titulo = tituloForm || meta.titulo || '';
-    if (!titulo) { toast('Dê um nome ao edital (ou inclua "titulo" no JSON).', 'erro'); return; }
+    if (!titulo) { toast('DÃª um nome ao edital (ou inclua "titulo" no JSON).', 'erro'); return; }
     const banca = bancaForm || meta.banca || '';
     const orgao = orgaoForm || meta.orgao || '';
     const cargo = cargoForm || meta.cargo || '';
@@ -2629,8 +2643,8 @@
       : (meta.notaCorte != null ? meta.notaCorte : (Number.isFinite(corteForm) ? corteForm : 70));
     const teste = { versao: 1, plano: { concurso: titulo, banca: banca, meta: { corte_pct: corte } }, disciplinas: disciplinas };
     const v = D.validarPlano(teste);
-    if (!v.ok) { toast('Edital inválido: ' + v.erros[0], 'erro'); return; }
-    // Fluxo de importação inteligente: abre a tela de conferência já autopreenchida.
+    if (!v.ok) { toast('Edital invÃ¡lido: ' + v.erros[0], 'erro'); return; }
+    // Fluxo de importaÃ§Ã£o inteligente: abre a tela de conferÃªncia jÃ¡ autopreenchida.
     abrirEditorEdital(null, 'conferencia', {
       titulo: titulo, banca: banca, orgao: orgao, cargo: cargo, area: meta.area || '',
       estado: estado, nivel: meta.nivel || '', notaCorte: corte, tipoCorte: meta.tipoCorte || 'ampla',
@@ -2642,7 +2656,7 @@
   function criarPlanoDeEdital(editalId) {
     const e = editalPorId(editalId);
     if (!e) return;
-    // Semente da "data provável" a partir da janela do edital — assim ela não
+    // Semente da "data provÃ¡vel" a partir da janela do edital â€” assim ela nÃ£o
     // se perde ao (re)gerar o plano e segue persistindo/sincronizando.
     const jp = e.janelaProva || {};
     const radarSeed = jp.inicio
@@ -2656,11 +2670,11 @@
       cronograma: {}
     };
     const v = D.validarPlano(json);
-    if (!v.ok) { toast('Edital inválido: ' + v.erros[0], 'erro'); return; }
+    if (!v.ok) { toast('Edital invÃ¡lido: ' + v.erros[0], 'erro'); return; }
     adicionarPlano(json);
     aplicarPlanosDuracaoAoAtivo(true);
-    toast('Plano criado a partir do edital — ajuste sua rotina para personalizar', 'sucesso');
-    // pushState não dispara hashchange (que fecharia o modal de rotina abaixo)
+    toast('Plano criado a partir do edital â€” ajuste sua rotina para personalizar', 'sucesso');
+    // pushState nÃ£o dispara hashchange (que fecharia o modal de rotina abaixo)
     if (location.hash !== '#planejamento') history.pushState(null, '', '#planejamento');
     render();
     abrirGerarPlanoComRotina();
@@ -2699,30 +2713,30 @@
       b.addEventListener('click', function () {
         const e = state.editais.find(function (x) { return x.id === b.getAttribute('data-ed-excluir'); });
         if (!e) return;
-        confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
+        confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" serÃ¡ removido. Os planos jÃ¡ criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: 'ðŸ—‘ï¸' }).then(function (ok) {
           if (!ok) return;
           state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
           salvar(); publicarCatalogoAdmin({ toast: true }).finally(render);
-          toast('Edital excluído');
+          toast('Edital excluÃ­do');
         });
       });
     });
   }
 
-  // ================= Catálogo: aba "Planos disponíveis" =================
+  // ================= CatÃ¡logo: aba "Planos disponÃ­veis" =================
   function editalFotoHtml(e) {
     const src = e.foto || e.fotoUrl || e.imagem || '';
-    const iniciais = String(e.orgao || e.titulo || 'ED').replace(/[^A-Za-zÀ-ú0-9 ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(function (p) { return p.charAt(0); }).join('').toUpperCase() || 'ED';
+    const iniciais = String(e.orgao || e.titulo || 'ED').replace(/[^0-9A-Za-z\u00C0-\u017F ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(function (p) { return p.charAt(0); }).join('').toUpperCase() || 'ED';
     return src
       ? '<span class="catalogo-foto"><img src="' + esc(src) + '" alt=""></span>'
       : '<span class="catalogo-foto catalogo-foto-placeholder" aria-hidden="true">' + esc(iniciais) + '</span>';
   }
 
   function rotuloCorteEdital(e) {
-    // o rótulo do card já diz "Corte"; aqui vai só o valor: "73% · ampla"
+    // o rÃ³tulo do card jÃ¡ diz "Corte"; aqui vai sÃ³ o valor: "73% Â· ampla"
     const lista = normalizarListaCorte(e.tipoCorte || e.corteTipo || e.modalidadeCorte || 'ampla');
-    const curto = { ampla: 'ampla', negros: 'negros', pcd: 'PcD', indigenas: 'indígenas' }[lista] || 'ampla';
-    return (e.notaCorte || 70) + '% · ' + curto;
+    const curto = { ampla: 'ampla', negros: 'negros', pcd: 'PcD', indigenas: 'indÃ­genas' }[lista] || 'ampla';
+    return (e.notaCorte || 70) + '% Â· ' + curto;
   }
 
   function catalogoCard(e) {
@@ -2736,17 +2750,17 @@
       (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
       '<div class="catalogo-metricas">' +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
-      metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica('NÃ­vel', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Prova', esc(janelaProvaTexto(e))) +
-      metrica('Tempo médio', '~' + tempoMedioMesesEdital(e) + ' meses') +
+      metrica('Tempo mÃ©dio', '~' + tempoMedioMesesEdital(e) + ' meses') +
       '</div>' +
-      '<div class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</div>' +
+      '<div class="catalogo-sub">' + esc(e.banca || 'banca nÃ£o informada') + ' Â· ' + (e.disciplinas || []).length + ' disciplinas Â· ' + nt + ' tÃ³picos</div>' +
       '<div class="catalogo-acoes">' +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '">Ver detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '">' + (jaTem ? 'Refazer plano' : 'Iniciar plano') + '</button>' +
       '<button class="botao-mini botao-quieto" data-pl-comparar="' + esc(e.id) + '">Comparar</button>' +
       '</div>' +
-      (jaTem ? '<span class="etiqueta etiqueta-feito" style="margin-top:0.4rem">plano criado ✓</span>' : '') +
+      (jaTem ? '<span class="etiqueta etiqueta-feito" style="margin-top:0.4rem">plano criado âœ“</span>' : '') +
       '</div>';
   }
 
@@ -2758,17 +2772,17 @@
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
       '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) +
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</strong>' +
-      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</span></div></div>' +
+      '<span class="catalogo-sub">' + esc(e.banca || 'banca nÃ£o informada') + ' Â· ' + (e.disciplinas || []).length + ' disciplinas Â· ' + nt + ' tÃ³picos</span></div></div>' +
       '<div class="catalogo-metricas">' +
       metrica('Corte', esc(rotuloCorteEdital(e))) +
-      metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica('NÃ­vel', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Prova', esc(janelaProvaTexto(e))) +
       '</div>' +
       '<div class="catalogo-acoes">' +
-      '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e incidências">Detalhes</button>' +
+      '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tÃ³picos e incidÃªncias">Detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir deste edital">' + (jaTem ? 'Refazer' : 'Iniciar') + '</button>' +
       '<button class="botao-mini botao-quieto" data-pl-comparar="' + esc(e.id) + '" title="Comparar com outro edital">Comparar</button>' +
-      (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
+      (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado âœ“</span>' : '') +
       '</div>' +
       '</div>';
   }
@@ -2777,12 +2791,12 @@
     garantirEditaisMock();
     const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado; })
       .slice().sort(function (a, b) { return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a); });
-    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo</span><h1>Planos disponíveis</h1></div></div>' +
-      '<p class="sub" style="margin-bottom:1rem">Escolha um concurso para gerar seu plano de estudos. Use <strong>Comparar</strong> para saber se dá para conciliar dois editais.</p>';
+    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">CatÃ¡logo</span><h1>Planos disponÃ­veis</h1></div></div>' +
+      '<p class="sub" style="margin-bottom:1rem">Escolha um concurso para gerar seu plano de estudos. Use <strong>Comparar</strong> para saber se dÃ¡ para conciliar dois editais.</p>';
     if (lista.length === 0) {
-      html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum plano disponível ainda</strong>' +
-        'Não encontrou seu concurso? Peça o cadastro ao suporte.' +
-        '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
+      html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum plano disponÃ­vel ainda</strong>' +
+        'NÃ£o encontrou seu concurso? PeÃ§a o cadastro ao suporte.' +
+        '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>âœ‰ Pedir um edital</button></p></div>';
       return html;
     }
     html += '<div class="catalogo-grade">' + lista.map(catalogoCard).join('') + '</div>';
@@ -2802,14 +2816,14 @@
       }).join('');
       return '<select data-cat-filtro="' + campo + '" title="' + rotulo + '"><option value="">' + rotulo + '</option>' + opts + '</select>';
     }
-    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de editais</span><h1>Planos</h1></div></div>' +
+    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">CatÃ¡logo de editais</span><h1>Planos</h1></div></div>' +
       '<div class="catalogo-toolbar">' +
       '<input id="cat-busca" type="search" placeholder="Pesquisar edital" value="' + esc(catalogoFiltro.busca || '') + '">' +
-      '<div class="catalogo-filtros">' + selectFiltro('orgao', 'Órgão') + selectFiltro('cargo', 'Cargo') + selectFiltro('estado', 'Estado') +
+      '<div class="catalogo-filtros">' + selectFiltro('orgao', 'Ã“rgÃ£o') + selectFiltro('cargo', 'Cargo') + selectFiltro('estado', 'Estado') +
       '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
     if (lista.length === 0) {
       html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum edital encontrado</strong>' +
-        '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
+        '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>âœ‰ Pedir um edital</button></p></div>';
       return html;
     }
     html += '<div class="catalogo-grade">' + lista.map(catalogoCardCompacto).join('') + '</div>';
@@ -2859,17 +2873,17 @@
       const cor = /^#/.test(d.cor || '') ? d.cor : '#6B7180';
       return '<div class="detalhe-disc"><div class="detalhe-disc-cab">' +
         '<span class="tag-disc" style="background:' + esc(cor) + '22;color:' + esc(cor) + '">' + esc(d.nome) + '</span>' +
-        '<span class="sub">peso ' + (d.peso || 1) + ' · ' + (d.topicos || []).length + ' tópicos</span></div>' +
-        '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">Incid.</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
+        '<span class="sub">peso ' + (d.peso || 1) + ' Â· ' + (d.topicos || []).length + ' tÃ³picos</span></div>' +
+        '<table class="tabela-topicos"><thead><tr><th>TÃ³pico</th><th class="num">Incid.</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
     }).join('');
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     const m = abrirModal('<h3>' + esc(e.titulo) + '</h3>' +
-      '<p class="sub">' + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
+      '<p class="sub">' + esc(e.banca || 'banca nÃ£o informada') + (e.orgao ? ' Â· ' + esc(e.orgao) : '') + (e.cargo ? ' Â· ' + esc(e.cargo) : '') + '</p>' +
       '<div class="catalogo-metricas" style="margin:0.5rem 0">' +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
-      metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica('NÃ­vel', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Prova', esc(janelaProvaTexto(e))) +
-      metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
+      metrica('EsforÃ§o', '~' + horasEsforcoEdital(e) + 'h') +
       '</div>' +
       '<div class="detalhe-discs">' + discHtml + '</div>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
@@ -2881,18 +2895,18 @@
 
   function vereditoConciliacaoHtml(res) {
     const cores = { alta: 'verde', moderada: 'amarelo', baixa: 'alerta', nao_recomendado: 'vermelho' };
-    const rotulos = { alta: 'Compatibilidade alta', moderada: 'Compatibilidade moderada', baixa: 'Compatibilidade baixa', nao_recomendado: 'Não recomendado' };
+    const rotulos = { alta: 'Compatibilidade alta', moderada: 'Compatibilidade moderada', baixa: 'Compatibilidade baixa', nao_recomendado: 'NÃ£o recomendado' };
     const d = res.detalhes;
     function item(rot, val) { return '<div><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></div>'; }
     return '<div class="conciliar-veredito conciliar-' + cores[res.nivel] + '"><strong>' + rotulos[res.nivel] + '</strong>' +
       '<p>' + esc(res.mensagem) + '</p></div>' +
       '<div class="conciliar-grid">' +
       item('Disciplinas em comum', d.nDisciplinasComuns) +
-      item('Tópicos em comum', d.topicosComuns + ' (' + d.overlapPct + '%)') +
+      item('TÃ³picos em comum', d.topicosComuns + ' (' + d.overlapPct + '%)') +
       item('Exclusivos de cada', d.exclusivosA + ' / ' + d.exclusivosB) +
       item('Carga semanal exigida', '~' + d.exigidaSemana + 'h') +
-      item('Você tem por semana', '~' + d.horasSemana + 'h') +
-      item('Até a prova mais próxima', d.provaDefinida ? '≈' + d.semanasDisponiveis + ' sem' : 'sem data') +
+      item('VocÃª tem por semana', '~' + d.horasSemana + 'h') +
+      item('AtÃ© a prova mais prÃ³xima', d.provaDefinida ? 'â‰ˆ' + d.semanasDisponiveis + ' sem' : 'sem data') +
       '</div>' +
       (d.disciplinasComuns.length ? '<p class="sub" style="margin-top:0.5rem">Em comum: ' + esc(d.disciplinasComuns.join(', ')) + '</p>' : '');
   }
@@ -2903,11 +2917,11 @@
     if (!edA || lista.length < 2) { toast('Cadastre pelo menos dois editais para comparar.', 'erro'); return; }
     const outros = lista.filter(function (x) { return x.id !== edA.id; });
     const opts = outros.map(function (x) { return '<option value="' + esc(x.id) + '">' + esc(x.titulo) + '</option>'; }).join('');
-    const m = abrirModal('<h3>Dá para conciliar?</h3>' +
+    const m = abrirModal('<h3>DÃ¡ para conciliar?</h3>' +
       '<p class="sub">Compara <strong>' + esc(edA.titulo) + '</strong> com outro edital e estima a viabilidade pela sua rotina (~' + horasSemanaDisponiveis() + 'h/semana).</p>' +
       '<label for="cmp-b">Comparar com</label><select id="cmp-b">' + opts + '</select>' +
       '<div id="cmp-resultado" style="margin-top:0.75rem"></div>' +
-      '<p class="sub" style="margin-top:0.6rem">O plano combinado une os dois editais num só cronograma, sem tópicos repetidos. O calendário adaptativo distribui os blocos dentro da sua rotina.</p>' +
+      '<p class="sub" style="margin-top:0.6rem">O plano combinado une os dois editais num sÃ³ cronograma, sem tÃ³picos repetidos. O calendÃ¡rio adaptativo distribui os blocos dentro da sua rotina.</p>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="cmp-fechar">Fechar</button>' +
       '<button id="cmp-combinar">Gerar plano combinado</button></div>');
     m.classList.add('modal-amplo');
@@ -2925,7 +2939,7 @@
       if (!edB) return;
       const r = D.conciliarPlanos(edA, edB, { horasSemana: horasSemanaDisponiveis() });
       if (r.nivel === 'nao_recomendado') {
-        confirmar({ titulo: 'Compatibilidade baixa', mensagem: 'Seriam ~' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis. Gerar o plano combinado mesmo assim?', confirmar: 'Gerar mesmo assim', icone: '⚠️' }).then(function (ok) {
+        confirmar({ titulo: 'Compatibilidade baixa', mensagem: 'Seriam ~' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponÃ­veis. Gerar o plano combinado mesmo assim?', confirmar: 'Gerar mesmo assim', icone: 'âš ï¸' }).then(function (ok) {
           if (ok) gerarPlanoCombinado(edA, edB);
         });
         return;
@@ -2935,7 +2949,7 @@
     recalc();
   }
 
-  // Une dois editais conciliáveis num plano único e gera o cronograma adaptativo.
+  // Une dois editais conciliÃ¡veis num plano Ãºnico e gera o cronograma adaptativo.
   function gerarPlanoCombinado(edA, edB) {
     const comb = D.combinarEditais(edA, edB);
     gerarIdsEdital(comb.disciplinas);
@@ -2948,7 +2962,7 @@
     fecharModal();
     criarPlanoDeEdital(reg.id); // valida, cria o plano, ativa e abre o ajuste de rotina
     // marca o plano como combinado (a aba Edital usa isso para mostrar
-    // compatibilidade + tags de origem — só quando há de fato 2 concursos)
+    // compatibilidade + tags de origem â€” sÃ³ quando hÃ¡ de fato 2 concursos)
     if (state.plano) {
       const compat = D.conciliarPlanos(edA, edB, { horasSemana: horasSemanaDisponiveis() });
       state.plano.combinado = {
@@ -2961,7 +2975,7 @@
     }
   }
 
-  // ================= Editor/conferência de edital (admin) =================
+  // ================= Editor/conferÃªncia de edital (admin) =================
   let editorEdital = null;
 
   function topicoEmBranco() {
@@ -2974,7 +2988,7 @@
     return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
   }
 
-  const LISTAS_CORTE = { ampla: 'Ampla concorrência', negros: 'Cota negros', pcd: 'Cota PcD', indigenas: 'Cota indígenas' };
+  const LISTAS_CORTE = { ampla: 'Ampla concorrÃªncia', negros: 'Cota negros', pcd: 'Cota PcD', indigenas: 'Cota indÃ­genas' };
   function normalizarListaCorte(v) {
     const s = String(v || '').toLowerCase();
     if (s.indexOf('negr') >= 0) return 'negros';
@@ -2983,8 +2997,8 @@
     return 'ampla';
   }
 
-  // Lê uma imagem e devolve um data URL já redimensionado (evita estourar o
-  // localStorage / a sincronização com fotos gigantes).
+  // LÃª uma imagem e devolve um data URL jÃ¡ redimensionado (evita estourar o
+  // localStorage / a sincronizaÃ§Ã£o com fotos gigantes).
   function arquivoParaImagemData(file, max) {
     return new Promise(function (resolve, reject) {
       const fr = new FileReader();
@@ -3032,7 +3046,7 @@
   }
 
   function siglaDe(nome) {
-    const limpo = String(nome || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, '');
+    const limpo = String(nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, '');
     const palavras = limpo.split(/\s+/).filter(Boolean);
     let s = palavras.length >= 2 ? palavras.map(function (p) { return p[0]; }).join('') : limpo.replace(/\s/g, '');
     s = s.slice(0, 4);
@@ -3061,24 +3075,24 @@
       return '<option value="' + k + '"' + (e.nivel === k ? ' selected' : '') + '>' + NIVEIS_EDITAL[k] + '</option>';
     }).join('');
     let h = '<div class="grade-2">' +
-      '<div><label>Nome do edital</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
+      '<div><label>Nome do edital</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: TRF3 TÃ©cnico JudiciÃ¡rio 2026"></div>' +
       '<div><label>Banca</label><input id="ee-banca" type="text" value="' + esc(e.banca) + '" placeholder="Ex.: FCC"></div></div>' +
       '<div class="grade-3">' +
-      '<div><label>Órgão</label><input id="ee-orgao" type="text" value="' + esc(e.orgao) + '"></div>' +
+      '<div><label>Ã“rgÃ£o</label><input id="ee-orgao" type="text" value="' + esc(e.orgao) + '"></div>' +
       '<div><label>Cargo</label><input id="ee-cargo" type="text" value="' + esc(e.cargo) + '"></div>' +
-      '<div><label>Área</label><input id="ee-area" type="text" value="' + esc(e.area || '') + '" placeholder="Ex.: Administrativa"></div></div>' +
+      '<div><label>Ãrea</label><input id="ee-area" type="text" value="' + esc(e.area || '') + '" placeholder="Ex.: Administrativa"></div></div>' +
       '<div class="grade-3">' +
       '<div><label>Estado (UF)</label><input id="ee-estado" type="text" maxlength="2" value="' + esc(e.estado) + '" style="text-transform:uppercase"></div>' +
-      '<div><label>Nível de dificuldade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
+      '<div><label>NÃ­vel de dificuldade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
       '<div><label>Nota de corte (%)</label><input id="ee-corte" type="number" min="0" max="100" value="' + (e.notaCorte || 70) + '"></div></div>' +
       '<div class="grade-3">' +
       '<div><label>Lista da nota de corte</label><select id="ee-corte-lista">' +
       Object.keys(LISTAS_CORTE).map(function (k) { return '<option value="' + k + '"' + (normalizarListaCorte(e.tipoCorte) === k ? ' selected' : '') + '>' + LISTAS_CORTE[k] + '</option>'; }).join('') +
       '</select></div>' +
-      '<div><label>Janela da prova — início</label><input id="ee-janela-ini" type="month" value="' + esc(e.janelaProva.inicio) + '"></div>' +
-      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>' +
+      '<div><label>Janela da prova â€” inÃ­cio</label><input id="ee-janela-ini" type="month" value="' + esc(e.janelaProva.inicio) + '"></div>' +
+      '<div><label>Janela da prova â€” fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>' +
       '<div class="grade-3">' +
-      '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>';
+      '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catÃ¡logo</label></div></div>';
 
     h += '<div class="ee-foto-campo"><label>Foto / capa do plano (aparece na aba Planos)</label>' +
       '<div class="ee-foto-linha">' +
@@ -3095,19 +3109,19 @@
         '<input class="ed-d-cor" data-di="' + di + '" type="color" value="' + esc(/^#/.test(d.cor) ? d.cor : '#3B82F6') + '" title="Cor">' +
         '<label class="mini-rot">peso<input class="ed-d-peso" data-di="' + di + '" type="number" min="1" max="5" value="' + (d.peso || 1) + '"></label>' +
         '<select class="ed-d-dif" data-di="' + di + '">' +
-        ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
+        ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'FÃ¡cil' : k === 'media' ? 'MÃ©dia' : 'DifÃ­cil') + '</option>'; }).join('') +
         '</select>' +
         '<button class="botao-mini botao-quieto" data-rem-disc="' + di + '">remover</button></div>' +
-        '<table class="editor-topicos"><thead><tr><th>Tópico</th><th>Incid.%</th><th>Prior.</th><th>Horas</th><th></th></tr></thead><tbody>';
+        '<table class="editor-topicos"><thead><tr><th>TÃ³pico</th><th>Incid.%</th><th>Prior.</th><th>Horas</th><th></th></tr></thead><tbody>';
       d.topicos.forEach(function (t, ti) {
         h += '<tr>' +
           '<td><input class="ed-t-nome" data-di="' + di + '" data-ti="' + ti + '" type="text" value="' + esc(t.nome) + '"></td>' +
           '<td><input class="ed-t-inc" data-di="' + di + '" data-ti="' + ti + '" type="number" min="0" max="100" value="' + (t.incidencia_pct || 0) + '"></td>' +
           '<td><input class="ed-t-pri" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="3" value="' + (t.prioridade || 2) + '"></td>' +
           '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="40" value="' + (t.horas_estimadas || 2) + '"></td>' +
-          '<td><button class="botao-mini botao-quieto" data-rem-top="' + di + '_' + ti + '" title="Remover tópico">×</button></td></tr>';
+          '<td><button class="botao-mini botao-quieto" data-rem-top="' + di + '_' + ti + '" title="Remover tÃ³pico">Ã—</button></td></tr>';
       });
-      h += '</tbody></table><button class="botao-mini botao-quieto" data-add-top="' + di + '">+ tópico</button></div>';
+      h += '</tbody></table><button class="botao-mini botao-quieto" data-add-top="' + di + '">+ tÃ³pico</button></div>';
     });
     h += '</div>';
     h += '<button class="botao-secundario botao-mini" id="ee-add-disc">+ Adicionar disciplina</button>';
@@ -3224,8 +3238,8 @@
     editorEdital = normalizarEditalParaEditor(baseObj);
     editorEdital._editId = (!dadosImport && editalId && !baseObj._global) ? editalId : null;
     editorEdital._globalId = (!dadosImport && editalId && baseObj._global) ? editalId : null;
-    const titulo = modo === 'conferencia' ? 'Conferência da importação' : (editorEdital._editId ? 'Editar edital' : 'Novo edital');
-    const dica = modo === 'conferencia' ? '<p class="sub">Confira as disciplinas, pesos e incidências sugeridos. Ajuste o que precisar e confirme.</p>' : '';
+    const titulo = modo === 'conferencia' ? 'ConferÃªncia da importaÃ§Ã£o' : (editorEdital._editId ? 'Editar edital' : 'Novo edital');
+    const dica = modo === 'conferencia' ? '<p class="sub">Confira as disciplinas, pesos e incidÃªncias sugeridos. Ajuste o que precisar e confirme.</p>' : '';
     const m = abrirModal('<h3>' + titulo + '</h3>' + dica +
       '<div id="editor-body">' + editorEditalBody() + '</div>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="editor-cancelar">Cancelar</button>' +
@@ -3240,15 +3254,15 @@
     if (!usuarioAdmin()) { toast('Apenas o administrador pode salvar editais.', 'erro'); return; }
     sincronizarEditorDoDom(m.querySelector('#editor-body'));
     const e = editorEdital;
-    if (!e.titulo) { toast('Dê um nome ao edital.', 'erro'); return; }
+    if (!e.titulo) { toast('DÃª um nome ao edital.', 'erro'); return; }
     const disciplinas = e.disciplinas
       .map(function (d) { return Object.assign({}, d, { topicos: (d.topicos || []).filter(function (t) { return (t.nome || '').trim(); }) }); })
       .filter(function (d) { return (d.nome || '').trim() && d.topicos.length; });
-    if (!disciplinas.length) { toast('Adicione ao menos uma disciplina com um tópico.', 'erro'); return; }
+    if (!disciplinas.length) { toast('Adicione ao menos uma disciplina com um tÃ³pico.', 'erro'); return; }
     gerarIdsEdital(disciplinas);
     const teste = { versao: 1, plano: { concurso: e.titulo, banca: e.banca, meta: { corte_pct: e.notaCorte } }, disciplinas: disciplinas };
     const v = D.validarPlano(teste);
-    if (!v.ok) { toast('Não consegui validar: ' + v.erros[0], 'erro'); return; }
+    if (!v.ok) { toast('NÃ£o consegui validar: ' + v.erros[0], 'erro'); return; }
     const registro = {
       titulo: e.titulo, banca: e.banca, orgao: e.orgao, cargo: e.cargo, area: e.area,
       estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte), emAlta: e.emAlta,
@@ -3269,30 +3283,30 @@
     publicarCatalogoAdmin({ toast: true });
     fecharModal();
     render();
-    toast('Edital salvo: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
+    toast('Edital salvo: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tÃ³picos', 'sucesso');
   }
 
   const PROMPT_EDITAL_BRUTO = [
-    'Você é um especialista em concursos públicos. Vou colar o conteúdo programático de um edital.',
+    'VocÃª Ã© um especialista em concursos pÃºblicos. Vou colar o conteÃºdo programÃ¡tico de um edital.',
     'Sua tarefa: transformar esse edital bruto em um JSON estruturado para um app de estudos.',
     '',
     'Regras:',
-    '- Identifique cargo, banca, órgão e área.',
-    '- Liste as disciplinas e, dentro de cada uma, os tópicos do edital.',
-    '- Quebre leis grandes em 2–3 tópicos de 2 a 9 horas de estudo cada.',
-    '- Para cada tópico estime "incidencia_pct" (0 a 100) pelo histórico da banca; se não souber, use 0.',
-    '- "prioridade": 1 (essencial), 2 (importante) ou 3 (periférico).',
+    '- Identifique cargo, banca, Ã³rgÃ£o e Ã¡rea.',
+    '- Liste as disciplinas e, dentro de cada uma, os tÃ³picos do edital.',
+    '- Quebre leis grandes em 2â€“3 tÃ³picos de 2 a 9 horas de estudo cada.',
+    '- Para cada tÃ³pico estime "incidencia_pct" (0 a 100) pelo histÃ³rico da banca; se nÃ£o souber, use 0.',
+    '- "prioridade": 1 (essencial), 2 (importante) ou 3 (perifÃ©rico).',
     '- "peso" da disciplina: 1 a 3 conforme o peso na prova.',
-    '- Sugira a nota de corte estimada (%) e a janela provável da prova (mês/ano).',
-    '- Responda APENAS com o JSON, sem comentários, exatamente neste formato:',
+    '- Sugira a nota de corte estimada (%) e a janela provÃ¡vel da prova (mÃªs/ano).',
+    '- Responda APENAS com o JSON, sem comentÃ¡rios, exatamente neste formato:',
     '',
     '{',
     '  "versao": 1,',
-    '  "plano": { "concurso": "Órgão — Cargo", "banca": "FCC", "meta": { "corte_pct": 75 } },',
+    '  "plano": { "concurso": "Ã“rgÃ£o â€” Cargo", "banca": "FCC", "meta": { "corte_pct": 75 } },',
     '  "disciplinas": [',
-    '    { "id": "POR", "nome": "Língua Portuguesa", "cor": "#3B82F6", "peso": 2, "base_teorica": "pdf",',
+    '    { "id": "POR", "nome": "LÃ­ngua Portuguesa", "cor": "#3B82F6", "peso": 2, "base_teorica": "pdf",',
     '      "topicos": [',
-    '        { "id": "POR-01", "nome": "Interpretação de texto", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 4 }',
+    '        { "id": "POR-01", "nome": "InterpretaÃ§Ã£o de texto", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 4 }',
     '      ] }',
     '  ]',
     '}',
@@ -3302,7 +3316,7 @@
   ].join('\n');
 
   function abrirPromptEditalBruto() {
-    const m = abrirModal('<h3>Organizar edital bruto com IA (grátis)</h3>' +
+    const m = abrirModal('<h3>Organizar edital bruto com IA (grÃ¡tis)</h3>' +
       '<p class="sub">Abra uma IA gratuita, cole o texto do edital com o prompt abaixo e traga o JSON de volta em "Importar JSON / planilha".</p>' +
       '<div class="modal-acoes" style="justify-content:flex-start">' +
       '<a class="botao-secundario botao-mini" href="https://claude.ai/new" target="_blank" rel="noopener">Abrir Claude.ai</a>' +
@@ -3359,13 +3373,13 @@
     if (ritmo) ritmo.addEventListener('change', function () {
       state.plano.ritmoAtivo = ritmo.value;
       salvar(); render();
-      toast('Ritmo alterado para ' + (ritmo.value === 'hardcore' ? 'hardcore 120 dias' : 'sustentável'), 'sucesso');
+      toast('Ritmo alterado para ' + (ritmo.value === 'hardcore' ? 'hardcore 120 dias' : 'sustentÃ¡vel'), 'sucesso');
     });
     const metaQ = raiz.querySelector('#aj-meta-q');
     if (metaQ) metaQ.addEventListener('change', function () {
       state.config.metaQuestoesSemana = Math.max(0, parseInt(metaQ.value, 10) || 0);
       salvar();
-      toast('Meta de questões atualizada', 'sucesso');
+      toast('Meta de questÃµes atualizada', 'sucesso');
     });
     const nomeUsuarioEl = raiz.querySelector('#aj-nome-usuario');
     if (nomeUsuarioEl) nomeUsuarioEl.addEventListener('change', function () {
@@ -3384,7 +3398,7 @@
         });
         return;
       }
-      if (!window.Sync) { toast('Sincronização indisponível neste navegador.', 'erro'); return; }
+      if (!window.Sync) { toast('SincronizaÃ§Ã£o indisponÃ­vel neste navegador.', 'erro'); return; }
       syncAgora.disabled = true;
       window.Sync.sincronizarAgora({ silencioso: false }).finally(function () {
         syncAgora.disabled = false;
@@ -3394,10 +3408,10 @@
     });
     const fbLogin = raiz.querySelector('#fb-login');
     if (fbLogin) fbLogin.addEventListener('click', function () {
-      if (!window.FirebaseSync) { toast('Firebase ainda está carregando. Tente de novo em alguns segundos.', 'erro'); return; }
+      if (!window.FirebaseSync) { toast('Firebase ainda estÃ¡ carregando. Tente de novo em alguns segundos.', 'erro'); return; }
       fbLogin.disabled = true;
       window.FirebaseSync.login().catch(function () {
-        toast('Não consegui entrar com Google. Confira Auth e domínio autorizado no Firebase.', 'erro');
+        toast('NÃ£o consegui entrar com Google. Confira Auth e domÃ­nio autorizado no Firebase.', 'erro');
       }).finally(function () {
         fbLogin.disabled = false;
       });
@@ -3406,7 +3420,7 @@
     if (fbLogout) fbLogout.addEventListener('click', function () {
       if (!window.FirebaseSync) return;
       window.FirebaseSync.logout().catch(function () {
-        toast('Não consegui sair do Firebase.', 'erro');
+        toast('NÃ£o consegui sair do Firebase.', 'erro');
       });
     });
 
@@ -3430,7 +3444,7 @@
     ligarEditaisEsquematizados(raiz);
 
     raiz.querySelector('#zr-limpar').addEventListener('click', function () {
-      confirmar({ titulo: 'Apagar todos os dados?', mensagem: 'Plano, sessões, revisões e simulados serão apagados — e isso também sobrescreve os dados sincronizados no Firebase. Esta ação não tem volta.', confirmar: 'Apagar tudo', perigo: true, icone: '⚠️' }).then(function (ok) {
+      confirmar({ titulo: 'Apagar todos os dados?', mensagem: 'Plano, sessÃµes, revisÃµes e simulados serÃ£o apagados â€” e isso tambÃ©m sobrescreve os dados sincronizados no Firebase. Esta aÃ§Ã£o nÃ£o tem volta.', confirmar: 'Apagar tudo', perigo: true, icone: 'âš ï¸' }).then(function (ok) {
         if (!ok) return;
         state = window.Store.estadoVazio();
         state.config.apagadoEm = new Date().toISOString();
@@ -3443,9 +3457,9 @@
   // ---------------- TELA: Planejamento (agenda manual) ----------------
   let agendaModo = 'semana';                       // 'semana' | 'mes'
   let agendaRef = D.segundaDaSemana(D.hojeISO());  // segunda da semana exibida
-  let mesRef = D.hojeISO().slice(0, 7);            // 'AAAA-MM' do mês exibido
+  let mesRef = D.hojeISO().slice(0, 7);            // 'AAAA-MM' do mÃªs exibido
 
-  const DIAS_CURTOS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  const DIAS_CURTOS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SÃ¡b', 'Dom'];
   const ROTINA_DIAS = [
     { id: 'dom', label: 'DOM', offset: 6, ativo: false, minutos: 120 },
     { id: 'seg', label: 'SEG', offset: 0, ativo: true, minutos: 180 },
@@ -3453,10 +3467,10 @@
     { id: 'qua', label: 'QUA', offset: 2, ativo: true, minutos: 180 },
     { id: 'qui', label: 'QUI', offset: 3, ativo: true, minutos: 120 },
     { id: 'sex', label: 'SEX', offset: 4, ativo: true, minutos: 180 },
-    { id: 'sab', label: 'SÁB', offset: 5, ativo: true, minutos: 180 }
+    { id: 'sab', label: 'SÃB', offset: 5, ativo: true, minutos: 180 }
   ];
 
-  // RN-Antifadiga (Regra 1): blocos permitidos — 30min, 45min, 1h, 1h15, 1h30, 2h
+  // RN-Antifadiga (Regra 1): blocos permitidos â€” 30min, 45min, 1h, 1h15, 1h30, 2h
   const TEMPOS_BLOCO = [30, 45, 60, 75, 90, 120];
 
   function rotuloBloco(min) {
@@ -3526,7 +3540,7 @@
   function blocosDoDia(diaISO) {
     return doAtivo(state.agenda).filter(function (a) { return a.data === diaISO; }).sort(compararAgenda);
   }
-  // grava a ordem explícita (0,1,2,…) de todos os blocos do dia
+  // grava a ordem explÃ­cita (0,1,2,â€¦) de todos os blocos do dia
   function renumerarDia(diaISO) {
     blocosDoDia(diaISO).forEach(function (b, i) { b.ordem = i; });
   }
@@ -3546,7 +3560,7 @@
       };
       state.agenda.push(bloco);
     } else { return false; }
-    // recompõe a ordem do dia inserindo o bloco na posição do alvo
+    // recompÃµe a ordem do dia inserindo o bloco na posiÃ§Ã£o do alvo
     const ordenados = blocosDoDia(diaISO).filter(function (b) { return b.id !== bloco.id; });
     let pos = ordenados.length;
     if (alvoId) { const i = ordenados.findIndex(function (b) { return b.id === alvoId; }); if (i >= 0) pos = i; }
@@ -3559,7 +3573,7 @@
   function registrarDeAgenda(blocoAg) {
     const disc = D.disciplinaPorId(state, blocoAg.disciplinaId);
     const topId = blocoAg.topicoId || (disc && disc.topicos.length > 0 ? disc.topicos[0].id : null);
-    if (!topId) { toast('Esta disciplina não tem tópicos — edite o bloco.', 'erro'); return; }
+    if (!topId) { toast('Esta disciplina nÃ£o tem tÃ³picos â€” edite o bloco.', 'erro'); return; }
     abrirRegistro({
       topicoId: topId,
       duracaoMin: blocoAg.duracaoMin || 30,
@@ -3575,27 +3589,27 @@
   function abrirNovoBlocoAgenda(dataISO, discIni) {
     if (state.disciplinas.length === 0) { abrirNovaDisciplina(); return; }
     const optsDisc = state.disciplinas.map(function (d) {
-      return '<option value="' + esc(d.id) + '"' + (d.id === discIni ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
+      return '<option value="' + esc(d.id) + '"' + (d.id === discIni ? ' selected' : '') + '>' + esc(d.id + ' â€” ' + d.nome) + '</option>';
     }).join('');
     const m = abrirModal(
       '<h3>Novo bloco de estudo</h3>' +
       '<form id="form-agd">' +
       '<div class="grade-2">' +
       '<div><label for="agd-data">Dia</label><input id="agd-data" type="date" value="' + esc(dataISO) + '" required></div>' +
-      '<div><label for="agd-dur">Duração (min)</label><input id="agd-dur" type="number" min="5" max="600" value="60"></div></div>' +
+      '<div><label for="agd-dur">DuraÃ§Ã£o (min)</label><input id="agd-dur" type="number" min="5" max="600" value="60"></div></div>' +
       '<label for="agd-disc">Disciplina</label><select id="agd-disc">' + optsDisc + '</select>' +
-      '<label for="agd-topico">Tópico (opcional)</label><select id="agd-topico"></select>' +
-      '<label for="agd-obs">Anotação (opcional)</label><input id="agd-obs" type="text" placeholder="Ex.: cap. 3 do PDF">' +
+      '<label for="agd-topico">TÃ³pico (opcional)</label><select id="agd-topico"></select>' +
+      '<label for="agd-obs">AnotaÃ§Ã£o (opcional)</label><input id="agd-obs" type="text" placeholder="Ex.: cap. 3 do PDF">' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="agd-cancelar">Cancelar</button>' +
-      '<button type="submit">Adicionar à agenda</button></div></form>'
+      '<button type="submit">Adicionar Ã  agenda</button></div></form>'
     );
     const selDisc = m.querySelector('#agd-disc');
     const selTop = m.querySelector('#agd-topico');
     function preencher() {
       const d = D.disciplinaPorId(state, selDisc.value);
-      selTop.innerHTML = '<option value="">— disciplina inteira —</option>' +
+      selTop.innerHTML = '<option value="">â€” disciplina inteira â€”</option>' +
         (d ? d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
-          return '<option value="' + esc(t.id) + '">' + esc(t.id + ' — ' + t.nome) + '</option>';
+          return '<option value="' + esc(t.id) + '">' + esc(t.id + ' â€” ' + t.nome) + '</option>';
         }).join('') : '');
     }
     preencher();
@@ -3613,7 +3627,7 @@
         feito: false
       });
       salvar(); fecharModal(); render();
-      toast('Bloco adicionado à agenda', 'sucesso');
+      toast('Bloco adicionado Ã  agenda', 'sucesso');
     });
   }
 
@@ -3621,30 +3635,30 @@
     const a = state.agenda.find(function (x) { return x.id === id; });
     if (!a) return;
     const optsDisc = state.disciplinas.map(function (d) {
-      return '<option value="' + esc(d.id) + '"' + (d.id === a.disciplinaId ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
+      return '<option value="' + esc(d.id) + '"' + (d.id === a.disciplinaId ? ' selected' : '') + '>' + esc(d.id + ' â€” ' + d.nome) + '</option>';
     }).join('');
     const m = abrirModal(
       '<h3>Bloco da agenda</h3>' +
       '<form id="form-agd-ed">' +
       '<div class="grade-2">' +
       '<div><label for="agde-data">Dia</label><input id="agde-data" type="date" value="' + esc(a.data) + '" required></div>' +
-      '<div><label for="agde-dur">Duração (min)</label><input id="agde-dur" type="number" min="5" max="600" value="' + (a.duracaoMin || 60) + '"></div></div>' +
+      '<div><label for="agde-dur">DuraÃ§Ã£o (min)</label><input id="agde-dur" type="number" min="5" max="600" value="' + (a.duracaoMin || 60) + '"></div></div>' +
       '<label for="agde-disc">Disciplina</label><select id="agde-disc">' + optsDisc + '</select>' +
-      '<label for="agde-topico">Tópico (opcional)</label><select id="agde-topico"></select>' +
-      '<label for="agde-obs">Anotação</label><input id="agde-obs" type="text" value="' + esc(a.obs || '') + '">' +
+      '<label for="agde-topico">TÃ³pico (opcional)</label><select id="agde-topico"></select>' +
+      '<label for="agde-obs">AnotaÃ§Ã£o</label><input id="agde-obs" type="text" value="' + esc(a.obs || '') + '">' +
       '<div class="modal-acoes" style="justify-content:space-between">' +
       '<button type="button" class="botao-perigo botao-mini" id="agde-excluir">Excluir</button>' +
       '<span style="display:flex;gap:0.6rem;flex-wrap:wrap">' +
-      (a.feito ? '' : '<button type="button" class="botao-secundario" id="agde-registrar">Registrar sessão</button>') +
+      (a.feito ? '' : '<button type="button" class="botao-secundario" id="agde-registrar">Registrar sessÃ£o</button>') +
       '<button type="submit">Salvar</button></span></div></form>'
     );
     const selDisc = m.querySelector('#agde-disc');
     const selTop = m.querySelector('#agde-topico');
     function preencher() {
       const d = D.disciplinaPorId(state, selDisc.value);
-      selTop.innerHTML = '<option value="">— disciplina inteira —</option>' +
+      selTop.innerHTML = '<option value="">â€” disciplina inteira â€”</option>' +
         (d ? d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
-          return '<option value="' + esc(t.id) + '"' + (t.id === a.topicoId ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
+          return '<option value="' + esc(t.id) + '"' + (t.id === a.topicoId ? ' selected' : '') + '>' + esc(t.id + ' â€” ' + t.nome) + '</option>';
         }).join('') : '');
     }
     preencher();
@@ -3674,11 +3688,11 @@
     const cor = cores[state.disciplinas.length % cores.length];
     const m = abrirModal(
       '<h3>Nova disciplina (manual)</h3>' +
-      '<p style="font-size:0.85rem;color:var(--grafite)">Para organizar seus estudos sem plano importado. Ela ganha um tópico "Geral" para registrar sessões.</p>' +
+      '<p style="font-size:0.85rem;color:var(--grafite)">Para organizar seus estudos sem plano importado. Ela ganha um tÃ³pico "Geral" para registrar sessÃµes.</p>' +
       '<form id="form-disc">' +
       '<label for="nd-nome">Nome</label><input id="nd-nome" type="text" placeholder="Ex.: Direito Constitucional" required maxlength="60">' +
       '<div class="grade-2">' +
-      '<div><label for="nd-sigla">Sigla (2–4 letras)</label><input id="nd-sigla" type="text" maxlength="4" style="text-transform:uppercase" placeholder="CON" required></div>' +
+      '<div><label for="nd-sigla">Sigla (2â€“4 letras)</label><input id="nd-sigla" type="text" maxlength="4" style="text-transform:uppercase" placeholder="CON" required></div>' +
       '<div><label for="nd-cor">Cor</label><input id="nd-cor" type="color" value="' + cor + '"></div></div>' +
       '<div class="msg-erro oculto" id="nd-erro"></div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="nd-cancelar">Cancelar</button>' +
@@ -3688,7 +3702,7 @@
     const siglaEl = m.querySelector('#nd-sigla');
     nomeEl.addEventListener('input', function () {
       if (siglaEl.dataset.editada) return;
-      siglaEl.value = nomeEl.value.replace(/[^A-Za-zÀ-ú]/g, '').slice(0, 3).toUpperCase();
+      siglaEl.value = nomeEl.value.replace(/[^A-Za-z\u00C0-\u017F]/g, '').slice(0, 3).toUpperCase();
     });
     siglaEl.addEventListener('input', function () { siglaEl.dataset.editada = '1'; });
     m.querySelector('#nd-cancelar').addEventListener('click', fecharModal);
@@ -3697,8 +3711,8 @@
       const erroEl = m.querySelector('#nd-erro');
       const nome = nomeEl.value.trim();
       const sigla = siglaEl.value.trim().toUpperCase();
-      if (!/^[A-ZÀ-Ú]{2,4}$/.test(sigla)) { erroEl.textContent = 'Sigla deve ter de 2 a 4 letras.'; erroEl.classList.remove('oculto'); return; }
-      if (D.disciplinaPorId(state, sigla)) { erroEl.textContent = 'Já existe uma disciplina com a sigla ' + sigla + '.'; erroEl.classList.remove('oculto'); return; }
+      if (!/^[A-Z\u00C0-\u017F]{2,4}$/.test(sigla)) { erroEl.textContent = 'Sigla deve ter de 2 a 4 letras.'; erroEl.classList.remove('oculto'); return; }
+      if (D.disciplinaPorId(state, sigla)) { erroEl.textContent = 'JÃ¡ existe uma disciplina com a sigla ' + sigla + '.'; erroEl.classList.remove('oculto'); return; }
       state.disciplinas.push({
         id: sigla, nome: nome, cor: m.querySelector('#nd-cor').value, peso: 1, base_teorica: 'pdf',
         topicos: [{ id: sigla + '-01', nome: 'Geral', incidencia_pct: 0, prioridade: 2, horas_estimadas: 0, semana_sugerida: null, status: 'pendente', reaberto: false, orfao: false }]
@@ -3710,12 +3724,12 @@
 
   function rotuloRitmo(chave, dados) {
     const mapa = {
-      sustentavel: 'Sustentável',
+      sustentavel: 'SustentÃ¡vel',
       hardcore: 'Hardcore',
       plano_ativo: 'Plano gerado',
       plano_3m: 'Intensivo',
       plano_6m: 'Regular',
-      plano_9m: 'Construção de base'
+      plano_9m: 'ConstruÃ§Ã£o de base'
     };
     let base;
     if (chave === 'plano_ativo' && dados && dados.meses) {
@@ -3725,7 +3739,7 @@
       base = mapa[chave] || chave.replace(/_/g, ' ');
     }
     const horas = dados && (dados.h_semana || dados.h_semana_exigidas);
-    return base + (horas ? ' · ' + horas + 'h/semana' : '');
+    return base + (horas ? ' Â· ' + horas + 'h/semana' : '');
   }
 
   function ritmosDisponiveis() {
@@ -3739,26 +3753,26 @@
     });
   }
 
-  // [Nome do Plano] + [Carga Horária Semanal] para exibir abaixo do Ritmo ativo
+  // [Nome do Plano] + [Carga HorÃ¡ria Semanal] para exibir abaixo do Ritmo ativo
   function nomePlanoComCarga(dados) {
     if (!dados) return '';
     const macro = dados.meses ? MACRO_PLANOS.find(function (p) { return p.meses === dados.meses; }) : null;
     const nome = macro ? 'Plano ' + macro.nome.split(' (')[0] : (state.plano ? state.plano.concurso : 'Plano');
     const horas = dados.h_semana || dados.h_semana_exigidas;
-    return nome + (horas ? ' · ' + horas + 'h por semana' : '');
+    return nome + (horas ? ' Â· ' + horas + 'h por semana' : '');
   }
 
   function planoAtualHtml() {
     if (!state.plano) {
       return '<div class="card planejamento-card plano-atual-card"><div class="card-kpi-rotulo">Plano atual</div>' +
-        '<h3>Sem plano ativo</h3><p class="sub">Escolha um edital disponível acima e o sistema gera seu plano personalizado — ou crie um plano manual.</p>' +
+        '<h3>Sem plano ativo</h3><p class="sub">Escolha um edital disponÃ­vel acima e o sistema gera seu plano personalizado â€” ou crie um plano manual.</p>' +
         '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
     }
     const progresso = D.progressoEdital(state);
     return '<div class="card planejamento-card plano-atual-card">' +
       '<div class="plano-atual-head"><div><div class="card-kpi-rotulo">Plano atual</div>' +
       '<h3>' + esc(state.plano.concurso) + '</h3>' +
-      '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
+      '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' Â· ' + state.disciplinas.length + ' disciplinas Â· ' + progresso.total + ' tÃ³picos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
       '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
       '<div class="compact-actions plano-acoes-card">' +
@@ -3768,7 +3782,7 @@
       '</div>';
   }
 
-  // Card próprio para ritmo ativo + geração do plano (logo abaixo do plano atual)
+  // Card prÃ³prio para ritmo ativo + geraÃ§Ã£o do plano (logo abaixo do plano atual)
   function ritmoCardHtml() {
     if (!state.plano) return '';
     const ritmos = ritmosDisponiveis();
@@ -3781,10 +3795,10 @@
     return '<div class="card planejamento-card ritmo-card">' +
       (temPlanoGerado
         ? '<label for="pl-ritmo">Ritmo ativo</label><select id="pl-ritmo">' + optsRitmo + '</select>'
-        : '<div class="card-kpi-rotulo">Plano de estudos</div><p class="sub" style="margin:0.2rem 0 0.6rem">Este plano ainda não tem cronograma gerado.</p>') +
+        : '<div class="card-kpi-rotulo">Plano de estudos</div><p class="sub" style="margin:0.2rem 0 0.6rem">Este plano ainda nÃ£o tem cronograma gerado.</p>') +
       '<div class="compact-actions">' +
       '<button class="botao-mini" id="pl-gerar-ritmos">Gerar plano de estudos</button>' +
-      // Regra: o botão de dificuldade só aparece depois que o plano é gerado
+      // Regra: o botÃ£o de dificuldade sÃ³ aparece depois que o plano Ã© gerado
       (temPlanoGerado ? '<button class="botao-mini botao-quieto" id="pl-ajustar-perfil">Dificuldades</button>' : '') +
       '</div>' +
       '</div>';
@@ -3794,10 +3808,10 @@
   const EMAIL_SUPORTE = 'casar70@gmail.com';
 
   function normalizarBusca(s) {
-    return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+    return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
   }
 
-  // opções únicas (Órgão / Cargo / Estado) presentes nos editais cadastrados
+  // opÃ§Ãµes Ãºnicas (Ã“rgÃ£o / Cargo / Estado) presentes nos editais cadastrados
   function valoresUnicosEditais(campo) {
     const set = new Set();
     editaisDoCatalogo().forEach(function (e) { if (e[campo]) set.add(e[campo]); });
@@ -3815,15 +3829,15 @@
     return true;
   }
 
-  // conteúdo da lista do modal (recalculado a cada mudança de filtro)
+  // conteÃºdo da lista do modal (recalculado a cada mudanÃ§a de filtro)
   function editaisListaHtml(filtro) {
     const lista = editaisDoCatalogo().filter(function (e) { return editalCorrespondeFiltro(e, filtro); });
     if (lista.length === 0) {
       return '<div class="estado-vazio editais-vazio"><span class="bolha bolha-pendente"></span>' +
         '<strong>Nenhum edital encontrado</strong>' +
-        'Não encontrou seu edital? Faça um pedido.' +
+        'NÃ£o encontrou seu edital? FaÃ§a um pedido.' +
         '<p style="margin-top:1rem">' +
-        '<button class="botao" type="button" data-pedir-edital-modal>✉ Pedir este edital</button></p></div>';
+        '<button class="botao" type="button" data-pedir-edital-modal>âœ‰ Pedir este edital</button></p></div>';
     }
     return lista.map(function (e) {
       const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
@@ -3834,14 +3848,14 @@
         '<span class="bolha bolha-' + (jaTem ? 'teoria_concluida' : 'pendente') + '"></span>' +
         '<div class="fila-info"><div class="fila-titulo">' + esc(e.titulo) + '</div>' +
         (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
-        '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
-        contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</div></div>' +
-        (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado ✓</span>' : '') +
+        '<div class="fila-sub">' + esc(e.banca || 'banca nÃ£o informada') + ' Â· ' + (e.disciplinas || []).length + ' disciplinas Â· ' +
+        contarTopicosEdital(e) + ' tÃ³picos Â· corte estimado ' + (e.notaCorte || 70) + '%</div></div>' +
+        (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado âœ“</span>' : '') +
         '</div>';
     }).join('');
   }
 
-  // Banco de dados de teste: editais de alta concorrência para popular os filtros.
+  // Banco de dados de teste: editais de alta concorrÃªncia para popular os filtros.
   function construirEditaisMock() {
     function t(id, nome, inc, h) {
       return { id: id, nome: nome, incidencia_pct: inc, prioridade: 2, horas_estimadas: h, semana_sugerida: null, status: 'pendente', reaberto: false, orfao: false };
@@ -3850,15 +3864,15 @@
       return { id: id, nome: nome, cor: cor, peso: peso, base_teorica: 'pdf', topicos: tops };
     }
     const base = [
-      disc('POR', 'Língua Portuguesa', '#3B82F6', 2, [t('por-01', 'Interpretação de texto', 30, 4), t('por-02', 'Crase e regência', 18, 3), t('por-03', 'Concordância', 16, 3)]),
-      disc('RLM', 'Raciocínio Lógico-Matemático', '#8B5CF6', 2, [t('rlm-01', 'Lógica proposicional', 22, 4), t('rlm-02', 'Análise combinatória', 14, 3)]),
-      disc('DCONST', 'Direito Constitucional', '#EF4444', 3, [t('dc-01', 'Direitos fundamentais', 28, 5), t('dc-02', 'Organização do Estado', 16, 4)]),
-      disc('DADM', 'Direito Administrativo', '#F59E0B', 3, [t('da-01', 'Atos administrativos', 24, 5), t('da-02', 'Licitações (Lei 14.133)', 26, 5)])
+      disc('POR', 'LÃ­ngua Portuguesa', '#3B82F6', 2, [t('por-01', 'InterpretaÃ§Ã£o de texto', 30, 4), t('por-02', 'Crase e regÃªncia', 18, 3), t('por-03', 'ConcordÃ¢ncia', 16, 3)]),
+      disc('RLM', 'RaciocÃ­nio LÃ³gico-MatemÃ¡tico', '#8B5CF6', 2, [t('rlm-01', 'LÃ³gica proposicional', 22, 4), t('rlm-02', 'AnÃ¡lise combinatÃ³ria', 14, 3)]),
+      disc('DCONST', 'Direito Constitucional', '#EF4444', 3, [t('dc-01', 'Direitos fundamentais', 28, 5), t('dc-02', 'OrganizaÃ§Ã£o do Estado', 16, 4)]),
+      disc('DADM', 'Direito Administrativo', '#F59E0B', 3, [t('da-01', 'Atos administrativos', 24, 5), t('da-02', 'LicitaÃ§Ãµes (Lei 14.133)', 26, 5)])
     ];
     return [
-      { titulo: 'TRF3 — Técnico Judiciário - Área Administrativa 2026', banca: 'FCC', orgao: 'TRF3', cargo: 'Técnico Judiciário - Área Administrativa', estado: 'SP', notaCorte: 72, area: 'Administrativa', nivel: 'medio', emAlta: true, janelaProva: { inicio: '2026-11', fim: '2027-02' } },
-      { titulo: 'TJ-RJ — Técnico de Atividade Judiciária 2026', banca: 'FGV', orgao: 'TJ-RJ', cargo: 'Técnico Judiciário', estado: 'RJ', notaCorte: 68, area: 'Judiciária', nivel: 'medio', emAlta: true, janelaProva: { inicio: '2026-10', fim: '2026-12' } },
-      { titulo: 'Petrobras — Técnico(a) de Administração e Controle Jr', banca: 'Cebraspe', orgao: 'Petrobras', cargo: 'Técnico de Administração', estado: 'RJ', notaCorte: 65, area: 'Administração', nivel: 'dificil', emAlta: false, janelaProva: { inicio: '2027-03', fim: '2027-05' } }
+      { titulo: 'TRF3 â€” TÃ©cnico JudiciÃ¡rio - Ãrea Administrativa 2026', banca: 'FCC', orgao: 'TRF3', cargo: 'TÃ©cnico JudiciÃ¡rio - Ãrea Administrativa', estado: 'SP', notaCorte: 72, area: 'Administrativa', nivel: 'medio', emAlta: true, janelaProva: { inicio: '2026-11', fim: '2027-02' } },
+      { titulo: 'TJ-RJ â€” TÃ©cnico de Atividade JudiciÃ¡ria 2026', banca: 'FGV', orgao: 'TJ-RJ', cargo: 'TÃ©cnico JudiciÃ¡rio', estado: 'RJ', notaCorte: 68, area: 'JudiciÃ¡ria', nivel: 'medio', emAlta: true, janelaProva: { inicio: '2026-10', fim: '2026-12' } },
+      { titulo: 'Petrobras â€” TÃ©cnico(a) de AdministraÃ§Ã£o e Controle Jr', banca: 'Cebraspe', orgao: 'Petrobras', cargo: 'TÃ©cnico de AdministraÃ§Ã£o', estado: 'RJ', notaCorte: 65, area: 'AdministraÃ§Ã£o', nivel: 'dificil', emAlta: false, janelaProva: { inicio: '2027-03', fim: '2027-05' } }
     ].map(function (e, i) {
       return {
         id: 'edt-mock-' + i, titulo: e.titulo, banca: e.banca, orgao: e.orgao, cargo: e.cargo, estado: e.estado,
@@ -3871,22 +3885,22 @@
 
   const UFS_BR = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
-  // Órgão = trecho antes do primeiro separador do título (ex.: "TRF3 - Técnico..." → "TRF3")
+  // Ã“rgÃ£o = trecho antes do primeiro separador do tÃ­tulo (ex.: "TRF3 - TÃ©cnico..." â†’ "TRF3")
   function orgaoDoTitulo(titulo) {
-    const base = String(titulo || '').split(/\s[-–—]\s|\s[-–—]|—|\(/)[0].trim();
+    const base = String(titulo || '').split(/\s[-â€“â€”]\s|\s[-â€“â€”]|â€”|\(/)[0].trim();
     return base.slice(0, 28);
   }
 
   // UF = primeira sigla de estado encontrada como palavra isolada no texto (ou '')
   function ufDoTexto(txt) {
-    const toks = String(txt || '').toUpperCase().split(/[^A-ZÀ-Ú0-9]+/);
+    const toks = String(txt || '').toUpperCase().split(/[^A-Z\u00C0-\u017F0-9]+/);
     for (let i = 0; i < toks.length; i++) {
       if (UFS_BR.indexOf(toks[i]) >= 0) return toks[i];
     }
     return '';
   }
 
-  // Preenche órgão/estado que não vieram no cadastro, para os filtros terem opções.
+  // Preenche Ã³rgÃ£o/estado que nÃ£o vieram no cadastro, para os filtros terem opÃ§Ãµes.
   function enriquecerEditais() {
     let mudou = false;
     (state.editais || []).forEach(function (e) {
@@ -3906,7 +3920,7 @@
   function abrirEditaisDisponiveis() {
     garantirEditaisMock();
     const filtro = { orgao: '', cargo: '', estado: '', busca: '' };
-    // só mostra um filtro quando há ao menos uma opção real para ele (evita menu vazio)
+    // sÃ³ mostra um filtro quando hÃ¡ ao menos uma opÃ§Ã£o real para ele (evita menu vazio)
     function selectFiltro(campo, id, rotulo) {
       const valores = valoresUnicosEditais(campo);
       if (valores.length === 0) return '';
@@ -3915,14 +3929,14 @@
         valores.map(function (v) { return '<option value="' + esc(v) + '">' + esc(v) + '</option>'; }).join('') +
         '</select>';
     }
-    const selects = selectFiltro('orgao', 'ed-f-orgao', 'Órgão') +
+    const selects = selectFiltro('orgao', 'ed-f-orgao', 'Ã“rgÃ£o') +
       selectFiltro('cargo', 'ed-f-cargo', 'Cargo') +
       selectFiltro('estado', 'ed-f-estado', 'Estado');
     const m = abrirModal(
-      '<h3>Editais disponíveis</h3>' +
-      '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para você.</p>' +
+      '<h3>Editais disponÃ­veis</h3>' +
+      '<p class="sub">Escolha um edital e o sistema gera um plano de estudos personalizado para vocÃª.</p>' +
       '<div class="editais-filtros">' +
-      '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, banca…)" aria-label="Pesquisa geral" value="' + esc(filtro.busca) + '">' +
+      '<input type="search" id="ed-f-busca" placeholder="Pesquisa geral (nome, bancaâ€¦)" aria-label="Pesquisa geral" value="' + esc(filtro.busca) + '">' +
       (selects ? '<div class="editais-filtros-selects">' + selects + '</div>' : '') +
       '<button type="button" class="botao" id="ed-criar-plano" disabled>Criar plano</button>' +
       '</div>' +
@@ -3979,23 +3993,23 @@
     ligarSelecao();
   }
 
-  // RN10 — cartão de check-in semanal + projeção de conclusão (burn-down do edital)
+  // RN10 â€” cartÃ£o de check-in semanal + projeÃ§Ã£o de conclusÃ£o (burn-down do edital)
   function checkinSemanalHtml() {
     const burn = D.burndownEdital(state, D.hojeISO());
     if (!burn) return '';
     const check = D.checkinSemanal(state, D.hojeISO());
     const mapaSit = {
-      no_prazo: { classe: 'ok', rotulo: 'No prazo', icone: '✅' },
-      adiantado: { classe: 'ok', rotulo: 'Adiantado', icone: '🚀' },
-      atrasado: { classe: 'alerta', rotulo: 'Atrasado', icone: '⚠️' },
-      parado: { classe: 'alerta', rotulo: 'Ritmo parado', icone: '⚠️' },
-      concluido: { classe: 'ok', rotulo: 'Esforço concluído', icone: '🏁' }
+      no_prazo: { classe: 'ok', rotulo: 'No prazo', icone: 'âœ…' },
+      adiantado: { classe: 'ok', rotulo: 'Adiantado', icone: 'ðŸš€' },
+      atrasado: { classe: 'alerta', rotulo: 'Atrasado', icone: 'âš ï¸' },
+      parado: { classe: 'alerta', rotulo: 'Ritmo parado', icone: 'âš ï¸' },
+      concluido: { classe: 'ok', rotulo: 'EsforÃ§o concluÃ­do', icone: 'ðŸ' }
     };
     const sit = mapaSit[burn.situacao] || mapaSit.no_prazo;
 
-    // Números coerentes com o que o aluno vê no calendário:
-    // - planejado da semana = horas REALMENTE agendadas nesta semana (não a capacidade bruta);
-    // - carga "real" só quando já há estudo registrado, senão mostramos a planejada.
+    // NÃºmeros coerentes com o que o aluno vÃª no calendÃ¡rio:
+    // - planejado da semana = horas REALMENTE agendadas nesta semana (nÃ£o a capacidade bruta);
+    // - carga "real" sÃ³ quando jÃ¡ hÃ¡ estudo registrado, senÃ£o mostramos a planejada.
     const inicioSemana = D.segundaDaSemana(D.hojeISO());
     const planSemana = horasAgendadasSemana(inicioSemana);
     const feitoSemana = check.atual ? check.atual.realizado : 0;
@@ -4003,9 +4017,9 @@
     const temReal = burn.horasFeitas > 0;
     const planoNovoEstaSemana = state.plano.gerado_em && state.plano.gerado_em >= inicioSemana;
     const cargaValor = temReal ? burn.ritmoReal : planSemana;
-    const cargaRotulo = temReal ? 'Carga horária real / semana' : 'Carga horária planejada / semana';
+    const cargaRotulo = temReal ? 'Carga horÃ¡ria real / semana' : 'Carga horÃ¡ria planejada / semana';
 
-    // Prévia da semana corrente — o aluno antecipa, no último dia, se vai fechar.
+    // PrÃ©via da semana corrente â€” o aluno antecipa, no Ãºltimo dia, se vai fechar.
     let semanaAtualLinha = '';
     if (planSemana > 0) {
       const ok = restanteSemana <= 0.1;
@@ -4014,19 +4028,19 @@
       const classe = apertou ? 'alerta' : (ok ? 'ok' : '');
       let msg;
       if (planoNovoEstaSemana) {
-        msg = 'plano gerado nesta semana — a semana cheia começa na próxima segunda.';
+        msg = 'plano gerado nesta semana â€” a semana cheia comeÃ§a na prÃ³xima segunda.';
       } else if (ok) {
-        msg = 'meta da semana batida 👏';
+        msg = 'meta da semana batida ðŸ‘';
       } else if (apertou) {
-        msg = 'faltam ' + restanteSemana + 'h e hoje é o último dia da semana — o que não fechar entra no recálculo de segunda.';
+        msg = 'faltam ' + restanteSemana + 'h e hoje Ã© o Ãºltimo dia da semana â€” o que nÃ£o fechar entra no recÃ¡lculo de segunda.';
       } else if (ehUltimoDia) {
-        msg = 'faltam ' + restanteSemana + 'h e hoje é o último dia da semana — dá um gás para fechar.';
+        msg = 'faltam ' + restanteSemana + 'h e hoje Ã© o Ãºltimo dia da semana â€” dÃ¡ um gÃ¡s para fechar.';
       } else {
         msg = 'faltam ' + restanteSemana + 'h para a meta desta semana.';
       }
       semanaAtualLinha = '<div class="checkin-comparativo ' + classe + '">' +
-        '<span>Esta semana · planejado <strong>' + planSemana + 'h</strong>' +
-        ' · feito <strong>' + feitoSemana + 'h</strong></span>' +
+        '<span>Esta semana Â· planejado <strong>' + planSemana + 'h</strong>' +
+        ' Â· feito <strong>' + feitoSemana + 'h</strong></span>' +
         '<span class="checkin-saldo">' + msg + '</span></div>';
     }
 
@@ -4035,13 +4049,13 @@
       const deficit = check.saldo < -0.1;
       const superavit = check.saldo > 0.1;
       checkLinha = '<div class="checkin-comparativo ' + (deficit ? 'alerta' : 'ok') + '">' +
-        '<span>Semana passada · planejado <strong>' + formatarHorasSemana(check.planejado).replace(' na semana', '') + '</strong>' +
-        ' · realizado <strong>' + check.realizado + 'h</strong></span>' +
+        '<span>Semana passada Â· planejado <strong>' + formatarHorasSemana(check.planejado).replace(' na semana', '') + '</strong>' +
+        ' Â· realizado <strong>' + check.realizado + 'h</strong></span>' +
         '<span class="checkin-saldo">' + (deficit
-          ? 'déficit de ' + Math.abs(check.saldo) + 'h — redistribuído nas semanas restantes'
+          ? 'dÃ©ficit de ' + Math.abs(check.saldo) + 'h â€” redistribuÃ­do nas semanas restantes'
           : superavit
-            ? 'superávit de ' + check.saldo + 'h — carga futura aliviada'
-            : 'na meta 👏') + '</span></div>';
+            ? 'superÃ¡vit de ' + check.saldo + 'h â€” carga futura aliviada'
+            : 'na meta ðŸ‘') + '</span></div>';
     }
     return '<div class="card checkin-card checkin-' + sit.classe + '">' +
       '<div class="checkin-head"><div class="card-kpi-rotulo">Check-in semanal</div>' +
@@ -4053,23 +4067,23 @@
       '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
-      '<p class="checkin-nota">↻ O plano é recalculado a cada semana, comparando o que você registrou com o que estava previsto, e se reajusta à sua realidade.</p>' +
-      '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular">↻ Recalcular plano agora</button></div>' +
+      '<p class="checkin-nota">â†» O plano Ã© recalculado a cada semana, comparando o que vocÃª registrou com o que estava previsto, e se reajusta Ã  sua realidade.</p>' +
+      '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular">â†» Recalcular plano agora</button></div>' +
       '</div>';
   }
 
   function abrirConfiguracoesPlanejamento() {
     const risco = state.plano ? '<div class="card planejamento-card plano-risco"><div class="card-kpi-rotulo">Zona de risco</div>' +
       '<h3>Excluir plano atual</h3>' +
-      '<p class="sub">Remove o plano ativo e limpa sessões, revisões, simulados e blocos da agenda vinculados a ele.</p>' +
+      '<p class="sub">Remove o plano ativo e limpa sessÃµes, revisÃµes, simulados e blocos da agenda vinculados a ele.</p>' +
       '<div class="compact-actions"><button class="botao-mini botao-perigo" id="cfg-excluir-plano">Excluir plano atual</button></div></div>' : '';
     const m = abrirModal(
-      '<h3>Configurações do planejamento</h3>' +
-      '<p class="sub">Os planos nascem dos editais disponíveis na tela de Planejamento. Aqui você cria um plano manual ou remove o atual.</p>' +
+      '<h3>ConfiguraÃ§Ãµes do planejamento</h3>' +
+      '<p class="sub">Os planos nascem dos editais disponÃ­veis na tela de Planejamento. Aqui vocÃª cria um plano manual ou remove o atual.</p>' +
       '<div class="planejamento-config-panel modal-config-panel">' +
       '<div class="card planejamento-card"><div class="card-kpi-rotulo">Plano manual</div>' +
       '<h3>Estudos livres</h3>' +
-      '<p class="sub">Crie um plano vazio para organizar disciplinas próprias, sem edital.</p>' +
+      '<p class="sub">Crie um plano vazio para organizar disciplinas prÃ³prias, sem edital.</p>' +
       '<div class="compact-actions"><button class="botao-mini botao-secundario" id="pl-em-branco-2">Criar plano manual</button></div></div>' +
       risco +
       '</div>' +
@@ -4098,7 +4112,7 @@
   }
 
   function criarPlanoManualComPrompt() {
-    pedirTexto({ titulo: 'Novo plano manual', mensagem: 'Dê um nome para o plano.', placeholder: 'Ex.: INSS 2027, Estudos livres', valor: 'Meus estudos', confirmar: 'Criar plano' }).then(function (nome) {
+    pedirTexto({ titulo: 'Novo plano manual', mensagem: 'DÃª um nome para o plano.', placeholder: 'Ex.: INSS 2027, Estudos livres', valor: 'Meus estudos', confirmar: 'Criar plano' }).then(function (nome) {
       if (!nome) return;
       criarPlanoManual(nome);
       render();
@@ -4114,9 +4128,9 @@
     const p = state.planos.find(function (x) { return x.id === planoId; });
     if (!p) return false;
     const msg = limparHistorico
-      ? 'O plano "' + p.plano.concurso + '" será excluído junto com sessões, revisões, simulados e agenda dele.'
-      : 'O plano "' + p.plano.concurso + '" será excluído. As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
-    if (!(await confirmar({ titulo: 'Excluir plano?', mensagem: msg, confirmar: 'Excluir', perigo: true, icone: '🗑️' }))) return false;
+      ? 'O plano "' + p.plano.concurso + '" serÃ¡ excluÃ­do junto com sessÃµes, revisÃµes, simulados e agenda dele.'
+      : 'O plano "' + p.plano.concurso + '" serÃ¡ excluÃ­do. As sessÃµes registradas nele ficam guardadas, mas deixam de aparecer.';
+    if (!(await confirmar({ titulo: 'Excluir plano?', mensagem: msg, confirmar: 'Excluir', perigo: true, icone: 'ðŸ—‘ï¸' }))) return false;
     const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
     if (limparHistorico) {
       state.sessoes = state.sessoes.filter(function (s) { return !pertenceAoPlano(s, planoId); });
@@ -4128,9 +4142,9 @@
     editalAbertas = new Set();
     salvar();
     render();
-    toast('Plano excluído' + (limparHistorico ? ' com os dados vinculados' : '') +
+    toast('Plano excluÃ­do' + (limparHistorico ? ' com os dados vinculados' : '') +
       (calendar.removidos ? ' e Calendar limpo' : '') +
-      (calendar.pendentes ? ' · Calendar pendente de autorizacao' : ''), calendar.pendentes ? 'erro' : 'sucesso');
+      (calendar.pendentes ? ' Â· Calendar pendente de autorizacao' : ''), calendar.pendentes ? 'erro' : 'sucesso');
     return true;
   }
 
@@ -4157,17 +4171,17 @@
     return escolhidos;
   }
 
-  // Parte 3 — macro-planos de estudo
+  // Parte 3 â€” macro-planos de estudo
   const MACRO_PLANOS = [
-    { meses: 3, nome: 'Intensivo (reta final / pós-edital)' },
+    { meses: 3, nome: 'Intensivo (reta final / pÃ³s-edital)' },
     { meses: 6, nome: 'Regular' },
-    { meses: 9, nome: 'Construção de base (pré-edital)' }
+    { meses: 9, nome: 'ConstruÃ§Ã£o de base (prÃ©-edital)' }
   ];
 
   const NIVEIS_DIF = [
-    { id: 'facil', rotulo: 'Tranquila', dica: 'Já domino, preciso de menos tempo.' },
+    { id: 'facil', rotulo: 'Tranquila', dica: 'JÃ¡ domino, preciso de menos tempo.' },
     { id: 'media', rotulo: 'Normal', dica: 'Tempo equilibrado.' },
-    { id: 'dificil', rotulo: 'Difícil', dica: 'Tenho dificuldade, preciso de mais tempo.' }
+    { id: 'dificil', rotulo: 'DifÃ­cil', dica: 'Tenho dificuldade, preciso de mais tempo.' }
   ];
   function rotuloDif(k) {
     const n = NIVEIS_DIF.find(function (x) { return x.id === k; });
@@ -4200,18 +4214,18 @@
     return (Number.isInteger(valor) ? String(valor) : String(valor).replace('.', ',')) + 'h na semana';
   }
 
-  // Gera o cronograma hierárquico. opcoes:
+  // Gera o cronograma hierÃ¡rquico. opcoes:
   //   horasSemana, ordemAtaque ('edital'|'incidencia')
-  //   inicio        — segunda-feira da semana 1 (default: semana corrente)
-  //   semanaBase    — deslocamento na numeração das semanas (recálculo adaptativo)
-  //   concluidos    — Set de ids de tópicos já vencidos: saem da teoria e entram
-  //                   em manutenção/questões (Regra 4 + antecipação da Parte 3)
-  //   relatorio     — objeto preenchido com {teoriaTotal, teoriaAgendada} para
+  //   inicio        â€” segunda-feira da semana 1 (default: semana corrente)
+  //   semanaBase    â€” deslocamento na numeraÃ§Ã£o das semanas (recÃ¡lculo adaptativo)
+  //   concluidos    â€” Set de ids de tÃ³picos jÃ¡ vencidos: saem da teoria e entram
+  //                   em manutenÃ§Ã£o/questÃµes (Regra 4 + antecipaÃ§Ã£o da Parte 3)
+  //   relatorio     â€” objeto preenchido com {teoriaTotal, teoriaAgendada} para
   //                   o chamador detectar se a teoria coube no prazo
   function gerarCronogramaHierarquico(disciplinas, semanas, opcoes) {
     opcoes = opcoes || {};
     const horasSemana = opcoes.horasSemana || 20;
-    const porIncidencia = opcoes.ordemAtaque === 'incidencia'; // Regra 2 — 80/20
+    const porIncidencia = opcoes.ordemAtaque === 'incidencia'; // Regra 2 â€” 80/20
     const inicio = opcoes.inicio || D.segundaDaSemana(D.hojeISO());
     const semanaBase = opcoes.semanaBase || 0;
     const concluidos = opcoes.concluidos || null;
@@ -4220,7 +4234,7 @@
     for (let i = 0; i < semanas; i++) {
       semanasCron.push({ semana: semanaBase + i + 1, inicio: D.addDias(inicio, i * 7), blocos: [], marcos: [] });
     }
-    // tópicos já concluídos antes deste cálculo → modo manutenção (Regra 4)
+    // tÃ³picos jÃ¡ concluÃ­dos antes deste cÃ¡lculo â†’ modo manutenÃ§Ã£o (Regra 4)
     const manutencao = [];
     let teoriaTotal = 0, teoriaAgendada = 0;
     const docs = disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d, idx) {
@@ -4237,7 +4251,7 @@
         return { topico: t, ordem, sugerida };
       }).sort(function (a, b) {
         if (porIncidencia) {
-          // ataca primeiro os tópicos mais cobrados nas provas (regra 80/20)
+          // ataca primeiro os tÃ³picos mais cobrados nas provas (regra 80/20)
           return (b.topico.incidencia_pct || 0) - (a.topico.incidencia_pct || 0) ||
             (a.topico.prioridade || 2) - (b.topico.prioridade || 2) || a.sugerida - b.sugerida || a.ordem - b.ordem;
         }
@@ -4285,24 +4299,24 @@
         semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'teoria' });
         semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'questoes' });
         (estudadosPorSemana[s] = estudadosPorSemana[s] || []).push({ disciplina: d.disciplina.id, topico: t.id });
-        if (d.cursor === d.topicos.length) semanasCron[s - 1].marcos.push(d.disciplina.nome + ': primeira passada concluída');
+        if (d.cursor === d.topicos.length) semanasCron[s - 1].marcos.push(d.disciplina.nome + ': primeira passada concluÃ­da');
       });
       if (s > 4 && s % 2 === 0 && estudadosPorSemana[s - 4]) {
         estudadosPorSemana[s - 4].slice(0, 3).forEach(function (b) {
           semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
         });
       }
-      // Regra 4 — disciplinas antigas (já concluídas) entram em manutenção/questões,
-      // rotacionando pelos tópicos de maior incidência sem sobrecarregar a semana.
+      // Regra 4 â€” disciplinas antigas (jÃ¡ concluÃ­das) entram em manutenÃ§Ã£o/questÃµes,
+      // rotacionando pelos tÃ³picos de maior incidÃªncia sem sobrecarregar a semana.
       if (manutencao.length > 0 && s % 2 === 1) {
         for (let k = 0; k < Math.min(2, manutencao.length); k++) {
           const b = manutencao[(s + k) % manutencao.length];
           semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
         }
-        if (s === 1) semanasCron[0].marcos.push('Manutenção das disciplinas já vencidas');
+        if (s === 1) semanasCron[0].marcos.push('ManutenÃ§Ã£o das disciplinas jÃ¡ vencidas');
       }
       if (s > Math.round(semanas * 0.78) && s % 3 === 0) {
-        semanasCron[s - 1].marcos.push('Simulado e revisão por questões');
+        semanasCron[s - 1].marcos.push('Simulado e revisÃ£o por questÃµes');
       }
     }
     relatorio.teoriaTotal = teoriaTotal;
@@ -4331,7 +4345,7 @@
     entrada.plano.gerado_em = D.hojeISO();
     entrada.plano.ultimaRecalcSemana = D.segundaDaSemana(D.hojeISO());
     window.Store.hidratar(state);
-    sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
+    sincronizarAgendaComCronograma(); // o calendÃ¡rio do Planejamento jÃ¡ nasce preenchido
     salvar();
     if (!silencioso) toast('Plano de ' + meses + ' meses gerado e ativado', 'sucesso');
     return true;
@@ -4341,13 +4355,13 @@
     return aplicarPlanoDuracaoAoAtivo(6, null, silencioso);
   }
 
-  // ---------- Parte 3 / Regra 6 — Recálculo adaptativo semanal ----------
-  // Reconstrói o cronograma das semanas a partir da atual com base no progresso
-  // REAL: tópicos já concluídos saem da teoria (a disciplina chega antes à
-  // manutenção → antecipação) e os pendentes são redistribuídos nas semanas que
-  // faltam. Se a teoria não couber no prazo, estende o prazo e a data de término.
-  // As semanas passadas ficam congeladas (histórico); blocos manuais da agenda
-  // são preservados. Retorna um resumo do que mudou (ou null se não se aplica).
+  // ---------- Parte 3 / Regra 6 â€” RecÃ¡lculo adaptativo semanal ----------
+  // ReconstrÃ³i o cronograma das semanas a partir da atual com base no progresso
+  // REAL: tÃ³picos jÃ¡ concluÃ­dos saem da teoria (a disciplina chega antes Ã 
+  // manutenÃ§Ã£o â†’ antecipaÃ§Ã£o) e os pendentes sÃ£o redistribuÃ­dos nas semanas que
+  // faltam. Se a teoria nÃ£o couber no prazo, estende o prazo e a data de tÃ©rmino.
+  // As semanas passadas ficam congeladas (histÃ³rico); blocos manuais da agenda
+  // sÃ£o preservados. Retorna um resumo do que mudou (ou null se nÃ£o se aplica).
   function recalcularPlanoAdaptativo() {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos) return null;
@@ -4359,13 +4373,13 @@
     const inicioPlano = D.segundaDaSemana(entrada.plano.gerado_em || hoje);
     const inicioAtual = D.segundaDaSemana(hoje);
     const semanasDecorridas = Math.max(0, Math.round(D.diffDias(inicioPlano, inicioAtual) / 7));
-    if (semanasDecorridas <= 0) return null; // plano ainda na 1ª semana: nada a refazer
+    if (semanasDecorridas <= 0) return null; // plano ainda na 1Âª semana: nada a refazer
 
     entrada.cronogramas = entrada.cronogramas || {};
     const cronAntigo = entrada.cronogramas[chave] || [];
-    const passadas = cronAntigo.filter(function (s) { return s.inicio < inicioAtual; }); // semanas finalizadas = histórico congelado
+    const passadas = cronAntigo.filter(function (s) { return s.inicio < inicioAtual; }); // semanas finalizadas = histÃ³rico congelado
 
-    // tópicos já vencidos (teoria concluída ou dominados) — não voltam para a teoria
+    // tÃ³picos jÃ¡ vencidos (teoria concluÃ­da ou dominados) â€” nÃ£o voltam para a teoria
     const concluidos = new Set();
     entrada.disciplinas.forEach(function (d) {
       if (d.id === 'ORF') return;
@@ -4376,7 +4390,7 @@
 
     const semanasAlvo = Math.max(1, ritmo.semanas - semanasDecorridas);
     const ordem = entrada.plano.ordemAtaque || 'edital';
-    // tenta encaixar toda a teoria pendente; se não couber, estende o prazo
+    // tenta encaixar toda a teoria pendente; se nÃ£o couber, estende o prazo
     let semanasUsar = semanasAlvo, futuras, rel, tentativas = 0;
     do {
       rel = {};
@@ -4405,20 +4419,20 @@
     return { estendido: estendido, semanasTotais: semanasTotaisNovas, meses: ritmo.meses, semanasDecorridas: semanasDecorridas };
   }
 
-  // dispara o recálculo no máximo uma vez por semana (toda segunda há um plano novo)
+  // dispara o recÃ¡lculo no mÃ¡ximo uma vez por semana (toda segunda hÃ¡ um plano novo)
   function verificarRecalculoSemanal() {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos || !entrada.plano.ritmoAtivo) return;
     const inicioAtual = D.segundaDaSemana(D.hojeISO());
-    if (entrada.plano.ultimaRecalcSemana === inicioAtual) return; // já recalculado nesta semana
+    if (entrada.plano.ultimaRecalcSemana === inicioAtual) return; // jÃ¡ recalculado nesta semana
     const r = recalcularPlanoAdaptativo();
     if (!r) {
-      // marca a semana mesmo sem recálculo aplicável, para não reavaliar a cada render
+      // marca a semana mesmo sem recÃ¡lculo aplicÃ¡vel, para nÃ£o reavaliar a cada render
       entrada.plano.ultimaRecalcSemana = inicioAtual;
       return;
     }
     toast(r.estendido
-      ? 'Plano recalculado: no seu ritmo o término foi ajustado para ~' + String(r.meses).replace('.', ',') + ' meses.'
+      ? 'Plano recalculado: no seu ritmo o tÃ©rmino foi ajustado para ~' + String(r.meses).replace('.', ',') + ' meses.'
       : 'Plano da semana recalculado com base no seu progresso.', r.estendido ? 'erro' : 'sucesso');
   }
 
@@ -4433,7 +4447,7 @@
     const horasAtual = atual && atual.h_semana ? atual.h_semana : (D.metaSemanal(state, D.hojeISO()).horasAlvo || 20);
     const m = abrirModal(
       '<h3>Gerar plano de estudos</h3>' +
-      '<p class="sub">Escolha uma duração. O sistema mantém apenas um cronograma ativo por plano e organiza as disciplinas de forma gradual.</p>' +
+      '<p class="sub">Escolha uma duraÃ§Ã£o. O sistema mantÃ©m apenas um cronograma ativo por plano e organiza as disciplinas de forma gradual.</p>' +
       '<form id="form-gerar-plano">' +
       '<div class="grade-2"><div><label for="gp-meses">Terminar edital em</label><select id="gp-meses">' +
       [3, 6, 9].map(function (v) {
@@ -4454,7 +4468,7 @@
       agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
       agendaModo = 'semana';
       render();
-      toast('Plano gerado — o calendário foi preenchido com todas as semanas', 'sucesso');
+      toast('Plano gerado â€” o calendÃ¡rio foi preenchido com todas as semanas', 'sucesso');
     });
   }
 
@@ -4485,14 +4499,14 @@
         '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
         '</label>';
     }).join('');
-    // Passo 1 — Prazo: cartões em vez de um <select> denso.
+    // Passo 1 â€” Prazo: cartÃµes em vez de um <select> denso.
     const prazoCards = MACRO_PLANOS.map(function (p) {
       return '<button type="button" class="gp-prazo-card' + (p.meses === mesesAtual ? ' ativo' : '') + '" data-gp-meses="' + p.meses + '">' +
         '<span class="gp-prazo-num">' + p.meses + '</span><span class="gp-prazo-unid">meses</span>' +
         '<span class="gp-prazo-nome">' + esc(p.nome) + '</span></button>';
     }).join('');
 
-    // Passo 3 — Dificuldade por disciplina (alimenta o algoritmo de distribuição de horas).
+    // Passo 3 â€” Dificuldade por disciplina (alimenta o algoritmo de distribuiÃ§Ã£o de horas).
     const difHtml = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
       const atual = d.dificuldade || 'media';
       return '<div class="gp-dif-row" data-dif-disc="' + esc(d.id) + '">' +
@@ -4507,7 +4521,7 @@
     const m = abrirModal(
       '<div class="gp-wizard">' +
       '<div class="gp-passos" id="gp-passos">' +
-      ['Prazo', 'Rotina', 'Dificuldade', 'Estratégia'].map(function (t, i) {
+      ['Prazo', 'Rotina', 'Dificuldade', 'EstratÃ©gia'].map(function (t, i) {
         return '<span class="gp-passo' + (i === 0 ? ' ativo' : '') + '" data-passo-dot="' + (i + 1) + '"><b>' + (i + 1) + '</b>' + t + '</span>';
       }).join('') +
       '</div>' +
@@ -4516,14 +4530,14 @@
       // ---- Passo 1: prazo ----
       '<section class="gp-step" data-step="1">' +
       '<h3>Em quanto tempo quer fechar o edital?</h3>' +
-      '<p class="sub">Escolha o ritmo. Nas próximas telas o sistema confere se a sua rotina cabe nesse prazo.</p>' +
+      '<p class="sub">Escolha o ritmo. Nas prÃ³ximas telas o sistema confere se a sua rotina cabe nesse prazo.</p>' +
       '<input type="hidden" id="gp-meses" value="' + mesesAtual + '">' +
       '<div class="gp-prazo-cards">' + prazoCards + '</div>' +
       '</section>' +
 
       // ---- Passo 2: rotina (dias e horas) ----
       '<section class="gp-step oculto" data-step="2">' +
-      '<h3>Quais dias e quantas horas você estuda?</h3>' +
+      '<h3>Quais dias e quantas horas vocÃª estuda?</h3>' +
       '<p class="sub">Marque os dias e ajuste as horas. O total aparece em tempo real.</p>' +
       '<div class="rotina-dias">' + diasHtml + '</div>' +
       '<div class="rotina-totais"><div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + formatarHorasSemana(totalAtual / 60) + '</div></div>' +
@@ -4533,22 +4547,22 @@
 
       // ---- Passo 3: dificuldade por disciplina ----
       '<section class="gp-step oculto" data-step="3">' +
-      '<h3>Como você se sente em cada disciplina?</h3>' +
-      '<p class="sub">Isso ajuda o sistema a reservar mais tempo para o que é mais difícil para você e menos para o que você já domina.</p>' +
+      '<h3>Como vocÃª se sente em cada disciplina?</h3>' +
+      '<p class="sub">Isso ajuda o sistema a reservar mais tempo para o que Ã© mais difÃ­cil para vocÃª e menos para o que vocÃª jÃ¡ domina.</p>' +
       '<div class="gp-dif-lista">' + (difHtml || '<p class="sub">Nenhuma disciplina para configurar.</p>') + '</div>' +
       '</section>' +
 
-      // ---- Passo 4: estratégia + blocos ----
+      // ---- Passo 4: estratÃ©gia + blocos ----
       '<section class="gp-step oculto" data-step="4">' +
-      '<h3>Estratégia de estudo</h3>' +
-      '<label>Ordem de ataque ao conteúdo</label>' +
-      '<div class="toggle-ordem" role="radiogroup" aria-label="Ordem de ataque ao conteúdo">' +
+      '<h3>EstratÃ©gia de estudo</h3>' +
+      '<label>Ordem de ataque ao conteÃºdo</label>' +
+      '<div class="toggle-ordem" role="radiogroup" aria-label="Ordem de ataque ao conteÃºdo">' +
       '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="edital"' + (ordemAtual === 'edital' ? ' checked' : '') + '>' +
-      '<span><strong>Ordem do edital</strong><small>Segue a sequência publicada no edital.</small></span></label>' +
+      '<span><strong>Ordem do edital</strong><small>Segue a sequÃªncia publicada no edital.</small></span></label>' +
       '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="incidencia"' + (ordemAtual === 'incidencia' ? ' checked' : '') + '>' +
-      '<span><strong>Ordem de incidência (80/20)</strong><small>Ataca primeiro os tópicos mais cobrados nas provas.</small></span></label>' +
+      '<span><strong>Ordem de incidÃªncia (80/20)</strong><small>Ataca primeiro os tÃ³picos mais cobrados nas provas.</small></span></label>' +
       '</div>' +
-      '<label>Quanto tempo em cada disciplina por bloco? (mínimo e máximo)</label>' +
+      '<label>Quanto tempo em cada disciplina por bloco? (mÃ­nimo e mÃ¡ximo)</label>' +
       '<div class="grade-2"><div><select id="gp-min-bloco">' + optsMin + '</select></div>' +
       '<div><select id="gp-max-bloco">' + optsMax + '</select></div></div>' +
       '<p class="rotina-feedback" id="gp-resumo"></p>' +
@@ -4556,14 +4570,14 @@
 
       '<div class="modal-acoes gp-nav">' +
       '<button type="button" class="botao-quieto" id="gp-cancelar">Cancelar</button>' +
-      '<button type="button" class="botao-quieto oculto" id="gp-voltar">← Voltar</button>' +
-      '<button type="button" id="gp-proximo">Próximo →</button>' +
+      '<button type="button" class="botao-quieto oculto" id="gp-voltar">â† Voltar</button>' +
+      '<button type="button" id="gp-proximo">PrÃ³ximo â†’</button>' +
       '<button type="submit" class="oculto" id="gp-gerar">Gerar plano</button>' +
       '</div></form></div>'
     );
     m.classList.add('modal-amplo');
 
-    // navegação do assistente
+    // navegaÃ§Ã£o do assistente
     let passo = 1;
     const TOTAL_PASSOS = 4;
     function mostrarPasso(n) {
@@ -4610,8 +4624,8 @@
         feedback.classList.toggle('alerta', !ok);
         feedback.classList.toggle('ok', ok);
         feedback.textContent = ok
-          ? 'Sua rotina está compatível para fechar o edital em ' + meses + ' meses.'
-          : 'Com a quantidade planejada, provavelmente não será possível fechar o edital em ' + meses + ' meses. Aumente as horas, escolha um prazo maior ou reduza o escopo.';
+          ? 'Sua rotina estÃ¡ compatÃ­vel para fechar o edital em ' + meses + ' meses.'
+          : 'Com a quantidade planejada, provavelmente nÃ£o serÃ¡ possÃ­vel fechar o edital em ' + meses + ' meses. Aumente as horas, escolha um prazo maior ou reduza o escopo.';
       }
     }
     // resumo final do assistente (passo 4)
@@ -4625,7 +4639,7 @@
       resumo.classList.toggle('alerta', !ok);
       resumo.classList.toggle('ok', ok);
       resumo.textContent = 'Resumo: terminar em ' + meses + ' meses, ' + formatarHorasSemana(total) + '. ' +
-        (ok ? 'Rotina compatível com o prazo. 👍' : 'A rotina pode não fechar o edital nesse prazo — reveja os dias/horas ou aumente o prazo.');
+        (ok ? 'Rotina compatÃ­vel com o prazo. ðŸ‘' : 'A rotina pode nÃ£o fechar o edital nesse prazo â€” reveja os dias/horas ou aumente o prazo.');
     }
 
     atualizarTotal();
@@ -4634,7 +4648,7 @@
       el.addEventListener('input', atualizarTotal);
     });
 
-    // Passo 1 — escolha do prazo por cartões
+    // Passo 1 â€” escolha do prazo por cartÃµes
     m.querySelectorAll('[data-gp-meses]').forEach(function (b) {
       b.addEventListener('click', function () {
         m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
@@ -4643,7 +4657,7 @@
       });
     });
 
-    // Passo 3 — botões de dificuldade por disciplina
+    // Passo 3 â€” botÃµes de dificuldade por disciplina
     m.querySelectorAll('.gp-dif-row').forEach(function (row) {
       row.querySelectorAll('[data-dif]').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -4652,7 +4666,7 @@
       });
     });
 
-    // navegação
+    // navegaÃ§Ã£o
     m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#gp-voltar').addEventListener('click', function () { mostrarPasso(passo - 1); });
     m.querySelector('#gp-proximo').addEventListener('click', function () {
@@ -4665,7 +4679,7 @@
     m.querySelectorAll('[data-passo-dot]').forEach(function (d) {
       d.addEventListener('click', function () {
         const alvo = parseInt(d.getAttribute('data-passo-dot'), 10);
-        if (alvo <= passo) mostrarPasso(alvo); // só permite voltar pelos passos
+        if (alvo <= passo) mostrarPasso(alvo); // sÃ³ permite voltar pelos passos
       });
     });
 
@@ -4678,7 +4692,7 @@
       const horas = Math.max(1, Math.round(totalMinutos / 60));
       const ordemEl = m.querySelector('input[name="gp-ordem"]:checked');
       const ordemAtaque = ordemEl ? ordemEl.value : 'edital';
-      // grava a dificuldade escolhida em cada disciplina (entra no cálculo do cronograma)
+      // grava a dificuldade escolhida em cada disciplina (entra no cÃ¡lculo do cronograma)
       m.querySelectorAll('.gp-dif-row').forEach(function (row) {
         const id = row.getAttribute('data-dif-disc');
         const sel = row.querySelector('[data-dif].ativo');
@@ -4693,7 +4707,7 @@
       agendaModo = 'semana';
       render();
       const macro = MACRO_PLANOS.find(function (p) { return p.meses === meses; });
-      toast('Plano ' + (macro ? macro.nome.split(' (')[0] : meses + ' meses') + ' gerado — calendário preenchido', 'sucesso');
+      toast('Plano ' + (macro ? macro.nome.split(' (')[0] : meses + ' meses') + ' gerado â€” calendÃ¡rio preenchido', 'sucesso');
     });
 
     mostrarPasso(1);
@@ -4728,16 +4742,16 @@
     const usadas = {};
     const porDisc = {};
     rows.forEach(function (row) {
-      const discNome = String(valorLinha(row, ['disciplina', 'materia', 'matéria']) || '').trim();
-      const topicoNome = String(valorLinha(row, ['topico', 'tópico', 'assunto', 'conteudo', 'conteúdo']) || '').trim();
+      const discNome = String(valorLinha(row, ['disciplina', 'materia', 'matÃ©ria']) || '').trim();
+      const topicoNome = String(valorLinha(row, ['topico', 'tÃ³pico', 'assunto', 'conteudo', 'conteÃºdo']) || '').trim();
       if (!discNome || !topicoNome) return;
-      const siglaPlanilha = String(valorLinha(row, ['sigla', 'id disciplina', 'codigo', 'código']) || '').trim().toUpperCase();
+      const siglaPlanilha = String(valorLinha(row, ['sigla', 'id disciplina', 'codigo', 'cÃ³digo']) || '').trim().toUpperCase();
       const idDisc = siglaPlanilha || Object.keys(porDisc).find(function (id) { return porDisc[id].nome === discNome; }) || siglaDisciplina(discNome, usadas);
       const disc = porDisc[idDisc] = porDisc[idDisc] || {
         id: idDisc,
         nome: discNome,
         cor: String(valorLinha(row, ['cor']) || ['#2454D6', '#1F7A4D', '#B8762B', '#8E44AD'][Object.keys(porDisc).length % 4]),
-        peso: parseFloat(valorLinha(row, ['peso', 'importancia', 'importância'])) || 1,
+        peso: parseFloat(valorLinha(row, ['peso', 'importancia', 'importÃ¢ncia'])) || 1,
         base_teorica: 'pdf',
         topicos: []
       };
@@ -4745,7 +4759,7 @@
       disc.topicos.push({
         id: idDisc + '-' + String(n).padStart(2, '0'),
         nome: topicoNome,
-        incidencia_pct: parseFloat(valorLinha(row, ['incidencia', 'incidência', 'chance'])) || 0,
+        incidencia_pct: parseFloat(valorLinha(row, ['incidencia', 'incidÃªncia', 'chance'])) || 0,
         prioridade: parseInt(valorLinha(row, ['prioridade']), 10) || 2,
         horas_estimadas: parseFloat(valorLinha(row, ['horas', 'tempo'])) || 2,
         semana_sugerida: parseInt(valorLinha(row, ['semana', 'ordem']), 10) || null
@@ -4785,8 +4799,8 @@
 
   function telaPlanejamento() {
     const hoje = D.hojeISO();
-    // plano com cronograma mas calendário vazio (ex.: importado antes da
-    // sincronização automática): preenche a agenda uma única vez
+    // plano com cronograma mas calendÃ¡rio vazio (ex.: importado antes da
+    // sincronizaÃ§Ã£o automÃ¡tica): preenche a agenda uma Ãºnica vez
     const cronAtivo = D.cronogramaAtivo(state);
     if (cronAtivo && cronAtivo.length > 0 &&
       !state.agenda.some(function (a) { return a.gerado && (!a.planoId || a.planoId === state.planoAtivoId); })) {
@@ -4796,7 +4810,7 @@
       '<p class="sub">Plano atual, check-in e agenda no mesmo lugar.</p></div></div>';
 
     // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile.
-    // O ritmo ativo/geração ganham um card próprio logo abaixo do plano atual.
+    // O ritmo ativo/geraÃ§Ã£o ganham um card prÃ³prio logo abaixo do plano atual.
     const checkin = checkinSemanalHtml();
     html += '<div class="planejamento-topo' + (checkin ? '' : ' planejamento-topo-solo') + '">' +
       checkin +
@@ -4811,32 +4825,32 @@
         '<button class="botao botao-secundario" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
     }
 
-    // paleta de disciplinas (arrastáveis)
+    // paleta de disciplinas (arrastÃ¡veis)
     html += '<div class="card planejamento-disciplinas-card"><h3>Personalize seu plano de estudos</h3>' +
-      '<p class="sub">Arraste uma matéria para um dia do calendário ou toque nela para agendar hoje.</p>' +
+      '<p class="sub">Arraste uma matÃ©ria para um dia do calendÃ¡rio ou toque nela para agendar hoje.</p>' +
       '<div class="paleta-disc">' +
       state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
         return '<button class="chip-disc" draggable="true" data-chip="' + esc(d.id) + '" style="background:' + esc(d.cor) + '" title="' + esc(d.nome) + '">' + esc(d.id) + '</button>';
       }).join('') +
-      '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
+      '<span class="paleta-dica">arraste para um dia Â· ou toque para agendar hoje</span>' +
       '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
 
-    // Calendário: visão semanal (arrastar/soltar entre os dias, com toque) e
-    // visão mensal planejada — o aluno enxerga o que vem pela frente e pode
-    // adiantar metas se sobrar tempo no mês.
+    // CalendÃ¡rio: visÃ£o semanal (arrastar/soltar entre os dias, com toque) e
+    // visÃ£o mensal planejada â€” o aluno enxerga o que vem pela frente e pode
+    // adiantar metas se sobrar tempo no mÃªs.
     const rotulo = agendaModo === 'semana'
-      ? D.formatarDataBR(agendaRef).slice(0, 5) + ' – ' + D.formatarDataBR(D.addDias(agendaRef, 6)).slice(0, 5) + ' · ' + agendaRef.slice(0, 4)
+      ? D.formatarDataBR(agendaRef).slice(0, 5) + ' â€“ ' + D.formatarDataBR(D.addDias(agendaRef, 6)).slice(0, 5) + ' Â· ' + agendaRef.slice(0, 4)
       : D.formatarMesBR(mesRef);
     html += '<div class="agenda-toolbar">' +
       '<div class="agenda-nav">' +
-      '<button class="botao-mini botao-quieto" id="pl-ant" aria-label="Anterior">‹</button>' +
+      '<button class="botao-mini botao-quieto" id="pl-ant" aria-label="Anterior">â€¹</button>' +
       '<strong>' + rotulo + '</strong>' +
-      '<button class="botao-mini botao-quieto" id="pl-prox" aria-label="Próximo">›</button>' +
+      '<button class="botao-mini botao-quieto" id="pl-prox" aria-label="PrÃ³ximo">â€º</button>' +
       '<button class="botao-mini botao-quieto" id="pl-hoje">Hoje</button></div>' +
       '<div class="agenda-nav">' +
       '<button class="botao-mini ' + (agendaModo === 'semana' ? '' : 'botao-quieto') + '" data-modo-ag="semana">Semanal</button>' +
       '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button>' +
-      '<button class="botao-mini botao-quieto" id="pl-sync-calendar" title="Sincronizar a semana aberta com o Google Calendar">↻ Sincronizar semana</button></div></div>';
+      '<button class="botao-mini botao-quieto" id="pl-sync-calendar" title="Sincronizar a semana aberta com o Google Calendar">â†» Sincronizar semana</button></div></div>';
 
     if (agendaModo === 'semana') {
       html += '<div class="agenda-grid">';
@@ -4852,15 +4866,15 @@
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
             const concluido = blocoAgendaConcluido(b);
             return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0">' +
-              '<span class="agenda-bloco-arrasto" aria-hidden="true">⠿</span>' +
+              '<span class="agenda-bloco-arrasto" aria-hidden="true">â ¿</span>' +
               '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '') + '</span></span></div>';
+              '<span class="agenda-bloco-sub">' + rotuloHorarioAgenda(b) + (t ? ' Â· ' + esc(t.nome) : '') + (concluido ? ' Â· feito âœ“' : '') + '</span></span></div>';
           }).join('') +
           '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
       }
       html += '</div>';
     } else {
-      // visão mensal estilo Google: bolinhas com a cor de cada disciplina do dia.
+      // visÃ£o mensal estilo Google: bolinhas com a cor de cada disciplina do dia.
       // Tocar num dia abre a tela de detalhes daquele dia.
       const primeiroDia = mesRef + '-01';
       const iniGrade = D.segundaDaSemana(primeiroDia);
@@ -4883,7 +4897,7 @@
         }).join('') + (discsDia.length > 5 ? '<span class="mes-ponto-mais">+' + (discsDia.length - 5) + '</span>' : '');
         html += '<div class="mes-celula mes-celula-pontos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
           (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
-          D.formatarDataBR(cursor) + (blocos.length ? ' — ' + blocos.length + ' blocos' : ' — sem blocos') + '">' +
+          D.formatarDataBR(cursor) + (blocos.length ? ' â€” ' + blocos.length + ' blocos' : ' â€” sem blocos') + '">' +
           '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
           (blocos.length > 0
             ? '<div class="mes-pontos">' + pontos + '</div>' +
@@ -4897,29 +4911,29 @@
     return html;
   }
 
-  // Tela de detalhes de um dia (a partir da visão mensal estilo Google)
+  // Tela de detalhes de um dia (a partir da visÃ£o mensal estilo Google)
   function abrirDetalhesDia(dataISO) {
     const blocos = blocosDoDia(dataISO);
     const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
     const feitos = blocos.filter(blocoAgendaConcluido).length;
     const ymd = dataISO.split('-').map(Number);
-    const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(ymd[0], ymd[1] - 1, ymd[2]).getDay()];
+    const diaSemana = ['Domingo', 'Segunda', 'TerÃ§a', 'Quarta', 'Quinta', 'Sexta', 'SÃ¡bado'][new Date(ymd[0], ymd[1] - 1, ymd[2]).getDay()];
     const listaHtml = blocos.length === 0
       ? '<div class="estado-vazio" style="padding:1.5rem 0"><span class="bolha bolha-pendente"></span><strong>Nenhum bloco neste dia</strong>Adicione um bloco de estudo abaixo.</div>'
       : '<div class="dia-detalhe-lista">' + blocos.map(function (b) {
           const d = D.disciplinaPorId(state, b.disciplinaId);
           const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
           const concluido = blocoAgendaConcluido(b);
-          const tipo = b.obs === 'questoes' ? 'Questões' : b.obs === 'revisao' ? 'Revisão' : b.obs === 'teoria' ? 'Teoria' : (b.obs || '');
+          const tipo = b.obs === 'questoes' ? 'QuestÃµes' : b.obs === 'revisao' ? 'RevisÃ£o' : b.obs === 'teoria' ? 'Teoria' : (b.obs || '');
           return '<button class="dia-detalhe-item' + (concluido ? ' feito' : '') + '" data-dia-bloco="' + esc(b.id) + '" style="--disc-cor:' + esc(d ? d.cor : '#9A9DA3') + '">' +
             '<span class="dia-detalhe-cor" style="background:' + esc(d ? d.cor : '#9A9DA3') + '"></span>' +
-            '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + esc(d ? d.nome : b.disciplinaId) + (concluido ? ' ✓' : '') + '</span>' +
-            '<span class="dia-detalhe-sub">' + D.formatarMin(b.duracaoMin || 0) + (tipo ? ' · ' + esc(tipo) : '') + (t ? ' · ' + esc(t.nome) : '') + '</span></span>' +
-            '<span class="dia-detalhe-seta">›</span></button>';
+            '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + esc(d ? d.nome : b.disciplinaId) + (concluido ? ' âœ“' : '') + '</span>' +
+            '<span class="dia-detalhe-sub">' + D.formatarMin(b.duracaoMin || 0) + (tipo ? ' Â· ' + esc(tipo) : '') + (t ? ' Â· ' + esc(t.nome) : '') + '</span></span>' +
+            '<span class="dia-detalhe-seta">â€º</span></button>';
         }).join('') + '</div>';
     const m = abrirModal(
       '<div class="dia-detalhe-cab"><div><h3>' + D.formatarDataBR(dataISO) + '</h3>' +
-      '<p class="sub">' + diaSemana + (blocos.length ? ' · ' + blocos.length + ' blocos · ' + D.formatarMin(totalMin) + ' · ' + feitos + '/' + blocos.length + ' feitos' : ' · dia livre') + '</p></div></div>' +
+      '<p class="sub">' + diaSemana + (blocos.length ? ' Â· ' + blocos.length + ' blocos Â· ' + D.formatarMin(totalMin) + ' Â· ' + feitos + '/' + blocos.length + ' feitos' : ' Â· dia livre') + '</p></div></div>' +
       listaHtml +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="dd-semana">Abrir semana</button>' +
       '<button type="button" class="botao" id="dd-add">+ Adicionar bloco</button></div>'
@@ -4961,7 +4975,7 @@
     const ajustarPerfil = raiz.querySelector('#pl-ajustar-perfil');
     if (ajustarPerfil) ajustarPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
 
-    // ações do card "Plano atual": Edital · Perfil · Excluir
+    // aÃ§Ãµes do card "Plano atual": Edital Â· Perfil Â· Excluir
     const acaoEdital = raiz.querySelector('#pl-acao-edital');
     if (acaoEdital) acaoEdital.addEventListener('click', function () {
       if (location.hash !== '#edital') location.hash = '#edital'; else render();
@@ -4975,14 +4989,14 @@
     const recalcular = raiz.querySelector('#pl-recalcular');
     if (recalcular) recalcular.addEventListener('click', function () {
       const r = recalcularPlanoAdaptativo();
-      if (!r) { toast('Nada a recalcular ainda — o plano está na primeira semana.', 'erro'); return; }
+      if (!r) { toast('Nada a recalcular ainda â€” o plano estÃ¡ na primeira semana.', 'erro'); return; }
       render();
       toast(r.estendido
-        ? 'Plano recalculado: término ajustado para ~' + String(r.meses).replace('.', ',') + ' meses no seu ritmo.'
+        ? 'Plano recalculado: tÃ©rmino ajustado para ~' + String(r.meses).replace('.', ',') + ' meses no seu ritmo.'
         : 'Plano recalculado com base no seu progresso real.', r.estendido ? 'erro' : 'sucesso');
     });
 
-    // navegação do calendário (semana/mês)
+    // navegaÃ§Ã£o do calendÃ¡rio (semana/mÃªs)
     const ant = raiz.querySelector('#pl-ant');
     if (ant) ant.addEventListener('click', function () {
       if (agendaModo === 'semana') agendaRef = D.addDias(agendaRef, -7);
@@ -5032,7 +5046,7 @@
       });
     });
 
-    // blocos existentes: clicar edita, arrastar move/reordena. Cada bloco também é
+    // blocos existentes: clicar edita, arrastar move/reordena. Cada bloco tambÃ©m Ã©
     // alvo de soltura: soltar sobre ele insere a disciplina ANTES dele (reordenar).
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });
@@ -5058,7 +5072,7 @@
       b.addEventListener('click', function () { abrirNovoBlocoAgenda(b.getAttribute('data-add-dia')); });
     });
 
-    // alvos de soltura (dias do ciclo) — drag & drop nativo (mouse/desktop)
+    // alvos de soltura (dias do ciclo) â€” drag & drop nativo (mouse/desktop)
     raiz.querySelectorAll('[data-dia]').forEach(function (cel) {
       cel.addEventListener('dragover', function (e) { e.preventDefault(); cel.classList.add('drop-alvo'); });
       cel.addEventListener('dragleave', function () { cel.classList.remove('drop-alvo'); });
@@ -5069,7 +5083,7 @@
       });
     });
 
-    // visão mensal: clicar num dia abre a tela de detalhes daquele dia
+    // visÃ£o mensal: clicar num dia abre a tela de detalhes daquele dia
     raiz.querySelectorAll('[data-dia-detalhe]').forEach(function (cel) {
       const abrir = function () { abrirDetalhesDia(cel.getAttribute('data-dia-detalhe')); };
       cel.addEventListener('click', abrir);
@@ -5080,20 +5094,20 @@
     ligarDragTouch(raiz);
   }
 
-  // ação compartilhada por drop nativo e por toque.
-  // alvoId (opcional): id do bloco antes do qual inserir — permite reordenar
+  // aÃ§Ã£o compartilhada por drop nativo e por toque.
+  // alvoId (opcional): id do bloco antes do qual inserir â€” permite reordenar
   // dentro do mesmo dia e posicionar a disciplina solta entre blocos.
   function moverOuCriarBlocoNoDia(dado, dia, alvoId) {
     if (!dado || !dia || alvoId === dado.slice(dado.indexOf('|') + 1)) return; // soltar sobre si mesmo
     const ehNova = dado.indexOf('nova|') === 0;
     if (reordenarBlocoNoDia(dado, dia, alvoId)) {
       salvar(); render();
-      toast(ehNova ? 'Bloco de 1h adicionado — toque nele para ajustar' : 'Bloco reposicionado', 'sucesso');
+      toast(ehNova ? 'Bloco de 1h adicionado â€” toque nele para ajustar' : 'Bloco reposicionado', 'sucesso');
     }
   }
 
   // Drag and drop por toque: long-press inicia o arrasto; antes disso o scroll
-  // nativo continua funcionando. Um "fantasma" segue o dedo e o dia sob ele é o alvo.
+  // nativo continua funcionando. Um "fantasma" segue o dedo e o dia sob ele Ã© o alvo.
   function ligarDragTouch(raiz) {
     raiz.querySelectorAll('[data-bloco], [data-chip]').forEach(function (el) {
       let timer = null, ativo = false, clone = null, alvo = null, payload = '', startX = 0, startY = 0;
@@ -5137,7 +5151,7 @@
       el.addEventListener('touchmove', function (e) {
         const t = e.touches[0];
         if (!ativo) {
-          // movimento antes do long-press = scroll → cancela o arrasto e deixa rolar
+          // movimento antes do long-press = scroll â†’ cancela o arrasto e deixa rolar
           if (timer && (Math.abs(t.clientX - startX) > 10 || Math.abs(t.clientY - startY) > 10)) {
             clearTimeout(timer); timer = null;
           }
@@ -5153,7 +5167,7 @@
           alvo = dia;
           if (alvo) alvo.classList.add('drop-alvo');
         }
-        // bloco sob o dedo (exceto o próprio arrastado) = inserir antes dele
+        // bloco sob o dedo (exceto o prÃ³prio arrastado) = inserir antes dele
         const bloco = sob ? sob.closest('[data-bloco]') : null;
         const bAlvo = (bloco && bloco !== el) ? bloco : null;
         if (bAlvo !== alvoBloco) {
@@ -5183,7 +5197,7 @@
     return d.dificuldade === 'facil' ? 0.75 : d.dificuldade === 'dificil' ? 1.4 : 1;
   }
 
-  // distribuição de horas da semana corrente: peso do concurso × dificuldade do aluno
+  // distribuiÃ§Ã£o de horas da semana corrente: peso do concurso Ã— dificuldade do aluno
   function distribuicaoSemanal(inicioReferencia) {
     if (!state.plano) return null;
     const hoje = D.hojeISO();
@@ -5221,7 +5235,7 @@
     return { semana: sem, hAlvo, itens };
   }
 
-  // Versão antiga mantida apenas como referência; a versão com rotina aparece abaixo.
+  // VersÃ£o antiga mantida apenas como referÃªncia; a versÃ£o com rotina aparece abaixo.
   function gerarSemanaNaAgendaLegado() {
     const dist = distribuicaoSemanal(agendaRef);
     if (!dist) { toast('Sem semana ativa no cronograma para gerar.', 'erro'); return; }
@@ -5231,7 +5245,7 @@
     state.agenda = state.agenda.filter(function (a) {
       return !(a.gerado && a.data >= ini && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId));
     });
-    let dia = 0; // seg..sáb (domingo é folga)
+    let dia = 0; // seg..sÃ¡b (domingo Ã© folga)
     dist.itens.forEach(function (item) {
       const teoria = item.blocos.filter(function (b) { return b.tipo === 'teoria'; })[0];
       const pratica = item.blocos.filter(function (b) { return b.tipo !== 'teoria'; })[0];
@@ -5258,10 +5272,10 @@
     agendaRef = ini;
     agendaModo = 'semana';
     render();
-    toast('Semana ' + dist.semana.semana + ' gerada na agenda — ajuste arrastando os blocos', 'sucesso');
+    toast('Semana ' + dist.semana.semana + ' gerada na agenda â€” ajuste arrastando os blocos', 'sucesso');
   }
 
-  // ajusta uma duração para o tempo de bloco permitido mais próximo dentro da faixa
+  // ajusta uma duraÃ§Ã£o para o tempo de bloco permitido mais prÃ³ximo dentro da faixa
   function snapBloco(min, minBloco, maxBloco) {
     const permitidos = TEMPOS_BLOCO.filter(function (v) { return v >= minBloco && v <= maxBloco; });
     const opts = permitidos.length ? permitidos : TEMPOS_BLOCO;
@@ -5309,8 +5323,8 @@
     return saida;
   }
 
-  // núcleo da geração: preenche a agenda de UMA semana a partir do cronograma
-  // (sem toast/salvar/render — quem chama decide). Retorna null se não houver semana.
+  // nÃºcleo da geraÃ§Ã£o: preenche a agenda de UMA semana a partir do cronograma
+  // (sem toast/salvar/render â€” quem chama decide). Retorna null se nÃ£o houver semana.
   function gerarBlocosSemanaAgenda(refInicio) {
     const dist = distribuicaoSemanal(refInicio);
     if (!dist) return null;
@@ -5386,11 +5400,11 @@
       slot.restante -= tarefa.duracaoMin;
     });
 
-    // Sobras: o min/max de sessão é a regra inicial, mas o tempo que sobra em
-    // cada dia é alocado entre as outras disciplinas (rodízio por peso) e o que
-    // ainda restar abaixo do mínimo vira exceção, estendendo o último bloco do
-    // dia. Assim a semana usa TODA a carga configurada — sem isso, as horas
-    // perdidas distorceriam a conclusão estimada (3/6/9 meses) e o card.
+    // Sobras: o min/max de sessÃ£o Ã© a regra inicial, mas o tempo que sobra em
+    // cada dia Ã© alocado entre as outras disciplinas (rodÃ­zio por peso) e o que
+    // ainda restar abaixo do mÃ­nimo vira exceÃ§Ã£o, estendendo o Ãºltimo bloco do
+    // dia. Assim a semana usa TODA a carga configurada â€” sem isso, as horas
+    // perdidas distorceriam a conclusÃ£o estimada (3/6/9 meses) e o card.
     const poolResidual = [];
     dist.itens.forEach(function (item) {
       const teoria = item.blocos.filter(function (b) { return b.tipo === 'teoria'; })[0];
@@ -5425,7 +5439,7 @@
     agendaRef = r.inicio;
     agendaModo = 'semana';
     render();
-    const extra = r.pendentes > 0 ? ' · ' + D.formatarMin(r.pendentes) + ' ficaram sem encaixe' : '';
+    const extra = r.pendentes > 0 ? ' Â· ' + D.formatarMin(r.pendentes) + ' ficaram sem encaixe' : '';
     toast('Semana ' + r.semana.semana + ' gerada respeitando sua rotina' + extra, r.pendentes > 0 ? 'erro' : 'sucesso');
   }
 
@@ -5657,7 +5671,7 @@
     agendaRef = semanaInicio;
     agendaModo = 'semana';
     render();
-    toast('Google Calendar sincronizado: ' + salvos + ' eventos' + (removidos ? ' · ' + removidos + ' removidos' : ''), 'sucesso');
+    toast('Google Calendar sincronizado: ' + salvos + ' eventos' + (removidos ? ' Â· ' + removidos + ' removidos' : ''), 'sucesso');
   }
 
   async function excluirEventosPlanoGoogleCalendar(planoId) {
@@ -5681,10 +5695,10 @@
     }
   }
 
-  // ================= Exportar para o calendário (.ics) =================
-  // Gera um arquivo iCalendar com os blocos do cronograma e as revisões.
+  // ================= Exportar para o calendÃ¡rio (.ics) =================
+  // Gera um arquivo iCalendar com os blocos do cronograma e as revisÃµes.
   // Zero custo / sem API: o aluno importa no Google Calendar, Apple ou Outlook.
-  // A arquitetura fica pronta para uma sincronização por API numa fase futura.
+  // A arquitetura fica pronta para uma sincronizaÃ§Ã£o por API numa fase futura.
   function baixarArquivo(nome, conteudo, mime) {
     const blob = new Blob([conteudo], { type: mime || 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -5720,7 +5734,7 @@
       const blocos = doAtivo(state.agenda)
         .filter(function (a) { return a.data >= hoje; })
         .sort(function (a, b) { return a.data.localeCompare(b.data) || (a.horaInicio || '').localeCompare(b.horaInicio || '') || a.id.localeCompare(b.id); });
-      let dia = null, cursor = 480; // 08:00 quando não há horário definido
+      let dia = null, cursor = 480; // 08:00 quando nÃ£o hÃ¡ horÃ¡rio definido
       blocos.forEach(function (b) {
         const d = D.disciplinaPorId(state, b.disciplinaId);
         const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
@@ -5734,7 +5748,7 @@
           if (b.data !== dia) { dia = b.data; cursor = 480; }
           ini = minParaHHMM(cursor); fim = minParaHHMM(cursor + dur); cursor += dur;
         }
-        const titulo = (d ? d.nome : 'Estudo') + (b.obs ? ' · ' + b.obs : '');
+        const titulo = (d ? d.nome : 'Estudo') + (b.obs ? ' Â· ' + b.obs : '');
         eventos.push(veventoTimed(b.id + '-agd', b.data, ini, fim, titulo, t ? t.nome : ''));
       });
     }
@@ -5744,7 +5758,7 @@
         .forEach(function (r) {
           const t = D.topicoPorId(state, r.topicoId);
           const dcb = D.disciplinaDoTopico(state, r.topicoId);
-          eventos.push(veventoDiaInteiro(r.id + '-rev', r.dataAgendada, '🔁 Revisão ' + r.tipo + ' — ' + t.nome, dcb ? dcb.nome : ''));
+          eventos.push(veventoDiaInteiro(r.id + '-rev', r.dataAgendada, 'ðŸ” RevisÃ£o ' + r.tipo + ' â€” ' + t.nome, dcb ? dcb.nome : ''));
         });
     }
     const corpo = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Gabaritei OS//Cronograma//PT-BR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH']
@@ -5753,28 +5767,28 @@
   }
 
   function abrirExportarCalendario() {
-    const m = abrirModal('<h3>Exportar para o calendário</h3>' +
-      '<p class="sub">Gera um arquivo <strong>.ics</strong> com seus blocos de estudo e revisões — importável no Google Calendar, Apple ou Outlook. Custo zero, sem login.</p>' +
+    const m = abrirModal('<h3>Exportar para o calendÃ¡rio</h3>' +
+      '<p class="sub">Gera um arquivo <strong>.ics</strong> com seus blocos de estudo e revisÃµes â€” importÃ¡vel no Google Calendar, Apple ou Outlook. Custo zero, sem login.</p>' +
       '<label class="check-inline"><input type="checkbox" id="ics-blocos" checked> Blocos do cronograma</label><br>' +
-      '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> Revisões (24h · 7d · 30d · reforço)</label>' +
+      '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> RevisÃµes (24h Â· 7d Â· 30d Â· reforÃ§o)</label>' +
       '<details style="margin-top:0.7rem"><summary style="cursor:pointer;font-weight:700;font-size:0.88rem">Como importar no Google Calendar</summary>' +
-      '<p class="sub" style="margin-top:0.4rem">No computador: Google Calendar → ⚙ Configurações → <em>Importar e exportar</em> → escolha o arquivo .ics → <em>Importar</em>. O app continua sendo a fonte do plano; reexporte quando o cronograma mudar.</p></details>' +
+      '<p class="sub" style="margin-top:0.4rem">No computador: Google Calendar â†’ âš™ ConfiguraÃ§Ãµes â†’ <em>Importar e exportar</em> â†’ escolha o arquivo .ics â†’ <em>Importar</em>. O app continua sendo a fonte do plano; reexporte quando o cronograma mudar.</p></details>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="ics-cancelar">Fechar</button>' +
       '<button id="ics-baixar">Baixar .ics</button></div>');
     m.querySelector('#ics-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#ics-baixar').addEventListener('click', function () {
       const r = gerarIcs({ blocos: m.querySelector('#ics-blocos').checked, revisoes: m.querySelector('#ics-revisoes').checked });
-      if (r.nEventos === 0) { toast('Nada futuro para exportar — gere a semana no calendário primeiro.', 'erro'); return; }
+      if (r.nEventos === 0) { toast('Nada futuro para exportar â€” gere a semana no calendÃ¡rio primeiro.', 'erro'); return; }
       const slug = state.plano ? state.plano.concurso.replace(/[^a-z0-9]+/gi, '-').toLowerCase().slice(0, 30).replace(/^-|-$/g, '') : 'plano';
       baixarArquivo('gabaritei-' + (slug || 'plano') + '.ics', r.texto, 'text/calendar;charset=utf-8');
       fecharModal();
-      toast('Calendário exportado: ' + r.nEventos + ' eventos (.ics)', 'sucesso');
+      toast('CalendÃ¡rio exportado: ' + r.nEventos + ' eventos (.ics)', 'sucesso');
     });
   }
 
-  // preenche o calendário inteiro (todas as semanas do cronograma ativo) — usado
-  // logo após importar um plano ou gerar o cronograma, para a aba Planejamento
-  // já aparecer com os tópicos no calendário semanal e mensal
+  // preenche o calendÃ¡rio inteiro (todas as semanas do cronograma ativo) â€” usado
+  // logo apÃ³s importar um plano ou gerar o cronograma, para a aba Planejamento
+  // jÃ¡ aparecer com os tÃ³picos no calendÃ¡rio semanal e mensal
   function sincronizarAgendaComCronograma() {
     const cron = D.cronogramaAtivo(state);
     if (!cron || cron.length === 0) return 0;
@@ -5791,13 +5805,13 @@
     const discs = entrada.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
     const m = abrirModal(
       '<h3>Ajustar o plano ao seu perfil</h3>' +
-      '<p style="font-size:0.85rem;color:var(--grafite)">Marque como você se sente em cada disciplina. Isso muda a fatia de horas que cada uma recebe na distribuição semanal — sem mexer na ordem do cronograma.</p>' +
-      '<table><thead><tr><th>Disciplina</th><th>Como você está</th></tr></thead><tbody>' +
+      '<p style="font-size:0.85rem;color:var(--grafite)">Marque como vocÃª se sente em cada disciplina. Isso muda a fatia de horas que cada uma recebe na distribuiÃ§Ã£o semanal â€” sem mexer na ordem do cronograma.</p>' +
+      '<table><thead><tr><th>Disciplina</th><th>Como vocÃª estÃ¡</th></tr></thead><tbody>' +
       discs.map(function (d) {
         const v = d.dificuldade || 'normal';
         return '<tr><td>' + tagDisc(d) + ' ' + esc(d.nome) + '</td>' +
           '<td><select data-perfil="' + esc(d.id) + '" style="min-height:38px;padding:0.25rem 0.5rem">' +
-          '<option value="facil"' + (v === 'facil' ? ' selected' : '') + '>Tenho facilidade (−25%)</option>' +
+          '<option value="facil"' + (v === 'facil' ? ' selected' : '') + '>Tenho facilidade (âˆ’25%)</option>' +
           '<option value="normal"' + (v === 'normal' ? ' selected' : '') + '>Normal</option>' +
           '<option value="dificil"' + (v === 'dificil' ? ' selected' : '') + '>Tenho dificuldade (+40%)</option>' +
           '</select></td></tr>';
@@ -5813,7 +5827,7 @@
         if (d) d.dificuldade = sel.value;
       });
       salvar(); fecharModal(); render();
-      toast('Perfil aplicado — a distribuição semanal foi recalculada', 'sucesso');
+      toast('Perfil aplicado â€” a distribuiÃ§Ã£o semanal foi recalculada', 'sucesso');
     });
   }
 
@@ -5822,24 +5836,24 @@
     const itens = [
       ['#planos', 'Planos'],
       ['#edital', 'Edital verticalizado'],
-      ['#stats', 'Estatísticas'],
+      ['#stats', 'EstatÃ­sticas'],
       ['#simulados', 'Simulados'],
-      ['#ajustes', 'Configurações']
+      ['#ajustes', 'ConfiguraÃ§Ãµes']
     ];
     return '<div class="card card-quieto mais-menu mais-menu-anima">' +
       itens.map(function (i) {
         return '<a class="mais-item" href="' + i[0] + '">' +
           '<span class="mais-item-nome">' + i[1] + '</span>' +
-          '<span class="mais-item-seta" aria-hidden="true">›</span></a>';
+          '<span class="mais-item-seta" aria-hidden="true">â€º</span></a>';
       }).join('') + '</div>';
   }
 
-  // ---------------- Meta semanal de questões (editada na própria Hoje) ----------------
+  // ---------------- Meta semanal de questÃµes (editada na prÃ³pria Hoje) ----------------
   function editarMetaQuestoes() {
     const atual = (state.config && state.config.metaQuestoesSemana) || 100;
     const m = abrirModal(
-      '<h3>Meta de questões por semana</h3>' +
-      '<p style="font-size:0.85rem;color:var(--grafite)">Quantas questões você quer resolver por semana.</p>' +
+      '<h3>Meta de questÃµes por semana</h3>' +
+      '<p style="font-size:0.85rem;color:var(--grafite)">Quantas questÃµes vocÃª quer resolver por semana.</p>' +
       '<input id="mq-valor" type="number" min="0" max="2000" value="' + atual + '" style="max-width:160px">' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="mq-cancelar">Cancelar</button>' +
       '<button type="button" id="mq-salvar">Salvar</button></div>'
@@ -5848,7 +5862,7 @@
     m.querySelector('#mq-salvar').addEventListener('click', function () {
       state.config.metaQuestoesSemana = Math.max(0, Math.min(2000, parseInt(m.querySelector('#mq-valor').value, 10) || 0));
       salvar(); fecharModal(); render();
-      toast('Meta de questões atualizada', 'sucesso');
+      toast('Meta de questÃµes atualizada', 'sucesso');
     });
   }
 
@@ -5860,21 +5874,21 @@
       '<h3>Perfil</h3>' +
       '<label for="pf-nome">Seu nome na tela Hoje</label>' +
       '<input id="pf-nome" type="text" maxlength="40" value="' + esc(state.config.nomeUsuario || nomeUsuario()) + '">' +
-      '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
+      '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'nÃ£o conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
-      '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
+      '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configuraÃ§Ãµes</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
       '<button type="button" id="pf-salvar-nome">Salvar</button></div>'
     );
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
     const pfSair = m.querySelector('#pf-sair');
     if (pfSair) pfSair.addEventListener('click', function () {
-      if (!window.FirebaseSync) { toast('Sincronização indisponível.', 'erro'); return; }
+      if (!window.FirebaseSync) { toast('SincronizaÃ§Ã£o indisponÃ­vel.', 'erro'); return; }
       window.FirebaseSync.logout().then(function () {
         fecharModal();
-        toast('Você saiu da conta', 'sucesso');
-      }).catch(function () { toast('Não consegui sair agora.', 'erro'); });
+        toast('VocÃª saiu da conta', 'sucesso');
+      }).catch(function () { toast('NÃ£o consegui sair agora.', 'erro'); });
     });
     m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
@@ -5931,9 +5945,9 @@
     const el = document.getElementById('sync-status');
     if (el && atual) el.textContent = atual.texto;
     const ep = document.getElementById('sync-endpoint');
-    if (ep && atual) ep.textContent = atual.fonte || atual.endpoint || 'servidor local não detectado';
+    if (ep && atual) ep.textContent = atual.fonte || atual.endpoint || 'servidor local nÃ£o detectado';
     const conta = document.getElementById('sync-conta');
-    if (conta && atual) conta.textContent = atual.usuario && atual.usuario.email ? atual.usuario.email : 'não conectada';
+    if (conta && atual) conta.textContent = atual.usuario && atual.usuario.email ? atual.usuario.email : 'nÃ£o conectada';
     const login = document.getElementById('fb-login');
     const logout = document.getElementById('fb-logout');
     const conectado = !!(atual && atual.usuario);
@@ -5952,26 +5966,26 @@
         ligarLogin(conteudo);
       } catch (err) {
         console.error('Falha ao renderizar login:', err);
-        conteudo.innerHTML = '<section class="login-shell"><div class="login-card"><h1>Entrar</h1><p>Não consegui abrir a tela de login.</p></div></section>';
+        conteudo.innerHTML = '<section class="login-shell"><div class="login-card"><h1>Entrar</h1><p>NÃ£o consegui abrir a tela de login.</p></div></section>';
       }
       atualizarSyncUi();
       return;
     }
     document.body.classList.remove('login-gate');
-    verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
+    verificarRecalculoSemanal(); // Regra 6 â€” a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
     const tela = telas[rota];
     if (rota !== 'timer') pintarTimerAtual = null;
-    // À prova de falhas: um erro numa tela não pode mais congelar a navegação
-    // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
+    // Ã€ prova de falhas: um erro numa tela nÃ£o pode mais congelar a navegaÃ§Ã£o
+    // (deixar a tela em branco sem feedback). Mostra o erro e segue navegÃ¡vel.
     try {
       conteudo.innerHTML = tela.render();
       tela.ligar(conteudo);
     } catch (err) {
       console.error('Falha ao renderizar a tela "' + rota + '":', err);
-      conteudo.innerHTML = '<h1>Ops…</h1><div class="card"><p>Não consegui abrir esta tela por causa de um dado inesperado. ' +
+      conteudo.innerHTML = '<h1>Opsâ€¦</h1><div class="card"><p>NÃ£o consegui abrir esta tela por causa de um dado inesperado. ' +
         'As outras telas continuam funcionando.</p>' +
         '<p style="font-size:0.82rem;color:var(--grafite);white-space:pre-wrap;margin-top:0.5rem">' +
         esc(String(err && err.message ? err.message : err)) + '</p></div>';
@@ -5981,7 +5995,7 @@
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
   }
 
-  // ---------------- inicialização ----------------
+  // ---------------- inicializaÃ§Ã£o ----------------
   window.addEventListener('hashchange', function () {
     fecharModal();
     window.scrollTo(0, 0);
@@ -6015,8 +6029,8 @@
 
   window.Timer.aoAtualizar(tratarTickTimer);
 
-  // Ao sair do app (segundo plano) com o cronômetro rodando, o contador
-  // aparece na bandeja; ao voltar, a notificação some (o relógio está na tela).
+  // Ao sair do app (segundo plano) com o cronÃ´metro rodando, o contador
+  // aparece na bandeja; ao voltar, a notificaÃ§Ã£o some (o relÃ³gio estÃ¡ na tela).
   document.addEventListener('visibilitychange', function () {
     const e = window.Timer.estado();
     if (document.hidden) { if (e && e.rodando) mostrarNotificacaoTimer(e, true); }
@@ -6025,7 +6039,7 @@
 
   const recuperado = window.Timer.recuperar();
   if (recuperado) {
-    toast('Timer recuperado — sua sessão de ' + window.Timer.formatar(recuperado.decorridoMs) + ' continua valendo.', 'sucesso');
+    toast('Timer recuperado â€” sua sessÃ£o de ' + window.Timer.formatar(recuperado.decorridoMs) + ' continua valendo.', 'sucesso');
     if (!location.hash || location.hash === '#hoje') location.hash = '#timer';
   }
   const estadoInicialTimer = window.Timer.estado();
@@ -6076,3 +6090,4 @@
   window.addEventListener('firebase-sync-ready', iniciarFirebaseSync);
   iniciarFirebaseSync();
 })();
+

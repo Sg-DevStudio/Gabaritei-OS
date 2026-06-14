@@ -536,6 +536,13 @@ body.login-gate #conteudo > * {
   gap: 0.85rem;
   margin-bottom: 1.1rem;
 }
+.home-topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.95fr);
+  gap: 0.9rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
 .home-kpis { align-items: start; }
 
 .card-kpi {
@@ -564,6 +571,10 @@ body.login-gate #conteudo > * {
   gap: 0.45rem;
   min-height: 118px;
   align-self: start;
+}
+.home-kpis {
+  grid-template-columns: repeat(3, minmax(220px, 280px));
+  justify-content: center;
 }
 .home-kpis .card-kpi:not(.prova-card) .card-kpi-rotulo { align-self: stretch; }
 .home-kpis .card-kpi:not(.prova-card) .barra { width: 100%; }
@@ -786,6 +797,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
   flex-direction: column;
   align-items: center;
   text-align: center;
+  min-height: 100%;
 }
 .prova-card { justify-content: flex-start; }
 .prova-card-topo { display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
@@ -1401,6 +1413,7 @@ td.num, th.num { text-align: right; }
 }
 
 @media (max-width: 760px) {
+  .home-topo { grid-template-columns: 1fr; }
   .home-kpis .card-kpi:not(.prova-card) { display: none; }
   .conquistas-card {
     max-width: 720px;
@@ -1532,11 +1545,11 @@ td.num, th.num { text-align: right; }
   border-radius: 4px;
   background: var(--hm0);
   transform-origin: center;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, outline-color 0.16s ease;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, outline-color 0.24s ease;
 }
 .heatmap-celula:hover {
-  transform: translateY(-2px) scale(1.24);
-  box-shadow: 0 7px 16px rgba(23, 24, 28, 0.18);
+  transform: translateY(-1px) scale(1.14);
+  box-shadow: 0 6px 14px rgba(23, 24, 28, 0.14);
   outline: 2px solid rgba(255, 255, 255, 0.9);
   z-index: 1;
 }
