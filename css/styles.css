@@ -1712,7 +1712,7 @@ canvas.grafico {
   .card-kpi { min-height: 108px; }
   .fila-item { align-items: flex-start; flex-wrap: wrap; }
   .fila-item > div:last-child { order: 4; width: 100%; justify-content: flex-start; padding-left: 2rem; }
-  .etiqueta { order: 3; margin-left: 2rem; }
+  .fila-item .etiqueta { order: 3; margin-left: 2rem; }
   .check-estudo { margin-top: 0.1rem; }
   .timer-acoes button { flex: 0 0 72px !important; width: 72px !important; }
   .catalogo-item.fila-item { flex-wrap: wrap; }

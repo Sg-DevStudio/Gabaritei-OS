@@ -1992,9 +1992,8 @@
       '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
       contarTopicosEdital(e) + ' tóp · corte ~' + (e.notaCorte || 70) + '% · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
-      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">Editar</button>' +
       '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
-      '<button class="botao-mini botao-quieto" data-ed-arquivar="' + esc(e.id) + '">' + (arquivado ? 'Desarquivar' : 'Arquivar') + '</button>' +
+      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">Editar</button>' +
       '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button></div></div>';
   }
 
@@ -2015,43 +2014,9 @@
     return h;
   }
 
-  function editaisEsquematizadosHtml() {
-    const termo = (adminBusca || '').trim().toLowerCase();
-    const correspondeBusca = function (e) {
-      if (!termo) return true;
-      return [e.titulo, e.banca, e.orgao, e.cargo, e.estado].filter(Boolean)
-        .join(' ').toLowerCase().indexOf(termo) >= 0;
-    };
-    const ativos = (state.editais || []).filter(function (e) { return !e.arquivado && correspondeBusca(e); });
-    const arquivados = (state.editais || []).filter(function (e) { return e.arquivado && correspondeBusca(e); });
-    let html = '<div class="card"><h3>Painel do edital (admin)</h3>' +
-      '<p style="font-size:0.88rem;color:var(--grafite)">Cadastre e organize os editais do catálogo. A partir deles o app gera planos e a aba ' +
-      '<strong>Planos disponíveis</strong> mostra o cardápio para o aluno. <em>No futuro esta área ficará visível apenas para o perfil admin.</em></p>' +
-      '<div class="admin-acoes">' +
-      '<button class="botao botao-mini" id="adm-novo">+ Novo edital</button>' +
-      '<button class="botao-secundario botao-mini" id="adm-importar">Importar arquivo da skill</button>' +
-      '</div>';
-
-    html += '<div class="planos-cadastrados-cab"><h4>Planos cadastrados</h4>' +
-      '<input id="adm-busca" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '"></div>';
-
-    if (ativos.length > 0) {
-      html += '<div class="planos-grade" style="margin:0.5rem 0 0.75rem">';
-      ativos.forEach(function (e) { html += adminEditalCard(e, false); });
-      html += '</div>';
-    } else {
-      html += '<p class="sub" style="margin:0.5rem 0">' + (termo ? 'Nenhum plano encontrado para essa busca.' : 'Nenhum edital cadastrado ainda.') + '</p>';
-    }
-
-    if (arquivados.length > 0) {
-      html += '<details style="margin-top:0.25rem"><summary style="cursor:pointer;font-weight:700;font-size:0.9rem">Arquivados (' + arquivados.length + ')</summary>' +
-        '<div class="planos-grade" style="margin-top:0.5rem">';
-      arquivados.forEach(function (e) { html += adminEditalCard(e, true); });
-      html += '</div></details>';
-    }
-
-    html += '<details id="adm-import-bloco" style="margin-top:0.5rem"><summary style="cursor:pointer;font-weight:700;font-size:0.9rem">Importar de arquivo ou JSON</summary>' +
-      '<p class="sub" style="margin-top:0.4rem">Importe o JSON estruturado (pela skill / IA) ou uma planilha. Antes de salvar você confere e ajusta tudo.</p>' +
+  // Formulário de importação (usado dentro do modal "Importar arquivo")
+  function importarEditalFormHtml() {
+    return '<p class="sub">Importe o JSON da skill/IA ou uma planilha. Antes de salvar você confere e ajusta tudo.</p>' +
       '<div class="grade-2" style="margin-top:0.4rem">' +
       '<div><label for="ed-titulo">Nome do edital</label><input id="ed-titulo" type="text" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
       '<div><label for="ed-banca">Banca</label><input id="ed-banca" type="text" placeholder="Ex.: FCC"></div></div>' +
@@ -2064,11 +2029,76 @@
       '<label for="ed-arquivo">Tópicos detalhados (arquivo .json, .xlsx ou .csv)</label>' +
       '<input type="file" id="ed-arquivo" accept=".json,.xlsx,.csv,application/json,text/csv">' +
       '<label for="ed-json">ou cole o JSON com as disciplinas</label>' +
-      '<textarea id="ed-json" placeholder=\'{"disciplinas":[{"id":"POR","nome":"Português","topicos":[...]}]}\'></textarea>' +
-      '<div class="modal-acoes" style="justify-content:flex-start"><button id="ed-cadastrar">Conferir importação</button></div>' +
-      '</details>';
+      '<textarea id="ed-json" placeholder=\'{"disciplinas":[{"id":"POR","nome":"Português","topicos":[...]}]}\'></textarea>';
+  }
 
-    html += pedidosEditalHtml();
+  function abrirImportarEdital() {
+    const m = abrirModal('<h3>Importar arquivo</h3>' + importarEditalFormHtml() +
+      '<div class="modal-acoes"><button class="botao-quieto" id="ed-cancelar">Cancelar</button>' +
+      '<button id="ed-cadastrar">Conferir importação</button></div>');
+    m.classList.add('modal-amplo');
+    m.querySelector('#ed-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#ed-cadastrar').addEventListener('click', function () { cadastrarEditalEsquematizado(m); });
+  }
+
+  function abrirListaPedidos() {
+    const m = abrirModal('<h3>Lista de pedidos</h3><div id="ped-corpo"></div>');
+    function pintar() {
+      m.querySelector('#ped-corpo').innerHTML = pedidosEditalHtml() +
+        '<div class="modal-acoes"><button class="botao-quieto" id="ped-fechar">Fechar</button></div>';
+      const add = m.querySelector('#adm-pedido-add');
+      if (add) add.addEventListener('click', function () {
+        const inp = m.querySelector('#adm-pedido-txt');
+        const txt = ((inp && inp.value) || '').trim();
+        if (!txt) { toast('Descreva o pedido.', 'erro'); return; }
+        if (!Array.isArray(state.config.pedidosEdital)) state.config.pedidosEdital = [];
+        state.config.pedidosEdital.push({ id: window.Store.novoId('ped'), texto: txt, em: D.hojeISO() });
+        salvar(); pintar(); toast('Pedido registrado');
+      });
+      m.querySelectorAll('[data-pedido-ok]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          state.config.pedidosEdital = (state.config.pedidosEdital || []).filter(function (p) { return p.id !== b.getAttribute('data-pedido-ok'); });
+          salvar(); pintar(); toast('Pedido marcado como atendido');
+        });
+      });
+      m.querySelector('#ped-fechar').addEventListener('click', fecharModal);
+    }
+    pintar();
+  }
+
+  function editaisEsquematizadosHtml() {
+    const termo = (adminBusca || '').trim().toLowerCase();
+    const correspondeBusca = function (e) {
+      if (!termo) return true;
+      return [e.titulo, e.banca, e.orgao, e.cargo, e.estado].filter(Boolean)
+        .join(' ').toLowerCase().indexOf(termo) >= 0;
+    };
+    const ativos = (state.editais || []).filter(function (e) { return !e.arquivado && correspondeBusca(e); });
+    const arquivados = (state.editais || []).filter(function (e) { return e.arquivado && correspondeBusca(e); });
+
+    let html = '<div class="card"><h3>Planos cadastrados</h3>' +
+      '<input id="adm-busca" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '" style="margin-bottom:0.6rem">';
+
+    if (ativos.length > 0) {
+      html += '<div class="planos-grade">';
+      ativos.forEach(function (e) { html += adminEditalCard(e, false); });
+      html += '</div>';
+    } else {
+      html += '<p class="sub" style="margin:0.3rem 0">' + (termo ? 'Nenhum plano encontrado para essa busca.' : 'Nenhum edital cadastrado ainda.') + '</p>';
+    }
+
+    if (arquivados.length > 0) {
+      html += '<details style="margin-top:0.4rem"><summary style="cursor:pointer;font-weight:700;font-size:0.9rem">Arquivados (' + arquivados.length + ')</summary>' +
+        '<div class="planos-grade" style="margin-top:0.5rem">';
+      arquivados.forEach(function (e) { html += adminEditalCard(e, true); });
+      html += '</div></details>';
+    }
+
+    html += '<div class="admin-acoes" style="margin-top:0.85rem">' +
+      '<button class="botao botao-mini" id="adm-novo">+ Novo edital</button>' +
+      '<button class="botao-secundario botao-mini" id="adm-importar">Importar arquivo</button>' +
+      '<button class="botao-quieto botao-mini" id="adm-pedidos">Lista de pedidos</button>' +
+      '</div>';
     html += '</div>';
     return html;
   }
@@ -2184,31 +2214,17 @@
       admBusca.addEventListener('search', aplicar);
       admBusca.addEventListener('keydown', function (e) { if (e.key === 'Enter') aplicar(); });
     }
-    const cadastrar = raiz.querySelector('#ed-cadastrar');
-    if (cadastrar) cadastrar.addEventListener('click', function () { cadastrarEditalEsquematizado(raiz); });
     const novo = raiz.querySelector('#adm-novo');
     if (novo) novo.addEventListener('click', function () { abrirEditorEdital(null, 'novo'); });
-    const promptBtn = raiz.querySelector('#adm-prompt');
-    if (promptBtn) promptBtn.addEventListener('click', abrirPromptEditalBruto);
     const importar = raiz.querySelector('#adm-importar');
-    if (importar) importar.addEventListener('click', function () {
-      const bloco = raiz.querySelector('#adm-import-bloco');
-      if (bloco) { bloco.open = true; bloco.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-    });
+    if (importar) importar.addEventListener('click', abrirImportarEdital);
+    const pedidos = raiz.querySelector('#adm-pedidos');
+    if (pedidos) pedidos.addEventListener('click', abrirListaPedidos);
     raiz.querySelectorAll('[data-ed-editar]').forEach(function (b) {
       b.addEventListener('click', function () { abrirEditorEdital(b.getAttribute('data-ed-editar'), 'editar'); });
     });
     raiz.querySelectorAll('[data-ed-plano]').forEach(function (b) {
       b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-ed-plano')); });
-    });
-    raiz.querySelectorAll('[data-ed-arquivar]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        const e = state.editais.find(function (x) { return x.id === b.getAttribute('data-ed-arquivar'); });
-        if (!e) return;
-        e.arquivado = !e.arquivado;
-        salvar(); render();
-        toast(e.arquivado ? 'Edital arquivado' : 'Edital reativado');
-      });
     });
     raiz.querySelectorAll('[data-ed-excluir]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -2218,24 +2234,6 @@
         state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
         salvar(); render();
         toast('Edital excluído');
-      });
-    });
-    const addPedido = raiz.querySelector('#adm-pedido-add');
-    if (addPedido) addPedido.addEventListener('click', function () {
-      const inp = raiz.querySelector('#adm-pedido-txt');
-      const txt = ((inp && inp.value) || '').trim();
-      if (!txt) { toast('Descreva o pedido.', 'erro'); return; }
-      if (!Array.isArray(state.config.pedidosEdital)) state.config.pedidosEdital = [];
-      state.config.pedidosEdital.push({ id: window.Store.novoId('ped'), texto: txt, em: D.hojeISO() });
-      salvar(); render();
-      toast('Pedido registrado');
-    });
-    raiz.querySelectorAll('[data-pedido-ok]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        const id = b.getAttribute('data-pedido-ok');
-        state.config.pedidosEdital = (state.config.pedidosEdital || []).filter(function (p) { return p.id !== id; });
-        salvar(); render();
-        toast('Pedido marcado como atendido');
       });
     });
   }
@@ -2287,7 +2285,8 @@
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     return '<div class="card catalogo-card catalogo-card-compacto">' +
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
-      '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) + '</strong>' +
+      '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) +
+      (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</strong>' +
       '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</span></div></div>' +
       '<div class="catalogo-metricas">' +
       metrica('Corte', esc(rotuloCorteEdital(e))) +
