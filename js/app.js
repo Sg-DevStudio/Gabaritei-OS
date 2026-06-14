@@ -4359,18 +4359,16 @@
     const cargaRotulo = temReal ? 'Carga horária real / semana' : 'Carga horária planejada / semana';
 
     // Prévia da semana corrente — o aluno antecipa, no último dia, se vai fechar.
-    // Quando o plano foi gerado nesta semana, mostramos só um marcador discreto
-    // (badge) e movemos a explicação completa para um tooltip do card inteiro.
+    // Quando o plano foi gerado nesta semana a linha inline some por completo;
+    // a explicação fica no tooltip do card (mantém a tela bem mais limpa).
     let semanaAtualLinha = '';
-    if (planSemana > 0) {
+    if (planSemana > 0 && !planoNovoEstaSemana) {
       const ok = restanteSemana <= 0.1;
       const ehUltimoDia = check.atual && check.atual.ehUltimoDia;
       const apertou = ehUltimoDia && restanteSemana > 8;
       const classe = apertou ? 'alerta' : (ok ? 'ok' : '');
       let msg;
-      if (planoNovoEstaSemana) {
-        msg = 'semana já planejada — passe o mouse no card para entender.';
-      } else if (ok) {
+      if (ok) {
         msg = 'meta da semana batida 👏';
       } else if (apertou) {
         msg = 'faltam ' + restanteSemana + 'h e hoje é o último dia da semana — o que não fechar entra no recálculo de segunda.';
