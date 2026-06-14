@@ -2402,6 +2402,24 @@ canvas.grafico {
 /* painel admin de editais */
 .admin-acoes { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.5rem 0; }
 
+/* Grupo "Notas de corte" (ampla/CN/PcD) no editor/conferência de edital */
+.ee-cortes-grupo {
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 0.55rem 0.75rem 0.7rem;
+  margin: 0.1rem 0;
+  background: var(--papel-elevado, rgba(0, 0, 0, 0.02));
+}
+.ee-grupo-rotulo {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--grafite);
+  margin-bottom: 0.5rem;
+}
+
 /* Título do painel de planos cadastrados (admin) — em destaque */
 .planos-cad-titulo {
   font-size: 1.55rem;

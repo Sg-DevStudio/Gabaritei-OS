@@ -2427,6 +2427,17 @@
     return 18;
   }
 
+  // Resumo compacto das notas de corte por modalidade para os cards do admin.
+  function cortesResumoEdital(e) {
+    const c = e.cortes || {};
+    const ampla = c.ampla != null ? c.ampla : (e.notaCorte != null ? e.notaCorte : null);
+    const partes = [];
+    if (ampla != null) partes.push('Ampla ' + ampla + '%');
+    if (c.negros != null) partes.push('CN ' + c.negros + '%');
+    if (c.pcd != null) partes.push('PcD ' + c.pcd + '%');
+    return partes.length ? 'corte ' + partes.join(' · ') : 'corte ~' + (e.notaCorte || 70) + '%';
+  }
+
   function adminEditalCard(e, arquivado) {
     const global = !!e._global;
     return '<div class="plano-mini">' +
@@ -2435,7 +2446,7 @@
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') +
       (global ? ' <span class="etiqueta">global</span>' : '') + '</div></div>' +
       '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
-      contarTopicosEdital(e) + ' tóp · corte ~' + (e.notaCorte || 70) + '% · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
+      contarTopicosEdital(e) + ' tóp · ' + cortesResumoEdital(e) + ' · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
       '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
       '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">' + (global ? 'Personalizar' : 'Editar') + '</button>' +
@@ -2590,13 +2601,42 @@
     return [];
   }
 
+  // Lê as notas de corte por modalidade (ampla/negros/pcd) do JSON da skill.
+  // Aceita um objeto limpo {ampla,negros,pcd} ou o bloco "notas_corte_ultimo_nomeado"
+  // (escolhe a unidade de maior corte de ampla — a mais concorrida, meta recomendada).
+  function cortesDeJson(json) {
+    const pct = function (v) { const n = parseFloat(v); return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null; };
+    const limpo = json.notas_corte || json.cortes || null;
+    if (limpo && typeof limpo === 'object') {
+      return { ampla: pct(limpo.ampla), negros: pct(limpo.negros != null ? limpo.negros : limpo.cn), pcd: pct(limpo.pcd) };
+    }
+    const blocos = json.notas_corte_ultimo_nomeado;
+    if (blocos && typeof blocos === 'object') {
+      let melhor = null;
+      Object.keys(blocos).forEach(function (k) {
+        const u = blocos[k];
+        if (u && typeof u === 'object' && typeof u.ampla_pct === 'number' && (!melhor || u.ampla_pct > melhor.ampla_pct)) melhor = u;
+      });
+      if (melhor) return { ampla: pct(melhor.ampla_pct), negros: pct(melhor.cn_pct), pcd: pct(melhor.pcd_pct) };
+    }
+    return null;
+  }
+
   // Extrai os metadados do JSON da skill para autopreencher o cadastro.
   function metadadosEditalDeJson(json) {
     if (!json || typeof json !== 'object' || Array.isArray(json)) return {};
     const jp = json.janela_prova || json.janelaProva || {};
     const corte = json.nota_corte_sugerida_pct != null ? json.nota_corte_sugerida_pct
       : (json.notaCorte != null ? json.notaCorte : null);
+    const cortesJson = cortesDeJson(json) || {};
+    const amplaFinal = cortesJson.ampla != null ? cortesJson.ampla
+      : (corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null);
     return {
+      cortes: {
+        ampla: amplaFinal,
+        negros: cortesJson.negros != null ? cortesJson.negros : null,
+        pcd: cortesJson.pcd != null ? cortesJson.pcd : null
+      },
       titulo: (json.titulo || '').toString().trim(),
       banca: (json.banca || '').toString().trim(),
       orgao: (json.orgao || json['órgão'] || '').toString().trim(),
@@ -2604,8 +2644,8 @@
       area: (json.area || json['área'] || '').toString().trim(),
       estado: (json.estado || json.uf || '').toString().trim().toUpperCase().slice(0, 2),
       nivel: (json.nivel || '').toString().trim(),
-      notaCorte: corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null,
-      tipoCorte: normalizarListaCorte(json.lista_corte || json.tipo_corte || json.nota_corte_lista || 'ampla'),
+      notaCorte: amplaFinal != null ? amplaFinal : (corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null),
+      tipoCorte: 'ampla',
       janelaProva: { inicio: (jp.inicio || '').toString(), fim: (jp.fim || '').toString() },
       emAlta: !!(json.em_alta || json.emAlta)
     };
@@ -2658,6 +2698,7 @@
     abrirEditorEdital(null, 'conferencia', {
       titulo: titulo, banca: banca, orgao: orgao, cargo: cargo, area: meta.area || '',
       estado: estado, nivel: meta.nivel || '', notaCorte: corte, tipoCorte: meta.tipoCorte || 'ampla',
+      cortes: meta.cortes || { ampla: corte, negros: null, pcd: null },
       janelaProva: meta.janelaProva, emAlta: meta.emAlta, disciplinas: disciplinas
     });
   }
@@ -2987,7 +3028,7 @@
     return { id: '', nome: '', cor: '#3B82F6', peso: 1, dificuldade: 'media', base_teorica: 'pdf', topicos: [topicoEmBranco()] };
   }
   function editalEmBranco() {
-    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
+    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', cortes: { ampla: 70, negros: null, pcd: null }, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
   }
 
   const LISTAS_CORTE = { ampla: 'Ampla concorrência', negros: 'Cota negros', pcd: 'Cota PcD', indigenas: 'Cota indígenas' };
@@ -3030,6 +3071,14 @@
     c.janelaProva.inicio = c.janelaProva.inicio || '';
     c.janelaProva.fim = c.janelaProva.fim || '';
     c.nivel = c.nivel || 'medio';
+    // Cortes por modalidade (ampla/negros/pcd). Editais antigos só têm notaCorte:
+    // herda a ampla a partir dele para não perder o dado.
+    if (!c.cortes || typeof c.cortes !== 'object') c.cortes = {};
+    c.cortes = {
+      ampla: c.cortes.ampla != null ? c.cortes.ampla : (c.notaCorte != null ? c.notaCorte : null),
+      negros: c.cortes.negros != null ? c.cortes.negros : null,
+      pcd: c.cortes.pcd != null ? c.cortes.pcd : null
+    };
     c.disciplinas = (c.disciplinas || []).map(function (d) {
       return {
         id: d.id || '', nome: d.nome || '', cor: d.cor || '#3B82F6', peso: d.peso || 1,
@@ -3076,6 +3125,10 @@
     const nivelOpts = Object.keys(NIVEIS_EDITAL).map(function (k) {
       return '<option value="' + k + '"' + (e.nivel === k ? ' selected' : '') + '>' + NIVEIS_EDITAL[k] + '</option>';
     }).join('');
+    const cortes = e.cortes || {};
+    const cAmpla = cortes.ampla != null ? cortes.ampla : (e.notaCorte != null ? e.notaCorte : 70);
+    const cNeg = cortes.negros != null ? cortes.negros : '';
+    const cPcd = cortes.pcd != null ? cortes.pcd : '';
     let h = '<div class="grade-2">' +
       '<div><label>Nome do edital</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
       '<div><label>Banca</label><input id="ee-banca" type="text" value="' + esc(e.banca) + '" placeholder="Ex.: FCC"></div></div>' +
@@ -3086,15 +3139,16 @@
       '<div class="grade-3">' +
       '<div><label>Estado (UF)</label><input id="ee-estado" type="text" maxlength="2" value="' + esc(e.estado) + '" style="text-transform:uppercase"></div>' +
       '<div><label>Nível de dificuldade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
-      '<div><label>Nota de corte (%)</label><input id="ee-corte" type="number" min="0" max="100" value="' + (e.notaCorte || 70) + '"></div></div>' +
+      '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>' +
+      '<div class="ee-cortes-grupo"><span class="ee-grupo-rotulo">Notas de corte do último aprovado (%)</span>' +
       '<div class="grade-3">' +
-      '<div><label>Lista da nota de corte</label><select id="ee-corte-lista">' +
-      Object.keys(LISTAS_CORTE).map(function (k) { return '<option value="' + k + '"' + (normalizarListaCorte(e.tipoCorte) === k ? ' selected' : '') + '>' + LISTAS_CORTE[k] + '</option>'; }).join('') +
-      '</select></div>' +
+      '<div><label>Ampla concorrência</label><input id="ee-corte-ampla" type="number" min="0" max="100" value="' + cAmpla + '"></div>' +
+      '<div><label>Cota negros (CN)</label><input id="ee-corte-negros" type="number" min="0" max="100" value="' + cNeg + '" placeholder="—"></div>' +
+      '<div><label>Cota PcD</label><input id="ee-corte-pcd" type="number" min="0" max="100" value="' + cPcd + '" placeholder="—"></div>' +
+      '</div></div>' +
+      '<div class="grade-2">' +
       '<div><label>Janela da prova — início</label><input id="ee-janela-ini" type="month" value="' + esc(e.janelaProva.inicio) + '"></div>' +
-      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>' +
-      '<div class="grade-3">' +
-      '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>';
+      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>';
 
     h += '<div class="ee-foto-campo"><label>Foto / capa do plano (aparece na aba Planos)</label>' +
       '<div class="ee-foto-linha">' +
@@ -3140,8 +3194,16 @@
     e.area = val('#ee-area').trim();
     e.estado = val('#ee-estado').trim().toUpperCase().slice(0, 2);
     e.nivel = val('#ee-nivel') || 'medio';
-    e.notaCorte = Math.max(0, Math.min(100, parseInt(val('#ee-corte'), 10) || 70));
-    e.tipoCorte = normalizarListaCorte(val('#ee-corte-lista'));
+    const clampPct = function (v) { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null; };
+    const cAmpla = clampPct(val('#ee-corte-ampla'));
+    e.cortes = {
+      ampla: cAmpla != null ? cAmpla : 70,
+      negros: val('#ee-corte-negros').trim() === '' ? null : clampPct(val('#ee-corte-negros')),
+      pcd: val('#ee-corte-pcd').trim() === '' ? null : clampPct(val('#ee-corte-pcd'))
+    };
+    // A ampla é a meta principal de estudo (corte_pct dos planos).
+    e.notaCorte = e.cortes.ampla;
+    e.tipoCorte = 'ampla';
     e.janelaProva.inicio = val('#ee-janela-ini');
     e.janelaProva.fim = val('#ee-janela-fim');
     const chk = body.querySelector('#ee-emalta');
@@ -3227,6 +3289,7 @@
         cargo: dadosImport.cargo, area: dadosImport.area || '', estado: dadosImport.estado,
         nivel: dadosImport.nivel || 'medio', notaCorte: dadosImport.notaCorte,
         tipoCorte: normalizarListaCorte(dadosImport.tipoCorte),
+        cortes: dadosImport.cortes || { ampla: dadosImport.notaCorte, negros: null, pcd: null },
         janelaProva: dadosImport.janelaProva || { inicio: '', fim: '' },
         emAlta: !!dadosImport.emAlta,
         disciplinas: dadosImport.disciplinas
@@ -3267,7 +3330,8 @@
     if (!v.ok) { toast('Não consegui validar: ' + v.erros[0], 'erro'); return; }
     const registro = {
       titulo: e.titulo, banca: e.banca, orgao: e.orgao, cargo: e.cargo, area: e.area,
-      estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte), emAlta: e.emAlta,
+      estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte),
+      cortes: e.cortes || { ampla: e.notaCorte, negros: null, pcd: null }, emAlta: e.emAlta,
       foto: e.foto || '',
       arquivado: !!e.arquivado, janelaProva: { inicio: e.janelaProva.inicio || '', fim: e.janelaProva.fim || '' },
       disciplinas: disciplinas
