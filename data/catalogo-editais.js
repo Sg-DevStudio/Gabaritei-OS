@@ -1,0 +1,1 @@
+window.CATALOGO_EDITAIS_GLOBAIS = [];

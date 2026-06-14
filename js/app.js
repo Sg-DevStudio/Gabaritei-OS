@@ -8,7 +8,10 @@
 
   const D = window.Dominio;
   const TITULO_PADRAO = document.title;
+  const ADMIN_EMAIL = 'casar70@gmail.com';
+  const CHAVE_ULTIMO_USUARIO = 'estudos.firebase.ultimoUsuario';
   let state = window.Store.carregar();
+  let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
@@ -30,6 +33,39 @@
     });
   }
 
+  function clonarJson(obj) {
+    return JSON.parse(JSON.stringify(obj || {}));
+  }
+
+  function slugCatalogo(s) {
+    return normalizarBusca(s || 'edital').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 54) || 'edital';
+  }
+
+  function normalizarEditalCatalogo(e, origem) {
+    const c = clonarJson(e);
+    c.id = c.id || ((origem === 'global' ? 'global-' : 'edt-') + slugCatalogo(c.titulo));
+    c.disciplinas = Array.isArray(c.disciplinas) ? c.disciplinas : [];
+    c.arquivado = !!c.arquivado;
+    c._global = origem === 'global';
+    return c;
+  }
+
+  function normalizarCatalogoGlobal(lista) {
+    if (!Array.isArray(lista)) return [];
+    return lista.map(function (e) { return normalizarEditalCatalogo(e, 'global'); });
+  }
+
+  function editaisDoCatalogo() {
+    const mapa = new Map();
+    catalogoGlobalEditais.forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'global')); });
+    (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
+    return Array.from(mapa.values());
+  }
+
+  function editalPorId(id) {
+    return editaisDoCatalogo().find(function (e) { return e.id === id; }) || null;
+  }
+
   function salvar(opcoes) {
     opcoes = opcoes || {};
     window.Store.salvar(state, opcoes);
@@ -42,6 +78,30 @@
     return syncStatus;
   }
 
+  function usuarioAtual() {
+    const atual = statusSincronizacao();
+    return atual && atual.usuario ? atual.usuario : null;
+  }
+
+  function usuarioLogado() {
+    return !!usuarioAtual();
+  }
+
+  function usuarioAdmin() {
+    const u = usuarioAtual();
+    return !!(u && String(u.email || '').toLowerCase() === ADMIN_EMAIL);
+  }
+
+  function prepararEstadoParaUsuario(u) {
+    if (!u || !u.uid) return;
+    const ultimo = localStorage.getItem(CHAVE_ULTIMO_USUARIO);
+    if (ultimo !== u.uid) {
+      state = window.Store.estadoVazio();
+      window.Store.salvar(state, { marcarAlterado: false });
+    }
+    localStorage.setItem(CHAVE_ULTIMO_USUARIO, u.uid);
+  }
+
   function toast(msg, tipo) {
     const raiz = document.getElementById('toast-raiz');
     const el = document.createElement('div');
@@ -49,6 +109,44 @@
     el.textContent = msg;
     raiz.appendChild(el);
     setTimeout(function () { el.remove(); }, 3200);
+  }
+
+  function telaLogin() {
+    const st = statusSincronizacao();
+    const carregando = !window.FirebaseSync || (st && st.estado === 'carregando');
+    const entrando = st && (st.estado === 'entrando' || st.estado === 'sincronizando');
+    const texto = carregando ? 'Preparando acesso seguro...' : (entrando ? 'Conectando sua conta...' : 'Entrar com Google');
+    return '<section class="login-shell">' +
+      '<div class="login-card">' +
+      '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
+      '<h1>Entre para acessar seus planos</h1>' +
+      '<p>Seu perfil, progresso, agenda e histórico ficam separados por conta. O catálogo global fica disponível para todos os usuários logados.</p>' +
+      '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
+      '<p class="login-nota">Login por e-mail e senha será adicionado depois. Por enquanto, o acesso usa Google.</p>' +
+      '</div>' +
+      '<div class="login-preview" aria-hidden="true">' +
+      '<div class="login-preview-top"></div>' +
+      '<div class="login-preview-line login-preview-line-1"></div>' +
+      '<div class="login-preview-line login-preview-line-2"></div>' +
+      '<div class="login-preview-grid">' + Array.from({ length: 42 }).map(function (_, i) {
+        return '<span class="' + (i > 34 || i === 8 || i === 16 ? 'ativo' : '') + '"></span>';
+      }).join('') + '</div>' +
+      '</div>' +
+      '</section>';
+  }
+
+  function ligarLogin(raiz) {
+    const btn = raiz.querySelector('#login-google');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      if (!window.FirebaseSync) { toast('Login ainda está carregando. Tente de novo em alguns segundos.', 'erro'); return; }
+      btn.disabled = true;
+      window.FirebaseSync.login().catch(function () {
+        toast('Não consegui abrir o login do Google. Confira o Firebase Auth.', 'erro');
+      }).finally(function () {
+        btn.disabled = false;
+      });
+    });
   }
 
   function abrirModal(html) {
@@ -908,7 +1006,7 @@
     html += linksApoioHojeHtml();
 
     // constância em destaque, centralizada (estilo GitHub)
-    html += '<div class="card constancia-card"><h3 style="text-align:center">⚡ Mantenha a Constância!</h3>' + heatmapHtml(119, true) + '</div>';
+    html += '<div class="card constancia-card"><h3 style="text-align:center">Mantenha a constância</h3>' + heatmapHtml(119, true) + '</div>';
 
     // conquistas (gamificação discreta)
     html += conquistasHtml();
@@ -1014,7 +1112,7 @@
   function conquistasHtml() {
     if (!state.plano && (!state.sessoes || state.sessoes.length === 0)) return '';
     const c = D.conquistas(state, D.hojeISO());
-    return '<div class="card conquistas-card"><h3>🏅 Conquistas <span class="conquistas-contador">' + c.ganhas + '/' + c.total + '</span></h3>' +
+    return '<div class="card conquistas-card"><h3>Conquistas <span class="conquistas-contador">' + c.ganhas + '/' + c.total + '</span></h3>' +
       '<div class="conquistas-grade">' + c.lista.map(function (m) {
         return '<div class="medalha' + (m.ganha ? ' ganha' : '') + '" title="' + esc(m.titulo + ' — ' + m.desc) + '">' +
           '<span class="medalha-icone" aria-hidden="true">' + m.icone + '</span>' +
@@ -2125,7 +2223,15 @@
     // Esta aba foca no painel do edital. Nome do usuário fica no Perfil (topo);
     // meta de questões da semana é editada na Hoje; o ritmo do cronograma é
     // definido ao criar o plano (aba Planos), após escolher o edital.
-    let html = editaisEsquematizadosHtml();
+    const u = usuarioAtual();
+    let html = '';
+    if (usuarioAdmin()) {
+      html += editaisEsquematizadosHtml();
+    } else {
+      html += '<div class="card"><h3>Minha conta</h3>' +
+        '<p class="sub">Você está logado como <strong>' + esc(u && u.email ? u.email : 'usuário') + '</strong>.</p>' +
+        '<p class="sub">Seu perfil tem acesso ao catálogo global e pode gerar planos próprios. O painel administrativo fica restrito ao administrador.</p></div>';
+    }
 
     html += '<div class="ajustes-sync-grid">';
 
@@ -2193,16 +2299,18 @@
   }
 
   function adminEditalCard(e, arquivado) {
+    const global = !!e._global;
     return '<div class="plano-mini">' +
       '<div class="plano-mini-top plano-mini-top-foto">' + editalFotoHtml(e) +
       '<div class="plano-mini-tit"><strong>' + esc(e.titulo) + '</strong>' +
-      (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</div></div>' +
+      (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') +
+      (global ? ' <span class="etiqueta">global</span>' : '') + '</div></div>' +
       '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
       contarTopicosEdital(e) + ' tóp · corte ~' + (e.notaCorte || 70) + '% · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
       '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
-      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">Editar</button>' +
-      '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button></div></div>';
+      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">' + (global ? 'Personalizar' : 'Editar') + '</button>' +
+      (global ? '' : '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button>') + '</div></div>';
   }
 
   function pedidosEditalHtml() {
@@ -2241,6 +2349,7 @@
   }
 
   function abrirImportarEdital() {
+    if (!usuarioAdmin()) { toast('Apenas o administrador pode importar editais.', 'erro'); return; }
     const m = abrirModal('<h3>Importar arquivo</h3>' + importarEditalFormHtml() +
       '<div class="modal-acoes"><button class="botao-quieto" id="ed-cancelar">Cancelar</button>' +
       '<button id="ed-cadastrar">Conferir importação</button></div>');
@@ -2250,6 +2359,7 @@
   }
 
   function abrirListaPedidos() {
+    if (!usuarioAdmin()) { toast('Apenas o administrador pode ver pedidos de edital.', 'erro'); return; }
     const m = abrirModal('<h3>Lista de pedidos</h3><div id="ped-corpo"></div>');
     function pintar() {
       m.querySelector('#ped-corpo').innerHTML = pedidosEditalHtml() +
@@ -2281,8 +2391,9 @@
       return [e.titulo, e.banca, e.orgao, e.cargo, e.estado].filter(Boolean)
         .join(' ').toLowerCase().indexOf(termo) >= 0;
     };
-    const ativos = (state.editais || []).filter(function (e) { return !e.arquivado && correspondeBusca(e); });
-    const arquivados = (state.editais || []).filter(function (e) { return e.arquivado && correspondeBusca(e); });
+    const listaCatalogo = editaisDoCatalogo();
+    const ativos = listaCatalogo.filter(function (e) { return !e.arquivado && correspondeBusca(e); });
+    const arquivados = listaCatalogo.filter(function (e) { return e.arquivado && correspondeBusca(e); });
 
     let html = '<div class="card"><h3>Planos cadastrados</h3>' +
       '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '">';
@@ -2343,6 +2454,7 @@
   }
 
   async function cadastrarEditalEsquematizado(raiz) {
+    if (!usuarioAdmin()) { toast('Apenas o administrador pode cadastrar editais.', 'erro'); return; }
     const tituloForm = (raiz.querySelector('#ed-titulo').value || '').trim();
     const bancaForm = (raiz.querySelector('#ed-banca').value || '').trim();
     const orgaoForm = (raiz.querySelector('#ed-orgao') ? raiz.querySelector('#ed-orgao').value : '').trim();
@@ -2394,7 +2506,7 @@
 
   // gera um plano de estudos personalizado a partir de um edital cadastrado
   function criarPlanoDeEdital(editalId) {
-    const e = state.editais.find(function (x) { return x.id === editalId; });
+    const e = editalPorId(editalId);
     if (!e) return;
     // Semente da "data provável" a partir da janela do edital — assim ela não
     // se perde ao (re)gerar o plano e segue persistindo/sincronizando.
@@ -2421,6 +2533,7 @@
   }
 
   function ligarEditaisEsquematizados(raiz) {
+    if (!usuarioAdmin()) return;
     const admBusca = raiz.querySelector('#adm-busca');
     if (admBusca) {
       const aplicar = function () { adminBusca = admBusca.value; render(); };
@@ -2520,7 +2633,7 @@
 
   function telaPlanos() {
     garantirEditaisMock();
-    const lista = (state.editais || []).filter(function (e) { return !e.arquivado; })
+    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado; })
       .slice().sort(function (a, b) { return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a); });
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo</span><h1>Planos disponíveis</h1></div></div>' +
       '<p class="sub" style="margin-bottom:1rem">Escolha um concurso para gerar seu plano de estudos. Use <strong>Comparar</strong> para saber se dá para conciliar dois editais.</p>';
@@ -2536,7 +2649,7 @@
 
   function telaPlanosNova() {
     garantirEditaisMock();
-    const lista = (state.editais || []).filter(function (e) {
+    const lista = editaisDoCatalogo().filter(function (e) {
       return !e.arquivado && editalCorrespondeFiltro(e, catalogoFiltro);
     }).slice().sort(function (a, b) {
       return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a);
@@ -2591,7 +2704,7 @@
   }
 
   function abrirDetalhesEdital(id) {
-    const e = (state.editais || []).find(function (x) { return x.id === id; });
+    const e = editalPorId(id);
     if (!e) return;
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
@@ -2640,7 +2753,7 @@
   }
 
   function abrirCompararPlanos(idA) {
-    const lista = (state.editais || []).filter(function (e) { return !e.arquivado; });
+    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado; });
     const edA = lista.find(function (x) { return x.id === idA; }) || lista[0];
     if (!edA || lista.length < 2) { toast('Cadastre pelo menos dois editais para comparar.', 'erro'); return; }
     const outros = lista.filter(function (x) { return x.id !== edA.id; });
@@ -2945,6 +3058,7 @@
   }
 
   function abrirEditorEdital(editalId, modo, dadosImport) {
+    if (!usuarioAdmin()) { toast('Apenas o administrador pode editar editais.', 'erro'); return; }
     let baseObj;
     if (dadosImport) {
       baseObj = Object.assign(editalEmBranco(), {
@@ -2957,13 +3071,14 @@
         disciplinas: dadosImport.disciplinas
       });
     } else if (editalId) {
-      baseObj = (state.editais || []).find(function (x) { return x.id === editalId; }) || editalEmBranco();
+      baseObj = editalPorId(editalId) || editalEmBranco();
     } else {
       baseObj = editalEmBranco();
       baseObj.disciplinas = [disciplinaEmBranco()];
     }
     editorEdital = normalizarEditalParaEditor(baseObj);
-    editorEdital._editId = (!dadosImport && editalId) ? editalId : null;
+    editorEdital._editId = (!dadosImport && editalId && !baseObj._global) ? editalId : null;
+    editorEdital._globalId = (!dadosImport && editalId && baseObj._global) ? editalId : null;
     const titulo = modo === 'conferencia' ? 'Conferência da importação' : (editorEdital._editId ? 'Editar edital' : 'Novo edital');
     const dica = modo === 'conferencia' ? '<p class="sub">Confira as disciplinas, pesos e incidências sugeridos. Ajuste o que precisar e confirme.</p>' : '';
     const m = abrirModal('<h3>' + titulo + '</h3>' + dica +
@@ -2977,6 +3092,7 @@
   }
 
   function salvarEditorEdital(m) {
+    if (!usuarioAdmin()) { toast('Apenas o administrador pode salvar editais.', 'erro'); return; }
     sincronizarEditorDoDom(m.querySelector('#editor-body'));
     const e = editorEdital;
     if (!e.titulo) { toast('Dê um nome ao edital.', 'erro'); return; }
@@ -2999,8 +3115,9 @@
       const alvo = state.editais.find(function (x) { return x.id === e._editId; });
       if (alvo) Object.assign(alvo, registro);
     } else {
-      registro.id = window.Store.novoId('edt');
+      registro.id = e._globalId || window.Store.novoId('edt');
       registro.criadoEm = D.hojeISO();
+      state.editais = state.editais.filter(function (x) { return x.id !== registro.id; });
       state.editais.push(registro);
     }
     salvar();
@@ -3537,7 +3654,7 @@
   // opções únicas (Órgão / Cargo / Estado) presentes nos editais cadastrados
   function valoresUnicosEditais(campo) {
     const set = new Set();
-    state.editais.forEach(function (e) { if (e[campo]) set.add(e[campo]); });
+    editaisDoCatalogo().forEach(function (e) { if (e[campo]) set.add(e[campo]); });
     return Array.from(set).sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
   }
 
@@ -3554,7 +3671,7 @@
 
   // conteúdo da lista do modal (recalculado a cada mudança de filtro)
   function editaisListaHtml(filtro) {
-    const lista = state.editais.filter(function (e) { return editalCorrespondeFiltro(e, filtro); });
+    const lista = editaisDoCatalogo().filter(function (e) { return editalCorrespondeFiltro(e, filtro); });
     if (lista.length === 0) {
       return '<div class="estado-vazio editais-vazio"><span class="bolha bolha-pendente"></span>' +
         '<strong>Nenhum edital encontrado</strong>' +
@@ -3640,10 +3757,7 @@
 
   function garantirEditaisMock() {
     if (!Array.isArray(state.editais)) state.editais = [];
-    if (state.editais.length === 0) {
-      state.editais = construirEditaisMock();
-      salvar({ sincronizar: false });
-    } else if (enriquecerEditais()) {
+    if (enriquecerEditais()) {
       salvar({ sincronizar: false });
     }
   }
@@ -5686,12 +5800,26 @@
 
   function render() {
     aplicarTema();
+    const conteudo = document.getElementById('conteudo');
+    if (!usuarioLogado()) {
+      document.body.classList.add('login-gate');
+      if (pintarTimerAtual) pintarTimerAtual = null;
+      try {
+        conteudo.innerHTML = telaLogin();
+        ligarLogin(conteudo);
+      } catch (err) {
+        console.error('Falha ao renderizar login:', err);
+        conteudo.innerHTML = '<section class="login-shell"><div class="login-card"><h1>Entrar</h1><p>Não consegui abrir a tela de login.</p></div></section>';
+      }
+      atualizarSyncUi();
+      return;
+    }
+    document.body.classList.remove('login-gate');
     verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
     const tela = telas[rota];
-    const conteudo = document.getElementById('conteudo');
     if (rota !== 'timer') pintarTimerAtual = null;
     // À prova de falhas: um erro numa tela não pode mais congelar a navegação
     // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
@@ -5790,9 +5918,10 @@
       aoStatus: function (novoStatus) {
         const usuarioAntes = firebaseStatus && firebaseStatus.usuario ? firebaseStatus.usuario.email : null;
         const usuarioDepois = novoStatus && novoStatus.usuario ? novoStatus.usuario.email : null;
+        if (novoStatus && novoStatus.usuario) prepararEstadoParaUsuario(novoStatus.usuario);
         firebaseStatus = novoStatus;
         atualizarSyncUi();
-        if (rotaAtual() === 'ajustes' && usuarioAntes !== usuarioDepois) render();
+        if (usuarioAntes !== usuarioDepois || !usuarioLogado()) render();
       }
     }));
   }
