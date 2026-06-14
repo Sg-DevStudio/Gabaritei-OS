@@ -1063,7 +1063,9 @@
   }
 
   // No mobile mostramos só as primeiras disciplinas; o resto fica atrás do "Ver mais".
-  const PAINEL_DISC_LIMITE_MOBILE = 4;
+  // Estado guardado fora do DOM para sobreviver a re-renders (sync, conquistas etc.).
+  const PAINEL_DISC_LIMITE_MOBILE = 7;
+  let painelDiscExpandido = false;
   // Paleta de chips no Planejamento: 1 linha (5) no mobile, resto atrás do "+N".
   const PALETA_LIMITE_MOBILE = 5;
 
@@ -1071,14 +1073,19 @@
     const linhas = dadosPainelDisciplinas();
     if (linhas.length === 0) return '';
     const ocultas = Math.max(0, linhas.length - PAINEL_DISC_LIMITE_MOBILE);
+    // Se não houver excedente, não rendderiza o botão "Ver mais" nem reseta o
+    // estado expandido (que é controlado fora do DOM para sobreviver a renders).
+    if (ocultas === 0) painelDiscExpandido = false;
+    const expClass = painelDiscExpandido ? ' expandido' : '';
+    const verMaisTxt = painelDiscExpandido ? 'Ver menos' : ('Ver mais ' + ocultas + ' disciplina' + (ocultas > 1 ? 's' : ''));
     return '<div class="card painel-disciplinas-card"><h3 class="painel-titulo">Painel de disciplinas</h3>' +
-      '<div class="painel-disciplinas-mobile">' + linhas.map(function (d, i) {
+      '<div class="painel-disciplinas-mobile' + expClass + '">' + linhas.map(function (d, i) {
         return '<button type="button" class="painel-disc-mobile' + (i >= PAINEL_DISC_LIMITE_MOBILE ? ' painel-disc-extra' : '') + '" data-disc-detalhe="' + esc(d.id) + '" style="--disc-cor:' + esc(d.cor) + '">' +
           '<span class="painel-disc-mobile-nome">' + esc(nomeDiscCurto(d.nome)) + '</span>' +
           pizzaAcertosHtml(d.certas, d.erros, { classe: 'pizza-sm', titulo: d.nome }) +
           '</button>';
       }).join('') +
-      (ocultas > 0 ? '<button type="button" class="painel-disc-vermais botao-mini botao-quieto" data-painel-vermais aria-expanded="false">Ver mais ' + ocultas + ' disciplina' + (ocultas > 1 ? 's' : '') + '</button>' : '') +
+      (ocultas > 0 ? '<button type="button" class="painel-disc-vermais botao-mini botao-quieto" data-painel-vermais aria-expanded="' + (painelDiscExpandido ? 'true' : 'false') + '">' + verMaisTxt + '</button>' : '') +
       '</div>' +
       '<div class="painel-scroll"><table class="painel-disciplinas"><thead><tr>' +
       '<th>Matéria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
@@ -1400,15 +1407,9 @@
     });
     const verMais = raiz.querySelector('[data-painel-vermais]');
     if (verMais) verMais.addEventListener('click', function () {
-      const lista = verMais.closest('.painel-disciplinas-mobile');
-      if (!lista) return;
-      const aberto = lista.classList.toggle('expandido');
-      verMais.setAttribute('aria-expanded', aberto ? 'true' : 'false');
-      if (aberto) { verMais.textContent = 'Ver menos'; }
-      else {
-        const n = lista.querySelectorAll('.painel-disc-extra').length;
-        verMais.textContent = 'Ver mais ' + n + ' disciplina' + (n > 1 ? 's' : '');
-      }
+      // estado fora do DOM: o re-render abaixo já reflete o novo texto/classe.
+      painelDiscExpandido = !painelDiscExpandido;
+      render();
     });
     const metaQBtn = raiz.querySelector('[data-editar-meta]');
     if (metaQBtn) metaQBtn.addEventListener('click', editarMetaQuestoes);
