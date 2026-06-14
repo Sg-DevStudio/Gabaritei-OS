@@ -719,7 +719,7 @@
       '<div class="card-kpi-rotulo">Data provável · ' + esc(nomeCurtoConcurso()) + '</div></div>' +
       calendarioCountdownHtml(janela, periodo) +
       (reavaliar ? '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' : '') +
-      '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar</button>';
+      '<button type="button" class="botao-mini botao-quieto prova-editar">Editar</button>';
   }
 
   function provaEstimadaHtml() {
@@ -1063,6 +1063,8 @@
 
   // No mobile mostramos só as primeiras disciplinas; o resto fica atrás do "Ver mais".
   const PAINEL_DISC_LIMITE_MOBILE = 4;
+  // Paleta de chips no Planejamento: 1 linha (5) no mobile, resto atrás do "+N".
+  const PALETA_LIMITE_MOBILE = 5;
 
   function painelDisciplinasHojeHtml() {
     const linhas = dadosPainelDisciplinas();
@@ -1129,17 +1131,26 @@
     const resumoDia = pendentes === 0 ? 'Tudo em dia por hoje.' :
       nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
 
-    let html = '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacaoCompleta(saudacao) + '</h1>' +
-      '<p class="sub">' + resumoDia + '</p></div></div>';
+    // Card "Data provável" agora é independente do "Mantenha a constância".
+    // Desktop: aparece no topo, alinhado à saudação. Mobile: card próprio logo
+    // acima do mapa de constância (mantém a posição atual). Renderizamos as duas
+    // variantes e o CSS mostra a adequada a cada tela.
+    const provaCard = state.plano ? '<div class="card prova-card prova-card-solo">' + provaEstimadaConteudoHtml() + '</div>' : '';
+
+    let html = '<div class="home-cab">' +
+      '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacaoCompleta(saudacao) + '</h1>' +
+      '<p class="sub">' + resumoDia + '</p></div></div>' +
+      (provaCard ? '<div class="home-cab-prova">' + provaCard + '</div>' : '') +
+      '</div>';
 
     html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
     html += linksApoioHojeHtml();
 
-    // constância em destaque, com a data provável embutida no mesmo card
-    html += '<div class="card constancia-card"><div class="constancia-card-grid">' +
-      '<div class="constancia-centro"><h3>⚡ Mantenha a constância!</h3>' + heatmapHtml(119, true) + '</div>' +
-      (state.plano ? '<aside class="constancia-prova prova-card">' + provaEstimadaConteudoHtml() + '</aside>' : '') +
-      '</div></div>';
+    // versão mobile do card de data provável (acima do mapa de constância)
+    if (provaCard) html += '<div class="prova-card-mobile">' + provaCard + '</div>';
+
+    // constância em destaque (apenas o mapa)
+    html += '<div class="card constancia-card"><div class="constancia-centro"><h3>⚡ Mantenha a constância!</h3>' + heatmapHtml(119, true) + '</div></div>';
 
     // conquistas (gamificação discreta)
     html += conquistasHtml();
@@ -1377,8 +1388,7 @@
 
   function ligarHoje(raiz) {
     celebrarConquistasNovas();
-    const provaEditar = raiz.querySelector('#prova-editar');
-    if (provaEditar) provaEditar.addEventListener('click', abrirEditarProva);
+    raiz.querySelectorAll('.prova-editar').forEach(function (b) { b.addEventListener('click', abrirEditarProva); });
     raiz.querySelectorAll('[data-conquista]').forEach(function (el) {
       el.addEventListener('click', function () { abrirConquista(el.getAttribute('data-conquista')); });
     });
@@ -2564,7 +2574,7 @@
   function adminEditalCard(e, arquivado) {
     const global = !!e._global;
     return '<div class="plano-mini">' +
-      '<div class="plano-mini-top plano-mini-top-foto">' + editalFotoHtml(e) +
+      '<div class="plano-mini-top">' +
       '<div class="plano-mini-tit"><strong>' + esc(e.titulo) + '</strong>' +
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') +
       (global ? ' <span class="etiqueta">global</span>' : '') + '</div></div>' +
@@ -2940,7 +2950,9 @@
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
       '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) +
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</strong>' +
-      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</span></div></div>' +
+      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</span>' +
+      (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
+      '</div></div>' +
       '<div class="catalogo-metricas">' +
       metrica('Corte', esc(rotuloCorteEdital(e))) +
       metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
@@ -2950,7 +2962,6 @@
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e incidências">Detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir deste edital">' + (jaTem ? 'Refazer' : 'Iniciar') + '</button>' +
       '<button class="botao-mini botao-quieto" data-pl-comparar="' + esc(e.id) + '" title="Comparar com outro edital">Comparar</button>' +
-      (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div>' +
       '</div>';
   }
@@ -5107,13 +5118,16 @@
         '<button class="botao botao-secundario" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
     }
 
-    // paleta de disciplinas (arrastáveis)
+    // paleta de disciplinas (arrastáveis) — no mobile mostra 1 linha (5) + "Ver mais"
+    const discPaleta = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    const chipsOcultos = Math.max(0, discPaleta.length - PALETA_LIMITE_MOBILE);
     html += '<div class="card planejamento-disciplinas-card"><h3>Personalize seu plano de estudos</h3>' +
       '<p class="sub">Arraste uma matéria para um dia do calendário ou toque nela para agendar hoje.</p>' +
       '<div class="paleta-disc">' +
-      state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
-        return '<button class="chip-disc" draggable="true" data-chip="' + esc(d.id) + '" style="background:' + esc(d.cor) + '" title="' + esc(d.nome) + '">' + esc(d.id) + '</button>';
+      discPaleta.map(function (d, i) {
+        return '<button class="chip-disc' + (i >= PALETA_LIMITE_MOBILE ? ' chip-disc-extra' : '') + '" draggable="true" data-chip="' + esc(d.id) + '" style="background:' + esc(d.cor) + '" title="' + esc(d.nome) + '">' + esc(d.id) + '</button>';
       }).join('') +
+      (chipsOcultos > 0 ? '<button type="button" class="chip-disc-vermais botao-mini botao-quieto" data-paleta-vermais aria-expanded="false">+' + chipsOcultos + '</button>' : '') +
       '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
       '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
 
@@ -5313,6 +5327,15 @@
     });
     raiz.querySelectorAll('[data-modo-ag]').forEach(function (b) {
       b.addEventListener('click', function () { agendaModo = b.getAttribute('data-modo-ag'); render(); });
+    });
+
+    const paletaVerMais = raiz.querySelector('[data-paleta-vermais]');
+    if (paletaVerMais) paletaVerMais.addEventListener('click', function () {
+      const paleta = paletaVerMais.closest('.paleta-disc');
+      if (!paleta) return;
+      const aberto = paleta.classList.toggle('expandido');
+      paletaVerMais.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+      paletaVerMais.textContent = aberto ? '−' : ('+' + paleta.querySelectorAll('.chip-disc-extra').length);
     });
 
     // chips: arrastar para um dia ou tocar para agendar hoje
@@ -6115,7 +6138,6 @@
   function telaMais() {
     const itens = [
       ['#planos', 'Planos'],
-      ['#edital', 'Edital verticalizado'],
       ['#stats', 'Estatísticas'],
       ['#simulados', 'Simulados'],
       ['#ajustes', 'Configurações']

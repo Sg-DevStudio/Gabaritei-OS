@@ -837,6 +837,21 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .alvo-emoji { font-size: 1.15rem; line-height: 1; }
 .prova-editar { align-self: center; margin-top: 0.1rem; }
 
+/* Card "Data provável" independente: topo (desktop) ou card próprio (mobile) */
+.prova-card-solo { margin: 0; }
+.home-cab { margin-bottom: 0.5rem; }
+/* base (mobile): mostra a versão em card; esconde a do topo */
+.home-cab-prova { display: none; }
+.prova-card-mobile { display: block; margin-bottom: 0.9rem; }
+@media (min-width: 761px) {
+  /* desktop: data provável ao lado da saudação, alinhada ao topo */
+  .home-cab { display: flex; align-items: stretch; justify-content: space-between; gap: 1.2rem; }
+  .home-cab .cab-home { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
+  .home-cab-prova { display: block; flex: 0 0 auto; width: min(300px, 36%); }
+  .home-cab-prova .prova-card-solo { height: 100%; }
+  .prova-card-mobile { display: none; }
+}
+
 .prova-status-pill {
   display: inline-flex;
   padding: 0.2rem 0.7rem;
@@ -1486,10 +1501,6 @@ td.num, th.num { text-align: right; }
 }
 
 @media (max-width: 760px) {
-  .constancia-card-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
-  /* No mobile a "Data provável" vem acima do mapa de constância */
-  .constancia-centro { grid-column: auto; order: 2; }
-  .constancia-prova.prova-card { grid-row: auto; order: 1; justify-self: stretch; margin: 0 0 0.5rem; }
   .home-kpis .card-kpi:not(.prova-card) { display: none; }
   .conquistas-card {
     max-width: 720px;
@@ -1874,7 +1885,14 @@ td.num, th.num { text-align: right; }
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 .chip-disc:active { cursor: grabbing; }
+.chip-disc-vermais { min-height: 34px; border-radius: 999px; padding: 0.32rem 0.7rem; display: none; }
 .paleta-dica { font-size: 0.76rem; color: var(--grafite); }
+@media (max-width: 760px) {
+  /* 1 linha (5 chips) + botão "+N"; o resto fica oculto até expandir */
+  .chip-disc-extra { display: none; }
+  .paleta-disc.expandido .chip-disc-extra { display: inline-flex; }
+  .chip-disc-vermais { display: inline-flex; align-items: center; }
+}
 
 .agenda-grid {
   display: grid;
@@ -2390,8 +2408,8 @@ canvas.grafico {
 .cm-valor { font-family: var(--fonte-mono); font-size: 0.86rem; font-weight: 600; }
 .catalogo-sub { font-size: 0.8rem; color: var(--grafite); }
 .catalogo-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
-/* "plano criado ✓" fica na mesma linha dos botões, encostado à direita */
-.catalogo-feito { align-self: center; margin: 0 0 0 auto; }
+/* "plano criado ✓" aparece logo abaixo do subtítulo do edital */
+.catalogo-feito { align-self: flex-start; margin: 0.15rem 0 0; }
 @media (max-width: 760px) {
   .catalogo-grade { grid-template-columns: 1fr; }
   /* Corte, Nível e Prova lado a lado no celular */
