@@ -1137,14 +1137,19 @@
     // acima do mapa de constância (mantém a posição atual). Renderizamos as duas
     // variantes e o CSS mostra a adequada a cada tela.
     const provaCard = state.plano ? '<div class="card prova-card prova-card-solo">' + provaEstimadaConteudoHtml() + '</div>' : '';
+    const fraseHtml = '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
 
+    // Coluna esquerda (saudação + frase do dia) ao lado do card de data provável.
+    // No desktop a frase sobe para preencher o vão do meio; no mobile tudo empilha.
     let html = '<div class="home-cab">' +
+      '<div class="home-cab-esq">' +
       '<div class="cab-pagina cab-home"><div><span class="rotulo-pagina">' + D.formatarDataBR(hoje) + '</span><h1>' + saudacaoCompleta(saudacao) + '</h1>' +
       '<p class="sub">' + resumoDia + '</p></div></div>' +
+      fraseHtml +
+      '</div>' +
       (provaCard ? '<div class="home-cab-prova">' + provaCard + '</div>' : '') +
       '</div>';
 
-    html += '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
     html += linksApoioHojeHtml();
 
     // versão mobile do card de data provável (acima do mapa de constância)
@@ -6320,9 +6325,6 @@
     document.querySelectorAll('[data-rota]').forEach(function (el) {
       el.classList.toggle('ativo', el.getAttribute('data-rota') === rota);
     });
-    const concurso = document.getElementById('sidebar-concurso');
-    if (concurso) concurso.textContent = state.plano ? state.plano.concurso : 'Nenhum plano importado';
-
     const nVencidas = doAtivo(state.revisoes).filter(function (r) {
       return !r.dataConcluida && r.dataAgendada <= D.hojeISO() && D.topicoPorId(state, r.topicoId);
     }).length;
