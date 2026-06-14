@@ -1054,6 +1054,11 @@ td.num, th.num { text-align: right; }
 
 @media (max-width: 760px) {
   .home-kpis .card-kpi:not(.prova-card) { display: none; }
+  /* card "Data provável" centralizado no celular */
+  .prova-card { align-items: center; text-align: center; }
+  .prova-card-topo { justify-content: center; text-align: left; }
+  .prova-card .prova-countdown { align-self: center; }
+  .prova-card .prova-editar { align-self: center; }
   .conquistas-card {
     max-width: 720px;
     margin-left: auto;
