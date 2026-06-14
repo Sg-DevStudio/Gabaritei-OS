@@ -363,8 +363,8 @@
   }
 
   // Widget de calendário animado: número de dias em destaque no centro,
-  // detalhamento (meses/semanas/dias) ao passar o mouse.
-  function calendarioCountdownHtml(janela) {
+  // período + detalhamento (meses/semanas/dias) ao passar o mouse.
+  function calendarioCountdownHtml(janela, periodo) {
     if (!janela || !janela[0] || !janela[1]) {
       return '<div class="prova-status-pill">sem data definida</div>';
     }
@@ -381,8 +381,10 @@
     }
     const dias = D.diffDias(hoje, inicio);
     const detalhe = countdownDetalhado(dias) + ' para a prova';
+    const temPeriodo = periodo && periodo !== 'Definir período';
+    const aria = (temPeriodo ? periodo + ' · ' : '') + detalhe;
     const mesAlvo = D.formatarMesBR(janela[0]).split(' ')[0].toUpperCase();
-    return '<div class="cal-countdown" tabindex="0" role="img" aria-label="' + esc(detalhe) + '">' +
+    return '<div class="cal-countdown" tabindex="0" role="img" aria-label="' + esc(aria) + '">' +
       '<div class="cal-widget">' +
       '<span class="cal-anel cal-anel-e" aria-hidden="true"></span>' +
       '<span class="cal-anel cal-anel-d" aria-hidden="true"></span>' +
@@ -390,7 +392,9 @@
       '<div class="cal-body"><span class="cal-num">' + dias + '</span>' +
       '<span class="cal-unidade">' + (dias === 1 ? 'dia' : 'dias') + '</span></div>' +
       '</div>' +
-      '<div class="cal-tooltip" role="tooltip">' + esc(detalhe) + '</div>' +
+      '<div class="cal-tooltip" role="tooltip">' +
+      (temPeriodo ? '<span class="cal-tooltip-periodo">' + esc(periodo) + '</span>' : '') +
+      '<span>' + esc(detalhe) + '</span></div>' +
       '</div>';
   }
 
@@ -416,14 +420,11 @@
     const periodo = janela && janela[0] && janela[1]
       ? D.formatarMesBR(janela[0]) + ' – ' + D.formatarMesBR(janela[1])
       : 'Definir período';
-    const confianca = radar && radar.confianca ? radar.confianca : 'manual';
     const reavaliar = radar && radar.reavaliar_em ? D.formatarDataBR(radar.reavaliar_em) : 'sem revisão marcada';
     return '<div class="card card-kpi prova-card">' +
       '<div class="prova-card-topo"><span class="alvo-emoji" aria-hidden="true">🎯</span>' +
-      '<div><div class="card-kpi-rotulo">Data provável · ' + esc(nomeCurtoConcurso()) + '</div>' +
-      '<div class="card-kpi-extra">confiança ' + esc(confianca) + '</div></div></div>' +
-      '<div class="prova-periodo num">' + esc(periodo) + '</div>' +
-      calendarioCountdownHtml(janela) +
+      '<div class="card-kpi-rotulo">Data provável · ' + esc(nomeCurtoConcurso()) + '</div></div>' +
+      calendarioCountdownHtml(janela, periodo) +
       '<div class="card-kpi-extra">reavaliar em ' + esc(reavaliar) + '</div>' +
       '<button type="button" class="botao-mini botao-quieto prova-editar" id="prova-editar">Editar</button>' +
       '</div>';
@@ -473,12 +474,7 @@
       '<div class="grade-2">' +
       '<div><label for="pv-inicio">Início do período</label><input id="pv-inicio" type="month" value="' + esc(janela[0] || hojeMesISO()) + '" required></div>' +
       '<div><label for="pv-fim">Fim do período</label><input id="pv-fim" type="month" value="' + esc(janela[1] || janela[0] || hojeMesISO()) + '" required></div></div>' +
-      '<div class="grade-2">' +
-      '<div><label for="pv-conf">Confiança</label><select id="pv-conf">' +
-      ['baixa', 'média', 'alta', 'manual'].map(function (c) {
-        return '<option value="' + esc(c) + '"' + ((radar.confianca || 'manual') === c ? ' selected' : '') + '>' + esc(c) + '</option>';
-      }).join('') + '</select></div>' +
-      '<div><label for="pv-reav">Reavaliar em</label><input id="pv-reav" type="date" value="' + esc(radar.reavaliar_em || '') + '"></div></div>' +
+      '<label for="pv-reav">Reavaliar em</label><input id="pv-reav" type="date" value="' + esc(radar.reavaliar_em || '') + '">' +
       '<div class="msg-erro oculto" id="pv-erro"></div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="pv-cancelar">Cancelar</button>' +
       '<button type="submit">Salvar</button></div></form>'
@@ -498,7 +494,6 @@
       if (nome) state.plano.concurso = nome;
       state.plano.radar = Object.assign({}, radar, {
         janela_prova: [inicio, fim],
-        confianca: m.querySelector('#pv-conf').value,
         reavaliar_em: m.querySelector('#pv-reav').value || null
       });
       salvar();
@@ -708,7 +703,7 @@
       html += '<div class="streak-resumo">' +
         (st.atual > 0
           ? 'Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia seguido' : ' dias seguidos') + '</strong> estudando · recorde: ' + st.recorde
-          : 'Nenhum estudo registrado hoje — preenche a primeira bolha do dia!' + (st.recorde > 0 ? ' Recorde: ' + st.recorde + ' dias.' : '')) +
+          : 'Nenhum estudo registrado hoje' + (st.recorde > 0 ? ' · recorde: ' + st.recorde + ' dias.' : '')) +
         '</div>';
     }
     if (comResumo && st.atual > 0 && extras) {
@@ -843,7 +838,7 @@
     html += linksApoioHojeHtml();
 
     // constância em destaque, centralizada (estilo GitHub)
-    html += '<div class="card constancia-card"><h3 style="text-align:center">⚡ Constância</h3>' + heatmapHtml(119, true) + '</div>';
+    html += '<div class="card constancia-card"><h3 style="text-align:center">⚡ Mantenha a Constância!</h3>' + heatmapHtml(119, true) + '</div>';
 
     // conquistas (gamificação discreta)
     html += conquistasHtml();
@@ -1497,28 +1492,38 @@
   }
 
   // ---------------- TELA: Edital verticalizado ----------------
-  function comparativoPlanosHtml() {
+  // Plano-like → formato que D.conciliarPlanos espera (disciplinas + janela da prova)
+  function planoComoEdital(entrada) {
+    const radar = entrada.plano && entrada.plano.radar;
+    const janela = radar && radar.janela_prova;
+    return {
+      disciplinas: entrada.disciplinas || [],
+      janelaProva: janela && janela[0] ? { inicio: janela[0] } : null
+    };
+  }
+
+  // Banner de compatibilidade — só aparece quando o aluno estuda 2+ planos ao
+  // mesmo tempo. Diz "X% compatíveis" e aconselha quando a conciliação aperta.
+  function compatibilidadeEditaisHtml() {
     if (!state.plano || state.planos.length < 2) return '';
     const ativo = entradaPlanoAtivo();
     if (!ativo) return '';
-    const nomesAtivo = new Set(ativo.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) { return d.nome.toLowerCase(); }));
     const outros = state.planos.filter(function (p) { return p.id !== state.planoAtivoId; });
-    let comuns = 0, diferentes = 0, topicosDiferentes = 0;
+    // compara o plano ativo com o outro plano mais sobreposto
+    let melhor = null;
     outros.forEach(function (p) {
-      p.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).forEach(function (d) {
-        const nome = d.nome.toLowerCase();
-        if (nomesAtivo.has(nome)) {
-          comuns++;
-          const dAtivo = ativo.disciplinas.find(function (x) { return x.nome.toLowerCase() === nome; });
-          if (dAtivo && dAtivo.topicos.filter(function (t) { return !t.orfao; }).length !== d.topicos.filter(function (t) { return !t.orfao; }).length) topicosDiferentes++;
-        } else {
-          diferentes++;
-        }
-      });
+      const r = D.conciliarPlanos(planoComoEdital(ativo), planoComoEdital(p), { horasSemana: horasSemanaDisponiveis() });
+      if (!melhor || r.detalhes.overlapPct > melhor.r.detalhes.overlapPct) melhor = { p: p, r: r };
     });
-    return '<div class="card edital-contexto"><div><div class="card-kpi-rotulo">Comparação entre editais</div>' +
-      '<p><strong>' + esc(state.plano.concurso) + '</strong> está ativo. Entre os outros planos salvos, há ' + comuns + ' disciplinas com nomes parecidos, ' + diferentes + ' exclusivas e ' + topicosDiferentes + ' com quantidade de tópicos diferente.</p>' +
-      '<p class="sub">Mesmo quando o nome da disciplina é igual, confira os tópicos: o conteúdo cobrado pode mudar bastante.</p></div></div>';
+    if (!melhor) return '';
+    const pct = melhor.r.detalhes.overlapPct;
+    const compativel = melhor.r.nivel === 'alta' || melhor.r.nivel === 'moderada';
+    const classe = compativel ? 'ok' : 'alerta';
+    const icone = compativel ? '🤝' : '⚠️';
+    return '<div class="card compat-editais compat-' + classe + '">' +
+      '<div class="compat-topo"><span class="compat-icone" aria-hidden="true">' + icone + '</span>' +
+      '<div><strong>Estes editais são ' + pct + '% compatíveis</strong> · ' + esc(state.plano.concurso) + ' × ' + esc(melhor.p.plano.concurso) + '</div></div>' +
+      '<p class="sub">' + esc(melhor.r.mensagem) + '</p></div>';
   }
 
   function telaEdital() {
@@ -1534,17 +1539,18 @@
     let html = '<div class="cab-pagina"><div><h1>Edital verticalizado</h1>' +
       '<p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos com teoria concluída (' + prog.pct + '%) · % = incidência nas últimas provas</p></div></div>';
 
-    html += '<div class="card edital-contexto"><div class="card-kpi-rotulo">Plano ativo</div><p><strong>' + esc(state.plano.concurso) + '</strong></p><p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos concluídos (' + prog.pct + '%). Percentual dos tópicos indica incidência estimada nas provas.</p></div>';
-    html += comparativoPlanosHtml();
+    html += compatibilidadeEditaisHtml();
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
     state.disciplinas.forEach(function (d) {
       const aberta = editalAbertas.has(d.id);
       const pd = D.progressoDisciplina(d);
       const desemp = D.desempenhoDisciplina(state, d);
       const quentes = idsTopicosQuentes(d.topicos);
+      const origem = d.origem || (state.planos.length > 1 ? nomeCurtoConcurso() : '');
       html += '<button class="disc-cab" data-disc="' + esc(d.id) + '" aria-expanded="' + aberta + '">' +
         '<span style="font-family:var(--fonte-mono);color:var(--grafite)">' + (aberta ? '▾' : '▸') + '</span>' +
         tagDisc(d) + ' ' + esc(nomeDiscCurto(d.nome)) +
+        (origem ? '<span class="disc-origem" title="Origem da disciplina">' + esc(origem) + '</span>' : '') +
         '<span class="disc-prog">' + pd.concluidos + '/' + pd.total + ' · ' + semaforoHtml(desemp, meta) + '</span></button>';
       if (aberta) {
         d.topicos.forEach(function (t) {
@@ -1898,9 +1904,9 @@
     disciplinaDetalheId = disc.id;
     const m = metricasDisciplina(disc);
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
-    let html = '<div class="cab-pagina detalhe-disc-cab"><div><span class="rotulo-pagina">' + esc(state.plano ? state.plano.concurso : 'Plano manual') + '</span>' +
-      '<h1>' + esc(nomeDiscCurto(disc.nome)) + '</h1><p class="sub">Edital verticalizado da disciplina, histórico e desempenho acumulado.</p></div>' +
-      '<div class="cab-acoes"><button class="botao-secundario" id="det-voltar">Voltar</button><button id="det-add">Adicionar estudo</button></div></div>';
+    let html = '<button class="det-voltar-flutuante" id="det-voltar" aria-label="Voltar"><span aria-hidden="true">←</span><span class="det-voltar-txt">Voltar</span></button>';
+    html += '<div class="cab-pagina detalhe-disc-cab"><div><span class="rotulo-pagina">' + esc(state.plano ? state.plano.concurso : 'Plano manual') + '</span>' +
+      '<h1>' + esc(nomeDiscCurto(disc.nome)) + '</h1></div></div>';
 
     html += '<div class="linha-cards detalhe-metricas">' +
       '<div class="card card-kpi detalhe-card-tempo"><div class="card-kpi-rotulo">Tempo de estudo</div><div class="card-kpi-valor">' + D.formatarMin(m.minutos) + '</div></div>' +
@@ -1909,7 +1915,8 @@
       '<div class="card card-kpi detalhe-card-questoes"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + m.feitas + '</div><div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
       '</div>';
 
-    html += '<div class="card"><div class="card-kpi-rotulo">Histórico de registros</div>';
+    html += '<div class="card"><div class="card-cab-acao"><div class="card-kpi-rotulo">Histórico de registros</div>' +
+      '<button class="botao-mini" id="det-add">+ Adicionar estudo</button></div>';
     if (m.sessoes.length === 0) {
       html += '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem registros nesta disciplina</strong>Use o botão Adicionar estudo para começar.</div>';
     } else {
@@ -2058,12 +2065,12 @@
 
   // ---------------- TELA: Configurações (F2) ----------------
   function telaAjustes() {
-    let html = '<h1>Configurações</h1>';
-
     // Esta aba foca no painel do edital. Nome do usuário fica no Perfil (topo);
     // meta de questões da semana é editada na Hoje; o ritmo do cronograma é
     // definido ao criar o plano (aba Planos), após escolher o edital.
-    html += editaisEsquematizadosHtml();
+    let html = editaisEsquematizadosHtml();
+
+    html += '<div class="ajustes-sync-grid">';
 
     const syncAtual = statusSincronizacao();
     const syncTexto = syncAtual && syncAtual.texto ? syncAtual.texto : 'Verificando sincronização';
@@ -2095,6 +2102,7 @@
       '<button class="botao-secundario botao-mini" id="gcal-salvar">Salvar Calendar</button>' +
       '<button class="botao-mini botao-quieto" id="gcal-ir-planejamento">Ir para Planejamento</button>' +
       '</div></div>';
+    html += '</div>'; // .ajustes-sync-grid
 
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
       '<button class="botao-perigo botao-mini" id="zr-limpar">Apagar todos os dados</button></div>';
@@ -2220,7 +2228,7 @@
     const arquivados = (state.editais || []).filter(function (e) { return e.arquivado && correspondeBusca(e); });
 
     let html = '<div class="card"><h3>Planos cadastrados</h3>' +
-      '<input id="adm-busca" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '" style="margin-bottom:0.6rem">';
+      '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '">';
 
     if (ativos.length > 0) {
       html += '<div class="planos-grade">';
@@ -3417,7 +3425,6 @@
       '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
       '<div class="compact-actions plano-acoes-card">' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
-      '<button class="botao-mini botao-secundario" id="pl-acao-perfil">Perfil</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
       '</div>';
@@ -5409,7 +5416,6 @@
       ['#edital', 'Edital verticalizado'],
       ['#stats', 'Estatísticas'],
       ['#simulados', 'Simulados'],
-      ['#historico', 'Histórico'],
       ['#ajustes', 'Configurações']
     ];
     return '<div class="card card-quieto mais-menu mais-menu-anima">' +
