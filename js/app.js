@@ -2544,15 +2544,21 @@
     const ativos = listaCatalogo.filter(function (e) { return !e.arquivado && correspondeBusca(e); });
     const arquivados = listaCatalogo.filter(function (e) { return e.arquivado && correspondeBusca(e); });
 
-    let html = '<div class="card"><h3>Planos cadastrados</h3>' +
-      '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '">';
+    let html = '<div class="card"><h3 class="planos-cad-titulo">Planos cadastrados</h3>' +
+      '<div class="planos-cad-barra">' +
+      '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '">' +
+      '<div class="planos-cad-acoes">' +
+      '<button class="botao botao-mini" id="adm-novo">+ Novo edital</button>' +
+      '<button class="botao-secundario botao-mini" id="adm-importar">Importar arquivo</button>' +
+      '<button class="botao-quieto botao-mini" id="adm-pedidos">Lista de pedidos</button>' +
+      '</div></div>';
 
     if (catalogoPublicacaoErro) {
       html += '<div class="aviso aviso-erro" style="margin-top:0.65rem">' + esc(catalogoPublicacaoErro) + '</div>';
     } else if (catalogoPublicacaoOkEm) {
-      html += '<p class="sub" style="margin:0.55rem 0 0">Catalogo global publicado. Outras contas ja podem carregar estes planos.</p>';
+      html += '<p class="sub" style="margin:0.55rem 0 0">Catálogo global publicado. Outras contas já podem carregar estes planos.</p>';
     } else {
-      html += '<p class="sub" style="margin:0.55rem 0 0">Publique o catalogo global para outras contas enxergarem os planos do admin.</p>';
+      html += '<p class="sub" style="margin:0.55rem 0 0">O catálogo global é publicado automaticamente sempre que você cadastra, edita ou exclui um edital.</p>';
     }
 
     if (ativos.length > 0) {
@@ -2570,12 +2576,6 @@
       html += '</div></details>';
     }
 
-    html += '<div class="admin-acoes" style="margin-top:0.85rem">' +
-      '<button class="botao botao-mini" id="adm-novo">+ Novo edital</button>' +
-      '<button class="botao-secundario botao-mini" id="adm-importar">Importar arquivo</button>' +
-      '<button class="botao-secundario botao-mini" id="adm-publicar-global">Publicar catalogo global</button>' +
-      '<button class="botao-quieto botao-mini" id="adm-pedidos">Lista de pedidos</button>' +
-      '</div>';
     html += '</div>';
     return html;
   }
@@ -2705,14 +2705,6 @@
     if (importar) importar.addEventListener('click', abrirImportarEdital);
     const pedidos = raiz.querySelector('#adm-pedidos');
     if (pedidos) pedidos.addEventListener('click', abrirListaPedidos);
-    const publicar = raiz.querySelector('#adm-publicar-global');
-    if (publicar) publicar.addEventListener('click', function () {
-      publicar.disabled = true;
-      publicarCatalogoAdmin({ toast: true }).finally(function () {
-        publicar.disabled = false;
-        render();
-      });
-    });
     raiz.querySelectorAll('[data-ed-editar]').forEach(function (b) {
       b.addEventListener('click', function () { abrirEditorEdital(b.getAttribute('data-ed-editar'), 'editar'); });
     });

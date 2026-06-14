@@ -2402,6 +2402,30 @@ canvas.grafico {
 /* painel admin de editais */
 .admin-acoes { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.5rem 0; }
 
+/* Título do painel de planos cadastrados (admin) — em destaque */
+.planos-cad-titulo {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin-bottom: 0.85rem;
+}
+/* Barra: busca à esquerda + ações (novo/importar/pedidos) logo ao lado */
+.planos-cad-barra {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+.planos-cad-barra .campo-busca-compacto {
+  flex: 1 1 240px;
+  margin-bottom: 0;
+}
+.planos-cad-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 /* Campo de busca compacto (Planos cadastrados): não ocupar a largura toda */
 .campo-busca-compacto {
   max-width: 340px;
@@ -2409,7 +2433,11 @@ canvas.grafico {
   margin-bottom: 0.7rem;
   font-size: 0.9rem;
 }
-@media (max-width: 560px) { .campo-busca-compacto { max-width: 100%; } }
+@media (max-width: 560px) {
+  .campo-busca-compacto { max-width: 100%; }
+  .planos-cad-barra .campo-busca-compacto { flex-basis: 100%; }
+  .planos-cad-acoes { width: 100%; }
+}
 
 /* Configurações: Sincronização e Google Calendar lado a lado */
 .ajustes-sync-grid {
