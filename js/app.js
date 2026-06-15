@@ -1901,6 +1901,7 @@
   }
 
   let revisoesAba = 'agendadas'; // 'agendadas' | 'flashcards'
+  const fcDecksAbertos = new Set(); // ids de decks expandidos (preserva entre re-renders)
 
   function embaralhar(lista) {
     const a = lista.slice();
@@ -2007,13 +2008,22 @@
         '<div class="fc-decks">' + porDisc[k].map(function (dk) {
           const cards = dk.cards || [];
           const devidas = cards.filter(function (c) { return D.flashcardDevido(c, hoje); }).length;
-          return '<div class="fc-deck">' +
+          const aberto = fcDecksAbertos.has(dk.id);
+          const cartasHtml = cards.length ? cards.map(function (c) {
+            return '<div class="fc-carta-linha fc-carta-linha-ro"><div class="fc-carta-fv">' +
+              '<strong>' + esc(c.frente) + '</strong><span>' + esc(c.verso) + '</span></div></div>';
+          }).join('') : '<p class="sub" style="margin:0">Nenhuma carta ainda — toque em "Cartas" para adicionar.</p>';
+          return '<div class="fc-deck' + (cards.length >= 2 ? ' fc-deck-stack' : '') + (aberto ? ' aberto' : '') + '" data-fc-deck="' + esc(dk.id) + '">' +
+            '<div class="fc-deck-cab" data-fc-toggle="' + esc(dk.id) + '" role="button" tabindex="0" aria-expanded="' + (aberto ? 'true' : 'false') + '">' +
+            '<span class="fc-deck-chevron" aria-hidden="true">▸</span>' +
             '<div class="fc-deck-info"><strong>' + esc(dk.nome) + '</strong>' +
             '<span class="sub">' + cards.length + ' carta(s)' + (devidas ? ' · <span class="fc-devidas">' + devidas + ' a revisar</span>' : (cards.length ? ' · em dia' : '')) + '</span></div>' +
             '<div class="fc-deck-acoes">' +
             '<button class="botao-mini" data-fc-estudar="' + esc(dk.id) + '"' + (cards.length ? '' : ' disabled') + '>Estudar</button>' +
             '<button class="botao-mini botao-quieto" data-fc-gerenciar="' + esc(dk.id) + '">Cartas</button>' +
-            '</div></div>';
+            '</div></div>' +
+            '<div class="fc-deck-cartas"><div class="fc-deck-cartas-inner">' + cartasHtml + '</div></div>' +
+            '</div>';
         }).join('') + '</div></div>';
     });
     return html;
@@ -2182,8 +2192,24 @@
       });
       iniciarEstudoFlashcards(embaralhar(devidas));
     });
+    // expande/recolhe o deck (efeito baralho → lista de cartas)
+    raiz.querySelectorAll('[data-fc-toggle]').forEach(function (cab) {
+      function alternar() {
+        const id = cab.getAttribute('data-fc-toggle');
+        const deckEl = cab.closest('.fc-deck');
+        if (!deckEl) return;
+        const aberto = deckEl.classList.toggle('aberto');
+        cab.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+        if (aberto) fcDecksAbertos.add(id); else fcDecksAbertos.delete(id);
+      }
+      cab.addEventListener('click', alternar);
+      cab.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(); }
+      });
+    });
     raiz.querySelectorAll('[data-fc-estudar]').forEach(function (b) {
-      b.addEventListener('click', function () {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation(); // não alterna o expand do deck
         const dk = state.flashcards.find(function (d) { return d.id === b.getAttribute('data-fc-estudar'); });
         if (!dk) return;
         const hoje = D.hojeISO();
@@ -2193,7 +2219,10 @@
       });
     });
     raiz.querySelectorAll('[data-fc-gerenciar]').forEach(function (b) {
-      b.addEventListener('click', function () { abrirGerenciarDeck(b.getAttribute('data-fc-gerenciar')); });
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        abrirGerenciarDeck(b.getAttribute('data-fc-gerenciar'));
+      });
     });
   }
 
