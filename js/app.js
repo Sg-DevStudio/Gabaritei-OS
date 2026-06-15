@@ -705,9 +705,37 @@
     if (feito) {
       return '<span class="check-estudo check-estudo-feito" title="Estudo registrado" aria-label="Estudo registrado">✓</span>';
     }
-    return '<button type="button" class="check-estudo" data-acao="' + esc(acao) + '" data-id="' + esc(id) + '"' +
+    // A bolinha de blocos/agenda faz registro RÁPIDO (1 toque): assume o tempo
+    // planejado, 0 questões e NÃO conclui a teoria — isso fica para "Registrar"
+    // (detalhes). Revisão mantém o fluxo de concluir com bolha.
+    const rapido = acao === 'registrar' || acao === 'concluir-agenda';
+    const attr = rapido
+      ? 'data-check-rapido="' + esc(acao) + '"'
+      : 'data-acao="' + esc(acao) + '"';
+    return '<button type="button" class="check-estudo" ' + attr + ' data-id="' + esc(id) + '"' +
       (tipo ? ' data-tipo="' + esc(tipo) + '"' : '') +
-      ' title="Registrar estudo" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
+      ' title="' + (rapido ? 'Marcar como estudado (registro rápido)' : 'Registrar estudo') + '" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
+  }
+
+  // Registro rápido pela bolinha: cria a sessão com padrões e dá o "check verde".
+  function registrarRapidoFila(el, kind, id, tipo) {
+    if (!el || el.disabled) return;
+    el.classList.add('check-estudo-feito', 'check-pop');
+    el.textContent = '✓';
+    el.disabled = true;
+    if (kind === 'concluir-agenda') {
+      const b = state.agenda.find(function (a) { return a.id === id; });
+      if (!b) { render(); return; }
+      const disc = D.disciplinaPorId(state, b.disciplinaId);
+      const topId = b.topicoId || (disc && disc.topicos[0] ? disc.topicos[0].id : null);
+      const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
+      if (topId) concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false });
+      b.feito = true;
+      salvar();
+    } else { // registrar (bloco da semana / reaberto)
+      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false });
+    }
+    setTimeout(render, 420); // deixa a animação do check rodar antes de redesenhar
   }
 
   function tituloCurto(t) {
@@ -1451,6 +1479,11 @@
       };
       linha.addEventListener('click', abrir);
       linha.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
+    raiz.querySelectorAll('[data-check-rapido]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        registrarRapidoFila(el, el.getAttribute('data-check-rapido'), el.getAttribute('data-id'), el.getAttribute('data-tipo'));
+      });
     });
     raiz.querySelectorAll('[data-acao]').forEach(function (el) {
       el.addEventListener('click', function () {
