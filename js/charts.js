@@ -14,6 +14,7 @@
   }
 
   const FONTE_MONO = "'IBM Plex Mono', monospace";
+  const FONTE_UI = "'IBM Plex Sans', sans-serif";
   const AZUL = '#2454D6';
   const AZUL_FORTE = '#183A9E';
   const AZUL_CLARO = '#7FA0EE';
@@ -23,9 +24,26 @@
   const VERMELHO = '#B83A2E';
   const NEUTRO = '#E3E7F0';
 
-  function basePlugins() {
+  // Cores que acompanham o tema (claro/escuro): lidas dos tokens CSS no momento
+  // em que o gráfico é criado, para os rótulos/grades não sumirem no modo escuro.
+  function corVar(nome, fallback) {
+    try {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+      return v || fallback;
+    } catch (e) { return fallback; }
+  }
+  function paleta() {
     return {
-      legend: { labels: { font: { family: "'IBM Plex Sans', sans-serif", size: 12 } } }
+      texto: corVar('--tinta', '#17181C'),
+      sub: corVar('--grafite', '#6B7180'),
+      grade: corVar('--linha', '#E4E8F2'),
+      card: corVar('--papel-card', '#FFFFFF')
+    };
+  }
+
+  function basePlugins(P) {
+    return {
+      legend: { labels: { color: P.texto, font: { family: FONTE_UI, size: 12 } } }
     };
   }
 
@@ -33,6 +51,7 @@
   function evolucaoSemanal(canvas, serie) {
     if (!disponivel()) return false;
     destruir(canvas.id);
+    const P = paleta();
     const rotulos = serie.map(function (s) {
       const [a, m, d] = s.inicio.split('-');
       return d + '/' + m;
@@ -53,11 +72,11 @@
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: basePlugins(),
+        plugins: basePlugins(P),
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'horas' }, ticks: { font: { family: FONTE_MONO } } },
-          y2: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } } },
-          x: { ticks: { font: { family: FONTE_MONO } } }
+          y: { beginAtZero: true, title: { display: true, text: 'horas', color: P.sub }, ticks: { color: P.sub, font: { family: FONTE_MONO } }, grid: { color: P.grade } },
+          y2: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } } },
+          x: { ticks: { color: P.sub, font: { family: FONTE_MONO } }, grid: { color: P.grade } }
         }
       }
     });
@@ -67,6 +86,7 @@
   function desempenhoGeralSemanal(canvas, serie) {
     if (!disponivel()) return false;
     destruir(canvas.id);
+    const P = paleta();
     const rotulos = serie.map(function (s) {
       const [a, m, d] = s.inicio.split('-');
       return d + '/' + m;
@@ -89,7 +109,7 @@
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: Object.assign(basePlugins(), {
+        plugins: Object.assign(basePlugins(P), {
           tooltip: {
             callbacks: {
               label: function (ctx) {
@@ -102,10 +122,10 @@
         scales: {
           y: {
             beginAtZero: true, max: 100,
-            ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
-            grid: { color: '#E3E4E1' }
+            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
+            grid: { color: P.grade }
           },
-          x: { ticks: { font: { family: FONTE_MONO } } }
+          x: { ticks: { color: P.sub, font: { family: FONTE_MONO } }, grid: { color: P.grade } }
         }
       }
     });
@@ -115,6 +135,7 @@
   function desempenhoPorDisciplina(canvas, dados) {
     if (!disponivel()) return false;
     destruir(canvas.id);
+    const P = paleta();
     const cores = dados.map(function (d) {
       if (d.pct === null) return NEUTRO;
       if (d.pct >= 70) return VERDE_OS;
@@ -133,7 +154,7 @@
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: Object.assign(basePlugins(), {
+        plugins: Object.assign(basePlugins(P), {
           tooltip: {
             callbacks: {
               label: function (ctx) {
@@ -146,10 +167,10 @@
         scales: {
           y: {
             beginAtZero: true, max: 100,
-            ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
-            grid: { color: '#E3E4E1' }
+            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
+            grid: { color: P.grade }
           },
-          x: { ticks: { font: { family: FONTE_MONO } } }
+          x: { ticks: { color: P.sub, font: { family: FONTE_MONO } }, grid: { color: P.grade } }
         }
       }
     });
@@ -159,6 +180,7 @@
   function disciplinasHoras(canvas, dados) {
     if (!disponivel()) return false;
     destruir(canvas.id);
+    const P = paleta();
     const labelsPlugin = {
       id: 'labelsHoras',
       afterDatasetsDraw: function (chart) {
@@ -166,7 +188,7 @@
         const dataset = chart.data.datasets[0];
         const meta = chart.getDatasetMeta(0);
         ctx.save();
-        ctx.font = '600 12px "IBM Plex Sans", sans-serif';
+        ctx.font = '600 12px ' + FONTE_UI;
         ctx.textBaseline = 'middle';
         meta.data.forEach(function (bar, i) {
           const valor = dataset.data[i];
@@ -174,7 +196,8 @@
           const texto = dados[i].rotulo;
           const x = bar.x - 10;
           const dentro = bar.width > 76;
-          ctx.fillStyle = dentro ? '#FFFFFF' : '#17181C';
+          // dentro da barra azul: branco; fora: cor de texto do tema (some no escuro se for fixo)
+          ctx.fillStyle = dentro ? '#FFFFFF' : P.texto;
           ctx.textAlign = dentro ? 'right' : 'left';
           ctx.fillText(texto, dentro ? x : bar.x + 8, bar.y);
         });
@@ -198,7 +221,7 @@
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: Object.assign(basePlugins(), {
+        plugins: Object.assign(basePlugins(P), {
           legend: { display: false },
           tooltip: {
             callbacks: {
@@ -210,12 +233,12 @@
           x: {
             beginAtZero: true,
             position: 'top',
-            ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
-            grid: { color: '#DFE2DD' }
+            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
+            grid: { color: P.grade }
           },
           y: {
-            ticks: { color: '#17181C', font: { family: "'IBM Plex Sans', sans-serif", size: 12 } },
-            grid: { color: '#ECEEE8' }
+            ticks: { color: P.texto, font: { family: FONTE_UI, size: 12 } },
+            grid: { color: P.grade }
           }
         }
       },
@@ -227,6 +250,7 @@
   function topicosDesempenho(canvas, dados) {
     if (!disponivel()) return false;
     destruir(canvas.id);
+    const P = paleta();
     const cores = dados.map(function (d) {
       if (d.pct >= 70) return VERDE_OS;
       if (d.pct >= 50) return VERDE_MEDIO;
@@ -249,7 +273,7 @@
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: Object.assign(basePlugins(), {
+        plugins: Object.assign(basePlugins(P), {
           legend: { display: false },
           tooltip: {
             callbacks: {
@@ -268,11 +292,11 @@
           x: {
             beginAtZero: true,
             max: 100,
-            ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
-            grid: { color: '#DFE2DD' }
+            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
+            grid: { color: P.grade }
           },
           y: {
-            ticks: { color: '#17181C', font: { family: "'IBM Plex Sans', sans-serif", size: 12 } },
+            ticks: { color: P.texto, font: { family: FONTE_UI, size: 12 } },
             grid: { display: false }
           }
         }
