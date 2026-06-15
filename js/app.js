@@ -3378,6 +3378,11 @@
     return 18;
   }
 
+  function comparacaoPrecisaHorasManuais() {
+    return (!state.planos || state.planos.length === 0) &&
+      !(state.config && state.config.rotinaEstudos && state.config.rotinaEstudos.dias);
+  }
+
   // Resumo compacto das notas de corte por modalidade para os cards do admin.
   function cortesResumoEdital(e) {
     const c = e.cortes || {};
@@ -3847,9 +3852,12 @@
   function cardAvisoCompararHtml() {
     if (editaisComparaveis().length < 2) return '';
     const horas = horasSemanaDisponiveis();
+    const detalhe = comparacaoPrecisaHorasManuais()
+      ? 'Se você ainda não configurou rotina, o sistema pergunta suas horas semanais na hora da comparação.'
+      : 'A comparação usa sua rotina atual (~' + horas + 'h/semana).';
     return '<div class="card comparar-secao comparar-aviso">' +
       '<strong class="comparar-summary-tit">🔀 Comparar dois editais</strong>' +
-      '<p class="sub">Toque em <strong>Comparar</strong> em dois editais para saber se dá para conciliá-los na sua rotina (~' + horas + 'h/semana). O resultado aparece em uma janela no centro da tela.</p>' +
+      '<p class="sub">Toque em <strong>Comparar</strong> em dois editais para saber se dá para conciliá-los. ' + detalhe + ' O resultado aparece em uma janela no centro da tela.</p>' +
       '</div>';
   }
 
@@ -3881,16 +3889,23 @@
   function abrirModalComparacaoSelecionada() {
     const sel = sanearComparacao();
     if (sel.length < 2) return;
-    const r = D.conciliarPlanos(sel[0], sel[1], { horasSemana: horasSemanaDisponiveis() });
+    const pedirHoras = comparacaoPrecisaHorasManuais();
+    let horasComparacao = horasSemanaDisponiveis();
+    let r = D.conciliarPlanos(sel[0], sel[1], { horasSemana: horasComparacao });
     let manterSelecaoAoFechar = false;
     const chips = '<div class="comparar-chips">' + sel.map(function (e) {
       return '<span class="comparar-chip">' + esc(tituloCurto(e.titulo)) + '</span>';
     }).join('') + '</div>';
+    const horasHtml = pedirHoras
+      ? '<div class="comparar-horas-box"><label for="cmp-modal-horas">Quantas horas por semana você consegue estudar?</label>' +
+        '<div class="comparar-horas-linha"><input id="cmp-modal-horas" type="number" min="1" max="80" value="' + esc(horasComparacao) + '">' +
+        '<span class="sub">Usado só nesta comparação.</span></div></div>'
+      : '<p class="sub">Veja se dá para conciliar esses dois planos na sua rotina atual (~' + horasComparacao + 'h/semana).</p>';
     const m = abrirModal(
       '<h3>Comparação dos editais</h3>' +
-      '<p class="sub">Veja se dá para conciliar esses dois planos na sua rotina atual (~' + horasSemanaDisponiveis() + 'h/semana).</p>' +
+      horasHtml +
       chips +
-      '<div class="comparar-resultado">' + vereditoConciliacaoHtml(r) + '</div>' +
+      '<div class="comparar-resultado" id="cmp-modal-resultado">' + vereditoConciliacaoHtml(r) + '</div>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="cmp-modal-limpar">Limpar seleção</button>' +
       '<button type="button" class="botao-secundario" id="cmp-modal-fechar">Fechar</button>' +
@@ -3909,7 +3924,20 @@
       fecharModal();
       render();
     });
+    const horasInput = m.querySelector('#cmp-modal-horas');
+    const resultadoEl = m.querySelector('#cmp-modal-resultado');
+    function recalcularModalComparacao() {
+      if (!horasInput || !resultadoEl) return;
+      horasComparacao = Math.max(1, Math.min(80, parseInt(horasInput.value, 10) || 1));
+      r = D.conciliarPlanos(sel[0], sel[1], { horasSemana: horasComparacao });
+      resultadoEl.innerHTML = vereditoConciliacaoHtml(r);
+    }
+    if (horasInput) {
+      horasInput.addEventListener('input', recalcularModalComparacao);
+      horasInput.addEventListener('change', recalcularModalComparacao);
+    }
     m.querySelector('#cmp-modal-combinar').addEventListener('click', function () {
+      recalcularModalComparacao();
       manterSelecaoAoFechar = true;
       if (r.nivel === 'nao_recomendado') {
         confirmar({ titulo: 'Compatibilidade baixa', mensagem: 'Seriam ~' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis. Gerar o plano combinado mesmo assim?', confirmar: 'Gerar mesmo assim', icone: '⚠️' }).then(function (ok) {

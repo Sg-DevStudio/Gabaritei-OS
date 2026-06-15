@@ -2675,6 +2675,23 @@ canvas.grafico {
 .comparar-corpo { display: block; }
 .comparar-hint { font-size: 0.82rem; color: var(--grafite); margin: 0.5rem 0 0; }
 .comparar-resultado { margin-top: 0.8rem; }
+.comparar-horas-box {
+  margin: 0.6rem 0 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-s);
+  background: var(--papel-elevado);
+}
+.comparar-horas-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+.comparar-horas-linha input {
+  max-width: 110px;
+}
 .comparar-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.4rem; }
 .comparar-chip {
   display: inline-flex; align-items: center; gap: 0.4rem;
