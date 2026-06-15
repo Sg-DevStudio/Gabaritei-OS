@@ -11,6 +11,9 @@
   const ADMIN_EMAIL = 'casar70@gmail.com';
   const CHAVE_ULTIMO_USUARIO = 'estudos.firebase.ultimoUsuario';
   let state = window.Store.carregar();
+  // Modo exemplo: deixa visitantes sem login explorarem com um plano de demonstração.
+  // Tudo fica só em memória — nada é persistido nem sincronizado.
+  let modoDemo = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   let editalAbertas = new Set();  // disciplinas expandidas no edital
@@ -143,6 +146,7 @@
 
   function salvar(opcoes) {
     opcoes = opcoes || {};
+    if (modoDemo) return; // modo exemplo: nada é gravado nem sincronizado
     window.Store.salvar(state, opcoes);
     if (window.Sync && opcoes.sincronizar !== false) window.Sync.agendarEnvio(state);
     if (window.FirebaseSync && opcoes.sincronizar !== false) window.FirebaseSync.agendarEnvio(state);
@@ -260,6 +264,7 @@
       '<li><span aria-hidden="true">📊</span> Desempenho, metas semanais e plano que se ajusta a você</li>' +
       '</ul>' +
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
+      '<button id="login-demo" class="login-demo" type="button">Explorar com um plano de exemplo</button>' +
       '<p class="login-nota">Comece em segundos com sua conta Google. Seu progresso fica salvo e separado por conta.</p>' +
       '</div>' +
       '<div class="login-preview" aria-hidden="true">' +
@@ -285,6 +290,8 @@
         btn.disabled = false;
       });
     });
+    const demo = raiz.querySelector('#login-demo');
+    if (demo) demo.addEventListener('click', function () { entrarModoDemo(demo); });
   }
 
   // Hook opcional chamado quando o modal principal fecha (por qualquer caminho:
@@ -1320,10 +1327,10 @@
         linksApoioHojeHtml() +
         '<div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span>' +
-        '<strong>Bem-vindo aos seus estudos</strong>' +
-        'Escolha um edital na aba Planos para o sistema gerar seu plano, ou monte sua semana manualmente.' +
-        '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap"><a class="botao" href="#planos">Acessar Planos</a>' +
-        '<a class="botao botao-secundario" href="#planejamento">Planejar manualmente</a></p>' +
+        '<strong>Bora montar seu plano?</strong>' +
+        'Escolha seu concurso e o sistema gera o cronograma, as revisões e a fila do dia automaticamente.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#planejamento" style="font-size:0.85rem">ou montar um plano manualmente</a></p>' +
         '</div></div>';
     }
 
@@ -1801,8 +1808,9 @@
     if (state.disciplinas.length === 0) {
       return '<section class="timer-page"><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
-        'Importe o plano para escolher um tópico e cronometrar o estudo.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div></section>';
+        'Escolha seu concurso para montar o plano e cronometrar seus estudos.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#ajustes" style="font-size:0.85rem">ou importar um plano</a></p></div></div></section>';
     }
 
     const ativo = window.Timer.estado();
@@ -2701,8 +2709,9 @@
     if (state.disciplinas.length === 0) {
       return '<h1>Edital</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
-        'O edital verticalizado aparece aqui depois de importar o plano.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div>';
+        'O edital verticalizado aparece aqui depois que você escolhe seu concurso.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#ajustes" style="font-size:0.85rem">ou importar um plano</a></p></div></div>';
     }
 
     const prog = D.progressoEdital(state);
@@ -2807,8 +2816,9 @@
     if (!state.plano) {
       return '<h1>Simulados</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
-        'Importe o plano para registrar simulados e comparar com a meta de corte.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div>';
+        'Escolha seu concurso para registrar simulados e comparar com a meta de corte.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#ajustes" style="font-size:0.85rem">ou importar um plano</a></p></div></div>';
     }
     const meta = state.plano.meta.corte_pct;
     let html = '<div class="cab-pagina"><div><h1>Simulados</h1>' +
@@ -6153,10 +6163,11 @@
 
     if (state.disciplinas.length === 0) {
       return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
-        '<strong>Nenhuma disciplina ainda</strong>Escolha um edital na aba Planos para gerar seu plano, ou crie uma disciplina manual.' +
-        '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
-        '<button class="botao" id="pl-criar-disc">Criar disciplina</button>' +
-        '<button class="botao botao-secundario" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
+        '<strong>Nenhuma disciplina ainda</strong>Escolha seu concurso e o sistema gera o plano — ou crie uma disciplina manual.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.6rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
+        '<button class="botao-secundario" id="pl-criar-disc">Criar disciplina</button>' +
+        '<button class="botao-quieto" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
     }
 
     // Seletor de método: cronograma fixo (por semana) OU ciclo de estudos
@@ -7429,7 +7440,7 @@
   // ---------------- TELA: Mais (atalhos no celular) ----------------
   function telaMais() {
     const itens = [
-      ['#planos', 'Planos'],
+      ['#timer', 'Timer'],
       ['#stats', 'Estatísticas'],
       ['#simulados', 'Simulados'],
       ['#ajustes', 'Configurações']
@@ -7560,7 +7571,7 @@
   function render() {
     aplicarTema();
     const conteudo = document.getElementById('conteudo');
-    if (!usuarioLogado()) {
+    if (!usuarioLogado() && !modoDemo) {
       document.body.classList.add('login-gate');
       if (pintarTimerAtual) pintarTimerAtual = null;
       if (autenticacaoPendente()) {
@@ -7597,10 +7608,56 @@
         '<p style="font-size:0.82rem;color:var(--grafite);white-space:pre-wrap;margin-top:0.5rem">' +
         esc(String(err && err.message ? err.message : err)) + '</p></div>';
     }
+    if (modoDemo) injetarBannerDemo(conteudo);
     atualizarNav(rota);
     atualizarSyncUi();
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
     setTimeout(abrirOnboardingNome, 0);
+  }
+
+  // Faixa fixa no topo do conteúdo durante o modo exemplo, com convite ao login.
+  function injetarBannerDemo(conteudo) {
+    conteudo.insertAdjacentHTML('afterbegin',
+      '<div class="demo-banner">' +
+      '<span class="demo-banner-txt">🔎 Modo exemplo — explore à vontade. Nada é salvo.</span>' +
+      '<span class="demo-banner-acoes">' +
+      '<button type="button" class="botao-mini" id="demo-entrar">Entrar com Google</button>' +
+      '<button type="button" class="botao-mini botao-quieto" id="demo-sair">Sair</button>' +
+      '</span></div>');
+    const entrar = conteudo.querySelector('#demo-entrar');
+    if (entrar) entrar.addEventListener('click', function () {
+      if (!window.FirebaseSync) { toast('Login ainda está carregando. Tente de novo.', 'erro'); return; }
+      window.FirebaseSync.login().catch(function () {
+        toast('Não consegui abrir o login do Google.', 'erro');
+      });
+    });
+    const sair = conteudo.querySelector('#demo-sair');
+    if (sair) sair.addEventListener('click', sairModoDemo);
+  }
+
+  function sairModoDemo() {
+    modoDemo = false;
+    state = window.Store.carregar();
+    if (location.hash && location.hash !== '#hoje') location.hash = '';
+    render();
+  }
+
+  function entrarModoDemo(btn) {
+    if (modoDemo) return;
+    if (btn) btn.disabled = true;
+    fetch('data/exemplo-trf3.json')
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (json) {
+        modoDemo = true;            // antes de adicionarPlano: salvar() vira no-op
+        state = window.Store.estadoVazio();
+        adicionarPlano(json);
+        if (location.hash === '#hoje') render(); else location.hash = '#hoje';
+        toast('Modo exemplo ativado — explore à vontade', 'sucesso');
+      })
+      .catch(function () {
+        if (btn) btn.disabled = false;
+        toast('Não consegui carregar o plano de exemplo. Tente de novo.', 'erro');
+      });
   }
 
   // ---------------- inicialização ----------------
@@ -7700,6 +7757,13 @@
       aoStatus: function (novoStatus) {
         const usuarioAntes = firebaseStatus && firebaseStatus.usuario ? firebaseStatus.usuario.email : null;
         const usuarioDepois = novoStatus && novoStatus.usuario ? novoStatus.usuario.email : null;
+        // saiu do modo exemplo ao logar: descarta os dados de demonstração para não
+        // poluir/sincronizar a conta real (reconciliação parte de um estado limpo).
+        if (novoStatus && novoStatus.usuario && modoDemo) {
+          modoDemo = false;
+          state = window.Store.estadoVazio();
+          window.Store.salvar(state, { marcarAlterado: false });
+        }
         if (novoStatus && novoStatus.usuario) prepararEstadoParaUsuario(novoStatus.usuario);
         firebaseStatus = novoStatus;
         atualizarSyncUi();
