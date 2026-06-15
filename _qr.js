@@ -1,0 +1,38 @@
+const fs = require('fs');
+const { JSDOM } = require('jsdom');
+const pf = JSON.parse(fs.readFileSync('data/plano-trf3-tecnico.json', 'utf8'));
+const pid = 'pln';
+const d0 = pf.disciplinas[0];
+const t0 = d0.topicos[0].id;
+const hojeSeg = (function(){ const d=new Date(); const wd=d.getDay(); const off=wd===0?6:wd-1; d.setDate(d.getDate()-off); return d.toISOString().slice(0,10); })();
+const hoje = new Date().toISOString().slice(0,10);
+// agenda bloco hoje (teoria) + cronograma desta semana
+const plano = Object.assign({}, pf.plano, { ritmoAtivo:'plano_ativo', gerado_em: hojeSeg, ultimaRecalcSemana: hojeSeg, ritmos:{plano_ativo:{meses:9,semanas:39,h_semana:27}} });
+const cron = { plano_ativo: [{ semana:1, inicio: hojeSeg, blocos:[{disciplina:d0.id,topico:t0,tipo:'teoria'},{disciplina:d0.id,topico:t0,tipo:'questoes'}], marcos:[] }] };
+const ag = { id:'agd1', planoId:pid, data:hoje, disciplinaId:d0.id, topicoId:t0, duracaoMin:60, obs:'teoria', feito:false, gerado:true };
+const state = { versao:2, planos:[{id:pid,criadoEm:hojeSeg,plano:plano,disciplinas:pf.disciplinas,cronogramas:cron,links:[]}], planoAtivoId:pid, sessoes:[], revisoes:[], simulados:[], agenda:[ag], editais:[], flashcards:[], config:{rotinaEstudos:{dias:{seg:{ativo:true,minutos:120},ter:{ativo:true,minutos:120},qua:{ativo:true,minutos:120},qui:{ativo:true,minutos:120},sex:{ativo:true,minutos:120},sab:{ativo:true,minutos:120},dom:{ativo:true,minutos:120}},minBloco:45,maxBloco:60},tema:'escuro',criadoEm:hojeSeg,atualizadoEm:hojeSeg,googleCalendar:{calendarId:'primary',eventos:{}}} };
+const dom = new JSDOM(fs.readFileSync('index.html','utf8'), { runScripts:'outside-only', pretendToBeVisual:true, url:'https://example.com/' });
+const w = dom.window; global.window = w;
+w.Chart=function(){return{destroy(){},update(){}};};w.matchMedia=function(q){return{matches:false,media:q,addEventListener(){},addListener(){}};};
+w.scrollTo=function(){};w.confirm=()=>false;w.fetch=()=>Promise.reject(new Error('no net'));
+w.FirebaseSync={status(){return{estado:'sincronizado',texto:'ok',fonte:'Firebase',usuario:{email:'x@y.com',uid:'u1'}};},iniciar(){},agendarEnvio(){},sincronizarAgora(){return Promise.resolve();},login(){return Promise.resolve();},logout(){return Promise.resolve();},ativo(){return true;},carregarCatalogoGlobal(){return Promise.resolve([]);}};
+w.localStorage.setItem('estudos.v1', JSON.stringify(state));
+const errs=[];w.addEventListener('error',e=>errs.push(e.error&&e.error.stack||e.message));
+['js/frases.js','js/domain.js','js/store.js','js/sync.js','js/timer.js','js/charts.js','js/app.js'].forEach(f=>w.eval(fs.readFileSync(f,'utf8')));
+w.dispatchEvent(new w.Event('firebase-sync-ready'));
+w.document.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));w.dispatchEvent(new w.Event('load'));
+const main=w.document.getElementById('conteudo');
+w.location.hash='#hoje';w.dispatchEvent(new w.Event('hashchange'));
+const bolinhas = main.querySelectorAll('.check-estudo[data-check-rapido]');
+console.log('bolinhas com check-rápido:', bolinhas.length);
+const antesSessoes = JSON.parse(w.localStorage.getItem('estudos.v1')).sessoes.length;
+const topAntes = (function(){const st=JSON.parse(w.localStorage.getItem('estudos.v1'));const t=st.planos[0].disciplinas.find(d=>d.id===d0.id).topicos.find(x=>x.id===t0);return t.status;})();
+// clica a primeira bolinha
+bolinhas[0].click();
+const st2 = JSON.parse(w.localStorage.getItem('estudos.v1'));
+const t = st2.planos[0].disciplinas.find(d=>d.id===d0.id).topicos.find(x=>x.id===t0);
+console.log('sessões antes/depois:', antesSessoes, '->', st2.sessoes.length, '(deve +1)');
+console.log('sessão padrão (0 questões):', st2.sessoes[0] && st2.sessoes[0].qFeitas===0 && st2.sessoes[0].qCertas===0);
+console.log('status do tópico (NÃO deve ser teoria_concluida):', topAntes, '->', t.status);
+console.log('botão virou check verde:', bolinhas[0].classList.contains('check-estudo-feito') && bolinhas[0].classList.contains('check-pop'));
+console.log('errors:', errs.length?errs[0]:'none');

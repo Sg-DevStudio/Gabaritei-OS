@@ -1,0 +1,24 @@
+const fs=require('fs');const {JSDOM}=require('jsdom');
+const pf=JSON.parse(fs.readFileSync('data/plano-trf3-tecnico.json','utf8'));
+const pid='pln';
+const hojeSeg=(function(){const d=new Date();const wd=d.getDay();const off=wd===0?6:wd-1;d.setDate(d.getDate()-off);return d.toISOString().slice(0,10);})();
+const ed={id:'e1',criadoEm:hojeSeg,titulo:pf.plano.concurso,banca:'FCC',orgao:'TRF3',cargo:'Tec',estado:'SP',notaCorte:84,arquivado:false,foto:'',disciplinas:pf.disciplinas};
+const plano=Object.assign({},pf.plano,{ritmoAtivo:'plano_ativo',gerado_em:hojeSeg,ultimaRecalcSemana:hojeSeg,ritmos:{plano_ativo:{meses:6,semanas:26,h_semana:27}}});
+const state={versao:2,planos:[{id:pid,criadoEm:hojeSeg,plano:plano,disciplinas:pf.disciplinas,cronogramas:{plano_ativo:[{semana:1,inicio:hojeSeg,blocos:[],marcos:[]}]},links:[]}],planoAtivoId:pid,sessoes:[],revisoes:[],simulados:[],agenda:[],editais:[ed],flashcards:[],config:{rotinaEstudos:{dias:{seg:{ativo:true,minutos:180}},minBloco:45,maxBloco:60},tema:'escuro',criadoEm:hojeSeg,atualizadoEm:hojeSeg,googleCalendar:{calendarId:'primary',eventos:{}}}};
+const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{runScripts:'outside-only',pretendToBeVisual:true,url:'https://example.com/'});
+const w=dom.window;global.window=w;
+w.Chart=function(){return{destroy(){},update(){}};};w.matchMedia=function(q){return{matches:false,media:q,addEventListener(){},addListener(){}};};
+w.scrollTo=function(){};w.confirm=()=>false;w.fetch=()=>Promise.reject(new Error('no net'));
+w.FirebaseSync={status(){return{estado:'sincronizado',texto:'ok',fonte:'Firebase',usuario:{email:'x@y.com',uid:'u1'}};},iniciar(){},agendarEnvio(){},sincronizarAgora(){return Promise.resolve();},login(){return Promise.resolve();},logout(){return Promise.resolve();},ativo(){return true;},carregarCatalogoGlobal(){return Promise.resolve([]);}};
+w.localStorage.setItem('estudos.v1',JSON.stringify(state));
+const errs=[];w.addEventListener('error',e=>errs.push(e.error&&e.error.stack||e.message));
+['js/frases.js','js/domain.js','js/store.js','js/sync.js','js/timer.js','js/charts.js','js/app.js'].forEach(f=>w.eval(fs.readFileSync(f,'utf8')));
+w.dispatchEvent(new w.Event('firebase-sync-ready'));
+w.document.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));w.dispatchEvent(new w.Event('load'));
+const main=w.document.getElementById('conteudo');
+w.location.hash='#planos';w.dispatchEvent(new w.Event('hashchange'));
+main.querySelector('[data-pl-iniciar]').click(); // reaproveita plano e abre assistente
+const cards=[...w.document.querySelectorAll('.gp-prazo-card')].map(c=>((c.querySelector('.gp-prazo-ritmo')||{}).textContent)+' | '+((c.querySelector('.gp-prazo-unid')||{}).textContent)+' | '+((c.querySelector('.gp-prazo-nome')||{}).textContent));
+console.log('cards:'); cards.forEach(c=>console.log('  '+c));
+console.log('heading:', (w.document.querySelector('.gp-step[data-step="1"] h3')||{}).textContent);
+console.log('errors:', errs.length?errs[0]:'none');

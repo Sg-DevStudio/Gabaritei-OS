@@ -705,9 +705,37 @@
     if (feito) {
       return '<span class="check-estudo check-estudo-feito" title="Estudo registrado" aria-label="Estudo registrado">✓</span>';
     }
-    return '<button type="button" class="check-estudo" data-acao="' + esc(acao) + '" data-id="' + esc(id) + '"' +
+    // A bolinha de blocos/agenda faz registro RÁPIDO (1 toque): assume o tempo
+    // planejado, 0 questões e NÃO conclui a teoria — isso fica para "Registrar"
+    // (detalhes). Revisão mantém o fluxo de concluir com bolha.
+    const rapido = acao === 'registrar' || acao === 'concluir-agenda';
+    const attr = rapido
+      ? 'data-check-rapido="' + esc(acao) + '"'
+      : 'data-acao="' + esc(acao) + '"';
+    return '<button type="button" class="check-estudo" ' + attr + ' data-id="' + esc(id) + '"' +
       (tipo ? ' data-tipo="' + esc(tipo) + '"' : '') +
-      ' title="Registrar estudo" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
+      ' title="' + (rapido ? 'Marcar como estudado (registro rápido)' : 'Registrar estudo') + '" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
+  }
+
+  // Registro rápido pela bolinha: cria a sessão com padrões e dá o "check verde".
+  function registrarRapidoFila(el, kind, id, tipo) {
+    if (!el || el.disabled) return;
+    el.classList.add('check-estudo-feito', 'check-pop');
+    el.textContent = '✓';
+    el.disabled = true;
+    if (kind === 'concluir-agenda') {
+      const b = state.agenda.find(function (a) { return a.id === id; });
+      if (!b) { render(); return; }
+      const disc = D.disciplinaPorId(state, b.disciplinaId);
+      const topId = b.topicoId || (disc && disc.topicos[0] ? disc.topicos[0].id : null);
+      const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
+      if (topId) concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false });
+      b.feito = true;
+      salvar();
+    } else { // registrar (bloco da semana / reaberto)
+      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false });
+    }
+    setTimeout(render, 420); // deixa a animação do check rodar antes de redesenhar
   }
 
   function tituloCurto(t) {
@@ -1218,7 +1246,9 @@
     if (sem && sem.futura) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma começa em ' + D.formatarDataBR(sem.proxima.inicio) + ' (semana 1). Revisões e tópicos reabertos já aparecem aqui.</p>';
     } else if (sem && sem.encerrado) {
-      html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma planejado terminou — reimporte um plano atualizado ou siga pelas revisões e simulados.</p>';
+      html += '<div class="fim-cronograma"><p class="sub" style="margin:0 0 0.5rem">🏁 Você chegou ao fim do cronograma planejado! Gere uma nova fase para seguir até a prova, ou continue pelas revisões e simulados.</p>' +
+        '<div class="compact-actions"><button class="botao-mini" id="hoje-nova-fase">Gerar nova fase</button>' +
+        '<a class="botao-mini botao-quieto" href="#revisoes">Ir para revisões</a></div></div>';
     } else if (sem) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">Semana ' + sem.semana + ' do plano (' + esc(state.plano.ritmoAtivo) + ')' +
         (sem.marcos && sem.marcos.length ? ' · ' + esc(sem.marcos.join(' · ')) : '') + '</p>';
@@ -1429,6 +1459,8 @@
   function ligarHoje(raiz) {
     celebrarConquistasNovas();
     raiz.querySelectorAll('.prova-editar').forEach(function (b) { b.addEventListener('click', abrirEditarProva); });
+    const novaFase = raiz.querySelector('#hoje-nova-fase');
+    if (novaFase) novaFase.addEventListener('click', function () { abrirGerarPlanoComRotina(); });
     raiz.querySelectorAll('[data-conquista]').forEach(function (el) {
       el.addEventListener('click', function () { abrirConquista(el.getAttribute('data-conquista')); });
     });
@@ -1447,6 +1479,11 @@
       };
       linha.addEventListener('click', abrir);
       linha.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
+    raiz.querySelectorAll('[data-check-rapido]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        registrarRapidoFila(el, el.getAttribute('data-check-rapido'), el.getAttribute('data-id'), el.getAttribute('data-tipo'));
+      });
     });
     raiz.querySelectorAll('[data-acao]').forEach(function (el) {
       el.addEventListener('click', function () {
@@ -4138,6 +4175,10 @@
     return base;
   }
 
+  function rotinaSemDiasAtivos() {
+    return totalMinutosRotina(rotinaEstudosAtual()) < 1;
+  }
+
   function totalMinutosRotina(rotina) {
     return ROTINA_DIAS.reduce(function (n, d) {
       const dia = rotina.dias[d.id];
@@ -4352,14 +4393,13 @@
       sustentavel: 'Sustentável',
       hardcore: 'Hardcore',
       plano_ativo: 'Plano gerado',
-      plano_3m: 'Intensivo',
-      plano_6m: 'Regular',
+      plano_3m: 'Acelerado',
+      plano_6m: 'Equilibrado',
       plano_9m: 'Construção de base'
     };
     let base;
     if (chave === 'plano_ativo' && dados && dados.meses) {
-      const mp = MACRO_PLANOS.find(function (p) { return p.meses === dados.meses; });
-      base = mp ? mp.nome.split(' (')[0] : (mapa[chave] || chave.replace(/_/g, ' '));
+      base = dados.nomeRitmo || nomeRitmoPorMeses(entradaPlanoAtivo(), dados.meses);
     } else {
       base = mapa[chave] || chave.replace(/_/g, ' ');
     }
@@ -4381,8 +4421,7 @@
   // [Nome do Plano] + [Carga Horária Semanal] para exibir abaixo do Ritmo ativo
   function nomePlanoComCarga(dados) {
     if (!dados) return '';
-    const macro = dados.meses ? MACRO_PLANOS.find(function (p) { return p.meses === dados.meses; }) : null;
-    const nome = macro ? 'Plano ' + macro.nome.split(' (')[0] : (state.plano ? state.plano.concurso : 'Plano');
+    const nome = dados.meses ? 'Plano ' + (dados.nomeRitmo || nomeRitmoPorMeses(entradaPlanoAtivo(), dados.meses)) : (state.plano ? state.plano.concurso : 'Plano');
     const horas = dados.h_semana || dados.h_semana_exigidas;
     return nome + (horas ? ' · ' + horas + 'h por semana' : '');
   }
@@ -4735,8 +4774,9 @@
       '<div class="checkin-grid checkin-grid-2">' +
       '<div class="checkin-kpi"><span class="checkin-num">' + cargaValor + 'h</span>' +
       '<span class="checkin-rotulo">' + cargaRotulo + '</span></div>' +
-      '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo">' + esc(formatarSemanasDias(burn.semanasRestantes)) + '</span>' +
-      '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
+      '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo" title="Projeção pelo seu ritmo real: aumenta se você atrasa, diminui se adianta tópicos.">' +
+      (burn.situacao === 'concluido' || burn.semanasParaConcluir <= 0 ? 'Concluído 🏁' : esc(formatarSemanasDias(burn.semanasParaConcluir))) + '</span>' +
+      '<span class="checkin-rotulo">Conclusão estimada (ajusta ao seu ritmo)</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
       '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular" title="' + esc(EXPLICACAO_RECALCULO) + '">↻ Recalcular plano agora</button></div>' +
@@ -4853,11 +4893,64 @@
   }
 
   // Parte 3 — macro-planos de estudo
-  const MACRO_PLANOS = [
-    { meses: 3, nome: 'Intensivo (reta final / pós-edital)' },
-    { meses: 6, nome: 'Regular' },
-    { meses: 9, nome: 'Construção de base (pré-edital)' }
+  // Ritmos qualitativos definidos por INTENSIDADE (horas/semana típicas). O prazo
+  // em meses é DERIVADO do tamanho do edital (esforço total), não fixo — assim um
+  // edital enxuto fecha em menos meses e um grande (ex.: Receita) em mais, no mesmo
+  // ritmo. Acelerado é mais intenso → menos meses que Equilibrado, que é < base.
+  const RITMOS_PLANO = [
+    { nome: 'Acelerado', dica: 'reta final / pós-edital', hSemana: 28 },
+    { nome: 'Equilibrado', dica: 'ritmo regular', hSemana: 18 },
+    { nome: 'Construção de base', dica: 'pré-edital', hSemana: 10 }
   ];
+
+  // Esforço total estimado do edital (horas), com folga p/ questões/revisão.
+  function esforcoEditalHoras(entrada) {
+    return totalHorasEstimadasPlano(entrada) * 1.8;
+  }
+
+  // Semanas estimadas p/ concluir o edital num dado ritmo (h/semana). Float, com
+  // piso baixo (1 semana) só p/ evitar zero — preserva a ordem entre os ritmos.
+  function semanasEstimadasRitmo(entrada, hSemana) {
+    const esforco = esforcoEditalHoras(entrada);
+    if (!esforco) return 26; // sem disciplinas ainda: fallback ~6 meses
+    return Math.max(1, esforco / Math.max(4, hSemana));
+  }
+
+  // Meses estimados (float) — derivado das semanas, sem piso/arredondamento que
+  // achatariam ritmos diferentes num mesmo número.
+  function mesesEstimadosRitmo(entrada, hSemana) {
+    return semanasEstimadasRitmo(entrada, hSemana) / 4.345;
+  }
+
+  // Exibição adaptativa: semanas p/ prazos curtos, meses p/ longos.
+  function formatarEstimativaPrazo(semanas) {
+    if (semanas < 8.5) {
+      const s = Math.max(1, Math.round(semanas));
+      return '~' + plural(s, 'semana', 'semanas');
+    }
+    const m = Math.max(1, Math.round(semanas / 4.345));
+    return '~' + plural(m, 'mês', 'meses');
+  }
+
+  // Lista de ritmos já com semanas/meses estimados para o edital ativo.
+  function ritmosEstimados(entrada) {
+    return RITMOS_PLANO.map(function (r) {
+      const semanas = semanasEstimadasRitmo(entrada, r.hSemana);
+      return { nome: r.nome, dica: r.dica, hSemana: r.hSemana, semanas: semanas, meses: semanas / 4.345 };
+    });
+  }
+
+  // Dado um nº de meses, devolve o nome do ritmo mais próximo (p/ rótulos).
+  function nomeRitmoPorMeses(entrada, meses) {
+    const lista = ritmosEstimados(entrada);
+    let best = lista[1] || lista[0];
+    let melhorDist = Infinity;
+    lista.forEach(function (r) {
+      const d = Math.abs(r.meses - (meses || 0));
+      if (d < melhorDist) { melhorDist = d; best = r; }
+    });
+    return best ? best.nome : 'Equilibrado';
+  }
 
   const NIVEIS_DIF = [
     { id: 'facil', rotulo: 'Tranquila', dica: 'Já domino, preciso de menos tempo.' },
@@ -5010,13 +5103,14 @@
     return semanasCron;
   }
 
-  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque) {
+  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque, nomeRitmo) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || entrada.disciplinas.length === 0) {
       if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
       return false;
     }
-    meses = meses === 3 || meses === 9 ? meses : 6;
+    // meses agora é estimado a partir do edital (não mais fixo em 3/6/9).
+    meses = Math.max(1, Math.round(Number(meses) || mesesEstimadosRitmo(entrada, 18)));
     const semanas = semanasPorMeses(meses);
     const chave = 'plano_ativo';
     const hSemana = Math.max(4, Math.round(horasSemana || horasIdeaisSemanaPlano(entrada, meses) || 20));
@@ -5026,7 +5120,7 @@
     entrada.plano.ritmos = entrada.plano.ritmos || {};
     entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem });
     entrada.plano.ritmos = {};
-    entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana };
+    entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
     entrada.plano.ritmoAtivo = chave;
     // Âncora do cronograma = segunda da semana atual, igual ao calendário e ao
     // recálculo. Evita divergência de até 6 dias no burndown/projeção de término.
@@ -5175,11 +5269,19 @@
     }
     const ritmo = state.plano.ritmoAtivo;
     const atual = state.plano.ritmos && ritmo ? state.plano.ritmos[ritmo] : null;
-    const mesesAtual = atual && atual.meses ? atual.meses : 6;
     const ordemAtual = state.plano.ordemAtaque || 'edital';
     const rotina = rotinaEstudosAtual();
     const totalAtual = totalMinutosRotina(rotina);
     const entrada = entradaPlanoAtivo();
+    // Ritmos com meses estimados a partir do tamanho do edital ativo.
+    const ritmosCalc = ritmosEstimados(entrada);
+    // Seleção inicial: ritmo do plano atual (mais próximo) ou o Equilibrado.
+    let ritmoSel = ritmosCalc[1] || ritmosCalc[0];
+    if (atual && atual.meses) {
+      let melhor = Infinity;
+      ritmosCalc.forEach(function (r) { const d = Math.abs(r.meses - atual.meses); if (d < melhor) { melhor = d; ritmoSel = r; } });
+    }
+    const mesesAtual = ritmoSel ? Math.max(1, Math.round(ritmoSel.meses)) : 6;
     const idealAtual = horasIdeaisSemanaPlano(entrada, mesesAtual);
     const optsMin = TEMPOS_BLOCO.map(function (v) {
       return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + rotuloBloco(v) + '</option>';
@@ -5195,11 +5297,12 @@
         '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
         '</label>';
     }).join('');
-    // Passo 1 — Prazo: cartões em vez de um <select> denso.
-    const prazoCards = MACRO_PLANOS.map(function (p) {
-      return '<button type="button" class="gp-prazo-card' + (p.meses === mesesAtual ? ' ativo' : '') + '" data-gp-meses="' + p.meses + '">' +
-        '<span class="gp-prazo-num">' + p.meses + '</span><span class="gp-prazo-unid">meses</span>' +
-        '<span class="gp-prazo-nome">' + esc(p.nome) + '</span></button>';
+    // Passo 1 — Ritmo: cartões qualitativos com o prazo ESTIMADO pelo tamanho do edital.
+    const prazoCards = ritmosCalc.map(function (p) {
+      return '<button type="button" class="gp-prazo-card' + (p === ritmoSel ? ' ativo' : '') + '" data-gp-meses="' + Math.max(1, Math.round(p.meses)) + '" data-gp-ritmo="' + esc(p.nome) + '">' +
+        '<span class="gp-prazo-ritmo">' + esc(p.nome) + '</span>' +
+        '<span class="gp-prazo-unid">estimativa ' + formatarEstimativaPrazo(p.semanas) + '</span>' +
+        '<span class="gp-prazo-nome">' + esc(p.dica) + '</span></button>';
     }).join('');
 
     // Passo 3 — Dificuldade por disciplina (alimenta o algoritmo de distribuição de horas).
@@ -5225,8 +5328,8 @@
 
       // ---- Passo 1: prazo ----
       '<section class="gp-step" data-step="1">' +
-      '<h3>Em quanto tempo quer fechar o edital?</h3>' +
-      '<p class="sub">Escolha o ritmo. Nas próximas telas o sistema confere se a sua rotina cabe nesse prazo.</p>' +
+      '<h3>Qual ritmo você quer seguir?</h3>' +
+      '<p class="sub">Escolha o ritmo do plano. O prazo é só uma estimativa e se ajusta à sua realidade — nas próximas telas o sistema confere se a sua rotina acompanha.</p>' +
       '<input type="hidden" id="gp-meses" value="' + mesesAtual + '">' +
       '<div class="gp-prazo-cards">' + prazoCards + '</div>' +
       '</section>' +
@@ -5337,11 +5440,12 @@
       }
       if (idealEl) idealEl.textContent = formatarHorasSemana(ideal);
       if (feedback) {
+        const macroNome = nomeRitmoPorMeses(entrada, meses);
         feedback.classList.toggle('alerta', !ok);
         feedback.classList.toggle('ok', ok);
         feedback.textContent = ok
-          ? 'Sua rotina está compatível para fechar o edital em ' + meses + ' meses.'
-          : 'Com a quantidade planejada, provavelmente não será possível fechar o edital em ' + meses + ' meses. Aumente as horas, escolha um prazo maior ou reduza o escopo.';
+          ? 'Sua rotina acompanha bem o ritmo ' + macroNome + '.'
+          : 'Sua rotina está abaixo do ritmo ' + macroNome + ' — você ainda avança, só mais devagar. Aumente as horas ou escolha um ritmo mais tranquilo.';
       }
     }
     // resumo final do assistente (passo 4)
@@ -5352,10 +5456,11 @@
       const total = totalMinutosRotina(rotinaDoModal()) / 60;
       const ideal = horasIdeaisSemanaPlano(entrada, meses);
       const ok = total >= ideal;
+      const macroNome = nomeRitmoPorMeses(entrada, meses);
       resumo.classList.toggle('alerta', !ok);
       resumo.classList.toggle('ok', ok);
-      resumo.textContent = 'Resumo: terminar em ' + meses + ' meses, ' + formatarHorasSemana(total) + '. ' +
-        (ok ? 'Rotina compatível com o prazo. 👍' : 'A rotina pode não fechar o edital nesse prazo — reveja os dias/horas ou aumente o prazo.');
+      resumo.textContent = 'Resumo: ritmo ' + macroNome + ' (estimativa ~' + meses + ' meses), ' + formatarHorasSemana(total) + '. ' +
+        (ok ? 'Sua rotina acompanha esse ritmo. 👍' : 'Sua rotina está abaixo desse ritmo — você avança mais devagar; reveja os dias/horas ou escolha um ritmo mais tranquilo.');
     }
 
     atualizarTotal();
@@ -5416,15 +5521,16 @@
         if (disc && sel) disc.dificuldade = sel.getAttribute('data-dif');
       });
       state.config.rotinaEstudos = rotinaNova;
-      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque)) return;
+      const cardAtivo = m.querySelector('.gp-prazo-card.ativo');
+      const nomeRitmo = cardAtivo ? cardAtivo.getAttribute('data-gp-ritmo') : nomeRitmoPorMeses(entrada, meses);
+      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo)) return;
       planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
       fecharModal();
       const cron = D.cronogramaAtivo(state);
       agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
       agendaModo = 'semana';
       render();
-      const macro = MACRO_PLANOS.find(function (p) { return p.meses === meses; });
-      toast('Plano ' + (macro ? macro.nome.split(' (')[0] : meses + ' meses') + ' gerado — calendário preenchido', 'sucesso');
+      toast('Plano ' + nomeRitmo + ' gerado — calendário preenchido', 'sucesso');
     });
 
     mostrarPasso(1);
@@ -5525,6 +5631,15 @@
     }
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
       '<p class="sub">Plano atual, check-in e agenda no mesmo lugar.</p></div></div>';
+
+    // Aviso: plano com cronograma mas rotina sem nenhum dia de estudo ativo →
+    // o calendário fica vazio. Oferece ir direto ajustar a rotina.
+    if (state.plano && cronAtivo && cronAtivo.length > 0 && rotinaSemDiasAtivos()) {
+      html += '<div class="card aviso-rotina"><span class="aviso-rotina-ic" aria-hidden="true">⚠️</span>' +
+        '<div><strong>Sua rotina está sem dias de estudo.</strong>' +
+        '<p class="sub" style="margin:0.15rem 0 0">Marque os dias e horas para o calendário ser preenchido.</p></div>' +
+        '<button class="botao-mini" id="pl-ajustar-rotina">Ajustar rotina</button></div>';
+    }
 
     // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile.
     // O ritmo ativo/geração ganham um card próprio logo abaixo do plano atual.
@@ -5697,6 +5812,8 @@
     if (gerarRitmos) gerarRitmos.addEventListener('click', function () {
       abrirGerarPlanoComRotina();
     });
+    const ajustarRotina = raiz.querySelector('#pl-ajustar-rotina');
+    if (ajustarRotina) ajustarRotina.addEventListener('click', function () { abrirGerarPlanoComRotina(); });
     const ajustarPerfil = raiz.querySelector('#pl-ajustar-perfil');
     if (ajustarPerfil) ajustarPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
 

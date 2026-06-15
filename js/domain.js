@@ -501,8 +501,18 @@
     const mesesProjetados = isFinite(semanasProjetadas)
       ? Math.round(((decorridas + semanasProjetadas) / 4.345) * 10) / 10 : Infinity;
     const pctConcluido = esforcoTotal > 0 ? Math.min(100, Math.round((horasFeitas / esforcoTotal) * 100)) : 0;
+    // Conclusão estimada DINÂMICA (semanas a partir de hoje): usa o ritmo real
+    // quando há dados; senão o ritmo planejado (casa com a estimativa inicial).
+    // Estudar menos → ritmo cai → prazo sobe; adiantar tópicos → restante cai → prazo desce.
+    const paceProjecao = (horasFeitas >= 0.1 && decorridas >= 0.5) ? ritmoReal : cargaPlanejada;
+    const semanasParaConcluir = restante <= 0 ? 0 : Math.min(260, restante / Math.max(0.5, paceProjecao));
+    // "Adiantado"/"Atrasado" só fazem sentido com estudo REAL registrado e tempo
+    // suficiente decorrido. Sem horas feitas, o plano é "no prazo" (neutro) no
+    // começo e "parado" se já passou ~1 semana — nunca "adiantado" com 0h.
     let situacao = 'no_prazo';
     if (restante <= 0) situacao = 'concluido';
+    else if (horasFeitas < 0.1) situacao = decorridas >= 1 ? 'parado' : 'no_prazo';
+    else if (decorridas < 0.5) situacao = 'no_prazo'; // cedo demais para projetar
     else if (!isFinite(mesesProjetados)) situacao = 'parado';
     else if (mesesProjetados > meses + 0.5) situacao = 'atrasado';
     else if (mesesProjetados < meses - 0.5) situacao = 'adiantado';
@@ -511,6 +521,7 @@
       semanasTotais, meses, semanasDecorridas: Math.round(decorridas * 10) / 10,
       semanasRestantes: Math.round(semanasRestantes * 10) / 10, cargaIdeal,
       cargaPlanejada: Math.round(cargaPlanejada * 10) / 10, ritmoReal: Math.round(ritmoReal * 10) / 10,
+      semanasParaConcluir: Math.round(semanasParaConcluir * 10) / 10,
       mesesProjetados, pctConcluido, situacao
     };
   }
