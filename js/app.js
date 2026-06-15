@@ -4878,10 +4878,6 @@
     return 'geral';
   }
 
-  // Escolhe até `limite` disciplinas variando o grupo cognitivo (linguagem/lógica/
-  // direito/...) para a semana não ser monótona. Com `alternarDif`, no início do
-  // plano também evita emendar duas matérias "difíceis", intercalando com as
-  // fáceis/normais — assim o aluno sente progresso e não desanima.
   // Recebe os docs já ordenados por importância (score) e devolve a ORDEM DE INÍCIO
   // com as dificuldades espalhadas: rodízio difícil → normal → fácil. Dentro de cada
   // dificuldade preserva a ordem de importância. Garante que as primeiras semanas
@@ -4898,6 +4894,10 @@
     return ordem;
   }
 
+  // Escolhe até `limite` disciplinas variando o grupo cognitivo (linguagem/lógica/
+  // direito/...) para a semana não ser monótona. Com `alternarDif`, no início do
+  // plano também evita emendar duas matérias "difíceis", intercalando com as
+  // fáceis/normais — assim o aluno sente progresso e não desanima.
   function alternarGrupos(lista, limite, alternarDif) {
     const pool = lista.slice();
     const escolhidos = [];
