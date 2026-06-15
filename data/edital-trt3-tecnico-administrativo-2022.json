@@ -1,0 +1,165 @@
+{
+  "tipo": "edital_esquematizado",
+  "versao": 1,
+  "gerado_em": "2026-06-15",
+  "titulo": "TRT3 MG - Tecnico Judiciario Area Administrativa (Edital 2022)",
+  "banca": "FUMARC",
+  "orgao": "Tribunal Regional do Trabalho da 3a Regiao - TRT3/MG",
+  "cargo": "Tecnico Judiciario",
+  "area": "Administrativa",
+  "estado": "MG",
+  "nivel": "medio",
+  "escolaridade": "medio",
+  "nota_corte_sugerida_pct": 78,
+  "lista_corte": "ampla",
+  "janela_prova": {
+    "inicio": "2027-01",
+    "fim": "2027-02"
+  },
+  "em_alta": true,
+  "fonte": "Base: Edital 01/2022 TRT3/MG, cargo 101 Tecnico Judiciario - Administrativa; pagina oficial TRT3 Concurso 2022; prova FUMARC 2022 no Qconcursos; guia TEC Concursos TRT3/2022 identificado em busca; noticias recentes sobre validade ate fevereiro/2027 e possivel novo edital.",
+  "observacoes": [
+    "Arquivo pensado para uso em pre-edital: o concurso TRT3/MG 2022 segue como principal referencia historica do cargo.",
+    "Estrutura oficial 2022: 60 questoes objetivas, sendo 15 de Lingua Portuguesa, 5 de Nocoes de Informatica, 5 de Legislacao, 5 de Nocoes de Direito e 30 de Conhecimentos Especificos, alem de redacao.",
+    "A calibragem de incidencia usa o edital oficial para delimitar conteudo e o Qconcursos como referencia de recorrencia da prova. No Qconcursos, as mais cobradas foram Direito do Trabalho 20/60, Portugues 15/60 e Direito Processual do Trabalho 10/60.",
+    "A prova objetiva exigiu minimo de 60% do total de pontos e nota diferente de zero em todas as disciplinas. A redacao foi avaliada de 0 a 50, com minimo de 60%.",
+    "A nota de corte sugerida e aproximada para uso na plataforma. Quando houver levantamento oficial por lista/modalidade, recalibrar ampla, negros e PCD."
+  ],
+  "notas_corte_ultimo_nomeado": {
+    "escala": "60 questoes objetivas + redacao de 0 a 50 no edital FUMARC 2022",
+    "tecnico_administrativo_2022": {
+      "ampla_pct_estimado_plataforma": 78,
+      "negros": null,
+      "negros_pct": null,
+      "pcd": null,
+      "pcd_pct": null,
+      "observacao": "Nao foi consolidada nota de corte publica confiavel por modalidade nesta pesquisa rapida; manter como estimativa ate conferencia do resultado final nominal."
+    }
+  },
+  "disciplinas": [
+    {
+      "id": "POR",
+      "nome": "Lingua Portuguesa",
+      "cor": "#2563EB",
+      "peso": 4,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "POR-01", "nome": "Interpretacao de textos", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 1 },
+        { "id": "POR-02", "nome": "Nocoes gerais de compreensao e interpretacao", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
+        { "id": "POR-03", "nome": "Sintaxe", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
+        { "id": "POR-04", "nome": "Verbos: flexao, tempos, modos e vozes", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
+        { "id": "POR-05", "nome": "Pronomes e colocacao pronominal", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
+        { "id": "POR-06", "nome": "Concordancia nominal e verbal", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 6 },
+        { "id": "POR-07", "nome": "Regencia nominal e verbal", "incidencia_pct": 6, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 },
+        { "id": "POR-08", "nome": "Pontuacao", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 8 },
+        { "id": "POR-09", "nome": "Ortografia, acentuacao e crase", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 9 }
+      ]
+    },
+    {
+      "id": "INF",
+      "nome": "Nocoes de Informatica",
+      "cor": "#0369A1",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "INF-01", "nome": "Sistema operacional e Windows Explorer", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
+        { "id": "INF-02", "nome": "Organizacao de pastas, arquivos e teclas de atalho", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 },
+        { "id": "INF-03", "nome": "Editor de textos: Microsoft Word e Writer", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
+        { "id": "INF-04", "nome": "Planilhas: Excel e Calc", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
+        { "id": "INF-05", "nome": "Apresentacoes: PowerPoint e Impress", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 5 },
+        { "id": "INF-06", "nome": "Navegadores, internet, intranet, seguranca e e-mail", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 6 }
+      ]
+    },
+    {
+      "id": "LEG",
+      "nome": "Legislacao",
+      "cor": "#0E7490",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "LEG-01", "nome": "Lei 8.112/1990: provimento, vacancia e direitos", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
+        { "id": "LEG-02", "nome": "Lei 8.112/1990: deveres, proibicoes, responsabilidades e penalidades", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 2 },
+        { "id": "LEG-03", "nome": "Improbidade administrativa: Lei 8.429/1992 e Lei 14.230/2021", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
+        { "id": "LEG-04", "nome": "Licitacoes e contratos", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
+        { "id": "LEG-05", "nome": "Regimento interno e organizacao do TRT3", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
+        { "id": "LEG-06", "nome": "Codigo de Etica do TRT3 e normativos correlatos", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 6 }
+      ]
+    },
+    {
+      "id": "CON",
+      "nome": "Nocoes de Direito Constitucional",
+      "cor": "#1D4ED8",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "CON-01", "nome": "Principios fundamentais da Republica", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
+        { "id": "CON-02", "nome": "Teoria dos direitos fundamentais", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
+        { "id": "CON-03", "nome": "Direitos e garantias individuais", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 3 },
+        { "id": "CON-04", "nome": "Administracao publica: disposicoes gerais", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
+        { "id": "CON-05", "nome": "Servidores publicos na Constituicao", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 5 }
+      ]
+    },
+    {
+      "id": "DAD",
+      "nome": "Nocoes de Direito Administrativo",
+      "cor": "#2E7D68",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "DAD-01", "nome": "Agentes publicos e Lei 8.112/1990", "incidencia_pct": 28, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
+        { "id": "DAD-02", "nome": "Improbidade administrativa", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 2 },
+        { "id": "DAD-03", "nome": "Licitacoes e contratos administrativos", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
+        { "id": "DAD-04", "nome": "Principios da administracao publica", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
+        { "id": "DAD-05", "nome": "Atos, poderes e controle da administracao", "incidencia_pct": 16, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 5 }
+      ]
+    },
+    {
+      "id": "DTR",
+      "nome": "Direito do Trabalho",
+      "cor": "#9333EA",
+      "peso": 5,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "DTR-01", "nome": "Relacoes laborais: emprego, trabalho, grupo, sucessao e responsabilidade", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 1 },
+        { "id": "DTR-02", "nome": "Empregado, empregador e poderes do empregador", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
+        { "id": "DTR-03", "nome": "Contrato de trabalho e contratos de natureza trabalhista", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
+        { "id": "DTR-04", "nome": "Remuneracao e salario", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
+        { "id": "DTR-05", "nome": "Duracao do trabalho, jornada, intervalos e horas extras", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
+        { "id": "DTR-06", "nome": "Cessacao do contrato de emprego e aviso previo", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 6 },
+        { "id": "DTR-07", "nome": "Direito coletivo do trabalho", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 7 },
+        { "id": "DTR-08", "nome": "Ferias, 13o, protecao ao menor e trabalho da mulher", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 8 }
+      ]
+    },
+    {
+      "id": "DPT",
+      "nome": "Direito Processual do Trabalho",
+      "cor": "#6D28D9",
+      "peso": 4,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "DPT-01", "nome": "Competencia da Justica do Trabalho", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
+        { "id": "DPT-02", "nome": "Organizacao da Justica do Trabalho e Ministerio Publico do Trabalho", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
+        { "id": "DPT-03", "nome": "Dissidio individual e reclamacao trabalhista", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
+        { "id": "DPT-04", "nome": "Atos, termos e prazos processuais", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
+        { "id": "DPT-05", "nome": "Provas, vicios dos atos processuais e nulidades", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
+        { "id": "DPT-06", "nome": "Partes, procuradores, representacao e substituicao processual", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 },
+        { "id": "DPT-07", "nome": "Audiencias, notificacao, revelia e confissao", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 7 },
+        { "id": "DPT-08", "nome": "Procedimentos ordinario e sumarissimo", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 8 }
+      ]
+    },
+    {
+      "id": "RED",
+      "nome": "Redacao",
+      "cor": "#BE123C",
+      "peso": 2,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "RED-01", "nome": "Texto dissertativo sobre tema contemporaneo", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
+        { "id": "RED-02", "nome": "Clareza, concisao, precisao e objetividade", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
+        { "id": "RED-03", "nome": "Coerencia, argumentacao e desenvolvimento da tese", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
+        { "id": "RED-04", "nome": "Correcao gramatical e norma-padrao", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 4 },
+        { "id": "RED-05", "nome": "Treino de 20 a 30 linhas e transcricao final", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 5 }
+      ]
+    }
+  ]
+}

@@ -241,6 +241,29 @@
     if (discs.length === 0) return [];
 
     const minutosSemana = opcoes.minutosSemana > 0 ? opcoes.minutosSemana : 600;
+    const minBloco = Math.max(10, Math.round(Number(opcoes.minBloco) || 30));
+    const maxBloco = Math.max(minBloco, Math.round(Number(opcoes.maxBloco) || 75));
+    const ordemAtaque = opcoes.ordemAtaque || (state.plano && state.plano.ordemAtaque) || 'incidencia';
+    const sessoes = sessoesDoPlano(state);
+    function topicoSugerido(d) {
+      const topicos = (d.topicos || []).filter(function (t) {
+        return t && !t.orfao && t.status !== 'dominado';
+      });
+      if (topicos.length === 0) return null;
+      topicos.sort(function (a, b) {
+        const aConcl = a.status === 'teoria_concluida' ? 1 : 0;
+        const bConcl = b.status === 'teoria_concluida' ? 1 : 0;
+        if (aConcl !== bConcl) return aConcl - bConcl;
+        const da = desempenhoTopico(sessoes, a.id);
+        const db = desempenhoTopico(sessoes, b.id);
+        const pctA = da.pct === null ? 101 : da.pct;
+        const pctB = db.pct === null ? 101 : db.pct;
+        if (pctA !== pctB && (da.feitas >= 3 || db.feitas >= 3)) return pctA - pctB;
+        if (ordemAtaque === 'incidencia') return (b.incidencia_pct || 0) - (a.incidencia_pct || 0);
+        return (a.semana_sugerida || 9999) - (b.semana_sugerida || 9999);
+      });
+      return topicos[0] || null;
+    }
     const pesos = discs.map(function (d) {
       const incidencia = (d.topicos || []).reduce(function (s, t) {
         if (t.orfao) return s;
@@ -258,8 +281,9 @@
     return pesos.map(function (p) {
       const bruto = (p.peso / somaPesos) * minutosSemana;
       // múltiplos de 30, entre 30min e 2h (blocos digeríveis; o resto vira mais voltas)
-      const metaMin = Math.min(120, Math.max(30, Math.round(bruto / 30) * 30));
-      return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: null, metaMin: metaMin, feitoMin: 0 };
+      const metaMin = Math.min(maxBloco, Math.max(minBloco, Math.round(bruto / 5) * 5));
+      const topico = topicoSugerido(p.disc);
+      return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: topico ? topico.id : null, metaMin: metaMin, feitoMin: 0 };
     });
   }
 

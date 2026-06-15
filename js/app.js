@@ -658,6 +658,23 @@
     return Math.round((min / 60) * 10) / 10;
   }
 
+  function normalizarCicloAtivoPelaRotina() {
+    const ciclo = state.plano && state.plano.ciclo;
+    if (!ciclo || !Array.isArray(ciclo.blocos)) return false;
+    const rotina = rotinaEstudosAtual();
+    const maxBloco = Math.max(rotina.minBloco || 30, rotina.maxBloco || 75);
+    let mudou = false;
+    ciclo.blocos.forEach(function (b) {
+      if ((b.metaMin || 0) > maxBloco) {
+        b.metaMin = maxBloco;
+        if ((b.feitoMin || 0) > maxBloco) b.feitoMin = maxBloco;
+        mudou = true;
+      }
+    });
+    if (mudou) salvar();
+    return mudou;
+  }
+
   function primeiroNome(valor) {
     return String(valor || '').trim().split(/\s+/)[0] || '';
   }
@@ -1099,6 +1116,7 @@
 
     // Ciclo de estudos: credita o tempo da sessão no bloco da matéria e avança a fila.
     const ciclo = D.cicloAtivo(state);
+    if (ciclo) normalizarCicloAtivoPelaRotina();
     if (ciclo && topico) {
       const disc = D.disciplinaDoTopico(state, dados.topicoId);
       const av = D.avancarCiclo(ciclo, disc ? disc.id : null, dados.duracaoMin);
@@ -3161,14 +3179,13 @@
     html += '</div>';
 
     html += '<div class="card edital-disc-card"><div class="card-kpi-rotulo">Edital verticalizado</div>' +
-      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">✓</th><th class="num edital-qtd-col">×</th><th class="num edital-qtd-col">Questões</th><th class="num edital-rend-col">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
+      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">Questões</th><th class="num edital-rend-col" title="Passe o mouse no rendimento para ver acertos e erros">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
       (function () { const quentes = idsTopicosQuentes(disc.topicos); return disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
         const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
         const erros = Math.max(0, dt.feitas - dt.certas);
         return '<tr data-topico-detalhe="' + esc(t.id) + '" role="button" tabindex="0">' +
           '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tópico">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
-          '<td class="num painel-acertos edital-qtd-col">' + dt.certas + '</td><td class="num painel-erros edital-qtd-col">' + erros + '</td>' +
           '<td class="num edital-qtd-col">' + dt.feitas + '</td><td class="num edital-rend-col">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) + '</td>' +
           '<td class="num">' + tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</td></tr>';
       }).join(''); })() + '</tbody></table></div></div>';
@@ -5404,6 +5421,21 @@
     state.flashcards = state.flashcards.filter(function (f) { return !pertenceAoPlano(f, planoId); });
   }
 
+  function limparAgendaGeradaPlano(planoId) {
+    state.agenda = state.agenda.filter(function (a) {
+      return !(a.gerado && pertenceAoPlano(a, planoId || state.planoAtivoId));
+    });
+    if (state.config && Array.isArray(state.config.blocosVinculados)) {
+      state.config.blocosVinculados = [];
+    }
+  }
+
+  function limparCronogramasPlanoAtivo() {
+    const entrada = entradaPlanoAtivo();
+    if (entrada) entrada.cronogramas = {};
+    state.cronogramas = entrada ? entrada.cronogramas : {};
+  }
+
   async function excluirPlano(planoId, limparHistorico) {
     const p = state.planos.find(function (x) { return x.id === planoId; });
     if (!p) return false;
@@ -5724,6 +5756,8 @@
     entrada.plano.ritmos = {};
     entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
     entrada.plano.ritmoAtivo = chave;
+    entrada.plano.modoPlanejamento = 'cronograma';
+    entrada.plano.ciclo = { blocos: [], volta: 1 };
     // Âncora do cronograma = segunda da semana atual, igual ao calendário e ao
     // recálculo. Evita divergência de até 6 dias no burndown/projeção de término.
     entrada.plano.gerado_em = D.segundaDaSemana(D.hojeISO());
@@ -5860,9 +5894,11 @@
       if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true)) return;
       fecharModal();
       const cron = D.cronogramaAtivo(state);
-      agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
+      agendaRef = modoPlano === 'ciclo' ? D.segundaDaSemana(D.hojeISO()) : (cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO()));
       agendaModo = 'semana';
       render();
+      if (modoPlano === 'ciclo') toast('Ciclo de estudos gerado com topicos sugeridos', 'sucesso');
+      else
       toast('Plano gerado — o calendário foi preenchido com todas as semanas', 'sucesso');
     });
   }
@@ -5959,6 +5995,13 @@
 
       // ---- Passo 4: estratégia + blocos ----
       '<section class="gp-step oculto" data-step="4">' +
+      '<label>Como voce quer organizar o plano?</label>' +
+      '<div class="toggle-ordem" role="radiogroup" aria-label="Tipo de planejamento">' +
+      '<label class="toggle-ordem-opt"><input type="radio" name="gp-modo" value="cronograma"' + (((state.plano && state.plano.modoPlanejamento) || 'cronograma') !== 'ciclo' ? ' checked' : '') + '>' +
+      '<span><strong>Cronograma flexivel</strong><small>Distribui os topicos nos dias da sua rotina e preenche a agenda.</small></span></label>' +
+      '<label class="toggle-ordem-opt"><input type="radio" name="gp-modo" value="ciclo"' + ((state.plano && state.plano.modoPlanejamento) === 'ciclo' ? ' checked' : '') + '>' +
+      '<span><strong>Ciclo de estudos</strong><small>Gera uma fila com proximo topico sugerido, no seu ritmo.</small></span></label>' +
+      '</div>' +
       '<h3>Estratégia de estudo</h3>' +
       '<label>Ordem de ataque ao conteúdo</label>' +
       '<div class="toggle-ordem" role="radiogroup" aria-label="Ordem de ataque ao conteúdo">' +
@@ -6119,6 +6162,8 @@
       const horas = Math.max(1, Math.round(totalMinutos / 60));
       const ordemEl = m.querySelector('input[name="gp-ordem"]:checked');
       const ordemAtaque = ordemEl ? ordemEl.value : 'edital';
+      const modoEl = m.querySelector('input[name="gp-modo"]:checked');
+      const modoPlano = modoEl ? modoEl.value : 'cronograma';
       // grava a dificuldade escolhida em cada disciplina (entra no cálculo do cronograma)
       m.querySelectorAll('.gp-dif-row').forEach(function (row) {
         const id = row.getAttribute('data-dif-disc');
@@ -6129,11 +6174,34 @@
       state.config.rotinaEstudos = rotinaNova;
       const cardAtivo = m.querySelector('.gp-prazo-card.ativo');
       const nomeRitmo = cardAtivo ? cardAtivo.getAttribute('data-gp-ritmo') : nomeRitmoPorMeses(entrada, meses);
-      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo)) return;
+      if (modoPlano === 'ciclo') {
+        state.plano.ordemAtaque = ordemAtaque;
+        state.plano.modoPlanejamento = 'ciclo';
+        limparCronogramasPlanoAtivo();
+        const cicloBlocos = D.sugerirCiclo(state, {
+          minutosSemana: totalMinutos,
+          minBloco: rotinaNova.minBloco,
+          maxBloco: rotinaNova.maxBloco,
+          ordemAtaque: ordemAtaque
+        });
+        if (cicloBlocos.length === 0) { toast('Adicione disciplinas antes de gerar o ciclo.', 'erro'); return; }
+        state.plano.ciclo = { blocos: cicloBlocos, volta: 1 };
+        const entradaAtiva = entradaPlanoAtivo();
+        if (entradaAtiva) {
+          entradaAtiva.cronogramas = {};
+          entradaAtiva.plano.modoPlanejamento = 'ciclo';
+          entradaAtiva.plano.ciclo = state.plano.ciclo;
+          entradaAtiva.plano.ordemAtaque = ordemAtaque;
+        }
+        limparAgendaGeradaPlano(state.planoAtivoId);
+        salvar();
+      } else {
+        if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo)) return;
+      }
       planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
       fecharModal();
       const cron = D.cronogramaAtivo(state);
-      agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
+      agendaRef = modoPlano === 'ciclo' ? D.segundaDaSemana(D.hojeISO()) : (cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO()));
       agendaModo = 'semana';
       render();
       toast('Plano ' + nomeRitmo + ' gerado — calendário preenchido', 'sucesso');
@@ -6374,6 +6442,7 @@
 
   // ---- Ciclo de estudos: fila ponderada de matérias com meta de tempo ----
   function cicloHtml() {
+    normalizarCicloAtivoPelaRotina();
     const ciclo = state.plano.ciclo || { blocos: [], volta: 1 };
     const blocos = ciclo.blocos || [];
 
@@ -6475,8 +6544,20 @@
       b.addEventListener('click', function () {
         const novo = b.getAttribute('data-modo-plan');
         if (!state.plano || state.plano.modoPlanejamento === novo) return;
-        state.plano.modoPlanejamento = novo;
-        salvar(); render();
+        const msg = novo === 'ciclo'
+          ? 'O calendario gerado pelo cronograma sera removido e a tela Hoje passara a seguir a fila do ciclo. Blocos manuais continuam guardados.'
+          : 'A fila do ciclo sera desativada e um novo cronograma flexivel podera preencher sua agenda.';
+        confirmar({ titulo: 'Trocar metodo de estudo?', mensagem: msg, confirmar: 'Trocar metodo', icone: '⚠️' }).then(function (ok) {
+          if (!ok) return;
+          if (novo === 'ciclo') {
+            limparAgendaGeradaPlano(state.planoAtivoId);
+            limparCronogramasPlanoAtivo();
+          } else {
+            state.plano.ciclo = { blocos: [], volta: 1 };
+          }
+          state.plano.modoPlanejamento = novo;
+          salvar(); render();
+        });
       });
     });
     ligarCiclo(raiz);
@@ -6685,9 +6766,18 @@
   function gerarCicloSugerido() {
     const ciclo = state.plano.ciclo || (state.plano.ciclo = { blocos: [], volta: 1 });
     function gerar() {
-      const min = totalMinutosRotina(rotinaEstudosAtual());
-      const blocos = D.sugerirCiclo(state, { minutosSemana: min > 0 ? min : 600 });
+      const rotina = rotinaEstudosAtual();
+      const min = totalMinutosRotina(rotina);
+      const blocos = D.sugerirCiclo(state, {
+        minutosSemana: min > 0 ? min : 600,
+        minBloco: rotina.minBloco,
+        maxBloco: rotina.maxBloco,
+        ordemAtaque: state.plano.ordemAtaque || 'incidencia'
+      });
       if (blocos.length === 0) { toast('Adicione disciplinas antes de gerar o ciclo.', 'erro'); return; }
+      limparAgendaGeradaPlano(state.planoAtivoId);
+      limparCronogramasPlanoAtivo();
+      state.plano.modoPlanejamento = 'ciclo';
       ciclo.blocos = blocos;
       ciclo.volta = 1;
       salvar(); render();
