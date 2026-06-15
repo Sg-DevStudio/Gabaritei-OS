@@ -390,6 +390,23 @@ body.login-gate #conteudo > * {
   max-width: 42ch;
 }
 
+.login-features {
+  list-style: none;
+  margin: 1.1rem 0 0.2rem;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+.login-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--tinta);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.login-features li span { flex: 0 0 auto; font-size: 1.05rem; line-height: 1.2; }
+
 .login-botao {
   width: 100%;
   margin: 1.4rem 0 0.8rem;
@@ -451,6 +468,28 @@ body.login-gate #conteudo > * {
 .login-preview-grid span.ativo {
   background: linear-gradient(180deg, #6F95F4, #2454D6);
 }
+
+/* Modo escuro: a tela de login acompanha o tema (antes ficava clara e o texto
+   sumia). Fundo escuro + card/preview escuros deixam o texto legível. */
+html[data-tema="escuro"] body.login-gate {
+  background:
+    radial-gradient(780px 360px at 80% 12%, rgba(91, 130, 240, 0.18), transparent 64%),
+    linear-gradient(180deg, #0E1016 0%, #151926 100%);
+}
+html[data-tema="escuro"] .login-card {
+  background: rgba(26, 29, 38, 0.86);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+html[data-tema="escuro"] .login-preview {
+  background:
+    linear-gradient(180deg, rgba(32, 36, 47, 0.92), rgba(26, 29, 38, 0.72)),
+    repeating-linear-gradient(0deg, rgba(124, 154, 245, 0.06) 0, rgba(124, 154, 245, 0.06) 1px, transparent 1px, transparent 34px);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 76px rgba(0, 0, 0, 0.5);
+}
+html[data-tema="escuro"] .login-preview-line { background: var(--grafite-claro); }
+html[data-tema="escuro"] .login-preview-grid span { background: #262A35; }
 
 @media (max-width: 760px) {
   .login-shell {
@@ -1740,13 +1779,18 @@ td.num, th.num { text-align: right; }
 
 .gp-dif-lista { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem; }
 .gp-dif-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
-  flex-wrap: wrap;
-  padding: 0.5rem 0.65rem; border-radius: var(--raio-s, 10px);
+  display: flex; flex-direction: column; align-items: center; gap: 0.55rem;
+  padding: 0.6rem 0.65rem; border-radius: var(--raio-s, 10px);
   background: var(--papel-elevado, rgba(255,255,255,0.03)); border: 1px solid var(--linha);
 }
-.gp-dif-nome { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; }
-.gp-dif-opts { display: inline-flex; border: 1px solid var(--linha); border-radius: 999px; overflow: hidden; }
+/* Tag fixa à esquerda; nome afastado e centralizado no card */
+.gp-dif-nome {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 26px; padding: 0 3.4rem; box-sizing: border-box;
+  text-align: center; font-weight: 600; font-size: 0.9rem;
+}
+.gp-dif-nome .tag-disc { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+.gp-dif-opts { display: inline-flex; align-self: center; border: 1px solid var(--linha); border-radius: 999px; overflow: hidden; }
 .gp-dif-opt {
   background: transparent; color: var(--grafite); border: none; border-radius: 0;
   font-size: 0.78rem; font-weight: 600; padding: 0.32rem 0.7rem; min-height: 34px; box-shadow: none;

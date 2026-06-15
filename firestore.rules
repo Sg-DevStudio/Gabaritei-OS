@@ -13,6 +13,11 @@ service cloud.firestore {
       allow read, write: if signedIn() && request.auth.uid == userId;
     }
 
+    // Tokens de push (lembretes de estudo). O dono escreve; o Cloud Function (admin) lê.
+    match /users/{userId}/push/{docId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
     match /public/catalogo {
       allow read: if signedIn();
       allow write: if isAdmin();

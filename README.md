@@ -71,6 +71,10 @@ service cloud.firestore {
       allow read, write: if signedIn() && request.auth.uid == userId;
     }
 
+    match /users/{userId}/push/{docId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
     match /public/catalogo {
       allow read: if signedIn();
       allow write: if isAdmin();
@@ -85,6 +89,29 @@ service cloud.firestore {
   }
 }
 ```
+
+## Lembretes de estudo (push)
+
+Notificações motivacionais quando o aluno fica um dia sem estudar. Ficam
+**desligadas** até você configurar a chave VAPID — o app funciona normalmente
+sem elas. Para ativar:
+
+1. **Plano Blaze** habilitado (igual ao da função de flashcards) e a API
+   **Cloud Scheduler** ativada no projeto.
+2. Em **Firebase Console → Cloud Messaging → Web Push certificates**, gere o
+   par de chaves e copie a **chave pública (VAPID)**.
+3. Cole a chave em `js/firebase-sync.js`, na constante `VAPID_KEY`.
+4. Publique as regras (`firestore.rules`) — já incluem `users/{uid}/push`.
+5. Deploy das funções: `firebase deploy --only functions`. Isso sobe a função
+   agendada `lembreteEstudo` (roda todo dia 09:00, fuso de Brasília) que avisa
+   quem não registrou sessão no dia. As mensagens ficam em `functions/index.js`
+   (`MENSAGENS_LEMBRETE`) — edite à vontade.
+
+O dispositivo registra o token de push após o login (e ao conceder a permissão
+de notificação). Cada conta só recebe se tiver concedido a permissão.
+
+> Se você já tinha um envio de notificações por fora, desative-o para não
+> duplicar os lembretes.
 
 ## Estrutura
 
