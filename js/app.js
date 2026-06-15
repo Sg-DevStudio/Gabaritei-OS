@@ -245,10 +245,15 @@
     return '<section class="login-shell">' +
       '<div class="login-card">' +
       '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
-      '<h1>Entre para acessar seus planos</h1>' +
-      '<p>Seu perfil, progresso, agenda e histórico ficam separados por conta. O catálogo global fica disponível para todos os usuários logados.</p>' +
+      '<h1>Seu plano de aprovação, no piloto automático</h1>' +
+      '<p>O Gabaritei OS transforma o edital num cronograma semanal, equilibra teoria e questões, agenda as revisões na hora certa e acompanha seu desempenho — ajustando o ritmo para você chegar pronto no dia da prova.</p>' +
+      '<ul class="login-features">' +
+      '<li><span aria-hidden="true">📅</span> Cronograma gerado a partir do edital, no seu ritmo</li>' +
+      '<li><span aria-hidden="true">🔁</span> Revisões espaçadas automáticas (1 · 3 · 7 · 14 · 30 dias)</li>' +
+      '<li><span aria-hidden="true">📊</span> Desempenho, metas semanais e plano que se ajusta a você</li>' +
+      '</ul>' +
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
-      '<p class="login-nota">Login por e-mail e senha será adicionado depois. Por enquanto, o acesso usa Google.</p>' +
+      '<p class="login-nota">Comece em segundos com sua conta Google. Seu progresso fica salvo e separado por conta.</p>' +
       '</div>' +
       '<div class="login-preview" aria-hidden="true">' +
       '<div class="login-preview-top"></div>' +
