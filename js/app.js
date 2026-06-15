@@ -3882,6 +3882,7 @@
     const sel = sanearComparacao();
     if (sel.length < 2) return;
     const r = D.conciliarPlanos(sel[0], sel[1], { horasSemana: horasSemanaDisponiveis() });
+    let manterSelecaoAoFechar = false;
     const chips = '<div class="comparar-chips">' + sel.map(function (e) {
       return '<span class="comparar-chip">' + esc(tituloCurto(e.titulo)) + '</span>';
     }).join('') + '</div>';
@@ -3896,13 +3897,20 @@
       '<button type="button" id="cmp-modal-combinar">Gerar plano combinado</button></div>'
     );
     m.classList.add('modal-amplo');
+    aoFecharModal = function () {
+      if (manterSelecaoAoFechar) return;
+      comparacaoIds = [];
+      render();
+    };
     m.querySelector('#cmp-modal-fechar').addEventListener('click', fecharModal);
     m.querySelector('#cmp-modal-limpar').addEventListener('click', function () {
+      manterSelecaoAoFechar = true;
       comparacaoIds = [];
       fecharModal();
       render();
     });
     m.querySelector('#cmp-modal-combinar').addEventListener('click', function () {
+      manterSelecaoAoFechar = true;
       if (r.nivel === 'nao_recomendado') {
         confirmar({ titulo: 'Compatibilidade baixa', mensagem: 'Seriam ~' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis. Gerar o plano combinado mesmo assim?', confirmar: 'Gerar mesmo assim', icone: '⚠️' }).then(function (ok) {
           if (ok) gerarPlanoCombinado(sel[0], sel[1]);
