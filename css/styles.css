@@ -1011,6 +1011,71 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .etiqueta-feito { background: var(--correto-suave); color: var(--correto); }
 .etiqueta-agenda { background: var(--caneta-suave); color: var(--caneta); }
 
+/* ============================================================
+   Flashcards (aba Revisões)
+   ============================================================ */
+.rev-seg { display: flex; gap: 0.45rem; margin-bottom: 1rem; }
+.fc-topo { display: flex; flex-direction: column; gap: 0.5rem; }
+.fc-topo-acoes { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.fc-topo .sub { margin: 0; }
+.fc-pasta { padding: 0.85rem 1rem; }
+.fc-pasta-cab { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+.fc-pasta-cab h3 { margin: 0; font-size: 1rem; }
+.fc-decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.6rem; }
+.fc-deck {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  border: 1px solid var(--linha); border-radius: var(--raio-s); padding: 0.6rem 0.75rem;
+  background: var(--papel-elevado);
+}
+.fc-deck-info { min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.fc-deck-info strong { font-size: 0.92rem; }
+.fc-deck-info .sub { font-size: 0.76rem; }
+.fc-devidas { color: var(--caneta-forte); font-weight: 700; }
+.fc-deck-acoes { display: flex; gap: 0.35rem; flex-shrink: 0; }
+
+/* Gerenciar cartas */
+.fc-cartas-lista { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0 0.9rem; max-height: 46vh; overflow: auto; }
+.fc-carta-linha { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--linha); border-radius: var(--raio-s); padding: 0.45rem 0.6rem; }
+.fc-carta-fv { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 0.1rem; }
+.fc-carta-fv strong { font-size: 0.88rem; }
+.fc-carta-fv span { font-size: 0.8rem; color: var(--grafite); }
+.fc-carta-linha-acoes { display: flex; gap: 0.3rem; flex-shrink: 0; }
+.fc-add-carta textarea { width: 100%; margin-bottom: 0.4rem; resize: vertical; }
+
+/* Sessão de estudo */
+.fc-sessao { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+.fc-sessao-prog { font-size: 0.78rem; color: var(--grafite); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.fc-carta {
+  position: relative; width: 100%; min-height: 220px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.fc-carta.virada { transform: perspective(1200px) rotateY(180deg); }
+.fc-carta-face {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 1.4rem; border-radius: var(--raio); border: 1px solid var(--linha);
+  background: var(--papel-card); box-shadow: var(--sombra-suave); font-size: 1.05rem; line-height: 1.4;
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+}
+.fc-carta-frente { transform: rotateY(0deg); }
+.fc-carta-verso { transform: rotateY(180deg); border-color: var(--caneta-suave); }
+/* sem animação (reduced-motion): vira na hora, sem transição */
+.fc-carta.fc-sem-anima { transition: none; }
+.fc-sessao-acao { width: 100%; display: flex; justify-content: center; }
+.fc-sessao-acao .botao { min-width: 200px; }
+.fc-sr-acoes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; width: 100%; }
+.fc-sr { color: #fff; }
+.fc-sr-errei { background: var(--errado); }
+.fc-sr-dificil { background: var(--alerta); }
+.fc-sr-bom { background: var(--caneta); }
+.fc-sr-facil { background: var(--correto); }
+.fc-fim { text-align: center; }
+.fc-fim-emoji { font-size: 2.6rem; line-height: 1; margin-bottom: 0.3rem; }
+@media (max-width: 480px) {
+  .fc-decks { grid-template-columns: 1fr; }
+  .fc-sr-acoes { grid-template-columns: repeat(2, 1fr); }
+}
+
 .frase-dia {
   font-size: 0.88rem;
   color: var(--tinta);
