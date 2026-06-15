@@ -716,6 +716,73 @@
       .replace(/[^a-z0-9]+/g, ' ').trim();
   }
 
+  // Palavras vazias que não ajudam a identificar a disciplina ("Noções de Direito
+  // Administrativo" e "Direito Administrativo" devem casar). Removê-las antes de
+  // comparar evita falsos negativos por causa de prefixos editoriais.
+  const STOP_DISC = { de: 1, do: 1, da: 1, dos: 1, das: 1, e: 1, a: 1, o: 1, as: 1, os: 1, em: 1, ao: 1, nocoes: 1, nocao: 1, nocoe: 1, elementos: 1, fundamentos: 1, introducao: 1, basica: 1, basico: 1, geral: 1, gerais: 1, conhecimentos: 1, parte: 1 };
+  const STOP_TOP = { de: 1, do: 1, da: 1, dos: 1, das: 1, e: 1, a: 1, o: 1, as: 1, os: 1, em: 1, no: 1, na: 1, nos: 1, nas: 1, ao: 1, aos: 1, com: 1, para: 1, por: 1, sua: 1, seu: 1, suas: 1, seus: 1, lei: 1, art: 1, artigo: 1, n: 1 };
+
+  // Conjunto de tokens significativos de um nome, aplicando sinônimos comuns de
+  // edital para que variações de banca ("Português" vs "Língua Portuguesa") casem.
+  function tokensSignificativos(nome, stop) {
+    let n = ' ' + normalizarNomeConc(nome) + ' ';
+    n = n.replace(/ portugues /g, ' lingua portuguesa ')
+         .replace(/ matematica /g, ' raciocinio logico ')
+         .replace(/ rlm /g, ' raciocinio logico ')
+         .replace(/ informatica /g, ' informatica ')
+         .replace(/ rh /g, ' recursos humanos ');
+    const set = {};
+    n.trim().split(' ').forEach(function (w) { if (w && w.length > 1 && !stop[w]) set[w] = true; });
+    // Tópicos curtos (ex.: "LGPD", "Lei 8.112") podem ficar sem tokens após a
+    // limpeza; nesse caso usamos o nome normalizado inteiro como token, para que
+    // tópicos idênticos ainda casem entre si.
+    if (!Object.keys(set).length) { const inteiro = n.trim().replace(/\s+/g, '_'); if (inteiro) set[inteiro] = true; }
+    return set;
+  }
+
+  function tokensDisc(nome) { return tokensSignificativos(nome, STOP_DISC); }
+  function tokensTop(nome) { return tokensSignificativos(nome, STOP_TOP); }
+
+  // Similaridade de Jaccard entre dois conjuntos de tokens (0..1). Prefixos
+  // editoriais ("Noções de", "Fundamentos de") já são removidos por STOP_DISC/
+  // STOP_TOP, então a interseção pura distingue bem "Direito do Trabalho" de
+  // "Direito Processual do Trabalho" (que não devem casar como iguais).
+  function similaridadeTokens(a, b) {
+    const ka = Object.keys(a), kb = Object.keys(b);
+    if (!ka.length || !kb.length) return 0;
+    let inter = 0;
+    ka.forEach(function (k) { if (b[k]) inter++; });
+    const uniao = ka.length + kb.length - inter;
+    return uniao ? inter / uniao : 0;
+  }
+
+  // Chave estável de uma disciplina (tokens significativos ordenados), usada para
+  // agrupar/deduplicar disciplinas equivalentes mesmo com nomes diferentes.
+  function canonizarDisciplina(nome) {
+    const toks = Object.keys(tokensDisc(nome)).sort();
+    return toks.join(' ') || normalizarNomeConc(nome);
+  }
+
+  // Limiares de similaridade para considerar duas disciplinas/tópicos "o mesmo".
+  const SIM_DISC = 0.5;
+  const SIM_TOP = 0.34;
+
+  // Disciplinas de um edital com seus tópicos já tokenizados e horas somadas.
+  function disciplinasDoEdital(ed) {
+    return (ed.disciplinas || []).map(function (d) {
+      const topicos = (d.topicos || []).map(function (t) {
+        const horas = t.horas_estimadas || 2;
+        return { nome: d.nome + ' › ' + t.nome, tokens: tokensTop(t.nome), horas: horas };
+      });
+      return {
+        nome: d.nome,
+        tokens: tokensDisc(d.nome),
+        topicos: topicos,
+        horas: topicos.reduce(function (n, t) { return n + t.horas; }, 0)
+      };
+    });
+  }
+
   function topicosDoEdital(ed) {
     const out = [];
     (ed.disciplinas || []).forEach(function (d) {
@@ -739,15 +806,15 @@
   function mensagemConciliacao(nivel, d) {
     const comuns = d.disciplinasComuns.length;
     const base = comuns > 0
-      ? 'Os dois concursos compartilham ' + comuns + ' disciplina' + (comuns > 1 ? 's' : '') + ' e ' + d.topicosComuns + ' tópico' + (d.topicosComuns !== 1 ? 's' : '') + ' (' + d.overlapPct + '% de sobreposição), economizando cerca de ' + d.economiaH + 'h de estudo. '
-      : 'Os dois concursos quase não têm conteúdo em comum, então estudar os dois soma a carga inteira. ';
+      ? 'Os dois concursos compartilham ' + comuns + ' disciplina' + (comuns > 1 ? 's' : '') + ' e cerca de ' + d.topicosComuns + ' tópico' + (d.topicosComuns !== 1 ? 's' : '') + ' equivalentes (' + d.overlapPct + '% de sobreposição de conteúdo), economizando cerca de ' + d.economiaH + 'h de estudo. '
+      : 'Os dois concursos quase não têm conteúdo em comum, então estudar os dois soma quase toda a carga. ';
     const carga = 'Para cobrir tudo na janela mais próxima seriam ~' + d.exigidaSemana + 'h/semana, e você tem ~' + d.horasSemana + 'h disponíveis' +
       (d.provaDefinida ? ' (≈' + d.semanasDisponiveis + ' semanas até a prova mais próxima). ' : ' (sem data de prova definida; estimei 6 meses). ');
     let veredito;
-    if (nivel === 'alta') veredito = '✅ Dá para conciliar com folga.';
-    else if (nivel === 'moderada') veredito = '🟡 Dá para conciliar, mas no limite — priorize o que cai nos dois.';
-    else if (nivel === 'baixa') veredito = '🟠 Conciliar vai exigir cortar conteúdo e aumentar as horas semanais.';
-    else veredito = '⛔ Não recomendado: a carga combinada não cabe no tempo disponível.';
+    if (nivel === 'alta') veredito = '✅ Compatibilidade alta: muito conteúdo em comum e a carga cabe na sua rotina — dá para conciliar com folga.';
+    else if (nivel === 'moderada') veredito = '🟡 Compatibilidade moderada: dá para conciliar aproveitando o conteúdo compartilhado, mas fica no limite — priorize o que cai nos dois.';
+    else if (nivel === 'baixa') veredito = '🟠 Compatibilidade baixa: conciliar vai exigir cortar conteúdo e aumentar as horas semanais.';
+    else veredito = '⛔ Não recomendado: pouco conteúdo em comum e a carga combinada não cabe no tempo disponível.';
     return base + carga + veredito;
   }
 
@@ -755,28 +822,59 @@
     opcoes = opcoes || {};
     const horasSemana = opcoes.horasSemana || 18;
     const hoje = opcoes.hoje || hojeISO();
-    const topsA = topicosDoEdital(edA), topsB = topicosDoEdital(edB);
 
-    const discA = {}, discB = {};
-    (edA.disciplinas || []).forEach(function (d) { discA[normalizarNomeConc(d.nome)] = d.nome; });
-    (edB.disciplinas || []).forEach(function (d) { discB[normalizarNomeConc(d.nome)] = d.nome; });
-    const disciplinasComuns = Object.keys(discA).filter(function (k) { return discB[k]; }).map(function (k) { return discA[k]; });
+    const discsA = disciplinasDoEdital(edA), discsB = disciplinasDoEdital(edB);
+    const totalA = discsA.reduce(function (n, d) { return n + d.topicos.length; }, 0);
+    const totalB = discsB.reduce(function (n, d) { return n + d.topicos.length; }, 0);
+    const horasA = discsA.reduce(function (n, d) { return n + d.horas; }, 0);
+    const horasB = discsB.reduce(function (n, d) { return n + d.horas; }, 0);
 
-    const setB = {};
-    topsB.forEach(function (t) { setB[t.disc + '|' + t.nome] = true; });
-    const chavesA = {};
+    // Casa cada disciplina de A com a melhor de B (similaridade de tokens), sem
+    // reutilizar disciplinas. Disciplinas equivalentes contam como "em comum"
+    // mesmo escritas de formas diferentes entre as bancas.
+    const usadasB = {};
+    const disciplinasComuns = [];
     let topicosComuns = 0, horasComuns = 0;
-    topsA.forEach(function (t) {
-      const k = t.disc + '|' + t.nome;
-      chavesA[k] = true;
-      if (setB[k]) { topicosComuns++; horasComuns += t.horas; }
-    });
-    const totalA = topsA.length, totalB = topsB.length;
-    const exclusivosA = totalA - topicosComuns;
-    const exclusivosB = topsB.filter(function (t) { return !chavesA[t.disc + '|' + t.nome]; }).length;
 
-    const horasA = topsA.reduce(function (n, t) { return n + t.horas; }, 0);
-    const horasB = topsB.reduce(function (n, t) { return n + t.horas; }, 0);
+    discsA.forEach(function (dA) {
+      let melhor = -1, melhorSim = SIM_DISC;
+      discsB.forEach(function (dB, j) {
+        if (usadasB[j]) return;
+        const sim = similaridadeTokens(dA.tokens, dB.tokens);
+        if (sim >= melhorSim) { melhorSim = sim; melhor = j; }
+      });
+      if (melhor < 0) return;
+      usadasB[melhor] = true;
+      const dB = discsB[melhor];
+      disciplinasComuns.push(dA.nome);
+
+      // Dentro de uma disciplina compartilhada, casa tópicos por similaridade.
+      const usadosT = {};
+      let paresT = 0, horasParesT = 0;
+      dA.topicos.forEach(function (tA) {
+        let achou = -1, simT = SIM_TOP;
+        dB.topicos.forEach(function (tB, k) {
+          if (usadosT[k]) return;
+          const s = similaridadeTokens(tA.tokens, tB.tokens);
+          if (s >= simT) { simT = s; achou = k; }
+        });
+        if (achou >= 0) { usadosT[achou] = true; paresT++; horasParesT += Math.min(tA.horas, dB.topicos[achou].horas); }
+      });
+
+      // Mesmo quando os tópicos são redigidos de forma diferente, compartilhar a
+      // disciplina já transfere boa parte do estudo. Por isso aplicamos um piso:
+      // o conteúdo em comum nunca fica abaixo de 50% da menor carga da disciplina.
+      const menorHorasDisc = Math.min(dA.horas, dB.horas);
+      const alinhamento = menorHorasDisc > 0 ? horasParesT / menorHorasDisc : 0;
+      horasComuns += menorHorasDisc * Math.max(alinhamento, 0.5);
+      topicosComuns += Math.max(paresT, Math.round(Math.min(dA.topicos.length, dB.topicos.length) * 0.5));
+    });
+
+    horasComuns = Math.round(horasComuns);
+    topicosComuns = Math.min(topicosComuns, Math.min(totalA, totalB));
+    const exclusivosA = Math.max(0, totalA - topicosComuns);
+    const exclusivosB = Math.max(0, totalB - topicosComuns);
+
     const cargaUniaoH = Math.round((horasA + horasB - horasComuns) * 1.8);
     const cargaSomadaH = Math.round((horasA + horasB) * 1.8);
     const economiaH = cargaSomadaH - cargaUniaoH;
@@ -790,21 +888,33 @@
 
     const exigidaSemana = Math.round((cargaUniaoH / semanasDisponiveis) * 10) / 10;
     const ratio = horasSemana > 0 ? exigidaSemana / horasSemana : 99;
-    const overlapPct = Math.round((topicosComuns / Math.max(1, Math.min(totalA, totalB))) * 100);
-
-    let nivel;
-    if (ratio <= 0.85) nivel = 'alta';
-    else if (ratio <= 1.05) nivel = 'moderada';
-    else if (ratio <= 1.3) nivel = 'baixa';
-    else nivel = 'nao_recomendado';
+    // Sobreposição de conteúdo medida em horas de estudo (mais fiel do que contar
+    // tópicos), em relação ao menor dos dois editais.
+    const menorHoras = Math.max(1, Math.min(horasA, horasB));
+    const overlapPct = Math.min(100, Math.round((horasComuns / menorHoras) * 100));
 
     const ordem = ['nao_recomendado', 'baixa', 'moderada', 'alta'];
-    // provas muito próximas com carga acima da capacidade derrubam um nível
-    if (provaDefinida && semanasDisponiveis < 8 && ratio > 1) {
-      nivel = ordem[Math.max(0, ordem.indexOf(nivel) - 1)];
-    }
-    // alta sobreposição no limite sobe um nível (estudar uma vez aproveita nos dois)
-    if (overlapPct >= 50 && nivel === 'moderada' && ratio <= 1.0) nivel = 'alta';
+    function subirNivel(n) { return ordem[Math.min(ordem.length - 1, ordem.indexOf(n) + 1)]; }
+    function descerNivel(n) { return ordem[Math.max(0, ordem.indexOf(n) - 1)]; }
+
+    // Base pela folga de tempo (quanto a carga combinada cabe na rotina).
+    let nivel;
+    if (ratio <= 0.85) nivel = 'alta';
+    else if (ratio <= 1.1) nivel = 'moderada';
+    else if (ratio <= 1.45) nivel = 'baixa';
+    else nivel = 'nao_recomendado';
+
+    // Conteúdo compartilhado torna a conciliação eficiente: estudar uma vez
+    // aproveita nos dois. Por isso a sobreposição puxa o nível para cima:
+    //  • ≥50%  → sobe um nível (ex.: moderada → alta quando a carga cabe);
+    //  • ≥75%  → sobe outro nível (editais quase iguais chegam a "alta");
+    //  • ≥30%  → ao menos tira do "não recomendado" (vira meio-termo: baixa).
+    if (overlapPct >= 50) nivel = subirNivel(nivel);
+    if (overlapPct >= 75 && ratio <= 1.2) nivel = subirNivel(nivel);
+    if (overlapPct >= 30 && nivel === 'nao_recomendado') nivel = 'baixa';
+
+    // Provas muito próximas com carga acima da capacidade derrubam um nível.
+    if (provaDefinida && semanasDisponiveis < 8 && ratio > 1.1) nivel = descerNivel(nivel);
 
     const detalhes = {
       disciplinasComuns: disciplinasComuns, nDisciplinasComuns: disciplinasComuns.length,
@@ -930,7 +1040,7 @@
     const rotuloA = tituloCurtoConc(edA.titulo);
     const rotuloB = tituloCurtoConc(edB.titulo);
     function addDisc(d, origemRotulo) {
-      const k = normalizarNomeConc(d.nome);
+      const k = canonizarDisciplina(d.nome);
       if (!k) return;
       if (!discMap[k]) {
         discMap[k] = { id: '', nome: d.nome, cor: d.cor || '#3B82F6', peso: d.peso || 1, dificuldade: d.dificuldade || 'media', base_teorica: d.base_teorica || 'pdf', _origem: {}, _top: {}, topicos: [] };

@@ -10,6 +10,36 @@ Documentos-irmãos: [plano-projeto-plataforma-estudos.md](plano-projeto-platafor
 
 ---
 
+## 15/06/2026 — Comparação de editais mais fiel (casamento por similaridade)
+
+Correção de fricção real: ao comparar dois Técnicos Judiciários de TRTs diferentes
+(ex.: TRT-MG × TRT-RS), o sistema dava ~10% de sobreposição e "Não recomendado",
+quando na prática esses editais compartilham quase todo o conteúdo. A causa era o
+casamento **exato de strings**: "Noções de Direito Administrativo" não casava com
+"Direito Administrativo", e tópicos com a mesma matéria redigidos de forma diferente
+entre bancas não casavam.
+
+Mudanças em `D.conciliarPlanos` / `D.combinarEditais` (`js/domain.js`):
+
+- **Disciplinas casam por similaridade de tokens** (Jaccard), ignorando prefixos
+  editoriais ("Noções de", "Fundamentos de", "Conhecimentos…") e sinônimos comuns
+  ("Português" ↔ "Língua Portuguesa", "Matemática" ↔ "Raciocínio Lógico").
+- **Tópicos casam por similaridade** dentro de disciplinas equivalentes, com um
+  **piso por disciplina**: compartilhar a matéria já transfere ≥50% do estudo,
+  mesmo quando os tópicos têm redação diferente.
+- **Sobreposição medida em horas de estudo** (mais fiel que contar tópicos).
+- **Meio-termo real**: a sobreposição de conteúdo entra no veredito — muito conteúdo
+  em comum sobe um nível; sobreposição intermediária tira do "não recomendado" e cai
+  em **compatibilidade baixa/moderada** em vez do tudo-ou-nada anterior.
+- **Plano combinado deduplica** disciplinas equivalentes ("Noções de X" + "X" viram
+  uma só).
+
+No caso TRT3 × TRT4 (Técnico): de 10% → ~52% de sobreposição, 8 disciplinas em comum
+e veredito **compatibilidade baixa/moderada** conforme as horas semanais, em vez de
+"Não recomendado".
+
+---
+
 ## 13/06/2026 — Evolução para plataforma: catálogo, painel admin e "dá para conciliar?"
 
 Primeira onda da evolução do produto (paridade com o Mentoris, mantendo o app
