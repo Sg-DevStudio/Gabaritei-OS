@@ -1227,8 +1227,7 @@
           html += '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
             checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
             '<div class="fila-corpo">' +
-            '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div>' +
-            '<div class="fila-sub">planejado por você · ' + D.formatarMin(a.duracaoMin || 0) + (a.obs ? ' · ' + esc(a.obs) : '') + '</div></div>' +
+            '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
             '<div class="fila-rodape">' +
             (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
