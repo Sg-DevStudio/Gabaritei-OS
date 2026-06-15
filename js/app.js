@@ -891,7 +891,7 @@
       '<div class="msg-erro oculto" id="reg-erro"></div>' +
       '<label for="reg-obs">Observação (opcional)</label><textarea id="reg-obs" placeholder="Ex.: travei em prazos de recurso"></textarea>' +
       '<label style="display:flex;align-items:center;gap:0.5rem;font-weight:400">' +
-      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Marcar teoria deste tópico como concluída (agenda revisões 24h · 7d · 30d)</label>' +
+      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Marcar teoria deste tópico como concluída (agenda revisões 24h · 3d · 7d · 14d · 30d)</label>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="reg-cancelar">Cancelar</button>' +
       '<button type="submit">Registrar sessão</button>' +
@@ -964,7 +964,7 @@
       if (dados.teoriaOk && topico.status !== 'dominado') {
         topico.status = 'teoria_concluida';
         if (agendarRevisoesSeNecessario(dados.topicoId)) {
-          toast('Revisões agendadas: 24h · 7d · 30d', 'sucesso');
+          toast('Revisões agendadas: 24h · 3d · 7d · 14d · 30d', 'sucesso');
         }
       } else if (topico.status === 'pendente') {
         topico.status = 'em_curso';
@@ -986,6 +986,12 @@
     } else if (ganhouDia && streakDepois.atual >= 7) {
       confete();
       toast('Sequência forte: ' + streakDepois.atual + ' dias de constância! 🎉', 'sucesso');
+    }
+
+    // 3 desempenhos seguidos abaixo de 65% → sinaliza que a base teórica precisa
+    // de revisão (as questões não estão fixando). Sinal suave: não reabre sozinho.
+    if (dados.qFeitas > 0 && D.sugereRevisarTeoria(state, dados.topicoId)) {
+      toast('3 desempenhos seguidos abaixo de 65% em ' + nomeTopicoCompleto(dados.topicoId) + ' — vale revisar a teoria deste tópico.', 'erro');
     }
 
     if (D.sugerirReestudo(dados.qFeitas, dados.qCertas)) {
@@ -1304,6 +1310,10 @@
             '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="questoes">Registrar</button>';
         }
         const tituloTopico = t ? t.nome : item.topicoId;
+        // 3 desempenhos seguidos abaixo de 65% → sugere revisar a base teórica.
+        const avisoTeoria = D.sugereRevisarTeoria(state, item.topicoId)
+          ? '<span class="etiqueta etiqueta-reaberto" title="3 desempenhos seguidos abaixo de 65% — as questões não estão fixando, vale revisar a teoria">↩ Revisar teoria</span>'
+          : '';
         const check = item.categoria === 'revisao'
           ? checkEstudoHtml(false, 'concluir-revisao', item.revisao.id, null, tituloTopico)
           : checkEstudoHtml(!!item.feito, 'registrar', item.topicoId, item.categoria === 'reaberto' ? 'questoes' : item.tipoBloco, tituloTopico);
@@ -1312,7 +1322,7 @@
           '<div class="fila-corpo">' +
           '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
           '<div class="fila-sub">' + sub + '</div></div>' +
-          '<div class="fila-rodape">' + etiqueta +
+          '<div class="fila-rodape">' + etiqueta + avisoTeoria +
           '<div class="fila-acoes">' + acoes + '</div></div>' +
           '</div></div>';
       }
@@ -1970,7 +1980,7 @@
 
     if (pendentes.length === 0) {
       return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 7d · 30d.</div></div>';
+        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 3d · 7d · 14d · 30d.</div></div>';
     }
 
     const grupos = [
@@ -2003,7 +2013,7 @@
 
   function telaRevisoes() {
     let html = '<div class="cab-pagina"><div><h1>Revisões</h1>' +
-      '<p class="sub">Ciclo automático de teoria (24h · 7d · 30d) e seus flashcards de memorização.</p></div></div>';
+      '<p class="sub">Ciclo automático de teoria (24h · 3d · 7d · 14d · 30d) e seus flashcards de memorização.</p></div></div>';
     html += '<div class="rev-seg">' +
       '<button class="botao-mini ' + (revisoesAba === 'agendadas' ? '' : 'botao-quieto') + '" data-rev-aba="agendadas">Agendadas</button>' +
       '<button class="botao-mini ' + (revisoesAba === 'flashcards' ? '' : 'botao-quieto') + '" data-rev-aba="flashcards">Flashcards</button>' +
@@ -2500,7 +2510,7 @@
       const antes = t.status;
       t.status = novo;
       if ((novo === 'teoria_concluida' || novo === 'dominado') && antes !== 'teoria_concluida' && antes !== 'dominado') {
-        if (agendarRevisoesSeNecessario(t.id)) toast('Revisões agendadas: 24h · 7d · 30d', 'sucesso');
+        if (agendarRevisoesSeNecessario(t.id)) toast('Revisões agendadas: 24h · 3d · 7d · 14d · 30d', 'sucesso');
       }
       if ((novo === 'pendente' || novo === 'em_curso') && (antes === 'teoria_concluida' || antes === 'dominado')) {
         removerRevisoesPendentes(t.id);
@@ -6794,7 +6804,7 @@
     const m = abrirModal('<h3>Exportar para o calendário</h3>' +
       '<p class="sub">Gera um arquivo <strong>.ics</strong> com seus blocos de estudo e revisões — importável no Google Calendar, Apple ou Outlook. Custo zero, sem login.</p>' +
       '<label class="check-inline"><input type="checkbox" id="ics-blocos" checked> Blocos do cronograma</label><br>' +
-      '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> Revisões (24h · 7d · 30d · reforço)</label>' +
+      '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> Revisões (24h · 3d · 7d · 14d · 30d · reforço)</label>' +
       '<details style="margin-top:0.7rem"><summary style="cursor:pointer;font-weight:700;font-size:0.88rem">Como importar no Google Calendar</summary>' +
       '<p class="sub" style="margin-top:0.4rem">No computador: Google Calendar → ⚙ Configurações → <em>Importar e exportar</em> → escolha o arquivo .ics → <em>Importar</em>. O app continua sendo a fonte do plano; reexporte quando o cronograma mudar.</p></details>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="ics-cancelar">Fechar</button>' +

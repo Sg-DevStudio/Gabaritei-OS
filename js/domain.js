@@ -76,13 +76,24 @@
 
   function sessoesDoPlano(state) { return doPlanoAtivo(state, state.sessoes); }
 
-  // ---------- RN01 — Teoria concluída agenda revisões 24h/7d/30d ----------
+  // ---------- RN01 — Teoria concluída agenda revisões (curva 1-3-7-14-30) ----------
+  // Intervalos expansivos (1, 3, 7, 14, 30 dias) — alinhados à evidência de
+  // repetição espaçada para achatar a curva do esquecimento. A 1ª revisão fica
+  // em ~24h (a mais crítica) e as demais espaçam progressivamente.
   function agendarRevisoes(topicoId, dataBaseISO) {
-    return [
-      { id: 'rev-' + topicoId + '-24h-' + dataBaseISO, topicoId, tipo: '24h', dataAgendada: addDias(dataBaseISO, 1), dataConcluida: null, resultadoPct: null },
-      { id: 'rev-' + topicoId + '-7d-' + dataBaseISO, topicoId, tipo: '7d', dataAgendada: addDias(dataBaseISO, 7), dataConcluida: null, resultadoPct: null },
-      { id: 'rev-' + topicoId + '-30d-' + dataBaseISO, topicoId, tipo: '30d', dataAgendada: addDias(dataBaseISO, 30), dataConcluida: null, resultadoPct: null }
+    const intervalos = [
+      { tipo: '24h', dias: 1 },
+      { tipo: '3d', dias: 3 },
+      { tipo: '7d', dias: 7 },
+      { tipo: '14d', dias: 14 },
+      { tipo: '30d', dias: 30 }
     ];
+    return intervalos.map(function (iv) {
+      return {
+        id: 'rev-' + topicoId + '-' + iv.tipo + '-' + dataBaseISO, topicoId: topicoId, tipo: iv.tipo,
+        dataAgendada: addDias(dataBaseISO, iv.dias), dataConcluida: null, resultadoPct: null
+      };
+    });
   }
 
   // ---------- RN02 — Desempenho acumulado ----------
@@ -121,6 +132,24 @@
   // ---------- RN03 — Revisão de 30d com <70% reabre o tópico ----------
   function revisaoReabreTopico(revisao, resultadoPct) {
     return revisao.tipo === '30d' && resultadoPct !== null && resultadoPct < 70;
+  }
+
+  // ---------- RN03b — Reforço: 3 desempenhos seguidos abaixo do limite sugerem
+  // voltar à teoria. Não reabre sozinho (decisão do aluno) — só sinaliza que as
+  // questões não estão fixando e a base teórica precisa ser revista.
+  const LIMITE_SUGESTAO_TEORIA = 65;
+  const MIN_SESSOES_SUGESTAO = 3;
+  function sugereRevisarTeoria(state, topicoId, limite, minSessoes) {
+    limite = limite || LIMITE_SUGESTAO_TEORIA;
+    minSessoes = minSessoes || MIN_SESSOES_SUGESTAO;
+    const ses = sessoesDoPlano(state)
+      .filter(function (s) { return s.topicoId === topicoId && s.qFeitas > 0; })
+      .slice()
+      .sort(function (a, b) { return String(a.data || '').localeCompare(String(b.data || '')); });
+    if (ses.length < minSessoes) return false;
+    return ses.slice(-minSessoes).every(function (s) {
+      return Math.round((s.qCertas / s.qFeitas) * 100) < limite;
+    });
   }
 
   // ---------- RN04 — Streak (dia conta com ≥1 sessão) ----------
@@ -836,7 +865,7 @@
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
-    revisaoReabreTopico, streak, semaforo,
+    revisaoReabreTopico, sugereRevisarTeoria, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
