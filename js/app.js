@@ -3917,7 +3917,18 @@
       comparacaoIds = [];
       render();
     };
-    m.querySelector('#cmp-modal-fechar').addEventListener('click', fecharModal);
+    function limparComparacaoEFechar() {
+      comparacaoIds = [];
+      fecharModal();
+      render();
+    }
+    m.querySelector('#cmp-modal-fechar').addEventListener('click', limparComparacaoEFechar);
+    const fundoComparacao = m.parentElement;
+    if (fundoComparacao) {
+      fundoComparacao.addEventListener('click', function (e) {
+        if (e.target === e.currentTarget) comparacaoIds = [];
+      }, true);
+    }
     m.querySelector('#cmp-modal-limpar').addEventListener('click', function () {
       manterSelecaoAoFechar = true;
       comparacaoIds = [];
