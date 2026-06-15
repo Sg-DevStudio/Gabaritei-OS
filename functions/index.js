@@ -5,8 +5,12 @@
    autenticado (Firebase Auth) e recebe só as cartas geradas.
    ============================================================ */
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret, defineString } = require('firebase-functions/params');
 const { setGlobalOptions } = require('firebase-functions/v2');
+const admin = require('firebase-admin');
+
+admin.initializeApp();
 
 // Região fixa para casar com o cliente (getFunctions(app, 'us-central1')).
 setGlobalOptions({ region: 'us-central1', maxInstances: 5 });
@@ -132,3 +136,101 @@ exports.gerarFlashcards = onCall({ secrets: [GEMINI_API_KEY] }, async (request) 
 
   return { cards: limpas, modelo: model };
 });
+
+/* ============================================================
+   Lembretes de estudo (push) — quando o aluno não estuda.
+   Uma vez por dia: para cada usuário com token de push salvo, se ele NÃO
+   registrou sessão hoje, manda uma notificação motivacional. Os tokens ficam
+   em users/{uid}/push/tokens (doc à parte, pra não ser sobrescrito pelo sync
+   do estado). A data do app é o fuso de Brasília.
+   ============================================================ */
+const FUSO_APP = 'America/Sao_Paulo';
+const APP_URL = 'https://samuelgomes01.github.io/App_Gestao_Estudos/';
+
+// Mensagens para quem ficou um dia sem estudar (tom leve, no estilo do app).
+const MENSAGENS_LEMBRETE = [
+  { title: 'Bora estudar? 📚', body: 'Mais um dia, mais um tijolinho na sua aprovação.' },
+  { title: 'Seu gráfico ficou triste sem você 📉', body: 'Bora animar ele de novo? 📈' },
+  { title: 'A vaga não espera 🏁', body: 'Quem estuda hoje agradece amanhã. Bora pra cima!' },
+  { title: 'Cadê você? 👀', body: 'Seu cronograma sentiu falta. 15 minutinhos já contam.' },
+  { title: 'Constância vence talento 💪', body: 'Não precisa ser muito, precisa ser hoje.' },
+  { title: 'Faltou um dia 📅', body: 'Não deixa virar dois. Abre o app e mata um tópico.' },
+  { title: 'Sua aprovação tá te chamando 🎯', body: 'Um bloquinho de questões e o dia já valeu.' },
+  { title: 'Disciplina > motivação 🔥', body: 'Senta, abre o material e começa. O resto vem.' },
+  { title: 'Hoje é dia de avançar 🚀', body: 'Cada sessão te deixa mais perto da nomeação.' },
+  { title: 'Revisão pendente te esperando 🔁', body: 'A curva do esquecimento não perdoa — bora revisar.' },
+  { title: 'Tijolo por tijolo 🧱', body: 'É assim que se constrói uma aprovação. Bora colocar o de hoje.' },
+  { title: 'Concurseiro raiz não para 🌱', body: 'Mesmo no cansaço, um pouquinho hoje faz diferença.' }
+];
+
+function escolherMensagem() {
+  return MENSAGENS_LEMBRETE[Math.floor(Math.random() * MENSAGENS_LEMBRETE.length)];
+}
+
+// Data de hoje (YYYY-MM-DD) no fuso do app.
+function hojeISO() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: FUSO_APP });
+}
+
+// Maior data de sessão registrada no estado do usuário (YYYY-MM-DD) ou ''.
+function ultimaSessaoISO(state) {
+  const sessoes = (state && Array.isArray(state.sessoes)) ? state.sessoes : [];
+  let max = '';
+  for (const s of sessoes) {
+    const d = s && typeof s.data === 'string' ? s.data : '';
+    if (d > max) max = d;
+  }
+  return max;
+}
+
+exports.lembreteEstudo = onSchedule(
+  { schedule: 'every day 09:00', timeZone: FUSO_APP, maxInstances: 1 },
+  async () => {
+    const db = admin.firestore();
+    const hoje = hojeISO();
+    // listDocuments inclui "pais" de subcoleções mesmo sem doc próprio.
+    const usuarios = await db.collection('users').listDocuments();
+    let enviados = 0;
+
+    for (const userRef of usuarios) {
+      try {
+        const tokensSnap = await userRef.collection('push').doc('tokens').get();
+        if (!tokensSnap.exists) continue;
+        const tokensMap = tokensSnap.data() || {};
+        const tokens = Object.keys(tokensMap);
+        if (tokens.length === 0) continue;
+
+        const stateSnap = await userRef.collection('state').doc('current').get();
+        const state = (stateSnap.exists && stateSnap.data() && stateSnap.data().state) || {};
+        if (ultimaSessaoISO(state) === hoje) continue; // já estudou hoje
+
+        const msg = escolherMensagem();
+        const resp = await admin.messaging().sendEachForMulticast({
+          tokens,
+          notification: { title: msg.title, body: msg.body },
+          webpush: {
+            notification: { icon: APP_URL + 'icons/icone.svg', tag: 'lembrete-estudo' },
+            fcmOptions: { link: APP_URL }
+          }
+        });
+        enviados += resp.successCount;
+
+        // Remove tokens inválidos para a base não acumular lixo.
+        const remover = {};
+        resp.responses.forEach(function (r, i) {
+          const code = r.error && r.error.code;
+          if (code === 'messaging/registration-token-not-registered' ||
+              code === 'messaging/invalid-registration-token') {
+            remover[tokens[i]] = admin.firestore.FieldValue.delete();
+          }
+        });
+        if (Object.keys(remover).length) {
+          await userRef.collection('push').doc('tokens').set(remover, { merge: true });
+        }
+      } catch (e) {
+        console.error('Lembrete falhou para', userRef.id, e);
+      }
+    }
+    console.log('lembreteEstudo: notificações enviadas =', enviados);
+  }
+);

@@ -409,7 +409,12 @@
   // permite o contador aparecer na bandeja quando o app vai para segundo plano.
   function pedirPermissaoNotificacao() {
     if (!('Notification' in window) || Notification.permission !== 'default') return;
-    Notification.requestPermission().catch(function () {});
+    Notification.requestPermission().then(function (p) {
+      // Permissão recém-concedida: registra o token de lembretes de estudo.
+      if (p === 'granted' && window.FirebaseSync && window.FirebaseSync.registrarPush) {
+        window.FirebaseSync.registrarPush();
+      }
+    }).catch(function () {});
   }
 
   // ---- Notificação "em andamento" do cronômetro (contador em segundo plano) ----

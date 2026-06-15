@@ -26,6 +26,11 @@ import {
   getFunctions,
   httpsCallable
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+import {
+  getMessaging,
+  getToken,
+  isSupported as isMessagingSupported
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBAxmw7gFkMk0aPwIGHQblo5nLFz8fKKnU',
@@ -39,6 +44,11 @@ const firebaseConfig = {
 
 const CHAVE_DISPOSITIVO = 'estudos.firebase.dispositivo';
 const FOLGA_RELOGIO_MS = 1000;
+
+// Chave VAPID do Web Push (Firebase Console → Cloud Messaging → "Web Push
+// certificates"). Enquanto estiver vazia, os lembretes push ficam DESLIGADOS
+// e o app funciona normalmente — basta colar a chave aqui para ativar.
+const VAPID_KEY = '';
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -217,7 +227,36 @@ function iniciar(novasOpcoes) {
     refEstado = doc(db, 'users', user.uid, 'state', 'current');
     definirStatus('sincronizando', 'Conectando ao Firebase');
     reconciliarComRemoto(true).then(observarMudancas);
+    registrarPush(user); // lembretes de estudo (defensivo; só ativa com VAPID + permissão)
   });
+}
+
+// Registra o token de push do dispositivo (lembretes de estudo). Tudo aqui é
+// defensivo: qualquer falta de suporte/permissão/chave apenas pula, sem quebrar
+// o app. O token vai para users/{uid}/push/tokens (doc separado do estado, para
+// o sync não sobrescrever).
+async function registrarPush(user) {
+  try {
+    user = user || usuario;
+    if (!VAPID_KEY) return;                                   // push não configurado
+    if (!user || !('serviceWorker' in navigator)) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!(await isMessagingSupported().catch(function () { return false; }))) return;
+
+    const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+    const messaging = getMessaging(app);
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) return;
+
+    await setDoc(doc(db, 'users', user.uid, 'push', 'tokens'), {
+      [token]: {
+        criadoEm: new Date().toISOString(),
+        ua: (navigator.userAgent || '').slice(0, 200)
+      }
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Push não ativado (lembretes):', e && e.message ? e.message : e);
+  }
 }
 
 function agendarEnvio(state) {
@@ -314,6 +353,6 @@ async function gerarFlashcardsIA(payload) {
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo,
   carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush
 };
 window.dispatchEvent(new CustomEvent('firebase-sync-ready'));
