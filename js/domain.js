@@ -856,6 +856,45 @@
     return { fator: f, ajustadas: ajustadas };
   }
 
+  // ---------- Prontidão para a prova: as revisões cabem antes da prova? ----------
+  // A janela da prova fica em state.plano.radar.janela_prova = [iniMes, fimMes]
+  // (strings AAAA-MM). O "prazo" para estar revisado é o INÍCIO da janela (a prova
+  // mais cedo possível), convertido para o 1º dia do mês.
+  function prazoProva(state) {
+    const janela = state.plano && state.plano.radar && state.plano.radar.janela_prova;
+    const ini = janela && janela[0];
+    if (!ini || !/^\d{4}-\d{2}/.test(ini)) return null;
+    return ini.slice(0, 7) + '-01';
+  }
+
+  // Mede quantos tópicos terminam o ciclo de revisão ANTES da prova. Um tópico está
+  // "pronto" se a sua revisão pendente mais distante cai até o prazo; senão, "em risco".
+  // Tópicos sem revisão pendente (todas já feitas) contam como prontos.
+  function prontidaoProva(state, hoje) {
+    const prazo = prazoProva(state);
+    if (!prazo) return null;
+    hoje = hoje || hojeISO();
+    const pend = doPlanoAtivo(state, state.revisoes)
+      .filter(function (r) { return !r.dataConcluida && topicoPorId(state, r.topicoId); });
+
+    const ultimaPorTopico = {};
+    let revisoesForaDoPrazo = 0;
+    pend.forEach(function (r) {
+      if (r.dataAgendada > prazo) revisoesForaDoPrazo++;
+      if (!ultimaPorTopico[r.topicoId] || r.dataAgendada > ultimaPorTopico[r.topicoId]) {
+        ultimaPorTopico[r.topicoId] = r.dataAgendada;
+      }
+    });
+
+    const ids = Object.keys(ultimaPorTopico);
+    let emRisco = 0;
+    ids.forEach(function (id) { if (ultimaPorTopico[id] > prazo) emRisco++; });
+    const totalTopicos = ids.length;
+    const prontos = totalTopicos - emRisco;
+    const pct = totalTopicos > 0 ? Math.round((prontos / totalTopicos) * 100) : 100;
+    return { prazo: prazo, totalTopicos: totalTopicos, prontos: prontos, emRisco: emRisco, revisoesForaDoPrazo: revisoesForaDoPrazo, pct: pct };
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -991,7 +1030,7 @@
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
-    reagendarRevisoesAdaptativo, streak, semaforo,
+    reagendarRevisoesAdaptativo, prazoProva, prontidaoProva, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,

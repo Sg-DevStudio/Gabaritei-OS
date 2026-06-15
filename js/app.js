@@ -2168,6 +2168,28 @@
         '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 3d · 7d · 14d · 30d.</div></div>';
     }
 
+    // Prontidão para a prova: o ciclo de revisões cabe antes da prova?
+    const prazo = state.plano ? D.prazoProva(state) : null;
+    let html0 = '';
+    if (state.plano) {
+      if (!prazo) {
+        html0 = '<div class="card prontidao-card prontidao-sem-prazo">' +
+          '<div><strong>Quando é a sua prova?</strong>' +
+          '<p class="sub" style="margin:0.15rem 0 0">Defina a janela da prova para o app avisar se alguma revisão cai depois dela.</p></div>' +
+          '<button class="botao-mini" id="rev-definir-prova">Definir prova</button></div>';
+      } else {
+        const pr = D.prontidaoProva(state, hoje);
+        const grau = pr.pct >= 90 ? 'bom' : pr.pct >= 60 ? 'medio' : 'baixo';
+        html0 = '<div class="card prontidao-card prontidao-' + grau + '">' +
+          '<div class="prontidao-cab"><strong>Preparado para a prova?</strong>' +
+          '<span class="prontidao-pct">' + pr.pct + '%</span></div>' +
+          '<div class="barra' + (pr.pct >= 90 ? ' barra-verde' : '') + '"><span style="width:' + pr.pct + '%"></span></div>' +
+          '<p class="sub prontidao-sub">' + pr.prontos + ' de ' + pr.totalTopicos + ' tópicos revisados até ' + D.formatarDataBR(prazo) + ' (início da janela da prova)' +
+          (pr.revisoesForaDoPrazo > 0 ? ' · <span class="prontidao-alerta">' + pr.revisoesForaDoPrazo + (pr.revisoesForaDoPrazo === 1 ? ' revisão cai' : ' revisões caem') + ' depois da prova</span>' : '') +
+          '</p></div>';
+      }
+    }
+
     const grupos = [
       { titulo: 'Vencidas', filtro: function (r) { return r.dataAgendada < hoje; }, classe: 'etiqueta-revisao' },
       { titulo: 'Hoje', filtro: function (r) { return r.dataAgendada === hoje; }, classe: 'etiqueta-bloco' },
@@ -2175,7 +2197,7 @@
       { titulo: 'Mais adiante', filtro: function (r) { return r.dataAgendada > D.addDias(hoje, 7); }, classe: 'etiqueta-feito' }
     ];
 
-    let html = '';
+    let html = html0;
     grupos.forEach(function (g) {
       const itens = pendentes.filter(g.filtro);
       if (itens.length === 0) return;
@@ -2184,9 +2206,11 @@
         const t = D.topicoPorId(state, r.topicoId);
         const d = D.disciplinaDoTopico(state, r.topicoId);
         const podeConcluir = r.dataAgendada <= hoje;
+        const aposProva = prazo && r.dataAgendada > prazo;
         html += '<div class="fila-item">' + bolha(t.status) +
           '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(t.nome) + '</div>' +
           '<div class="fila-sub">agendada para ' + D.formatarDataBR(r.dataAgendada) + '</div></div>' +
+          (aposProva ? '<span class="etiqueta etiqueta-alerta" title="Esta revisão cai depois do início da janela da prova">⚠ depois da prova</span>' : '') +
           '<span class="etiqueta ' + g.classe + '">' + esc(r.tipo) + '</span>' +
           (podeConcluir ? '<button class="botao-mini" data-rev="' + esc(r.id) + '">Concluir</button>' : '') +
           '</div>';
@@ -2553,6 +2577,8 @@
     raiz.querySelectorAll('[data-rev]').forEach(function (b) {
       b.addEventListener('click', function () { abrirConcluirRevisao(b.getAttribute('data-rev')); });
     });
+    const definirProva = raiz.querySelector('#rev-definir-prova');
+    if (definirProva) definirProva.addEventListener('click', abrirEditarProva);
     const novoDeck = raiz.querySelector('#fc-novo-deck');
     if (novoDeck) novoDeck.addEventListener('click', abrirNovoDeck);
     const gerarIA = raiz.querySelector('#fc-gerar-ia');
@@ -3069,7 +3095,7 @@
     html += '</div>';
 
     html += '<div class="card edital-disc-card"><div class="card-kpi-rotulo">Edital verticalizado</div>' +
-      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">✓</th><th class="num edital-qtd-col">×</th><th class="num edital-qtd-col">Questões</th><th class="num">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
+      '<div class="painel-scroll"><table><thead><tr><th>Tópicos</th><th class="num edital-qtd-col">✓</th><th class="num edital-qtd-col">×</th><th class="num edital-qtd-col">Questões</th><th class="num edital-rend-col">Rendimento</th><th class="num">Incid.</th></tr></thead><tbody>' +
       (function () { const quentes = idsTopicosQuentes(disc.topicos); return disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
         const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
@@ -3077,7 +3103,7 @@
         return '<tr data-topico-detalhe="' + esc(t.id) + '" role="button" tabindex="0">' +
           '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tópico">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
           '<td class="num painel-acertos edital-qtd-col">' + dt.certas + '</td><td class="num painel-erros edital-qtd-col">' + erros + '</td>' +
-          '<td class="num edital-qtd-col">' + dt.feitas + '</td><td class="num">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) + '</td>' +
+          '<td class="num edital-qtd-col">' + dt.feitas + '</td><td class="num edital-rend-col">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) + '</td>' +
           '<td class="num">' + tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</td></tr>';
       }).join(''); })() + '</tbody></table></div></div>';
     return html;
