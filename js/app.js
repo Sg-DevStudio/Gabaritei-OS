@@ -275,7 +275,12 @@
     });
   }
 
+  // Hook opcional chamado quando o modal principal fecha (por qualquer caminho:
+  // botão, clique fora, hashchange). Usado para descartar plano-fantasma do wizard.
+  let aoFecharModal = null;
+
   function abrirModal(html) {
+    aoFecharModal = null; // limpa hook de um modal anterior
     const raiz = document.getElementById('modal-raiz');
     raiz.innerHTML = '<div class="modal-fundo"><div class="modal" role="dialog" aria-modal="true">' + html + '</div></div>';
     raiz.querySelector('.modal-fundo').addEventListener('click', function (e) {
@@ -284,7 +289,12 @@
     return raiz.querySelector('.modal');
   }
 
-  function fecharModal() { pintarTimerModal = null; document.getElementById('modal-raiz').innerHTML = ''; }
+  function fecharModal() {
+    pintarTimerModal = null;
+    const hook = aoFecharModal; aoFecharModal = null;
+    document.getElementById('modal-raiz').innerHTML = '';
+    if (hook) hook();
+  }
 
   // Diálogos amigáveis no lugar de window.confirm / window.prompt.
   // Empilham num overlay próprio (document.body), sem sobrescrever modais já abertos.
@@ -318,11 +328,14 @@
     return new Promise(function (resolve) {
       const fundo = document.createElement('div');
       fundo.className = 'modal-fundo modal-fundo-dialogo';
+      const campoTexto = opcoes.multilinha
+        ? '<textarea data-cf-input rows="3" maxlength="' + (parseInt(opcoes.maxlength, 10) || 80) + '" placeholder="' + esc(opcoes.placeholder || '') + '">' + esc(opcoes.valor || '') + '</textarea>'
+        : '<input type="text" data-cf-input maxlength="' + (parseInt(opcoes.maxlength, 10) || 80) + '" placeholder="' + esc(opcoes.placeholder || '') + '" value="' + esc(opcoes.valor || '') + '">';
       fundo.innerHTML = '<div class="modal modal-dialogo" role="dialog" aria-modal="true">' +
         '<h3>' + esc(opcoes.titulo || 'Informe') + '</h3>' +
         (opcoes.mensagem ? '<p class="sub dialogo-msg">' + esc(opcoes.mensagem) + '</p>' : '') +
         '<form data-cf-form>' +
-        '<input type="text" data-cf-input maxlength="' + (parseInt(opcoes.maxlength, 10) || 80) + '" placeholder="' + esc(opcoes.placeholder || '') + '" value="' + esc(opcoes.valor || '') + '">' +
+        campoTexto +
         '<div class="modal-acoes"><button type="button" class="botao-quieto" data-cf="cancelar">Cancelar</button>' +
         '<button type="submit">' + esc(opcoes.confirmar || 'Salvar') + '</button></div></form></div>';
       document.body.appendChild(fundo);
@@ -1901,6 +1914,7 @@
   }
 
   let revisoesAba = 'agendadas'; // 'agendadas' | 'flashcards'
+  const fcDecksAbertos = new Set(); // ids de decks expandidos (preserva entre re-renders)
 
   function embaralhar(lista) {
     const a = lista.slice();
@@ -2007,13 +2021,22 @@
         '<div class="fc-decks">' + porDisc[k].map(function (dk) {
           const cards = dk.cards || [];
           const devidas = cards.filter(function (c) { return D.flashcardDevido(c, hoje); }).length;
-          return '<div class="fc-deck">' +
+          const aberto = fcDecksAbertos.has(dk.id);
+          const cartasHtml = cards.length ? cards.map(function (c) {
+            return '<div class="fc-carta-linha fc-carta-linha-ro"><div class="fc-carta-fv">' +
+              '<strong>' + esc(c.frente) + '</strong><span>' + esc(c.verso) + '</span></div></div>';
+          }).join('') : '<p class="sub" style="margin:0">Nenhuma carta ainda — toque em "Cartas" para adicionar.</p>';
+          return '<div class="fc-deck' + (cards.length >= 2 ? ' fc-deck-stack' : '') + (aberto ? ' aberto' : '') + '" data-fc-deck="' + esc(dk.id) + '">' +
+            '<div class="fc-deck-cab" data-fc-toggle="' + esc(dk.id) + '" role="button" tabindex="0" aria-expanded="' + (aberto ? 'true' : 'false') + '">' +
+            '<span class="fc-deck-chevron" aria-hidden="true">▸</span>' +
             '<div class="fc-deck-info"><strong>' + esc(dk.nome) + '</strong>' +
             '<span class="sub">' + cards.length + ' carta(s)' + (devidas ? ' · <span class="fc-devidas">' + devidas + ' a revisar</span>' : (cards.length ? ' · em dia' : '')) + '</span></div>' +
             '<div class="fc-deck-acoes">' +
             '<button class="botao-mini" data-fc-estudar="' + esc(dk.id) + '"' + (cards.length ? '' : ' disabled') + '>Estudar</button>' +
             '<button class="botao-mini botao-quieto" data-fc-gerenciar="' + esc(dk.id) + '">Cartas</button>' +
-            '</div></div>';
+            '</div></div>' +
+            '<div class="fc-deck-cartas"><div class="fc-deck-cartas-inner">' + cartasHtml + '</div></div>' +
+            '</div>';
         }).join('') + '</div></div>';
     });
     return html;
@@ -2048,9 +2071,9 @@
   }
 
   function abrirEditarCarta(card, aoSalvar) {
-    pedirTexto({ titulo: 'Editar frente', mensagem: 'Pergunta / frente da carta.', valor: card.frente, confirmar: 'Próximo', maxlength: 300 }).then(function (frente) {
+    pedirTexto({ titulo: 'Editar frente', mensagem: 'Pergunta / frente da carta.', valor: card.frente, confirmar: 'Próximo', maxlength: 300, multilinha: true }).then(function (frente) {
       if (frente === null) return;
-      pedirTexto({ titulo: 'Editar verso', mensagem: 'Resposta / verso da carta.', valor: card.verso, confirmar: 'Salvar', maxlength: 500 }).then(function (verso) {
+      pedirTexto({ titulo: 'Editar verso', mensagem: 'Resposta / verso da carta.', valor: card.verso, confirmar: 'Salvar', maxlength: 500, multilinha: true }).then(function (verso) {
         if (verso === null) return;
         card.frente = frente; card.verso = verso;
         salvar();
@@ -2061,9 +2084,13 @@
   }
 
   function abrirGerenciarDeck(deckId) {
-    const deck = state.flashcards.find(function (d) { return d.id === deckId; });
-    if (!deck) return;
+    // Re-resolve o deck por id a cada uso: evita mutar uma referência obsoleta
+    // caso um sync remoto troque state.flashcards com o modal aberto.
+    function deckAtual() { return state.flashcards.find(function (d) { return d.id === deckId; }); }
+    if (!deckAtual()) return;
     function corpo() {
+      const deck = deckAtual();
+      if (!deck) return '<h3>Deck removido</h3><div class="modal-acoes"><button class="botao-quieto" id="fc-fechar">Fechar</button></div>';
       const cards = deck.cards || [];
       const lista = cards.length ? cards.map(function (c) {
         return '<div class="fc-carta-linha"><div class="fc-carta-fv"><strong>' + esc(c.frente) + '</strong><span>' + esc(c.verso) + '</span></div>' +
@@ -2081,8 +2108,11 @@
     const m = abrirModal(corpo());
     m.classList.add('modal-amplo');
     function wire() {
-      m.querySelector('#fc-fechar').addEventListener('click', function () { fecharModal(); render(); });
-      m.querySelector('#fc-add').addEventListener('click', function () {
+      const fechar = m.querySelector('#fc-fechar');
+      if (fechar) fechar.addEventListener('click', function () { fecharModal(); render(); });
+      const add = m.querySelector('#fc-add');
+      if (add) add.addEventListener('click', function () {
+        const deck = deckAtual(); if (!deck) return;
         const frente = m.querySelector('#fc-frente').value.trim();
         const verso = m.querySelector('#fc-verso').value.trim();
         if (!frente || !verso) { toast('Preencha frente e verso.', 'erro'); return; }
@@ -2096,6 +2126,7 @@
       });
       m.querySelectorAll('[data-fc-del]').forEach(function (b) {
         b.addEventListener('click', function () {
+          const deck = deckAtual(); if (!deck) return;
           deck.cards = deck.cards.filter(function (c) { return c.id !== b.getAttribute('data-fc-del'); });
           salvar();
           m.innerHTML = corpo(); wire();
@@ -2103,6 +2134,7 @@
       });
       m.querySelectorAll('[data-fc-edit]').forEach(function (b) {
         b.addEventListener('click', function () {
+          const deck = deckAtual(); if (!deck) return;
           const c = deck.cards.find(function (x) { return x.id === b.getAttribute('data-fc-edit'); });
           if (c) abrirEditarCarta(c, function () { m.innerHTML = corpo(); wire(); });
         });
@@ -2155,8 +2187,8 @@
           card.sr = D.revisarFlashcard(card.sr, nota, D.hojeISO());
           salvar();
           fila.shift();
-          feitas++;
           if (nota === 'errei') fila.push(card); // reaparece no fim da sessão
+          else feitas++; // conta a carta uma vez, quando sai da fila de vez
           proxima();
         });
       });
@@ -2182,8 +2214,24 @@
       });
       iniciarEstudoFlashcards(embaralhar(devidas));
     });
+    // expande/recolhe o deck (efeito baralho → lista de cartas)
+    raiz.querySelectorAll('[data-fc-toggle]').forEach(function (cab) {
+      function alternar() {
+        const id = cab.getAttribute('data-fc-toggle');
+        const deckEl = cab.closest('.fc-deck');
+        if (!deckEl) return;
+        const aberto = deckEl.classList.toggle('aberto');
+        cab.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+        if (aberto) fcDecksAbertos.add(id); else fcDecksAbertos.delete(id);
+      }
+      cab.addEventListener('click', alternar);
+      cab.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(); }
+      });
+    });
     raiz.querySelectorAll('[data-fc-estudar]').forEach(function (b) {
-      b.addEventListener('click', function () {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation(); // não alterna o expand do deck
         const dk = state.flashcards.find(function (d) { return d.id === b.getAttribute('data-fc-estudar'); });
         if (!dk) return;
         const hoje = D.hojeISO();
@@ -2193,7 +2241,10 @@
       });
     });
     raiz.querySelectorAll('[data-fc-gerenciar]').forEach(function (b) {
-      b.addEventListener('click', function () { abrirGerenciarDeck(b.getAttribute('data-fc-gerenciar')); });
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        abrirGerenciarDeck(b.getAttribute('data-fc-gerenciar'));
+      });
     });
   }
 
@@ -3125,6 +3176,17 @@
     };
     const v = D.validarPlano(json);
     if (!v.ok) { toast('Edital inválido: ' + v.erros[0], 'erro'); return; }
+    // "Refazer plano": se já existe um plano deste edital, reaproveita (ativa e
+    // reabre o assistente) em vez de criar um duplicado no catálogo.
+    const existente = state.planos.find(function (p) { return p.plano && p.plano.concurso === e.titulo; });
+    if (existente) {
+      window.Store.ativarPlano(state, existente.id);
+      salvar();
+      if (location.hash !== '#planejamento') history.pushState(null, '', '#planejamento');
+      render();
+      abrirGerarPlanoComRotina(); // sem novoPlanoId → cancelar não apaga o plano existente
+      return;
+    }
     // Guarda o plano ativo anterior: se o usuário sair do assistente sem concluir,
     // o plano recém-criado é removido (não fica um plano "fantasma" no catálogo).
     const planoAnteriorId = state.planoAtivoId;
@@ -3900,6 +3962,7 @@
     state.planos.push(entrada);
     window.Store.ativarPlano(state, entrada.id);
     editalAbertas = new Set();
+    if (state.config) delete state.config.apagadoEm; // há dados de novo: remove o marcador de exclusão
     salvar();
     return entrada;
   }
@@ -3917,6 +3980,7 @@
     };
     state.planos.push(entrada);
     window.Store.ativarPlano(state, entrada.id);
+    if (state.config) delete state.config.apagadoEm;
     salvar();
   }
 
@@ -4715,6 +4779,7 @@
       disciplinas: [], cronogramas: { sustentavel: [], hardcore: [] }, links: []
     });
     window.Store.ativarPlano(state, state.planos[state.planos.length - 1].id);
+    if (state.config) delete state.config.apagadoEm;
     salvar();
   }
 
@@ -4805,7 +4870,12 @@
   }
 
   function semanasPorMeses(meses) {
-    return meses === 3 ? 13 : meses === 9 ? 39 : 26;
+    if (meses === 3) return 13;
+    if (meses === 6) return 26;
+    if (meses === 9) return 39;
+    // prazos não-padrão (ex.: plano estendido pelo recálculo) viram semanas de
+    // forma proporcional, em vez de cair silenciosamente em 26 (6 meses).
+    return Math.max(1, Math.round((Number(meses) || 6) * 4.345));
   }
 
   function entradaPlanoAtivo() {
@@ -4958,7 +5028,9 @@
     entrada.plano.ritmos = {};
     entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana };
     entrada.plano.ritmoAtivo = chave;
-    entrada.plano.gerado_em = D.hojeISO();
+    // Âncora do cronograma = segunda da semana atual, igual ao calendário e ao
+    // recálculo. Evita divergência de até 6 dias no burndown/projeção de término.
+    entrada.plano.gerado_em = D.segundaDaSemana(D.hojeISO());
     entrada.plano.ultimaRecalcSemana = D.segundaDaSemana(D.hojeISO());
     window.Store.hidratar(state);
     sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
@@ -5217,10 +5289,9 @@
       salvar();
       render();
     }
-    const fundoWizard = m.closest('.modal-fundo');
-    if (fundoWizard) fundoWizard.addEventListener('click', function (ev) {
-      if (ev.target === ev.currentTarget) descartarPlanoNovoSeNecessario();
-    });
+    // Qualquer caminho de fechamento (botão, clique fora, hashchange/voltar)
+    // passa por fecharModal → este hook descarta o plano não confirmado.
+    aoFecharModal = descartarPlanoNovoSeNecessario;
 
     // navegação do assistente
     let passo = 1;
@@ -5312,7 +5383,7 @@
     });
 
     // navegação
-    m.querySelector('#gp-cancelar').addEventListener('click', function () { descartarPlanoNovoSeNecessario(); fecharModal(); });
+    m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#gp-voltar').addEventListener('click', function () { mostrarPasso(passo - 1); });
     m.querySelector('#gp-proximo').addEventListener('click', function () {
       if (passo === 2 && totalMinutosRotina(rotinaDoModal()) < 1) {
@@ -6023,10 +6094,15 @@
       return { disciplina: item.disciplina, grupo: grupoCognitivoDisciplina(item.disciplina), tarefas: tarefas };
     });
     const tarefas = ordenarTarefasIntercaladas(filas);
+    // Na semana corrente não criamos blocos em dias que já passaram (seriam
+    // tarefas impossíveis que entrariam como "atrasadas" no mesmo instante).
+    const hojeRef = D.hojeISO();
+    const ehSemanaAtual = ini === D.segundaDaSemana(hojeRef);
     const slots = diasAtivos.map(function (d) {
       const cfg = rotina.dias[d.id];
       return { data: D.addDias(ini, d.offset), restante: cfg.minutos || 0 };
-    });
+    }).filter(function (s) { return !ehSemanaAtual || s.data >= hojeRef; });
+    if (slots.length === 0) return 0;
     function colocar(slot, disciplina, bloco, dur) {
       const topico = bloco.topico ? D.topicoPorId(state, bloco.topico) : null;
       const obj = {
@@ -6035,7 +6111,8 @@
         topicoId: bloco.topico || null,
         duracaoMin: dur,
         obs: bloco.tipo === 'teoria' ? 'teoria' : bloco.tipo,
-        feito: topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
+        // só a teoria de um tópico já vencido nasce "feita"; questões/revisão não
+        feito: bloco.tipo === 'teoria' && topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
         gerado: true
       };
       state.agenda.push(obj);

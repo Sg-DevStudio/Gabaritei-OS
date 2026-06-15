@@ -1016,22 +1016,52 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
    ============================================================ */
 .rev-seg { display: flex; gap: 0.45rem; margin-bottom: 1rem; }
 .fc-topo { display: flex; flex-direction: column; gap: 0.5rem; }
-.fc-topo-acoes { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.fc-topo-acoes { display: flex; gap: 0.5rem; align-items: stretch; }
+.fc-topo-acoes > button { flex: 1 1 0; min-width: 0; white-space: nowrap; }
 .fc-topo .sub { margin: 0; }
+@media (max-width: 420px) {
+  .fc-topo-acoes > button { padding-left: 0.7rem; padding-right: 0.7rem; font-size: 0.9rem; }
+}
 .fc-pasta { padding: 0.85rem 1rem; }
 .fc-pasta-cab { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
 .fc-pasta-cab h3 { margin: 0; font-size: 1rem; }
 .fc-decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.6rem; }
 .fc-deck {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
-  border: 1px solid var(--linha); border-radius: var(--raio-s); padding: 0.6rem 0.75rem;
+  position: relative;
+  border: 1px solid var(--linha); border-radius: var(--raio-s);
   background: var(--papel-elevado);
 }
-.fc-deck-info { min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+/* visual de baralho empilhado quando há 2+ cartas (somem ao expandir) */
+.fc-deck-stack::before, .fc-deck-stack::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  border: 1px solid var(--linha); border-radius: var(--raio-s); background: var(--papel-elevado);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.fc-deck-stack::before { transform: translate(4px, 4px) rotate(1.4deg); opacity: 0.7; }
+.fc-deck-stack::after { transform: translate(8px, 8px) rotate(2.6deg); opacity: 0.45; }
+.fc-deck-stack.aberto::before, .fc-deck-stack.aberto::after { transform: none; opacity: 0; }
+.fc-deck-cab {
+  display: flex; align-items: center; gap: 0.55rem; padding: 0.6rem 0.75rem; cursor: pointer;
+}
+.fc-deck-chevron { color: var(--grafite); font-size: 0.85rem; transition: transform 0.2s ease; flex: 0 0 auto; }
+.fc-deck.aberto .fc-deck-chevron { transform: rotate(90deg); }
+.fc-deck-info { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
 .fc-deck-info strong { font-size: 0.92rem; }
 .fc-deck-info .sub { font-size: 0.76rem; }
 .fc-devidas { color: var(--caneta-forte); font-weight: 700; }
 .fc-deck-acoes { display: flex; gap: 0.35rem; flex-shrink: 0; }
+/* accordion fluido sem altura fixa */
+.fc-deck-cartas { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.28s ease; }
+.fc-deck-cartas-inner { overflow: hidden; }
+.fc-deck.aberto { grid-column: 1 / -1; }
+.fc-deck.aberto .fc-deck-cartas { grid-template-rows: 1fr; }
+.fc-deck.aberto .fc-deck-cartas-inner { padding: 0 0.75rem 0.7rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.fc-carta-linha-ro { background: var(--papel-card); }
+@media (prefers-reduced-motion: reduce) {
+  .fc-deck-stack::before, .fc-deck-stack::after { transform: translate(3px,3px); }
+  .fc-deck-cartas { transition: none; }
+  .fc-deck-chevron { transition: none; }
+}
 
 /* Gerenciar cartas */
 .fc-cartas-lista { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0 0.9rem; max-height: 46vh; overflow: auto; }
