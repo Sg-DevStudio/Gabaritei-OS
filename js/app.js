@@ -21,6 +21,7 @@
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let audioCtx = null;
   let ultimaRotaRender = null;
+  let pulaRecalcSemanal = false; // evita recálculo/toast como efeito colateral (ex.: ao excluir um plano)
   let planejamentoConfigAberta = false;
   let disciplinaDetalheId = null;
   let catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
@@ -5159,7 +5160,11 @@
     if (state.planos.length === 0) state.config.apagadoEm = new Date().toISOString();
     editalAbertas = new Set();
     salvar();
+    // Excluir um plano não deve disparar o recálculo semanal do plano que sobrou
+    // (evita o toast "Plano da semana recalculado" surgindo junto do "Plano excluído").
+    pulaRecalcSemanal = true;
     render();
+    pulaRecalcSemanal = false;
     toast('Plano excluído' + (limparHistorico ? ' com os dados vinculados' : '') +
       (calendar.removidos ? ' e Calendar limpo' : '') +
       (calendar.pendentes ? ' · Calendar pendente de autorizacao' : ''), calendar.pendentes ? 'erro' : 'sucesso');
@@ -7189,7 +7194,7 @@
       return;
     }
     document.body.classList.remove('login-gate');
-    verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
+    if (!pulaRecalcSemanal) verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
