@@ -765,6 +765,12 @@
 
   function checkEstudoHtml(feito, acao, id, tipo, titulo) {
     if (feito) {
+      const sessaoRapida = registroRapidoParaDesfazer(acao, id, tipo);
+      if (sessaoRapida) {
+        return '<button type="button" class="check-estudo check-estudo-feito" data-check-desfazer="' + esc(acao) + '" data-id="' + esc(id) + '"' +
+          (tipo ? ' data-tipo="' + esc(tipo) + '"' : '') +
+          ' title="Desfazer registro rápido" aria-label="Desfazer registro rápido: ' + esc(titulo || '') + '">✓</button>';
+      }
       return '<span class="check-estudo check-estudo-feito" title="Estudo registrado" aria-label="Estudo registrado">✓</span>';
     }
     // A bolinha de blocos/agenda faz registro RÁPIDO (1 toque): assume o tempo
@@ -779,6 +785,24 @@
       ' title="' + (rapido ? 'Marcar como estudado (registro rápido)' : 'Registrar estudo') + '" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
   }
 
+  function registroRapidoParaDesfazer(kind, id, tipo) {
+    if (kind === 'concluir-agenda') {
+      const b = state.agenda.find(function (a) { return a.id === id; });
+      if (!b || !b.registroRapidoId) return null;
+      return state.sessoes.find(function (s) { return s.id === b.registroRapidoId && s.origemRegistroRapido === 'fila'; }) || null;
+    }
+    if (kind !== 'registrar') return null;
+    const hoje = D.hojeISO();
+    const tipoBusca = tipo || 'teoria';
+    return state.sessoes.slice().reverse().find(function (s) {
+      return s.origemRegistroRapido === 'fila' &&
+        s.topicoId === id &&
+        s.tipo === tipoBusca &&
+        s.data === hoje &&
+        (!state.planoAtivoId || s.planoId === state.planoAtivoId);
+    }) || null;
+  }
+
   // Registro rápido pela bolinha: cria a sessão com padrões e dá o "check verde".
   function registrarRapidoFila(el, kind, id, tipo) {
     if (!el || el.disabled) return;
@@ -791,13 +815,36 @@
       const disc = D.disciplinaPorId(state, b.disciplinaId);
       const topId = b.topicoId || (disc && disc.topicos[0] ? disc.topicos[0].id : null);
       const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
-      if (topId) concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false });
+      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila' }) : null;
+      if (sessao) b.registroRapidoId = sessao.id;
       b.feito = true;
       salvar();
     } else { // registrar (bloco da semana / reaberto)
-      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false });
+      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila' });
     }
     setTimeout(render, 420); // deixa a animação do check rodar antes de redesenhar
+  }
+
+  function desfazerRegistroRapidoFila(kind, id, tipo) {
+    const sessao = registroRapidoParaDesfazer(kind, id, tipo);
+    if (!sessao) {
+      toast('Esse item foi registrado por outro caminho. Abra o histórico para remover.', 'erro');
+      return;
+    }
+    state.sessoes = state.sessoes.filter(function (s) { return s.id !== sessao.id; });
+    if (kind === 'concluir-agenda') {
+      const b = state.agenda.find(function (a) { return a.id === id; });
+      if (b) {
+        b.feito = false;
+        delete b.registroRapidoId;
+      }
+    }
+    const t = D.topicoPorId(state, sessao.topicoId);
+    const aindaTemSessao = D.sessoesDoPlano(state).some(function (s) { return s.topicoId === sessao.topicoId; });
+    if (t && t.status === 'em_curso' && !aindaTemSessao) t.status = 'pendente';
+    salvar();
+    render();
+    toast('Registro rápido desfeito', 'sucesso');
   }
 
   function tituloCurto(t) {
@@ -1014,12 +1061,14 @@
     const metaAntes = D.metaSemanal(state, hoje);
     const streakAntes = D.streak(D.sessoesDoPlano(state), hoje);
 
-    state.sessoes.push({
+    const sessao = {
       id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: hoje,
       topicoId: dados.topicoId, tipo: dados.tipo,
       duracaoMin: dados.duracaoMin, qFeitas: dados.qFeitas, qCertas: dados.qCertas,
-      obs: dados.obs || ''
-    });
+      obs: dados.obs || '',
+      origemRegistroRapido: dados.origemRegistroRapido || ''
+    };
+    state.sessoes.push(sessao);
 
     let marcouTeoria = false;
     const topico = D.topicoPorId(state, dados.topicoId);
@@ -1093,6 +1142,7 @@
       toast('Meta semanal de horas batida! 🎯', 'sucesso');
     }
     render();
+    return sessao;
   }
 
   // ---------------- TELA: Hoje ----------------
@@ -1596,6 +1646,11 @@
     raiz.querySelectorAll('[data-check-rapido]').forEach(function (el) {
       el.addEventListener('click', function () {
         registrarRapidoFila(el, el.getAttribute('data-check-rapido'), el.getAttribute('data-id'), el.getAttribute('data-tipo'));
+      });
+    });
+    raiz.querySelectorAll('[data-check-desfazer]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        desfazerRegistroRapidoFila(el.getAttribute('data-check-desfazer'), el.getAttribute('data-id'), el.getAttribute('data-tipo'));
       });
     });
     raiz.querySelectorAll('[data-acao]').forEach(function (el) {
