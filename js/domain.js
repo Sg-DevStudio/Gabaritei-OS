@@ -904,11 +904,14 @@
     else if (ratio <= 1.45) nivel = 'baixa';
     else nivel = 'nao_recomendado';
 
-    // Conteúdo muito compartilhado torna a conciliação eficiente: estudar uma vez
-    // aproveita nos dois, então sobe um nível. Sobreposição intermediária ao menos
-    // tira do "não recomendado" (vira compatibilidade baixa — um meio-termo real).
-    if (overlapPct >= 55) nivel = subirNivel(nivel);
-    else if (overlapPct >= 30 && nivel === 'nao_recomendado') nivel = 'baixa';
+    // Conteúdo compartilhado torna a conciliação eficiente: estudar uma vez
+    // aproveita nos dois. Por isso a sobreposição puxa o nível para cima:
+    //  • ≥50%  → sobe um nível (ex.: moderada → alta quando a carga cabe);
+    //  • ≥75%  → sobe outro nível (editais quase iguais chegam a "alta");
+    //  • ≥30%  → ao menos tira do "não recomendado" (vira meio-termo: baixa).
+    if (overlapPct >= 50) nivel = subirNivel(nivel);
+    if (overlapPct >= 75 && ratio <= 1.2) nivel = subirNivel(nivel);
+    if (overlapPct >= 30 && nivel === 'nao_recomendado') nivel = 'baixa';
 
     // Provas muito próximas com carga acima da capacidade derrubam um nível.
     if (provaDefinida && semanasDisponiveis < 8 && ratio > 1.1) nivel = descerNivel(nivel);
