@@ -1835,13 +1835,18 @@ td.num, th.num { text-align: right; }
 .gp-dif-opts { display: inline-flex; align-self: center; border: 1px solid var(--linha); border-radius: 999px; overflow: hidden; }
 .gp-dif-opt {
   background: transparent; color: var(--grafite); border: none; border-radius: 0;
-  font-size: 0.78rem; font-weight: 600; padding: 0.32rem 0.7rem; min-height: 34px; box-shadow: none;
+  font-size: 0.95rem; font-weight: 600; padding: 0.6rem 1.5rem; min-height: 46px; min-width: 110px; box-shadow: none;
 }
 .gp-dif-opt:hover { background: var(--papel-card); box-shadow: none; }
 .gp-dif-opt.ativo { color: #fff; }
 .gp-dif-opt.gp-dif-facil.ativo { background: #6B8FF0; }
 .gp-dif-opt.gp-dif-media.ativo { background: var(--caneta, #2454D6); }
 .gp-dif-opt.gp-dif-dificil.ativo { background: var(--errado, #C03B2B); }
+/* Em telas estreitas o controle ocupa a largura toda e os botões dividem o espaço */
+@media (max-width: 480px) {
+  .gp-dif-opts { display: flex; width: 100%; }
+  .gp-dif-opt { flex: 1; min-width: 0; padding: 0.6rem 0.4rem; }
+}
 
 .gp-nav { justify-content: space-between; align-items: center; }
 .gp-nav #gp-cancelar { margin-right: auto; }
