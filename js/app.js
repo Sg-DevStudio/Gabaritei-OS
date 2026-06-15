@@ -1218,7 +1218,9 @@
     if (sem && sem.futura) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma começa em ' + D.formatarDataBR(sem.proxima.inicio) + ' (semana 1). Revisões e tópicos reabertos já aparecem aqui.</p>';
     } else if (sem && sem.encerrado) {
-      html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma planejado terminou — reimporte um plano atualizado ou siga pelas revisões e simulados.</p>';
+      html += '<div class="fim-cronograma"><p class="sub" style="margin:0 0 0.5rem">🏁 Você chegou ao fim do cronograma planejado! Gere uma nova fase para seguir até a prova, ou continue pelas revisões e simulados.</p>' +
+        '<div class="compact-actions"><button class="botao-mini" id="hoje-nova-fase">Gerar nova fase</button>' +
+        '<a class="botao-mini botao-quieto" href="#revisoes">Ir para revisões</a></div></div>';
     } else if (sem) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">Semana ' + sem.semana + ' do plano (' + esc(state.plano.ritmoAtivo) + ')' +
         (sem.marcos && sem.marcos.length ? ' · ' + esc(sem.marcos.join(' · ')) : '') + '</p>';
@@ -1429,6 +1431,8 @@
   function ligarHoje(raiz) {
     celebrarConquistasNovas();
     raiz.querySelectorAll('.prova-editar').forEach(function (b) { b.addEventListener('click', abrirEditarProva); });
+    const novaFase = raiz.querySelector('#hoje-nova-fase');
+    if (novaFase) novaFase.addEventListener('click', function () { abrirGerarPlanoComRotina(); });
     raiz.querySelectorAll('[data-conquista]').forEach(function (el) {
       el.addEventListener('click', function () { abrirConquista(el.getAttribute('data-conquista')); });
     });
@@ -4138,6 +4142,10 @@
     return base;
   }
 
+  function rotinaSemDiasAtivos() {
+    return totalMinutosRotina(rotinaEstudosAtual()) < 1;
+  }
+
   function totalMinutosRotina(rotina) {
     return ROTINA_DIAS.reduce(function (n, d) {
       const dia = rotina.dias[d.id];
@@ -5526,6 +5534,15 @@
     let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
       '<p class="sub">Plano atual, check-in e agenda no mesmo lugar.</p></div></div>';
 
+    // Aviso: plano com cronograma mas rotina sem nenhum dia de estudo ativo →
+    // o calendário fica vazio. Oferece ir direto ajustar a rotina.
+    if (state.plano && cronAtivo && cronAtivo.length > 0 && rotinaSemDiasAtivos()) {
+      html += '<div class="card aviso-rotina"><span class="aviso-rotina-ic" aria-hidden="true">⚠️</span>' +
+        '<div><strong>Sua rotina está sem dias de estudo.</strong>' +
+        '<p class="sub" style="margin:0.15rem 0 0">Marque os dias e horas para o calendário ser preenchido.</p></div>' +
+        '<button class="botao-mini" id="pl-ajustar-rotina">Ajustar rotina</button></div>';
+    }
+
     // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile.
     // O ritmo ativo/geração ganham um card próprio logo abaixo do plano atual.
     const checkin = checkinSemanalHtml();
@@ -5697,6 +5714,8 @@
     if (gerarRitmos) gerarRitmos.addEventListener('click', function () {
       abrirGerarPlanoComRotina();
     });
+    const ajustarRotina = raiz.querySelector('#pl-ajustar-rotina');
+    if (ajustarRotina) ajustarRotina.addEventListener('click', function () { abrirGerarPlanoComRotina(); });
     const ajustarPerfil = raiz.querySelector('#pl-ajustar-perfil');
     if (ajustarPerfil) ajustarPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
 

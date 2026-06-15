@@ -1011,6 +1011,18 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .etiqueta-feito { background: var(--correto-suave); color: var(--correto); }
 .etiqueta-agenda { background: var(--caneta-suave); color: var(--caneta); }
 
+/* Aviso de rotina sem dias ativos (Planejamento) */
+.aviso-rotina {
+  display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+  border-left: 4px solid var(--alerta); background: var(--alerta-suave);
+}
+.aviso-rotina-ic { font-size: 1.3rem; line-height: 1; }
+.aviso-rotina > div { flex: 1; min-width: 180px; }
+.aviso-rotina .botao-mini { flex-shrink: 0; }
+
+/* Fim do cronograma (Hoje) */
+.fim-cronograma { background: var(--correto-suave); border-radius: var(--raio-s); padding: 0.7rem 0.85rem; margin: 0.2rem 0 0.6rem; }
+
 /* ============================================================
    Flashcards (aba Revisões)
    ============================================================ */

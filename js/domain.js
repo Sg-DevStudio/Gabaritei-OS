@@ -501,8 +501,13 @@
     const mesesProjetados = isFinite(semanasProjetadas)
       ? Math.round(((decorridas + semanasProjetadas) / 4.345) * 10) / 10 : Infinity;
     const pctConcluido = esforcoTotal > 0 ? Math.min(100, Math.round((horasFeitas / esforcoTotal) * 100)) : 0;
+    // "Adiantado"/"Atrasado" só fazem sentido com estudo REAL registrado e tempo
+    // suficiente decorrido. Sem horas feitas, o plano é "no prazo" (neutro) no
+    // começo e "parado" se já passou ~1 semana — nunca "adiantado" com 0h.
     let situacao = 'no_prazo';
     if (restante <= 0) situacao = 'concluido';
+    else if (horasFeitas < 0.1) situacao = decorridas >= 1 ? 'parado' : 'no_prazo';
+    else if (decorridas < 0.5) situacao = 'no_prazo'; // cedo demais para projetar
     else if (!isFinite(mesesProjetados)) situacao = 'parado';
     else if (mesesProjetados > meses + 0.5) situacao = 'atrasado';
     else if (mesesProjetados < meses - 0.5) situacao = 'adiantado';
