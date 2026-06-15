@@ -4399,8 +4399,7 @@
     };
     let base;
     if (chave === 'plano_ativo' && dados && dados.meses) {
-      const mp = MACRO_PLANOS.find(function (p) { return p.meses === dados.meses; });
-      base = mp ? mp.nome.split(' (')[0] : (mapa[chave] || chave.replace(/_/g, ' '));
+      base = dados.nomeRitmo || nomeRitmoPorMeses(entradaPlanoAtivo(), dados.meses);
     } else {
       base = mapa[chave] || chave.replace(/_/g, ' ');
     }
@@ -4422,8 +4421,7 @@
   // [Nome do Plano] + [Carga Horária Semanal] para exibir abaixo do Ritmo ativo
   function nomePlanoComCarga(dados) {
     if (!dados) return '';
-    const macro = dados.meses ? MACRO_PLANOS.find(function (p) { return p.meses === dados.meses; }) : null;
-    const nome = macro ? 'Plano ' + macro.nome.split(' (')[0] : (state.plano ? state.plano.concurso : 'Plano');
+    const nome = dados.meses ? 'Plano ' + (dados.nomeRitmo || nomeRitmoPorMeses(entradaPlanoAtivo(), dados.meses)) : (state.plano ? state.plano.concurso : 'Plano');
     const horas = dados.h_semana || dados.h_semana_exigidas;
     return nome + (horas ? ' · ' + horas + 'h por semana' : '');
   }
@@ -4894,14 +4892,47 @@
   }
 
   // Parte 3 — macro-planos de estudo
-  // Ritmos qualitativos (sem prometer um prazo rígido). O 'meses' segue só como
-  // estimativa interna: Acelerado termina antes do Equilibrado, que termina
-  // antes da Construção de base.
-  const MACRO_PLANOS = [
-    { meses: 3, nome: 'Acelerado', dica: 'reta final / pós-edital' },
-    { meses: 6, nome: 'Equilibrado', dica: 'ritmo regular' },
-    { meses: 9, nome: 'Construção de base', dica: 'pré-edital' }
+  // Ritmos qualitativos definidos por INTENSIDADE (horas/semana típicas). O prazo
+  // em meses é DERIVADO do tamanho do edital (esforço total), não fixo — assim um
+  // edital enxuto fecha em menos meses e um grande (ex.: Receita) em mais, no mesmo
+  // ritmo. Acelerado é mais intenso → menos meses que Equilibrado, que é < base.
+  const RITMOS_PLANO = [
+    { nome: 'Acelerado', dica: 'reta final / pós-edital', hSemana: 28 },
+    { nome: 'Equilibrado', dica: 'ritmo regular', hSemana: 18 },
+    { nome: 'Construção de base', dica: 'pré-edital', hSemana: 10 }
   ];
+
+  // Esforço total estimado do edital (horas), com folga p/ questões/revisão.
+  function esforcoEditalHoras(entrada) {
+    return totalHorasEstimadasPlano(entrada) * 1.8;
+  }
+
+  // Meses estimados p/ concluir o edital num dado ritmo (h/semana).
+  function mesesEstimadosRitmo(entrada, hSemana) {
+    const esforco = esforcoEditalHoras(entrada);
+    if (!esforco) return 6;
+    const semanas = esforco / Math.max(4, hSemana);
+    return Math.max(2, Math.round(semanas / 4.345));
+  }
+
+  // Lista de ritmos já com os meses estimados para o edital ativo.
+  function ritmosEstimados(entrada) {
+    return RITMOS_PLANO.map(function (r) {
+      return { nome: r.nome, dica: r.dica, hSemana: r.hSemana, meses: mesesEstimadosRitmo(entrada, r.hSemana) };
+    });
+  }
+
+  // Dado um nº de meses, devolve o nome do ritmo mais próximo (p/ rótulos).
+  function nomeRitmoPorMeses(entrada, meses) {
+    const lista = ritmosEstimados(entrada);
+    let best = lista[1] || lista[0];
+    let melhorDist = Infinity;
+    lista.forEach(function (r) {
+      const d = Math.abs(r.meses - (meses || 0));
+      if (d < melhorDist) { melhorDist = d; best = r; }
+    });
+    return best ? best.nome : 'Equilibrado';
+  }
 
   const NIVEIS_DIF = [
     { id: 'facil', rotulo: 'Tranquila', dica: 'Já domino, preciso de menos tempo.' },
@@ -5054,13 +5085,14 @@
     return semanasCron;
   }
 
-  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque) {
+  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque, nomeRitmo) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || entrada.disciplinas.length === 0) {
       if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
       return false;
     }
-    meses = meses === 3 || meses === 9 ? meses : 6;
+    // meses agora é estimado a partir do edital (não mais fixo em 3/6/9).
+    meses = Math.max(2, Math.round(Number(meses) || mesesEstimadosRitmo(entrada, 18)));
     const semanas = semanasPorMeses(meses);
     const chave = 'plano_ativo';
     const hSemana = Math.max(4, Math.round(horasSemana || horasIdeaisSemanaPlano(entrada, meses) || 20));
@@ -5070,7 +5102,7 @@
     entrada.plano.ritmos = entrada.plano.ritmos || {};
     entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem });
     entrada.plano.ritmos = {};
-    entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana };
+    entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
     entrada.plano.ritmoAtivo = chave;
     // Âncora do cronograma = segunda da semana atual, igual ao calendário e ao
     // recálculo. Evita divergência de até 6 dias no burndown/projeção de término.
@@ -5219,11 +5251,19 @@
     }
     const ritmo = state.plano.ritmoAtivo;
     const atual = state.plano.ritmos && ritmo ? state.plano.ritmos[ritmo] : null;
-    const mesesAtual = atual && atual.meses ? atual.meses : 6;
     const ordemAtual = state.plano.ordemAtaque || 'edital';
     const rotina = rotinaEstudosAtual();
     const totalAtual = totalMinutosRotina(rotina);
     const entrada = entradaPlanoAtivo();
+    // Ritmos com meses estimados a partir do tamanho do edital ativo.
+    const ritmosCalc = ritmosEstimados(entrada);
+    // Seleção inicial: ritmo do plano atual (mais próximo) ou o Equilibrado.
+    let ritmoSel = ritmosCalc[1] || ritmosCalc[0];
+    if (atual && atual.meses) {
+      let melhor = Infinity;
+      ritmosCalc.forEach(function (r) { const d = Math.abs(r.meses - atual.meses); if (d < melhor) { melhor = d; ritmoSel = r; } });
+    }
+    const mesesAtual = ritmoSel ? ritmoSel.meses : 6;
     const idealAtual = horasIdeaisSemanaPlano(entrada, mesesAtual);
     const optsMin = TEMPOS_BLOCO.map(function (v) {
       return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + rotuloBloco(v) + '</option>';
@@ -5239,9 +5279,9 @@
         '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
         '</label>';
     }).join('');
-    // Passo 1 — Ritmo: cartões qualitativos (o prazo aparece só como estimativa).
-    const prazoCards = MACRO_PLANOS.map(function (p) {
-      return '<button type="button" class="gp-prazo-card' + (p.meses === mesesAtual ? ' ativo' : '') + '" data-gp-meses="' + p.meses + '">' +
+    // Passo 1 — Ritmo: cartões qualitativos com o prazo ESTIMADO pelo tamanho do edital.
+    const prazoCards = ritmosCalc.map(function (p) {
+      return '<button type="button" class="gp-prazo-card' + (p === ritmoSel ? ' ativo' : '') + '" data-gp-meses="' + p.meses + '" data-gp-ritmo="' + esc(p.nome) + '">' +
         '<span class="gp-prazo-ritmo">' + esc(p.nome) + '</span>' +
         '<span class="gp-prazo-unid">estimativa ~' + p.meses + ' meses</span>' +
         '<span class="gp-prazo-nome">' + esc(p.dica) + '</span></button>';
@@ -5382,7 +5422,7 @@
       }
       if (idealEl) idealEl.textContent = formatarHorasSemana(ideal);
       if (feedback) {
-        const macroNome = (MACRO_PLANOS.find(function (p) { return p.meses === meses; }) || {}).nome || (meses + ' meses');
+        const macroNome = nomeRitmoPorMeses(entrada, meses);
         feedback.classList.toggle('alerta', !ok);
         feedback.classList.toggle('ok', ok);
         feedback.textContent = ok
@@ -5398,7 +5438,7 @@
       const total = totalMinutosRotina(rotinaDoModal()) / 60;
       const ideal = horasIdeaisSemanaPlano(entrada, meses);
       const ok = total >= ideal;
-      const macroNome = (MACRO_PLANOS.find(function (p) { return p.meses === meses; }) || {}).nome || (meses + ' meses');
+      const macroNome = nomeRitmoPorMeses(entrada, meses);
       resumo.classList.toggle('alerta', !ok);
       resumo.classList.toggle('ok', ok);
       resumo.textContent = 'Resumo: ritmo ' + macroNome + ' (estimativa ~' + meses + ' meses), ' + formatarHorasSemana(total) + '. ' +
@@ -5463,15 +5503,16 @@
         if (disc && sel) disc.dificuldade = sel.getAttribute('data-dif');
       });
       state.config.rotinaEstudos = rotinaNova;
-      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque)) return;
+      const cardAtivo = m.querySelector('.gp-prazo-card.ativo');
+      const nomeRitmo = cardAtivo ? cardAtivo.getAttribute('data-gp-ritmo') : nomeRitmoPorMeses(entrada, meses);
+      if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo)) return;
       planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
       fecharModal();
       const cron = D.cronogramaAtivo(state);
       agendaRef = cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO());
       agendaModo = 'semana';
       render();
-      const macro = MACRO_PLANOS.find(function (p) { return p.meses === meses; });
-      toast('Plano ' + (macro ? macro.nome.split(' (')[0] : meses + ' meses') + ' gerado — calendário preenchido', 'sucesso');
+      toast('Plano ' + nomeRitmo + ' gerado — calendário preenchido', 'sucesso');
     });
 
     mostrarPasso(1);
