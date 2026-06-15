@@ -1947,12 +1947,19 @@
           { planoId: state.planoAtivoId }
         ));
       }
+      // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
+      // ou encurta (indo mal) as próximas revisões pendentes.
+      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida);
       if (aj.reabrir) {
         toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.revisaoExtraDias != null) {
         toast('Abaixo de 70% — prioridade elevada e revisão de reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.dominar) {
         toast('Mandou bem (≥85%) — tópico marcado como dominado ●.', 'sucesso');
+      } else if (reag.ajustadas > 0 && reag.fator > 1) {
+        toast('Indo bem neste tópico — espacei as próximas revisões.', 'sucesso');
+      } else if (reag.ajustadas > 0 && reag.fator < 1) {
+        toast('Aproximei as próximas revisões deste tópico para reforçar.', 'erro');
       } else {
         toast('Revisão concluída — bolha preenchida ●', 'sucesso');
       }

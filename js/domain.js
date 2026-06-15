@@ -731,6 +731,50 @@
     return { id: 'rev-' + topicoId + '-reforco-' + data, topicoId: topicoId, tipo: 'reforço', dataAgendada: data, dataConcluida: null, resultadoPct: null };
   }
 
+  // ---------- Espaçamento adaptativo das revisões (curva por desempenho) ----------
+  // A cadência de revisão reflete o histórico de acertos do tópico: quem vai
+  // melhorando precisa revisar com MENOS frequência (intervalos esticam), quem
+  // vai piorando precisa revisar com MAIS frequência (intervalos encurtam). É o
+  // mesmo princípio do SM-2 dos flashcards, aplicado às revisões do tópico.
+  const TIPOS_CICLO_REV = { '24h': 1, '3d': 1, '7d': 1, '14d': 1, '30d': 1 };
+
+  // Fator multiplicativo do espaçamento (1 = neutro). Acumula o efeito de cada
+  // revisão já feita: acerto alto estica, acerto baixo encurta. Como os multipli-
+  // cadores recentes compõem sobre os antigos, a TENDÊNCIA recente domina.
+  function fatorEspacamentoRevisao(revisoes, topicoId) {
+    const feitas = (revisoes || [])
+      .filter(function (r) {
+        return r.topicoId === topicoId && TIPOS_CICLO_REV[r.tipo] && r.dataConcluida && r.resultadoPct != null;
+      })
+      .sort(function (a, b) { return String(a.dataConcluida).localeCompare(String(b.dataConcluida)); });
+    let f = 1;
+    feitas.forEach(function (r) {
+      const p = r.resultadoPct;
+      if (p >= 85) f *= 1.25;        // dominando: espaça mais
+      else if (p >= 70) f *= 1.1;    // indo bem: espaça um pouco
+      else if (p >= 50) f *= 0.85;   // vacilando: aproxima
+      else f *= 0.6;                 // não fixou: aproxima bastante
+    });
+    return Math.max(0.4, Math.min(2.2, Math.round(f * 100) / 100));
+  }
+
+  // Reescala as revisões do ciclo ainda PENDENTES (futuras) do tópico pelo fator
+  // de espaçamento. Não mexe em revisões já feitas nem nas vencidas/de hoje.
+  function reagendarRevisoesAdaptativo(revisoes, topicoId, hoje) {
+    hoje = hoje || hojeISO();
+    const f = fatorEspacamentoRevisao(revisoes, topicoId);
+    let ajustadas = 0;
+    (revisoes || []).forEach(function (r) {
+      if (r.topicoId !== topicoId || !TIPOS_CICLO_REV[r.tipo] || r.dataConcluida) return;
+      const gap = diffDias(hoje, r.dataAgendada); // dias de hoje até a revisão
+      if (gap <= 0) return; // já venceu ou é hoje — não remarca
+      const novoGap = Math.max(1, Math.round(gap * f));
+      const novaData = addDias(hoje, novoGap);
+      if (novaData !== r.dataAgendada) { r.dataAgendada = novaData; ajustadas++; }
+    });
+    return { fator: f, ajustadas: ajustadas };
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -865,7 +909,8 @@
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
-    revisaoReabreTopico, sugereRevisarTeoria, streak, semaforo,
+    revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
+    reagendarRevisoesAdaptativo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
