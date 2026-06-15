@@ -4774,7 +4774,8 @@
       '<div class="checkin-grid checkin-grid-2">' +
       '<div class="checkin-kpi"><span class="checkin-num">' + cargaValor + 'h</span>' +
       '<span class="checkin-rotulo">' + cargaRotulo + '</span></div>' +
-      '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo">' + esc(formatarSemanasDias(burn.semanasRestantes)) + '</span>' +
+      '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo" title="Projeção pelo seu ritmo real: aumenta se você atrasa, diminui se adianta tópicos.">' +
+      (burn.situacao === 'concluido' || burn.semanasParaConcluir <= 0 ? 'Concluído 🏁' : esc(formatarSemanasDias(burn.semanasParaConcluir))) + '</span>' +
       '<span class="checkin-rotulo">Conclusão estimada (ajusta ao seu ritmo)</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
