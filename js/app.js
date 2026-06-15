@@ -3826,11 +3826,11 @@
       return '<select data-cat-filtro="' + campo + '" title="' + rotulo + '"><option value="">' + rotulo + '</option>' + opts + '</select>';
     }
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de editais</span><h1>Planos</h1></div></div>' +
+      cardAvisoCompararHtml() +
       '<div class="catalogo-toolbar">' +
       '<input id="cat-busca" type="search" placeholder="Pesquisar edital" value="' + esc(catalogoFiltro.busca || '') + '">' +
       '<div class="catalogo-filtros">' + selectFiltro('orgao', 'Órgão') + selectFiltro('cargo', 'Cargo') + selectFiltro('estado', 'Estado') +
       '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
-    html += secaoCompararHtml();
     if (lista.length === 0) {
       html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum edital encontrado</strong>' +
         '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
@@ -3842,6 +3842,15 @@
 
   function editaisComparaveis() {
     return editaisDoCatalogo().filter(function (e) { return !e.arquivado; });
+  }
+
+  function cardAvisoCompararHtml() {
+    if (editaisComparaveis().length < 2) return '';
+    const horas = horasSemanaDisponiveis();
+    return '<div class="card comparar-secao comparar-aviso">' +
+      '<strong class="comparar-summary-tit">🔀 Comparar dois editais</strong>' +
+      '<p class="sub">Toque em <strong>Comparar</strong> em dois editais para saber se dá para conciliá-los na sua rotina (~' + horas + 'h/semana). O resultado aparece em uma janela no centro da tela.</p>' +
+      '</div>';
   }
 
   // mantém só ids válidos e no máximo 2 selecionados; devolve os editais
@@ -3864,6 +3873,44 @@
       if (comparacaoIds.length > 2) comparacaoIds.shift(); // descarta o mais antigo
     }
     render();
+    if (i < 0 && sanearComparacao().length === 2) {
+      abrirModalComparacaoSelecionada();
+    }
+  }
+
+  function abrirModalComparacaoSelecionada() {
+    const sel = sanearComparacao();
+    if (sel.length < 2) return;
+    const r = D.conciliarPlanos(sel[0], sel[1], { horasSemana: horasSemanaDisponiveis() });
+    const chips = '<div class="comparar-chips">' + sel.map(function (e) {
+      return '<span class="comparar-chip">' + esc(tituloCurto(e.titulo)) + '</span>';
+    }).join('') + '</div>';
+    const m = abrirModal(
+      '<h3>Comparação dos editais</h3>' +
+      '<p class="sub">Veja se dá para conciliar esses dois planos na sua rotina atual (~' + horasSemanaDisponiveis() + 'h/semana).</p>' +
+      chips +
+      '<div class="comparar-resultado">' + vereditoConciliacaoHtml(r) + '</div>' +
+      '<div class="modal-acoes">' +
+      '<button type="button" class="botao-quieto" id="cmp-modal-limpar">Limpar seleção</button>' +
+      '<button type="button" class="botao-secundario" id="cmp-modal-fechar">Fechar</button>' +
+      '<button type="button" id="cmp-modal-combinar">Gerar plano combinado</button></div>'
+    );
+    m.classList.add('modal-amplo');
+    m.querySelector('#cmp-modal-fechar').addEventListener('click', fecharModal);
+    m.querySelector('#cmp-modal-limpar').addEventListener('click', function () {
+      comparacaoIds = [];
+      fecharModal();
+      render();
+    });
+    m.querySelector('#cmp-modal-combinar').addEventListener('click', function () {
+      if (r.nivel === 'nao_recomendado') {
+        confirmar({ titulo: 'Compatibilidade baixa', mensagem: 'Seriam ~' + r.detalhes.exigidaSemana + 'h/semana exigidas vs ~' + r.detalhes.horasSemana + 'h disponíveis. Gerar o plano combinado mesmo assim?', confirmar: 'Gerar mesmo assim', icone: '⚠️' }).then(function (ok) {
+          if (ok) gerarPlanoCombinado(sel[0], sel[1]);
+        });
+        return;
+      }
+      gerarPlanoCombinado(sel[0], sel[1]);
+    });
   }
 
   // Seção "Comparar dois editais" no topo da aba Planos — o aluno seleciona até
@@ -3918,7 +3965,6 @@
   }
 
   function ligarPlanos(raiz) {
-    ligarSecaoComparar(raiz);
     const busca = raiz.querySelector('#cat-busca');
     if (busca) {
       const aplicarBusca = function () { catalogoFiltro.busca = busca.value; render(); };
