@@ -1200,6 +1200,28 @@
     while (posInsercao < fila.length && fila[posInsercao].categoria === 'revisao') posInsercao++;
     fila.splice.apply(fila, [posInsercao, 0].concat(itensAgenda));
 
+    // Os blocos da semana seguem a MESMA ordem do calendário do Planejamento
+    // (dia a dia, seg→dom, e dentro do dia a ordem dos blocos), para a lista de
+    // Hoje não divergir do calendário e confundir o aluno.
+    if (sem && sem.inicio) {
+      const tipoChave = function (t) { return t === 'teoria' ? 'teoria' : 'questoes'; };
+      const rank = {}; let r = 0;
+      for (let dd = 0; dd < 7; dd++) {
+        blocosDoDia(D.addDias(sem.inicio, dd)).forEach(function (a) {
+          const chave = (a.topicoId || '') + '|' + tipoChave(a.obs);
+          if (rank[chave] === undefined) rank[chave] = r++;
+        });
+      }
+      const blocoItens = [], posicoes = [];
+      fila.forEach(function (it, idx) { if (it.categoria === 'bloco') { blocoItens.push(it); posicoes.push(idx); } });
+      blocoItens.sort(function (x, y) {
+        const rx = rank[x.topicoId + '|' + tipoChave(x.tipoBloco)];
+        const ry = rank[y.topicoId + '|' + tipoChave(y.tipoBloco)];
+        return (rx === undefined ? 1e9 : rx) - (ry === undefined ? 1e9 : ry);
+      });
+      posicoes.forEach(function (p, k) { fila[p] = blocoItens[k]; });
+    }
+
     const nRev = fila.filter(function (i) { return i.categoria === 'revisao'; }).length;
     const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !i.agenda.feito); }).length;
     const pendentes = nRev + nBlocos + fila.filter(function (i) { return i.categoria === 'reaberto'; }).length;
@@ -4541,7 +4563,7 @@
       plano_ativo: 'Plano gerado',
       plano_3m: 'Acelerado',
       plano_6m: 'Equilibrado',
-      plano_9m: 'Construção de base'
+      plano_9m: 'Sustentável'
     };
     let base;
     if (chave === 'plano_ativo' && dados && dados.meses) {
@@ -4986,9 +5008,10 @@
   // Precisa rodar ENQUANTO o plano ainda é o ativo (pertenceAoPlano usa planoAtivoId
   // como fallback para itens antigos sem planoId), portanto chame antes de removê-lo.
   function limparDadosVinculados(planoId) {
-    state.sessoes = state.sessoes.filter(function (s) { return !pertenceAoPlano(s, planoId); });
+    // Limpa o que é do plano/calendário (revisões agendadas, blocos da agenda e
+    // flashcards), mas PRESERVA as estatísticas do aluno: sessões registradas
+    // (questões feitas/acertos) e simulados continuam guardados.
     state.revisoes = state.revisoes.filter(function (r) { return !pertenceAoPlano(r, planoId); });
-    state.simulados = state.simulados.filter(function (s) { return !pertenceAoPlano(s, planoId); });
     state.agenda = state.agenda.filter(function (a) { return !pertenceAoPlano(a, planoId); });
     state.flashcards = state.flashcards.filter(function (f) { return !pertenceAoPlano(f, planoId); });
   }
@@ -4997,7 +5020,7 @@
     const p = state.planos.find(function (x) { return x.id === planoId; });
     if (!p) return false;
     const msg = limparHistorico
-      ? 'O plano "' + p.plano.concurso + '" será excluído junto com sessões, revisões, simulados e agenda dele.'
+      ? 'O plano "' + p.plano.concurso + '" e o calendário dele serão excluídos. Suas estatísticas de questões e simulados ficam guardadas.'
       : 'O plano "' + p.plano.concurso + '" será excluído. As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
     if (!(await confirmar({ titulo: 'Excluir plano?', mensagem: msg, confirmar: 'Excluir', perigo: true, icone: '🗑️' }))) return false;
     const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
@@ -5073,7 +5096,7 @@
   const RITMOS_PLANO = [
     { nome: 'Acelerado', dica: 'reta final / pós-edital', hSemana: 28 },
     { nome: 'Equilibrado', dica: 'ritmo regular', hSemana: 18 },
-    { nome: 'Construção de base', dica: 'pré-edital', hSemana: 10 }
+    { nome: 'Sustentável', dica: 'pré-edital', hSemana: 12 }
   ];
 
   // Esforço total estimado do edital (horas), com folga p/ questões/revisão.

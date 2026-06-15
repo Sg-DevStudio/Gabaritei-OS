@@ -1740,13 +1740,18 @@ td.num, th.num { text-align: right; }
 
 .gp-dif-lista { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem; }
 .gp-dif-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
-  flex-wrap: wrap;
-  padding: 0.5rem 0.65rem; border-radius: var(--raio-s, 10px);
+  display: flex; flex-direction: column; align-items: center; gap: 0.55rem;
+  padding: 0.6rem 0.65rem; border-radius: var(--raio-s, 10px);
   background: var(--papel-elevado, rgba(255,255,255,0.03)); border: 1px solid var(--linha);
 }
-.gp-dif-nome { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; }
-.gp-dif-opts { display: inline-flex; border: 1px solid var(--linha); border-radius: 999px; overflow: hidden; }
+/* Tag fixa à esquerda; nome afastado e centralizado no card */
+.gp-dif-nome {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 26px; padding: 0 3.4rem; box-sizing: border-box;
+  text-align: center; font-weight: 600; font-size: 0.9rem;
+}
+.gp-dif-nome .tag-disc { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+.gp-dif-opts { display: inline-flex; align-self: center; border: 1px solid var(--linha); border-radius: 999px; overflow: hidden; }
 .gp-dif-opt {
   background: transparent; color: var(--grafite); border: none; border-radius: 0;
   font-size: 0.78rem; font-weight: 600; padding: 0.32rem 0.7rem; min-height: 34px; box-shadow: none;
