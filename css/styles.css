@@ -490,6 +490,10 @@ html[data-tema="escuro"] .login-preview {
 }
 html[data-tema="escuro"] .login-preview-line { background: var(--grafite-claro); }
 html[data-tema="escuro"] .login-preview-grid span { background: #262A35; }
+html[data-tema="escuro"] .login-preview-grid span.ativo {
+  background: linear-gradient(180deg, #9DB5FF, #7C9AF5);
+  box-shadow: 0 0 0 1px rgba(157, 181, 255, 0.2), 0 10px 22px rgba(124, 154, 245, 0.18);
+}
 
 @media (max-width: 760px) {
   .login-shell {
