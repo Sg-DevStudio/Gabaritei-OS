@@ -430,6 +430,7 @@
     state.config.tema = state.config.tema === 'escuro' ? 'claro' : 'escuro';
     salvar();
     aplicarTema();
+    render(); // recolore os gráficos (lêem as cores do tema ao serem criados)
     toast(state.config.tema === 'escuro' ? 'Modo escuro ativado 🌙' : 'Modo claro ativado ☀️');
   }
 
