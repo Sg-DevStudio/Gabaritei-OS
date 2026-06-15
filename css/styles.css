@@ -1156,6 +1156,17 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
 .meta-q-editar:hover { color: var(--caneta); background: transparent; box-shadow: none; }
 .meta-q-editar span { opacity: 0.6; font-size: 0.78rem; }
 
+/* Botão "Ver mais / Ver menos" do painel de disciplinas (mobile e desktop) */
+.painel-disc-vermais { display: block; width: 100%; margin-top: 0.6rem; text-align: center; }
+
+/* Cards da fila "O que estudar hoje": texto ocupa toda a largura e as tags +
+   ações ficam no rodapé, em linha. */
+.fila-corpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.fila-corpo .fila-info { flex: none; }
+.fila-rodape { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.fila-rodape .fila-acoes { margin-left: auto; }
+.fila-checklist { align-items: flex-start; }
+
 /* Na Hoje (celular), a fila "O que estudar hoje" não precisa da etiqueta da
    disciplina — o nome do tópico já basta e a tag só ocupa espaço. */
 @media (max-width: 760px) {
@@ -1530,10 +1541,6 @@ td.num, th.num { text-align: right; }
     grid-template-columns: 1fr;
     gap: 0.55rem;
   }
-  /* "Ver mais": esconde o excedente até o usuário expandir */
-  .painel-disc-extra { display: none; }
-  .painel-disciplinas-mobile.expandido .painel-disc-extra { display: grid; }
-  .painel-disc-vermais { width: 100%; justify-content: center; margin-top: 0.15rem; }
   .painel-disc-mobile {
     width: 100%;
     display: grid;
@@ -2352,9 +2359,8 @@ canvas.grafico {
   .card { padding: 0.95rem; }
   .linha-cards { grid-template-columns: 1fr; gap: 0.7rem; }
   .card-kpi { min-height: 108px; }
-  .fila-item { align-items: flex-start; flex-wrap: wrap; }
-  .fila-item > div:last-child { order: 4; width: 100%; justify-content: flex-start; padding-left: 2rem; }
-  .fila-item .etiqueta { order: 3; margin-left: 2rem; }
+  /* fila "O que estudar hoje": o corpo (texto + rodapé) ocupa toda a largura
+     ao lado do check; tags e ações já vão no rodapé pelo .fila-rodape. */
   .check-estudo { margin-top: 0.1rem; }
   .timer-acoes button { flex: 0 0 72px !important; width: 72px !important; }
   .catalogo-item.fila-item { flex-wrap: wrap; }
