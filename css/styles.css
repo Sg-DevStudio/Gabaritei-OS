@@ -3080,3 +3080,33 @@ canvas.grafico {
 /* Aba Hoje: leve elevação de descanso nos KPIs e respiro do anel no painel. */
 .home-kpis .card-kpi:not(.prova-card) { gap: 0.5rem; }
 .painel-disc-mobile .pizza-acertos { justify-self: end; }
+
+/* ============================================================
+   Modo exemplo (demo sem login) + botão de exploração no login
+   ============================================================ */
+.login-demo {
+  width: 100%;
+  margin: 0 0 0.4rem;
+  min-height: 44px;
+  background: transparent;
+  color: var(--caneta-forte);
+  border: 1px solid var(--grafite-claro);
+  font-weight: 600;
+}
+.login-demo:hover { background: var(--caneta-suave); }
+
+.demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--raio-s);
+  background: var(--alerta-suave);
+  border: 1px solid var(--alerta);
+  color: var(--tinta);
+}
+.demo-banner-txt { font-size: 0.85rem; font-weight: 600; }
+.demo-banner-acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
