@@ -891,7 +891,7 @@
       '<div class="msg-erro oculto" id="reg-erro"></div>' +
       '<label for="reg-obs">Observação (opcional)</label><textarea id="reg-obs" placeholder="Ex.: travei em prazos de recurso"></textarea>' +
       '<label style="display:flex;align-items:center;gap:0.5rem;font-weight:400">' +
-      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Marcar teoria deste tópico como concluída (agenda revisões 24h · 7d · 30d)</label>' +
+      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Teoria finalizada neste tópico (agenda as revisões e recalcula o plano, tirando-o da fila de teoria)</label>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="reg-cancelar">Cancelar</button>' +
       '<button type="submit">Registrar sessão</button>' +
@@ -959,12 +959,14 @@
       obs: dados.obs || ''
     });
 
+    let marcouTeoria = false;
     const topico = D.topicoPorId(state, dados.topicoId);
     if (topico) {
       if (dados.teoriaOk && topico.status !== 'dominado') {
+        marcouTeoria = topico.status !== 'teoria_concluida';
         topico.status = 'teoria_concluida';
         if (agendarRevisoesSeNecessario(dados.topicoId)) {
-          toast('Revisões agendadas: 24h · 7d · 30d', 'sucesso');
+          toast('Revisões agendadas: 24h · 3d · 7d · 14d · 30d', 'sucesso');
         }
       } else if (topico.status === 'pendente') {
         topico.status = 'em_curso';
@@ -977,6 +979,13 @@
     salvar();
     toast('Sessão registrada', 'sucesso');
 
+    // Teoria concluída tira o tópico da fila de teoria e replaneja o restante
+    // (caso do aluno avançado que já dominou parte do edital).
+    if (marcouTeoria) {
+      const r = recalcularPlanoAdaptativo(true);
+      if (r) toast('Teoria concluída — plano recalculado; este tópico saiu da fila de teoria.', 'sucesso');
+    }
+
     // RN07 — sugestão de reestudo (o usuário decide)
     const streakDepois = D.streak(D.sessoesDoPlano(state), hoje);
     const ganhouDia = streakDepois.atual > streakAntes.atual;
@@ -986,6 +995,12 @@
     } else if (ganhouDia && streakDepois.atual >= 7) {
       confete();
       toast('Sequência forte: ' + streakDepois.atual + ' dias de constância! 🎉', 'sucesso');
+    }
+
+    // 3 desempenhos seguidos abaixo de 65% → sinaliza que a base teórica precisa
+    // de revisão (as questões não estão fixando). Sinal suave: não reabre sozinho.
+    if (dados.qFeitas > 0 && D.sugereRevisarTeoria(state, dados.topicoId)) {
+      toast('3 desempenhos seguidos abaixo de 65% em ' + nomeTopicoCompleto(dados.topicoId) + ' — vale revisar a teoria deste tópico.', 'erro');
     }
 
     if (D.sugerirReestudo(dados.qFeitas, dados.qCertas)) {
@@ -1304,6 +1319,10 @@
             '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="questoes">Registrar</button>';
         }
         const tituloTopico = t ? t.nome : item.topicoId;
+        // 3 desempenhos seguidos abaixo de 65% → sugere revisar a base teórica.
+        const avisoTeoria = D.sugereRevisarTeoria(state, item.topicoId)
+          ? '<span class="etiqueta etiqueta-reaberto" title="3 desempenhos seguidos abaixo de 65% — as questões não estão fixando, vale revisar a teoria">↩ Revisar teoria</span>'
+          : '';
         const check = item.categoria === 'revisao'
           ? checkEstudoHtml(false, 'concluir-revisao', item.revisao.id, null, tituloTopico)
           : checkEstudoHtml(!!item.feito, 'registrar', item.topicoId, item.categoria === 'reaberto' ? 'questoes' : item.tipoBloco, tituloTopico);
@@ -1312,7 +1331,7 @@
           '<div class="fila-corpo">' +
           '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
           '<div class="fila-sub">' + sub + '</div></div>' +
-          '<div class="fila-rodape">' + etiqueta +
+          '<div class="fila-rodape">' + etiqueta + avisoTeoria +
           '<div class="fila-acoes">' + acoes + '</div></div>' +
           '</div></div>';
       }
@@ -1937,12 +1956,19 @@
           { planoId: state.planoAtivoId }
         ));
       }
+      // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
+      // ou encurta (indo mal) as próximas revisões pendentes.
+      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida);
       if (aj.reabrir) {
         toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.revisaoExtraDias != null) {
         toast('Abaixo de 70% — prioridade elevada e revisão de reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.dominar) {
         toast('Mandou bem (≥85%) — tópico marcado como dominado ●.', 'sucesso');
+      } else if (reag.ajustadas > 0 && reag.fator > 1) {
+        toast('Indo bem neste tópico — espacei as próximas revisões.', 'sucesso');
+      } else if (reag.ajustadas > 0 && reag.fator < 1) {
+        toast('Aproximei as próximas revisões deste tópico para reforçar.', 'erro');
       } else {
         toast('Revisão concluída — bolha preenchida ●', 'sucesso');
       }
@@ -1970,7 +1996,7 @@
 
     if (pendentes.length === 0) {
       return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 7d · 30d.</div></div>';
+        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 3d · 7d · 14d · 30d.</div></div>';
     }
 
     const grupos = [
@@ -2003,7 +2029,7 @@
 
   function telaRevisoes() {
     let html = '<div class="cab-pagina"><div><h1>Revisões</h1>' +
-      '<p class="sub">Ciclo automático de teoria (24h · 7d · 30d) e seus flashcards de memorização.</p></div></div>';
+      '<p class="sub">Ciclo automático de teoria (24h · 3d · 7d · 14d · 30d) e seus flashcards de memorização.</p></div></div>';
     html += '<div class="rev-seg">' +
       '<button class="botao-mini ' + (revisoesAba === 'agendadas' ? '' : 'botao-quieto') + '" data-rev-aba="agendadas">Agendadas</button>' +
       '<button class="botao-mini ' + (revisoesAba === 'flashcards' ? '' : 'botao-quieto') + '" data-rev-aba="flashcards">Flashcards</button>' +
@@ -2032,6 +2058,7 @@
     let html = '<div class="card fc-topo">' +
       '<div class="fc-topo-acoes">' +
       '<button class="botao" id="fc-aleatorio"' + (devidasTotal ? '' : ' disabled') + '>🔀 Estudo aleatório' + (devidasTotal ? ' (' + devidasTotal + ')' : '') + '</button>' +
+      '<button class="botao-secundario" id="fc-gerar-ia">✨ Gerar com IA</button>' +
       '<button class="botao-secundario" id="fc-novo-deck">+ Novo deck</button>' +
       '</div>' +
       '<p class="sub">' + cartasTotal + ' carta(s) no total · ' + devidasTotal + ' para revisar hoje</p>' +
@@ -2105,6 +2132,123 @@
       render();
       toast('Deck criado — adicione cartas', 'sucesso');
     });
+  }
+
+  // Geração de flashcards com IA: o aluno cola o material, a IA (via Cloud Function
+  // segura) devolve cartas; o aluno revisa e importa para um deck novo ou existente.
+  function abrirGerarFlashcardsIA() {
+    if (!state.plano) { toast('Ative um plano antes de gerar flashcards.', 'erro'); return; }
+    if (!window.FirebaseSync || typeof window.FirebaseSync.gerarFlashcardsIA !== 'function') {
+      toast('Recurso de IA indisponível nesta versão.', 'erro'); return;
+    }
+    const st = window.FirebaseSync.status ? window.FirebaseSync.status() : null;
+    if (!st || !st.usuario) {
+      toast('Entre com sua conta Google (em Configurações) para usar a IA.', 'erro'); return;
+    }
+    const discs = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    const discOpts = discs.map(function (d) {
+      return '<option value="' + esc(d.id) + '">' + esc(nomeDiscCurto(d.nome)) + '</option>';
+    }).join('') + '<option value="">Sem disciplina (geral)</option>';
+    const decksExist = decksDoPlano();
+    const deckOpts = '<option value="">➕ Criar novo deck</option>' + decksExist.map(function (dk) {
+      return '<option value="' + esc(dk.id) + '">' + esc(dk.nome) + ' (' + (dk.cards || []).length + ')</option>';
+    }).join('');
+
+    const m = abrirModal(
+      '<h3>✨ Gerar flashcards com IA</h3>' +
+      '<p class="sub">Cole o material (resumo, lei, PDF colado) e a IA monta as cartas. Você revisa antes de importar.</p>' +
+      '<div class="grade-2">' +
+      '<div><label for="fcia-disc">Disciplina</label><select id="fcia-disc">' + discOpts + '</select></div>' +
+      '<div><label for="fcia-qtd">Quantas cartas</label><input id="fcia-qtd" type="number" min="1" max="30" value="10"></div>' +
+      '</div>' +
+      '<label for="fcia-deck" style="display:block;margin-top:0.6rem">Adicionar a</label>' +
+      '<select id="fcia-deck">' + deckOpts + '</select>' +
+      '<label for="fcia-material" style="display:block;margin-top:0.6rem">Material de estudo</label>' +
+      '<textarea id="fcia-material" rows="8" placeholder="Cole aqui o conteúdo que você quer transformar em flashcards..."></textarea>' +
+      '<p class="sub" id="fcia-status" style="min-height:1.2em"></p>' +
+      '<div id="fcia-preview"></div>' +
+      '<div class="modal-acoes"><button class="botao-quieto" id="fcia-cancelar">Cancelar</button>' +
+      '<button id="fcia-gerar">Gerar cartas</button></div>'
+    );
+    m.classList.add('modal-amplo');
+    let cartasGeradas = [];
+
+    function setStatus(txt, erro) {
+      const el = m.querySelector('#fcia-status');
+      if (el) { el.textContent = txt || ''; el.style.color = erro ? 'var(--vermelho, #c0392b)' : 'var(--grafite)'; }
+    }
+    m.querySelector('#fcia-cancelar').addEventListener('click', fecharModal);
+
+    m.querySelector('#fcia-gerar').addEventListener('click', function () {
+      const material = m.querySelector('#fcia-material').value.trim();
+      const discId = m.querySelector('#fcia-disc').value;
+      const qtd = Math.min(30, Math.max(1, parseInt(m.querySelector('#fcia-qtd').value, 10) || 10));
+      if (material.length < 30) { setStatus('Cole um material mais completo (mínimo 30 caracteres).', true); return; }
+      const disc = discId ? D.disciplinaPorId(state, discId) : null;
+      const btn = m.querySelector('#fcia-gerar');
+      btn.disabled = true;
+      setStatus('Gerando cartas com a IA… isso pode levar alguns segundos.');
+      m.querySelector('#fcia-preview').innerHTML = '';
+      window.FirebaseSync.gerarFlashcardsIA({
+        material: material,
+        disciplina: disc ? disc.nome : '',
+        quantidade: qtd
+      }).then(function (res) {
+        cartasGeradas = (res && res.cards) || [];
+        if (cartasGeradas.length === 0) { setStatus('A IA não conseguiu gerar cartas desse material.', true); btn.disabled = false; return; }
+        setStatus(cartasGeradas.length + ' carta(s) geradas. Desmarque as que não quiser e importe.');
+        renderPreview();
+        btn.disabled = false;
+        btn.textContent = 'Gerar novamente';
+      }).catch(function (err) {
+        setStatus((err && err.message) || 'Falha ao gerar com a IA. Tente novamente.', true);
+        btn.disabled = false;
+      });
+    });
+
+    function renderPreview() {
+      const prev = m.querySelector('#fcia-preview');
+      prev.innerHTML = '<div class="fc-cartas-lista" style="margin-top:0.6rem">' +
+        cartasGeradas.map(function (c, i) {
+          return '<label class="fc-carta-linha" style="align-items:flex-start;gap:0.5rem">' +
+            '<input type="checkbox" class="fcia-sel" data-i="' + i + '" checked style="margin-top:0.3rem">' +
+            '<div class="fc-carta-fv"><strong>' + esc(c.frente) + '</strong><span>' + esc(c.verso) + '</span></div></label>';
+        }).join('') + '</div>' +
+        '<div class="modal-acoes"><button id="fcia-importar">Importar selecionadas</button></div>';
+      prev.querySelector('#fcia-importar').addEventListener('click', importar);
+    }
+
+    function importar() {
+      const sel = [];
+      m.querySelectorAll('.fcia-sel').forEach(function (cb) {
+        if (cb.checked) sel.push(cartasGeradas[+cb.getAttribute('data-i')]);
+      });
+      if (sel.length === 0) { setStatus('Selecione pelo menos uma carta.', true); return; }
+      let deckId = m.querySelector('#fcia-deck').value;
+      let deck = deckId ? state.flashcards.find(function (d) { return d.id === deckId; }) : null;
+      if (!deck) {
+        const discId = m.querySelector('#fcia-disc').value;
+        const disc = discId ? D.disciplinaPorId(state, discId) : null;
+        deck = {
+          id: window.Store.novoId('fcd'), planoId: state.planoAtivoId,
+          disciplinaId: discId || null,
+          nome: (disc ? nomeDiscCurto(disc.nome) : 'Geral') + ' · IA',
+          criadoEm: D.hojeISO(), cards: []
+        };
+        state.flashcards.push(deck);
+      }
+      sel.forEach(function (c) {
+        deck.cards.push({
+          id: window.Store.novoId('fck'), frente: c.frente, verso: c.verso, criadoEm: D.hojeISO(),
+          sr: { intervalo: 0, facilidade: 2.5, repeticoes: 0, lapsos: 0, proximaRevisao: null, ultimaRevisao: null }
+        });
+      });
+      salvar();
+      fecharModal();
+      revisoesAba = 'flashcards';
+      render();
+      toast(sel.length + ' carta(s) importada(s) com IA', 'sucesso');
+    }
   }
 
   function abrirEditarCarta(card, aoSalvar) {
@@ -2242,6 +2386,8 @@
     });
     const novoDeck = raiz.querySelector('#fc-novo-deck');
     if (novoDeck) novoDeck.addEventListener('click', abrirNovoDeck);
+    const gerarIA = raiz.querySelector('#fc-gerar-ia');
+    if (gerarIA) gerarIA.addEventListener('click', abrirGerarFlashcardsIA);
     const aleatorio = raiz.querySelector('#fc-aleatorio');
     if (aleatorio) aleatorio.addEventListener('click', function () {
       const hoje = D.hojeISO();
@@ -2380,7 +2526,7 @@
       const antes = t.status;
       t.status = novo;
       if ((novo === 'teoria_concluida' || novo === 'dominado') && antes !== 'teoria_concluida' && antes !== 'dominado') {
-        if (agendarRevisoesSeNecessario(t.id)) toast('Revisões agendadas: 24h · 7d · 30d', 'sucesso');
+        if (agendarRevisoesSeNecessario(t.id)) toast('Revisões agendadas: 24h · 3d · 7d · 14d · 30d', 'sucesso');
       }
       if ((novo === 'pendente' || novo === 'em_curso') && (antes === 'teoria_concluida' || antes === 'dominado')) {
         removerRevisoesPendentes(t.id);
@@ -4878,16 +5024,43 @@
     return 'geral';
   }
 
-  function alternarGrupos(lista, limite) {
+  // Recebe os docs já ordenados por importância (score) e devolve a ORDEM DE INÍCIO
+  // com as dificuldades espalhadas: rodízio difícil → normal → fácil. Dentro de cada
+  // dificuldade preserva a ordem de importância. Garante que as primeiras semanas
+  // já intercalem matérias difíceis com fáceis/normais (motivação no começo) sem
+  // atrasar as difíceis, que entram logo na primeira rodada.
+  function espalharPorDificuldade(docsOrdenados) {
+    const filas = { dificil: [], media: [], facil: [] };
+    docsOrdenados.forEach(function (d) { (filas[d.dif] || filas.media).push(d); });
+    const ordem = [];
+    const sequencia = [filas.dificil, filas.media, filas.facil];
+    while (sequencia.some(function (f) { return f.length; })) {
+      sequencia.forEach(function (f) { if (f.length) ordem.push(f.shift()); });
+    }
+    return ordem;
+  }
+
+  // Escolhe até `limite` disciplinas variando o grupo cognitivo (linguagem/lógica/
+  // direito/...) para a semana não ser monótona. Com `alternarDif`, no início do
+  // plano também evita emendar duas matérias "difíceis", intercalando com as
+  // fáceis/normais — assim o aluno sente progresso e não desanima.
+  function alternarGrupos(lista, limite, alternarDif) {
     const pool = lista.slice();
     const escolhidos = [];
-    let ultimoGrupo = '';
+    let ultimoGrupo = '', ultimaDif = '';
     while (pool.length > 0 && escolhidos.length < limite) {
-      let idx = pool.findIndex(function (x) { return x.grupo !== ultimoGrupo; });
+      let idx = -1;
+      if (alternarDif) {
+        // ideal: muda grupo E dificuldade ao mesmo tempo
+        idx = pool.findIndex(function (x) { return x.grupo !== ultimoGrupo && (x.dif || 'media') !== ultimaDif; });
+      }
+      if (idx < 0) idx = pool.findIndex(function (x) { return x.grupo !== ultimoGrupo; });
+      if (idx < 0 && alternarDif) idx = pool.findIndex(function (x) { return (x.dif || 'media') !== ultimaDif; });
       if (idx < 0) idx = 0;
       const item = pool.splice(idx, 1)[0];
       escolhidos.push(item);
       ultimoGrupo = item.grupo;
+      ultimaDif = item.dif || 'media';
     }
     return escolhidos;
   }
@@ -5044,15 +5217,26 @@
         disciplina: d,
         idx,
         grupo: grupoCognitivoDisciplina(d),
+        dif: d.dificuldade || 'media',
         topicos,
         cursor: 0,
-        score: (d.peso || 1) * 4 * multDificuldade(d) + incidencia / 20 + prioridade / Math.max(1, topicos.length),
+        // A dificuldade dá só uma leve dianteira na ORDEM (matéria difícil convém
+        // começar cedo p/ ter tempo de maturar), mas sem dominar o início. O ganho
+        // real de tempo de uma matéria difícil vem das HORAS por semana
+        // (distribuicaoSemanal), não de monopolizar as primeiras semanas. Assim o
+        // começo intercala difíceis com fáceis/normais e o aluno colhe vitórias logo.
+        score: (d.peso || 1) * 4 * multDificuldadeOrdem(d) + incidencia / 20 + prioridade / Math.max(1, topicos.length),
         inicio: 1
       };
     }).filter(function (d) { return d.topicos.length > 0; }).sort(function (a, b) {
       return b.score - a.score || a.idx - b.idx;
     });
-    docs.forEach(function (d, idx) {
+    // A SEMANA DE INÍCIO segue um rodízio de dificuldade (difícil → normal → fácil
+    // → difícil ...), não o score puro. Sem isso, com pesos/incidências parecidos,
+    // as matérias difíceis ocupariam sozinhas as primeiras semanas e o aluno
+    // começaria o plano só apanhando. Assim a largada já mistura difícil com
+    // fácil/normal — vitórias rápidas no começo, sem perder o foco no que é pesado.
+    espalharPorDificuldade(docs).forEach(function (d, idx) {
       d.inicio = idx < 3 ? 1 : Math.min(semanas, 2 + Math.floor((idx - 2) * semanas / Math.max(1, docs.length)));
     });
     const estudadosPorSemana = {};
@@ -5070,7 +5254,10 @@
       const passoRampa = Math.max(3, Math.round(semanas / Math.max(1, docs.length)));
       const rampa = Math.min(limiteMax, 3 + Math.floor((s - 1) / passoRampa));
       const limite = s < semanas * 0.72 ? rampa : Math.min(limiteMax, rampa + 1);
-      alternarGrupos(ativos, limite).forEach(function (d) {
+      // No início do plano (primeiros ~40%) também alterna a dificuldade percebida,
+      // para cada semana misturar matéria difícil com fácil/normal e não desmotivar.
+      const inicioPlano = s <= Math.max(2, Math.round(semanas * 0.4));
+      alternarGrupos(ativos, limite, inicioPlano).forEach(function (d) {
         const item = d.topicos[d.cursor++];
         if (!item) return;
         const t = item.topico;
@@ -5144,7 +5331,9 @@
   // faltam. Se a teoria não couber no prazo, estende o prazo e a data de término.
   // As semanas passadas ficam congeladas (histórico); blocos manuais da agenda
   // são preservados. Retorna um resumo do que mudou (ou null se não se aplica).
-  function recalcularPlanoAdaptativo() {
+  // forcar: recalcula mesmo na 1ª semana (ação explícita do usuário, ex.: aluno
+  // avançado que marca teoria já concluída e quer o plano refeito na hora).
+  function recalcularPlanoAdaptativo(forcar) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos) return null;
     const chave = entrada.plano.ritmoAtivo;
@@ -5155,11 +5344,13 @@
     const inicioPlano = D.segundaDaSemana(entrada.plano.gerado_em || hoje);
     const inicioAtual = D.segundaDaSemana(hoje);
     const semanasDecorridas = Math.max(0, Math.round(D.diffDias(inicioPlano, inicioAtual) / 7));
-    if (semanasDecorridas <= 0) return null; // plano ainda na 1ª semana: nada a refazer
+    if (semanasDecorridas <= 0 && !forcar) return null; // auto-recalc: nada a refazer na 1ª semana
+    // Quando forçado na 1ª semana, refaz desde o início do plano (sem semanas congeladas).
+    const inicioBase = semanasDecorridas <= 0 ? inicioPlano : inicioAtual;
 
     entrada.cronogramas = entrada.cronogramas || {};
     const cronAntigo = entrada.cronogramas[chave] || [];
-    const passadas = cronAntigo.filter(function (s) { return s.inicio < inicioAtual; }); // semanas finalizadas = histórico congelado
+    const passadas = cronAntigo.filter(function (s) { return s.inicio < inicioBase; }); // semanas finalizadas = histórico congelado
 
     // tópicos já vencidos (teoria concluída ou dominados) — não voltam para a teoria
     const concluidos = new Set();
@@ -5178,7 +5369,7 @@
       rel = {};
       futuras = gerarCronogramaHierarquico(entrada.disciplinas, semanasUsar, {
         horasSemana: ritmo.h_semana, ordemAtaque: ordem,
-        inicio: inicioAtual, semanaBase: semanasDecorridas, concluidos: concluidos, relatorio: rel
+        inicio: inicioBase, semanaBase: semanasDecorridas, concluidos: concluidos, relatorio: rel
       });
       if (rel.teoriaAgendada >= rel.teoriaTotal) break;
       semanasUsar += 4; tentativas++;
@@ -5830,7 +6021,7 @@
     });
     const recalcular = raiz.querySelector('#pl-recalcular');
     if (recalcular) recalcular.addEventListener('click', function () {
-      const r = recalcularPlanoAdaptativo();
+      const r = recalcularPlanoAdaptativo(true);
       if (r) render();
       // A explicação some do card e só aparece aqui, quando o usuário toca no botão.
       abrirExplicacaoRecalculo({ resultado: r ? { aplicado: true, estendido: r.estendido, meses: r.meses } : { aplicado: false } });
@@ -6044,6 +6235,14 @@
   // ---------------- TELA: Planos (multiconcurso + perfil do aluno) ----------------
   function multDificuldade(d) {
     return d.dificuldade === 'facil' ? 0.75 : d.dificuldade === 'dificil' ? 1.4 : 1;
+  }
+
+  // Versão suavizada usada só na ORDEM do cronograma (qual matéria começa antes e
+  // sua prioridade na semana). Mantém uma leve dianteira para as difíceis sem
+  // deixá-las monopolizar o início — o tempo extra real vem das horas
+  // (multDificuldade em distribuicaoSemanal), não da ordem.
+  function multDificuldadeOrdem(d) {
+    return d.dificuldade === 'facil' ? 0.9 : d.dificuldade === 'dificil' ? 1.15 : 1;
   }
 
   // distribuição de horas da semana corrente: peso do concurso × dificuldade do aluno
@@ -6625,7 +6824,7 @@
     const m = abrirModal('<h3>Exportar para o calendário</h3>' +
       '<p class="sub">Gera um arquivo <strong>.ics</strong> com seus blocos de estudo e revisões — importável no Google Calendar, Apple ou Outlook. Custo zero, sem login.</p>' +
       '<label class="check-inline"><input type="checkbox" id="ics-blocos" checked> Blocos do cronograma</label><br>' +
-      '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> Revisões (24h · 7d · 30d · reforço)</label>' +
+      '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> Revisões (24h · 3d · 7d · 14d · 30d · reforço)</label>' +
       '<details style="margin-top:0.7rem"><summary style="cursor:pointer;font-weight:700;font-size:0.88rem">Como importar no Google Calendar</summary>' +
       '<p class="sub" style="margin-top:0.4rem">No computador: Google Calendar → ⚙ Configurações → <em>Importar e exportar</em> → escolha o arquivo .ics → <em>Importar</em>. O app continua sendo a fonte do plano; reexporte quando o cronograma mudar.</p></details>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="ics-cancelar">Fechar</button>' +

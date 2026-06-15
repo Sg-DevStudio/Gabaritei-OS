@@ -1,0 +1,12 @@
+{
+  "name": "app-gestao-estudos-functions",
+  "description": "Cloud Functions do App de Gestão de Estudos (geração de flashcards com IA)",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-functions": "^5.0.0"
+  },
+  "private": true
+}

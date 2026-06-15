@@ -76,13 +76,24 @@
 
   function sessoesDoPlano(state) { return doPlanoAtivo(state, state.sessoes); }
 
-  // ---------- RN01 — Teoria concluída agenda revisões 24h/7d/30d ----------
+  // ---------- RN01 — Teoria concluída agenda revisões (curva 1-3-7-14-30) ----------
+  // Intervalos expansivos (1, 3, 7, 14, 30 dias) — alinhados à evidência de
+  // repetição espaçada para achatar a curva do esquecimento. A 1ª revisão fica
+  // em ~24h (a mais crítica) e as demais espaçam progressivamente.
   function agendarRevisoes(topicoId, dataBaseISO) {
-    return [
-      { id: 'rev-' + topicoId + '-24h-' + dataBaseISO, topicoId, tipo: '24h', dataAgendada: addDias(dataBaseISO, 1), dataConcluida: null, resultadoPct: null },
-      { id: 'rev-' + topicoId + '-7d-' + dataBaseISO, topicoId, tipo: '7d', dataAgendada: addDias(dataBaseISO, 7), dataConcluida: null, resultadoPct: null },
-      { id: 'rev-' + topicoId + '-30d-' + dataBaseISO, topicoId, tipo: '30d', dataAgendada: addDias(dataBaseISO, 30), dataConcluida: null, resultadoPct: null }
+    const intervalos = [
+      { tipo: '24h', dias: 1 },
+      { tipo: '3d', dias: 3 },
+      { tipo: '7d', dias: 7 },
+      { tipo: '14d', dias: 14 },
+      { tipo: '30d', dias: 30 }
     ];
+    return intervalos.map(function (iv) {
+      return {
+        id: 'rev-' + topicoId + '-' + iv.tipo + '-' + dataBaseISO, topicoId: topicoId, tipo: iv.tipo,
+        dataAgendada: addDias(dataBaseISO, iv.dias), dataConcluida: null, resultadoPct: null
+      };
+    });
   }
 
   // ---------- RN02 — Desempenho acumulado ----------
@@ -121,6 +132,24 @@
   // ---------- RN03 — Revisão de 30d com <70% reabre o tópico ----------
   function revisaoReabreTopico(revisao, resultadoPct) {
     return revisao.tipo === '30d' && resultadoPct !== null && resultadoPct < 70;
+  }
+
+  // ---------- RN03b — Reforço: 3 desempenhos seguidos abaixo do limite sugerem
+  // voltar à teoria. Não reabre sozinho (decisão do aluno) — só sinaliza que as
+  // questões não estão fixando e a base teórica precisa ser revista.
+  const LIMITE_SUGESTAO_TEORIA = 65;
+  const MIN_SESSOES_SUGESTAO = 3;
+  function sugereRevisarTeoria(state, topicoId, limite, minSessoes) {
+    limite = limite || LIMITE_SUGESTAO_TEORIA;
+    minSessoes = minSessoes || MIN_SESSOES_SUGESTAO;
+    const ses = sessoesDoPlano(state)
+      .filter(function (s) { return s.topicoId === topicoId && s.qFeitas > 0; })
+      .slice()
+      .sort(function (a, b) { return String(a.data || '').localeCompare(String(b.data || '')); });
+    if (ses.length < minSessoes) return false;
+    return ses.slice(-minSessoes).every(function (s) {
+      return Math.round((s.qCertas / s.qFeitas) * 100) < limite;
+    });
   }
 
   // ---------- RN04 — Streak (dia conta com ≥1 sessão) ----------
@@ -702,6 +731,50 @@
     return { id: 'rev-' + topicoId + '-reforco-' + data, topicoId: topicoId, tipo: 'reforço', dataAgendada: data, dataConcluida: null, resultadoPct: null };
   }
 
+  // ---------- Espaçamento adaptativo das revisões (curva por desempenho) ----------
+  // A cadência de revisão reflete o histórico de acertos do tópico: quem vai
+  // melhorando precisa revisar com MENOS frequência (intervalos esticam), quem
+  // vai piorando precisa revisar com MAIS frequência (intervalos encurtam). É o
+  // mesmo princípio do SM-2 dos flashcards, aplicado às revisões do tópico.
+  const TIPOS_CICLO_REV = { '24h': 1, '3d': 1, '7d': 1, '14d': 1, '30d': 1 };
+
+  // Fator multiplicativo do espaçamento (1 = neutro). Acumula o efeito de cada
+  // revisão já feita: acerto alto estica, acerto baixo encurta. Como os multipli-
+  // cadores recentes compõem sobre os antigos, a TENDÊNCIA recente domina.
+  function fatorEspacamentoRevisao(revisoes, topicoId) {
+    const feitas = (revisoes || [])
+      .filter(function (r) {
+        return r.topicoId === topicoId && TIPOS_CICLO_REV[r.tipo] && r.dataConcluida && r.resultadoPct != null;
+      })
+      .sort(function (a, b) { return String(a.dataConcluida).localeCompare(String(b.dataConcluida)); });
+    let f = 1;
+    feitas.forEach(function (r) {
+      const p = r.resultadoPct;
+      if (p >= 85) f *= 1.25;        // dominando: espaça mais
+      else if (p >= 70) f *= 1.1;    // indo bem: espaça um pouco
+      else if (p >= 50) f *= 0.85;   // vacilando: aproxima
+      else f *= 0.6;                 // não fixou: aproxima bastante
+    });
+    return Math.max(0.4, Math.min(2.2, Math.round(f * 100) / 100));
+  }
+
+  // Reescala as revisões do ciclo ainda PENDENTES (futuras) do tópico pelo fator
+  // de espaçamento. Não mexe em revisões já feitas nem nas vencidas/de hoje.
+  function reagendarRevisoesAdaptativo(revisoes, topicoId, hoje) {
+    hoje = hoje || hojeISO();
+    const f = fatorEspacamentoRevisao(revisoes, topicoId);
+    let ajustadas = 0;
+    (revisoes || []).forEach(function (r) {
+      if (r.topicoId !== topicoId || !TIPOS_CICLO_REV[r.tipo] || r.dataConcluida) return;
+      const gap = diffDias(hoje, r.dataAgendada); // dias de hoje até a revisão
+      if (gap <= 0) return; // já venceu ou é hoje — não remarca
+      const novoGap = Math.max(1, Math.round(gap * f));
+      const novaData = addDias(hoje, novoGap);
+      if (novaData !== r.dataAgendada) { r.dataAgendada = novaData; ajustadas++; }
+    });
+    return { fator: f, ajustadas: ajustadas };
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -836,7 +909,8 @@
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
-    revisaoReabreTopico, streak, semaforo,
+    revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
+    reagendarRevisoesAdaptativo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
