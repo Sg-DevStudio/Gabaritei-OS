@@ -4907,18 +4907,35 @@
     return totalHorasEstimadasPlano(entrada) * 1.8;
   }
 
-  // Meses estimados p/ concluir o edital num dado ritmo (h/semana).
-  function mesesEstimadosRitmo(entrada, hSemana) {
+  // Semanas estimadas p/ concluir o edital num dado ritmo (h/semana). Float, com
+  // piso baixo (1 semana) só p/ evitar zero — preserva a ordem entre os ritmos.
+  function semanasEstimadasRitmo(entrada, hSemana) {
     const esforco = esforcoEditalHoras(entrada);
-    if (!esforco) return 6;
-    const semanas = esforco / Math.max(4, hSemana);
-    return Math.max(2, Math.round(semanas / 4.345));
+    if (!esforco) return 26; // sem disciplinas ainda: fallback ~6 meses
+    return Math.max(1, esforco / Math.max(4, hSemana));
   }
 
-  // Lista de ritmos já com os meses estimados para o edital ativo.
+  // Meses estimados (float) — derivado das semanas, sem piso/arredondamento que
+  // achatariam ritmos diferentes num mesmo número.
+  function mesesEstimadosRitmo(entrada, hSemana) {
+    return semanasEstimadasRitmo(entrada, hSemana) / 4.345;
+  }
+
+  // Exibição adaptativa: semanas p/ prazos curtos, meses p/ longos.
+  function formatarEstimativaPrazo(semanas) {
+    if (semanas < 8.5) {
+      const s = Math.max(1, Math.round(semanas));
+      return '~' + plural(s, 'semana', 'semanas');
+    }
+    const m = Math.max(1, Math.round(semanas / 4.345));
+    return '~' + plural(m, 'mês', 'meses');
+  }
+
+  // Lista de ritmos já com semanas/meses estimados para o edital ativo.
   function ritmosEstimados(entrada) {
     return RITMOS_PLANO.map(function (r) {
-      return { nome: r.nome, dica: r.dica, hSemana: r.hSemana, meses: mesesEstimadosRitmo(entrada, r.hSemana) };
+      const semanas = semanasEstimadasRitmo(entrada, r.hSemana);
+      return { nome: r.nome, dica: r.dica, hSemana: r.hSemana, semanas: semanas, meses: semanas / 4.345 };
     });
   }
 
@@ -5092,7 +5109,7 @@
       return false;
     }
     // meses agora é estimado a partir do edital (não mais fixo em 3/6/9).
-    meses = Math.max(2, Math.round(Number(meses) || mesesEstimadosRitmo(entrada, 18)));
+    meses = Math.max(1, Math.round(Number(meses) || mesesEstimadosRitmo(entrada, 18)));
     const semanas = semanasPorMeses(meses);
     const chave = 'plano_ativo';
     const hSemana = Math.max(4, Math.round(horasSemana || horasIdeaisSemanaPlano(entrada, meses) || 20));
@@ -5263,7 +5280,7 @@
       let melhor = Infinity;
       ritmosCalc.forEach(function (r) { const d = Math.abs(r.meses - atual.meses); if (d < melhor) { melhor = d; ritmoSel = r; } });
     }
-    const mesesAtual = ritmoSel ? ritmoSel.meses : 6;
+    const mesesAtual = ritmoSel ? Math.max(1, Math.round(ritmoSel.meses)) : 6;
     const idealAtual = horasIdeaisSemanaPlano(entrada, mesesAtual);
     const optsMin = TEMPOS_BLOCO.map(function (v) {
       return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + rotuloBloco(v) + '</option>';
@@ -5281,9 +5298,9 @@
     }).join('');
     // Passo 1 — Ritmo: cartões qualitativos com o prazo ESTIMADO pelo tamanho do edital.
     const prazoCards = ritmosCalc.map(function (p) {
-      return '<button type="button" class="gp-prazo-card' + (p === ritmoSel ? ' ativo' : '') + '" data-gp-meses="' + p.meses + '" data-gp-ritmo="' + esc(p.nome) + '">' +
+      return '<button type="button" class="gp-prazo-card' + (p === ritmoSel ? ' ativo' : '') + '" data-gp-meses="' + Math.max(1, Math.round(p.meses)) + '" data-gp-ritmo="' + esc(p.nome) + '">' +
         '<span class="gp-prazo-ritmo">' + esc(p.nome) + '</span>' +
-        '<span class="gp-prazo-unid">estimativa ~' + p.meses + ' meses</span>' +
+        '<span class="gp-prazo-unid">estimativa ' + formatarEstimativaPrazo(p.semanas) + '</span>' +
         '<span class="gp-prazo-nome">' + esc(p.dica) + '</span></button>';
     }).join('');
 
