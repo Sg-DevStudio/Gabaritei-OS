@@ -4393,8 +4393,8 @@
       sustentavel: 'Sustentável',
       hardcore: 'Hardcore',
       plano_ativo: 'Plano gerado',
-      plano_3m: 'Intensivo',
-      plano_6m: 'Regular',
+      plano_3m: 'Acelerado',
+      plano_6m: 'Equilibrado',
       plano_9m: 'Construção de base'
     };
     let base;
@@ -4777,7 +4777,7 @@
       '<div class="checkin-kpi"><span class="checkin-num">' + cargaValor + 'h</span>' +
       '<span class="checkin-rotulo">' + cargaRotulo + '</span></div>' +
       '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo">' + esc(formatarSemanasDias(burn.semanasRestantes)) + '</span>' +
-      '<span class="checkin-rotulo">Para terminar o plano</span></div></div>' +
+      '<span class="checkin-rotulo">Conclusão estimada (ajusta ao seu ritmo)</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
       '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular" title="' + esc(EXPLICACAO_RECALCULO) + '">↻ Recalcular plano agora</button></div>' +
@@ -4894,10 +4894,13 @@
   }
 
   // Parte 3 — macro-planos de estudo
+  // Ritmos qualitativos (sem prometer um prazo rígido). O 'meses' segue só como
+  // estimativa interna: Acelerado termina antes do Equilibrado, que termina
+  // antes da Construção de base.
   const MACRO_PLANOS = [
-    { meses: 3, nome: 'Intensivo (reta final / pós-edital)' },
-    { meses: 6, nome: 'Regular' },
-    { meses: 9, nome: 'Construção de base (pré-edital)' }
+    { meses: 3, nome: 'Acelerado', dica: 'reta final / pós-edital' },
+    { meses: 6, nome: 'Equilibrado', dica: 'ritmo regular' },
+    { meses: 9, nome: 'Construção de base', dica: 'pré-edital' }
   ];
 
   const NIVEIS_DIF = [
@@ -5236,11 +5239,12 @@
         '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
         '</label>';
     }).join('');
-    // Passo 1 — Prazo: cartões em vez de um <select> denso.
+    // Passo 1 — Ritmo: cartões qualitativos (o prazo aparece só como estimativa).
     const prazoCards = MACRO_PLANOS.map(function (p) {
       return '<button type="button" class="gp-prazo-card' + (p.meses === mesesAtual ? ' ativo' : '') + '" data-gp-meses="' + p.meses + '">' +
-        '<span class="gp-prazo-num">' + p.meses + '</span><span class="gp-prazo-unid">meses</span>' +
-        '<span class="gp-prazo-nome">' + esc(p.nome) + '</span></button>';
+        '<span class="gp-prazo-ritmo">' + esc(p.nome) + '</span>' +
+        '<span class="gp-prazo-unid">estimativa ~' + p.meses + ' meses</span>' +
+        '<span class="gp-prazo-nome">' + esc(p.dica) + '</span></button>';
     }).join('');
 
     // Passo 3 — Dificuldade por disciplina (alimenta o algoritmo de distribuição de horas).
@@ -5266,8 +5270,8 @@
 
       // ---- Passo 1: prazo ----
       '<section class="gp-step" data-step="1">' +
-      '<h3>Em quanto tempo quer fechar o edital?</h3>' +
-      '<p class="sub">Escolha o ritmo. Nas próximas telas o sistema confere se a sua rotina cabe nesse prazo.</p>' +
+      '<h3>Qual ritmo você quer seguir?</h3>' +
+      '<p class="sub">Escolha o ritmo do plano. O prazo é só uma estimativa e se ajusta à sua realidade — nas próximas telas o sistema confere se a sua rotina acompanha.</p>' +
       '<input type="hidden" id="gp-meses" value="' + mesesAtual + '">' +
       '<div class="gp-prazo-cards">' + prazoCards + '</div>' +
       '</section>' +
@@ -5378,11 +5382,12 @@
       }
       if (idealEl) idealEl.textContent = formatarHorasSemana(ideal);
       if (feedback) {
+        const macroNome = (MACRO_PLANOS.find(function (p) { return p.meses === meses; }) || {}).nome || (meses + ' meses');
         feedback.classList.toggle('alerta', !ok);
         feedback.classList.toggle('ok', ok);
         feedback.textContent = ok
-          ? 'Sua rotina está compatível para fechar o edital em ' + meses + ' meses.'
-          : 'Com a quantidade planejada, provavelmente não será possível fechar o edital em ' + meses + ' meses. Aumente as horas, escolha um prazo maior ou reduza o escopo.';
+          ? 'Sua rotina acompanha bem o ritmo ' + macroNome + '.'
+          : 'Sua rotina está abaixo do ritmo ' + macroNome + ' — você ainda avança, só mais devagar. Aumente as horas ou escolha um ritmo mais tranquilo.';
       }
     }
     // resumo final do assistente (passo 4)
@@ -5393,10 +5398,11 @@
       const total = totalMinutosRotina(rotinaDoModal()) / 60;
       const ideal = horasIdeaisSemanaPlano(entrada, meses);
       const ok = total >= ideal;
+      const macroNome = (MACRO_PLANOS.find(function (p) { return p.meses === meses; }) || {}).nome || (meses + ' meses');
       resumo.classList.toggle('alerta', !ok);
       resumo.classList.toggle('ok', ok);
-      resumo.textContent = 'Resumo: terminar em ' + meses + ' meses, ' + formatarHorasSemana(total) + '. ' +
-        (ok ? 'Rotina compatível com o prazo. 👍' : 'A rotina pode não fechar o edital nesse prazo — reveja os dias/horas ou aumente o prazo.');
+      resumo.textContent = 'Resumo: ritmo ' + macroNome + ' (estimativa ~' + meses + ' meses), ' + formatarHorasSemana(total) + '. ' +
+        (ok ? 'Sua rotina acompanha esse ritmo. 👍' : 'Sua rotina está abaixo desse ritmo — você avança mais devagar; reveja os dias/horas ou escolha um ritmo mais tranquilo.');
     }
 
     atualizarTotal();

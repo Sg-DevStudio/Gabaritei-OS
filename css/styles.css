@@ -1734,7 +1734,8 @@ td.num, th.num { text-align: right; }
 .gp-prazo-card.ativo,
 .gp-prazo-card.ativo:hover { border-color: var(--caneta); background: var(--caneta-suave); }
 .gp-prazo-num { font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--caneta-forte); }
-.gp-prazo-unid { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grafite); font-weight: 700; }
+.gp-prazo-ritmo { font-size: 1.05rem; font-weight: 800; line-height: 1.1; color: var(--caneta-forte); }
+.gp-prazo-unid { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--grafite); font-weight: 700; margin-top: 0.25rem; }
 .gp-prazo-nome { font-size: 0.82rem; color: var(--grafite); margin-top: 0.3rem; line-height: 1.25; }
 
 .gp-dif-lista { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem; }
