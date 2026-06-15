@@ -1753,8 +1753,9 @@
     if (state.disciplinas.length === 0) {
       return '<section class="timer-page"><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
-        'Importe o plano para escolher um tópico e cronometrar o estudo.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div></section>';
+        'Escolha seu concurso para montar o plano e cronometrar seus estudos.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#ajustes" style="font-size:0.85rem">ou importar um plano</a></p></div></div></section>';
     }
 
     const ativo = window.Timer.estado();
@@ -2653,8 +2654,9 @@
     if (state.disciplinas.length === 0) {
       return '<h1>Edital</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
-        'O edital verticalizado aparece aqui depois de importar o plano.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div>';
+        'O edital verticalizado aparece aqui depois que você escolhe seu concurso.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#ajustes" style="font-size:0.85rem">ou importar um plano</a></p></div></div>';
     }
 
     const prog = D.progressoEdital(state);
@@ -2759,8 +2761,9 @@
     if (!state.plano) {
       return '<h1>Simulados</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
-        'Importe o plano para registrar simulados e comparar com a meta de corte.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#ajustes">Importar plano</a></p></div></div>';
+        'Escolha seu concurso para registrar simulados e comparar com a meta de corte.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#ajustes" style="font-size:0.85rem">ou importar um plano</a></p></div></div>';
     }
     const meta = state.plano.meta.corte_pct;
     let html = '<div class="cab-pagina"><div><h1>Simulados</h1>' +
