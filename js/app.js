@@ -891,7 +891,7 @@
       '<div class="msg-erro oculto" id="reg-erro"></div>' +
       '<label for="reg-obs">Observação (opcional)</label><textarea id="reg-obs" placeholder="Ex.: travei em prazos de recurso"></textarea>' +
       '<label style="display:flex;align-items:center;gap:0.5rem;font-weight:400">' +
-      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Marcar teoria deste tópico como concluída (agenda revisões 24h · 3d · 7d · 14d · 30d)</label>' +
+      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Teoria finalizada neste tópico (agenda as revisões e recalcula o plano, tirando-o da fila de teoria)</label>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="reg-cancelar">Cancelar</button>' +
       '<button type="submit">Registrar sessão</button>' +
@@ -959,9 +959,11 @@
       obs: dados.obs || ''
     });
 
+    let marcouTeoria = false;
     const topico = D.topicoPorId(state, dados.topicoId);
     if (topico) {
       if (dados.teoriaOk && topico.status !== 'dominado') {
+        marcouTeoria = topico.status !== 'teoria_concluida';
         topico.status = 'teoria_concluida';
         if (agendarRevisoesSeNecessario(dados.topicoId)) {
           toast('Revisões agendadas: 24h · 3d · 7d · 14d · 30d', 'sucesso');
@@ -976,6 +978,13 @@
 
     salvar();
     toast('Sessão registrada', 'sucesso');
+
+    // Teoria concluída tira o tópico da fila de teoria e replaneja o restante
+    // (caso do aluno avançado que já dominou parte do edital).
+    if (marcouTeoria) {
+      const r = recalcularPlanoAdaptativo(true);
+      if (r) toast('Teoria concluída — plano recalculado; este tópico saiu da fila de teoria.', 'sucesso');
+    }
 
     // RN07 — sugestão de reestudo (o usuário decide)
     const streakDepois = D.streak(D.sessoesDoPlano(state), hoje);
@@ -5322,7 +5331,9 @@
   // faltam. Se a teoria não couber no prazo, estende o prazo e a data de término.
   // As semanas passadas ficam congeladas (histórico); blocos manuais da agenda
   // são preservados. Retorna um resumo do que mudou (ou null se não se aplica).
-  function recalcularPlanoAdaptativo() {
+  // forcar: recalcula mesmo na 1ª semana (ação explícita do usuário, ex.: aluno
+  // avançado que marca teoria já concluída e quer o plano refeito na hora).
+  function recalcularPlanoAdaptativo(forcar) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos) return null;
     const chave = entrada.plano.ritmoAtivo;
@@ -5333,11 +5344,13 @@
     const inicioPlano = D.segundaDaSemana(entrada.plano.gerado_em || hoje);
     const inicioAtual = D.segundaDaSemana(hoje);
     const semanasDecorridas = Math.max(0, Math.round(D.diffDias(inicioPlano, inicioAtual) / 7));
-    if (semanasDecorridas <= 0) return null; // plano ainda na 1ª semana: nada a refazer
+    if (semanasDecorridas <= 0 && !forcar) return null; // auto-recalc: nada a refazer na 1ª semana
+    // Quando forçado na 1ª semana, refaz desde o início do plano (sem semanas congeladas).
+    const inicioBase = semanasDecorridas <= 0 ? inicioPlano : inicioAtual;
 
     entrada.cronogramas = entrada.cronogramas || {};
     const cronAntigo = entrada.cronogramas[chave] || [];
-    const passadas = cronAntigo.filter(function (s) { return s.inicio < inicioAtual; }); // semanas finalizadas = histórico congelado
+    const passadas = cronAntigo.filter(function (s) { return s.inicio < inicioBase; }); // semanas finalizadas = histórico congelado
 
     // tópicos já vencidos (teoria concluída ou dominados) — não voltam para a teoria
     const concluidos = new Set();
@@ -5356,7 +5369,7 @@
       rel = {};
       futuras = gerarCronogramaHierarquico(entrada.disciplinas, semanasUsar, {
         horasSemana: ritmo.h_semana, ordemAtaque: ordem,
-        inicio: inicioAtual, semanaBase: semanasDecorridas, concluidos: concluidos, relatorio: rel
+        inicio: inicioBase, semanaBase: semanasDecorridas, concluidos: concluidos, relatorio: rel
       });
       if (rel.teoriaAgendada >= rel.teoriaTotal) break;
       semanasUsar += 4; tentativas++;
@@ -6008,7 +6021,7 @@
     });
     const recalcular = raiz.querySelector('#pl-recalcular');
     if (recalcular) recalcular.addEventListener('click', function () {
-      const r = recalcularPlanoAdaptativo();
+      const r = recalcularPlanoAdaptativo(true);
       if (r) render();
       // A explicação some do card e só aparece aqui, quando o usuário toca no botão.
       abrirExplicacaoRecalculo({ resultado: r ? { aplicado: true, estendido: r.estendido, meses: r.meses } : { aplicado: false } });
