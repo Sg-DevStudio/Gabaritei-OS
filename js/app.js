@@ -3184,7 +3184,14 @@
   }
 
   // ---- metadados de catálogo (campos opcionais, retrocompatíveis) ----
-  const NIVEIS_EDITAL = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
+  const NIVEIS_EDITAL = {
+    fundamental: 'Ensino fundamental',
+    medio: 'Ensino médio',
+    tecnico: 'Nível médio técnico',
+    superior: 'Ensino superior',
+    facil: 'Ensino médio',
+    dificil: 'Ensino superior'
+  };
   function nivelEdital(e) { return e && e.nivel && NIVEIS_EDITAL[e.nivel] ? e.nivel : 'medio'; }
   function horasEsforcoEdital(e) { return Math.round(D.totalHorasTeoria((e && e.disciplinas) || []) * 1.8); }
   function tempoMedioMesesEdital(e) { return Math.max(1, Math.round(horasEsforcoEdital(e) / (12 * 4.345))); }
@@ -3420,7 +3427,7 @@
       cargo: (json.cargo || '').toString().trim(),
       area: (json.area || json['área'] || '').toString().trim(),
       estado: (json.estado || json.uf || '').toString().trim().toUpperCase().slice(0, 2),
-      nivel: (json.nivel || '').toString().trim(),
+      nivel: (json.escolaridade || json.nivel_escolaridade || json.nivel || '').toString().trim(),
       notaCorte: amplaFinal != null ? amplaFinal : (corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null),
       tipoCorte: 'ampla',
       janelaProva: { inicio: (jp.inicio || '').toString(), fim: (jp.fim || '').toString() },
@@ -3583,7 +3590,7 @@
       (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
       '<div class="catalogo-metricas">' +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
-      metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Prova', esc(janelaProvaTexto(e))) +
       metrica('Tempo médio', '~' + tempoMedioMesesEdital(e) + ' meses') +
       '</div>' +
@@ -3611,7 +3618,7 @@
       '</div></div>' +
       '<div class="catalogo-metricas">' +
       metrica('Corte', esc(rotuloCorteEdital(e))) +
-      metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Prova', esc(janelaProvaTexto(e))) +
       '</div>' +
       '<div class="catalogo-acoes">' +
@@ -3795,7 +3802,7 @@
       '<p class="sub">' + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
       '<div class="catalogo-metricas" style="margin:0.5rem 0">' +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
-      metrica('Nível', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Prova', esc(janelaProvaTexto(e))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
       '</div>' +
@@ -3993,8 +4000,10 @@
 
   function editorEditalBody() {
     const e = editorEdital;
-    const nivelOpts = Object.keys(NIVEIS_EDITAL).map(function (k) {
-      return '<option value="' + k + '"' + (e.nivel === k ? ' selected' : '') + '>' + NIVEIS_EDITAL[k] + '</option>';
+    const nivelEscolaridadeOpts = ['fundamental', 'medio', 'tecnico', 'superior'];
+    const nivelAtual = nivelEdital(e);
+    const nivelOpts = nivelEscolaridadeOpts.map(function (k) {
+      return '<option value="' + k + '"' + (nivelAtual === k ? ' selected' : '') + '>' + NIVEIS_EDITAL[k] + '</option>';
     }).join('');
     const cortes = e.cortes || {};
     const cAmpla = cortes.ampla != null ? cortes.ampla : (e.notaCorte != null ? e.notaCorte : 70);
@@ -4009,7 +4018,7 @@
       '<div><label>Área</label><input id="ee-area" type="text" value="' + esc(e.area || '') + '" placeholder="Ex.: Administrativa"></div></div>' +
       '<div class="grade-3">' +
       '<div><label>Estado (UF)</label><input id="ee-estado" type="text" maxlength="2" value="' + esc(e.estado) + '" style="text-transform:uppercase"></div>' +
-      '<div><label>Nível de dificuldade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
+      '<div><label>Escolaridade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
       '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>' +
       '<div class="ee-cortes-grupo"><span class="ee-grupo-rotulo">Notas de corte do último aprovado (%)</span>' +
       '<div class="grade-3">' +
