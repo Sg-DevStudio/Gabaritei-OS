@@ -2032,6 +2032,7 @@
     let html = '<div class="card fc-topo">' +
       '<div class="fc-topo-acoes">' +
       '<button class="botao" id="fc-aleatorio"' + (devidasTotal ? '' : ' disabled') + '>🔀 Estudo aleatório' + (devidasTotal ? ' (' + devidasTotal + ')' : '') + '</button>' +
+      '<button class="botao-secundario" id="fc-gerar-ia">✨ Gerar com IA</button>' +
       '<button class="botao-secundario" id="fc-novo-deck">+ Novo deck</button>' +
       '</div>' +
       '<p class="sub">' + cartasTotal + ' carta(s) no total · ' + devidasTotal + ' para revisar hoje</p>' +
@@ -2105,6 +2106,123 @@
       render();
       toast('Deck criado — adicione cartas', 'sucesso');
     });
+  }
+
+  // Geração de flashcards com IA: o aluno cola o material, a IA (via Cloud Function
+  // segura) devolve cartas; o aluno revisa e importa para um deck novo ou existente.
+  function abrirGerarFlashcardsIA() {
+    if (!state.plano) { toast('Ative um plano antes de gerar flashcards.', 'erro'); return; }
+    if (!window.FirebaseSync || typeof window.FirebaseSync.gerarFlashcardsIA !== 'function') {
+      toast('Recurso de IA indisponível nesta versão.', 'erro'); return;
+    }
+    const st = window.FirebaseSync.status ? window.FirebaseSync.status() : null;
+    if (!st || !st.usuario) {
+      toast('Entre com sua conta Google (em Configurações) para usar a IA.', 'erro'); return;
+    }
+    const discs = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    const discOpts = discs.map(function (d) {
+      return '<option value="' + esc(d.id) + '">' + esc(nomeDiscCurto(d.nome)) + '</option>';
+    }).join('') + '<option value="">Sem disciplina (geral)</option>';
+    const decksExist = decksDoPlano();
+    const deckOpts = '<option value="">➕ Criar novo deck</option>' + decksExist.map(function (dk) {
+      return '<option value="' + esc(dk.id) + '">' + esc(dk.nome) + ' (' + (dk.cards || []).length + ')</option>';
+    }).join('');
+
+    const m = abrirModal(
+      '<h3>✨ Gerar flashcards com IA</h3>' +
+      '<p class="sub">Cole o material (resumo, lei, PDF colado) e a IA monta as cartas. Você revisa antes de importar.</p>' +
+      '<div class="grade-2">' +
+      '<div><label for="fcia-disc">Disciplina</label><select id="fcia-disc">' + discOpts + '</select></div>' +
+      '<div><label for="fcia-qtd">Quantas cartas</label><input id="fcia-qtd" type="number" min="1" max="30" value="10"></div>' +
+      '</div>' +
+      '<label for="fcia-deck" style="display:block;margin-top:0.6rem">Adicionar a</label>' +
+      '<select id="fcia-deck">' + deckOpts + '</select>' +
+      '<label for="fcia-material" style="display:block;margin-top:0.6rem">Material de estudo</label>' +
+      '<textarea id="fcia-material" rows="8" placeholder="Cole aqui o conteúdo que você quer transformar em flashcards..."></textarea>' +
+      '<p class="sub" id="fcia-status" style="min-height:1.2em"></p>' +
+      '<div id="fcia-preview"></div>' +
+      '<div class="modal-acoes"><button class="botao-quieto" id="fcia-cancelar">Cancelar</button>' +
+      '<button id="fcia-gerar">Gerar cartas</button></div>'
+    );
+    m.classList.add('modal-amplo');
+    let cartasGeradas = [];
+
+    function setStatus(txt, erro) {
+      const el = m.querySelector('#fcia-status');
+      if (el) { el.textContent = txt || ''; el.style.color = erro ? 'var(--vermelho, #c0392b)' : 'var(--grafite)'; }
+    }
+    m.querySelector('#fcia-cancelar').addEventListener('click', fecharModal);
+
+    m.querySelector('#fcia-gerar').addEventListener('click', function () {
+      const material = m.querySelector('#fcia-material').value.trim();
+      const discId = m.querySelector('#fcia-disc').value;
+      const qtd = Math.min(30, Math.max(1, parseInt(m.querySelector('#fcia-qtd').value, 10) || 10));
+      if (material.length < 30) { setStatus('Cole um material mais completo (mínimo 30 caracteres).', true); return; }
+      const disc = discId ? D.disciplinaPorId(state, discId) : null;
+      const btn = m.querySelector('#fcia-gerar');
+      btn.disabled = true;
+      setStatus('Gerando cartas com a IA… isso pode levar alguns segundos.');
+      m.querySelector('#fcia-preview').innerHTML = '';
+      window.FirebaseSync.gerarFlashcardsIA({
+        material: material,
+        disciplina: disc ? disc.nome : '',
+        quantidade: qtd
+      }).then(function (res) {
+        cartasGeradas = (res && res.cards) || [];
+        if (cartasGeradas.length === 0) { setStatus('A IA não conseguiu gerar cartas desse material.', true); btn.disabled = false; return; }
+        setStatus(cartasGeradas.length + ' carta(s) geradas. Desmarque as que não quiser e importe.');
+        renderPreview();
+        btn.disabled = false;
+        btn.textContent = 'Gerar novamente';
+      }).catch(function (err) {
+        setStatus((err && err.message) || 'Falha ao gerar com a IA. Tente novamente.', true);
+        btn.disabled = false;
+      });
+    });
+
+    function renderPreview() {
+      const prev = m.querySelector('#fcia-preview');
+      prev.innerHTML = '<div class="fc-cartas-lista" style="margin-top:0.6rem">' +
+        cartasGeradas.map(function (c, i) {
+          return '<label class="fc-carta-linha" style="align-items:flex-start;gap:0.5rem">' +
+            '<input type="checkbox" class="fcia-sel" data-i="' + i + '" checked style="margin-top:0.3rem">' +
+            '<div class="fc-carta-fv"><strong>' + esc(c.frente) + '</strong><span>' + esc(c.verso) + '</span></div></label>';
+        }).join('') + '</div>' +
+        '<div class="modal-acoes"><button id="fcia-importar">Importar selecionadas</button></div>';
+      prev.querySelector('#fcia-importar').addEventListener('click', importar);
+    }
+
+    function importar() {
+      const sel = [];
+      m.querySelectorAll('.fcia-sel').forEach(function (cb) {
+        if (cb.checked) sel.push(cartasGeradas[+cb.getAttribute('data-i')]);
+      });
+      if (sel.length === 0) { setStatus('Selecione pelo menos uma carta.', true); return; }
+      let deckId = m.querySelector('#fcia-deck').value;
+      let deck = deckId ? state.flashcards.find(function (d) { return d.id === deckId; }) : null;
+      if (!deck) {
+        const discId = m.querySelector('#fcia-disc').value;
+        const disc = discId ? D.disciplinaPorId(state, discId) : null;
+        deck = {
+          id: window.Store.novoId('fcd'), planoId: state.planoAtivoId,
+          disciplinaId: discId || null,
+          nome: (disc ? nomeDiscCurto(disc.nome) : 'Geral') + ' · IA',
+          criadoEm: D.hojeISO(), cards: []
+        };
+        state.flashcards.push(deck);
+      }
+      sel.forEach(function (c) {
+        deck.cards.push({
+          id: window.Store.novoId('fck'), frente: c.frente, verso: c.verso, criadoEm: D.hojeISO(),
+          sr: { intervalo: 0, facilidade: 2.5, repeticoes: 0, lapsos: 0, proximaRevisao: null, ultimaRevisao: null }
+        });
+      });
+      salvar();
+      fecharModal();
+      revisoesAba = 'flashcards';
+      render();
+      toast(sel.length + ' carta(s) importada(s) com IA', 'sucesso');
+    }
   }
 
   function abrirEditarCarta(card, aoSalvar) {
@@ -2242,6 +2360,8 @@
     });
     const novoDeck = raiz.querySelector('#fc-novo-deck');
     if (novoDeck) novoDeck.addEventListener('click', abrirNovoDeck);
+    const gerarIA = raiz.querySelector('#fc-gerar-ia');
+    if (gerarIA) gerarIA.addEventListener('click', abrirGerarFlashcardsIA);
     const aleatorio = raiz.querySelector('#fc-aleatorio');
     if (aleatorio) aleatorio.addEventListener('click', function () {
       const hoje = D.hojeISO();

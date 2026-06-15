@@ -22,6 +22,10 @@ import {
   setDoc,
   updateDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import {
+  getFunctions,
+  httpsCallable
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBAxmw7gFkMk0aPwIGHQblo5nLFz8fKKnU',
@@ -39,6 +43,8 @@ const FOLGA_RELOGIO_MS = 1000;
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+// Região fixa, igual à definida na Cloud Function (setGlobalOptions).
+const functions = getFunctions(app, 'us-central1');
 const provider = new GoogleAuthProvider();
 const refCatalogo = doc(db, 'public', 'catalogo');
 const pedidosCollection = collection(db, 'pedidosEdital');
@@ -292,9 +298,22 @@ async function marcarPedidoAtendido(id) {
   await updateDoc(doc(db, 'pedidosEdital', id), { status: 'atendido', atendidoEm: new Date().toISOString() });
 }
 
+// Gera flashcards via Cloud Function (a chave do Gemini fica no servidor).
+// Exige usuário autenticado; devolve { cards: [{frente, verso}], modelo }.
+async function gerarFlashcardsIA(payload) {
+  if (!usuario) throw new Error('Faça login para gerar flashcards com IA.');
+  const fn = httpsCallable(functions, 'gerarFlashcards');
+  const res = await fn({
+    material: (payload && payload.material) || '',
+    disciplina: (payload && payload.disciplina) || '',
+    quantidade: (payload && payload.quantidade) || 10
+  });
+  return res.data;
+}
+
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo,
   carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA
 };
 window.dispatchEvent(new CustomEvent('firebase-sync-ready'));
