@@ -928,7 +928,8 @@
       return;
     }
     const topicoIni = opcoes.topicoId || null;
-    const discIni = topicoIni ? D.disciplinaDoTopico(state, topicoIni) : state.disciplinas[0];
+    const discIni = topicoIni ? D.disciplinaDoTopico(state, topicoIni)
+      : (opcoes.disciplinaId ? D.disciplinaPorId(state, opcoes.disciplinaId) : null) || state.disciplinas[0];
 
     const optsDisc = state.disciplinas.map(function (d) {
       return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
@@ -1036,6 +1037,19 @@
       }
       if (topico.reaberto && dados.qFeitas > 0 && !D.sugerirReestudo(dados.qFeitas, dados.qCertas)) {
         topico.reaberto = false; // desempenho recuperado tira o tópico da fila de reabertos
+      }
+    }
+
+    // Ciclo de estudos: credita o tempo da sessão no bloco da matéria e avança a fila.
+    const ciclo = D.cicloAtivo(state);
+    if (ciclo && topico) {
+      const disc = D.disciplinaDoTopico(state, dados.topicoId);
+      const av = D.avancarCiclo(ciclo, disc ? disc.id : null, dados.duracaoMin);
+      if (av.completouVolta) {
+        confete();
+        toast('Volta do ciclo concluída! Recomeçando a fila 🔄', 'sucesso');
+      } else if (av.completouBloco) {
+        toast('Bloco do ciclo concluído — próxima matéria liberada ✓', 'sucesso');
       }
     }
 
@@ -1265,13 +1279,32 @@
 
     const fila = D.filaHoje(state, hoje);
     const meta = D.metaSemanal(state, hoje);
-    const sem = state.plano ? D.semanaCorrente(state, hoje) : null;
+    const ciclo = D.cicloAtivo(state);
+    const sem = (state.plano && !ciclo) ? D.semanaCorrente(state, hoje) : null;
 
     // agenda manual do dia entra na fila logo após as revisões
     const itensAgenda = agendaHoje.map(function (a) { return { categoria: 'agenda', agenda: a }; });
     let posInsercao = 0;
     while (posInsercao < fila.length && fila[posInsercao].categoria === 'revisao') posInsercao++;
     fila.splice.apply(fila, [posInsercao, 0].concat(itensAgenda));
+
+    // Modo ciclo: troca os blocos do cronograma pela fila do ciclo (bloco atual
+    // + próximos), logo após as revisões vencidas.
+    if (ciclo) {
+      for (let k = fila.length - 1; k >= 0; k--) { if (fila[k].categoria === 'bloco') fila.splice(k, 1); }
+      const blocos = ciclo.blocos || [];
+      const idxAtual = blocos.findIndex(function (b) { return (b.feitoMin || 0) < (b.metaMin || 0); });
+      const cicloItens = [];
+      if (idxAtual >= 0) {
+        for (let k = idxAtual; k < blocos.length && cicloItens.length < 3; k++) {
+          const b = blocos[k];
+          if ((b.feitoMin || 0) < (b.metaMin || 0)) cicloItens.push({ categoria: 'ciclo', bloco: b, atual: k === idxAtual });
+        }
+      }
+      let pos = 0;
+      while (pos < fila.length && fila[pos].categoria === 'revisao') pos++;
+      fila.splice.apply(fila, [pos, 0].concat(cicloItens));
+    }
 
     // Os blocos da semana seguem a MESMA ordem do calendário do Planejamento
     // (dia a dia, seg→dom, e dentro do dia a ordem dos blocos), para a lista de
@@ -1296,7 +1329,8 @@
     }
 
     const nRev = fila.filter(function (i) { return i.categoria === 'revisao'; }).length;
-    const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !i.agenda.feito); }).length;
+    const nCiclo = fila.filter(function (i) { return i.categoria === 'ciclo'; }).length;
+    const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !i.agenda.feito); }).length + nCiclo;
     const pendentes = nRev + nBlocos + fila.filter(function (i) { return i.categoria === 'reaberto'; }).length;
     const resumoDia = pendentes === 0 ? 'Tudo em dia por hoje.' :
       nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
@@ -1353,7 +1387,12 @@
 
     // fila do dia (RN06 + agenda manual)
     html += '<div class="card estudar-hoje-card"><h3 style="margin-bottom:0.25rem">O que estudar hoje? 🤔</h3>';
-    if (sem && sem.futura) {
+    if (ciclo) {
+      const temBlocos = (ciclo.blocos || []).length > 0;
+      html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">🔄 Ciclo de estudos · Volta ' + (ciclo.volta || 1) +
+        (temBlocos ? ' — siga a fila no seu ritmo' : '') +
+        ' · <a href="#planejamento">editar ciclo</a></p>';
+    } else if (sem && sem.futura) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma começa em ' + D.formatarDataBR(sem.proxima.inicio) + ' (semana 1). Revisões e tópicos reabertos já aparecem aqui.</p>';
     } else if (sem && sem.encerrado) {
       html += '<div class="fim-cronograma"><p class="sub" style="margin:0 0 0.5rem">🏁 Você chegou ao fim do cronograma planejado! Gere uma nova fase para seguir até a prova, ou continue pelas revisões e simulados.</p>' +
@@ -1371,6 +1410,29 @@
     } else {
       for (let i = 0; i < fila.length; i++) {
         const item = fila[i];
+        if (item.categoria === 'ciclo') {
+          const b = item.bloco;
+          const dC = D.disciplinaPorId(state, b.disciplinaId);
+          const tC = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+          const feito = Math.min(b.feitoMin || 0, b.metaMin || 0);
+          const pct = b.metaMin > 0 ? Math.round((feito / b.metaMin) * 100) : 0;
+          const restante = Math.max(0, (b.metaMin || 0) - feito);
+          const tituloC = (dC ? tagDisc(dC) + ' ' : '') + esc(tC ? tC.nome : (dC ? dC.nome : b.disciplinaId));
+          const dataReg = 'data-disc="' + esc(b.disciplinaId) + '"' + (b.topicoId ? ' data-id="' + esc(b.topicoId) + '"' : '') + ' data-dur="' + restante + '"';
+          html += '<div class="fila-item fila-checklist' + (item.atual ? ' fila-ciclo-atual' : '') + '">' +
+            '<span class="fila-ciclo-marca" aria-hidden="true">' + (item.atual ? '▶' : '○') + '</span>' +
+            '<div class="fila-corpo">' +
+            '<div class="fila-info"><div class="fila-titulo">' + tituloC + '</div>' +
+            '<div class="fila-sub">' + D.formatarMin(feito) + ' / ' + D.formatarMin(b.metaMin || 0) +
+            '<span class="fila-ciclo-barra"><span style="width:' + pct + '%;background:' + esc(dC ? dC.cor : '#9A9DA3') + '"></span></span></div></div>' +
+            '<div class="fila-rodape">' +
+            '<span class="etiqueta etiqueta-bloco">' + (item.atual ? 'Ciclo · agora' : 'Ciclo') + '</span>' +
+            '<div class="fila-acoes">' +
+            '<button class="botao-mini botao-quieto" data-acao="ciclo-timer" ' + dataReg + '>Timer</button>' +
+            '<button class="botao-mini" data-acao="ciclo-registrar" ' + dataReg + '>Estudar</button>' +
+            '</div></div></div></div>';
+          continue;
+        }
         if (item.categoria === 'agenda') {
           const a = item.agenda;
           const dA = D.disciplinaPorId(state, a.disciplinaId);
@@ -1607,6 +1669,18 @@
           location.hash = '#timer';
         } else if (acao === 'registrar') {
           abrirRegistro({ topicoId: el.getAttribute('data-id'), tipo: el.getAttribute('data-tipo') || 'teoria' });
+        } else if (acao === 'ciclo-timer') {
+          const topId = el.getAttribute('data-id') ||
+            ((D.disciplinaPorId(state, el.getAttribute('data-disc')) || { topicos: [] }).topicos.map(function (t) { return t.id; })[0]);
+          if (topId) { timerPreselecao = topId; location.hash = '#timer'; }
+          else toast('Crie um tópico para esta disciplina antes de usar o timer.', 'erro');
+        } else if (acao === 'ciclo-registrar') {
+          const dur = parseInt(el.getAttribute('data-dur'), 10);
+          abrirRegistro({
+            topicoId: el.getAttribute('data-id') || null,
+            disciplinaId: el.getAttribute('data-disc'),
+            duracaoMin: dur > 0 ? dur : 30
+          });
         } else if (acao === 'vincular-bloco') {
           vincularBlocoEstudado(el.getAttribute('data-id'), el.getAttribute('data-tipo') || 'teoria', el.getAttribute('data-inicio') || D.segundaDaSemana(D.hojeISO()));
         } else if (acao === 'concluir-revisao') {
@@ -6004,6 +6078,20 @@
         '<button class="botao botao-secundario" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
     }
 
+    // Seletor de método: cronograma fixo (por semana) OU ciclo de estudos
+    // (fila ponderada que roda no ritmo do aluno). A tela Hoje segue o ativo.
+    const modoPlan = (state.plano && state.plano.modoPlanejamento) || 'cronograma';
+    html += '<div class="card modo-plan-card"><div class="modo-plan-toggle" role="tablist">' +
+      '<button type="button" class="modo-plan-op' + (modoPlan === 'cronograma' ? ' ativo' : '') + '" data-modo-plan="cronograma" role="tab" aria-selected="' + (modoPlan === 'cronograma') + '">📅 Cronograma</button>' +
+      '<button type="button" class="modo-plan-op' + (modoPlan === 'ciclo' ? ' ativo' : '') + '" data-modo-plan="ciclo" role="tab" aria-selected="' + (modoPlan === 'ciclo') + '">🔄 Ciclo de estudos</button>' +
+      '</div><p class="sub modo-plan-dica">' +
+      (modoPlan === 'ciclo'
+        ? 'Estude na ordem da fila, no seu ritmo. Fechou a volta, recomeça — sem amarrar matéria a dia da semana.'
+        : 'Calendário por semana: arraste matérias para os dias e siga o plano.') +
+      '</p></div>';
+
+    if (modoPlan === 'ciclo') return html + cicloHtml();
+
     // paleta de disciplinas (arrastáveis) — no mobile mostra 1 linha (5) + "Ver mais"
     const discPaleta = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
     const chipsOcultos = Math.max(0, discPaleta.length - PALETA_LIMITE_MOBILE);
@@ -6098,6 +6186,64 @@
     return html;
   }
 
+  // ---- Ciclo de estudos: fila ponderada de matérias com meta de tempo ----
+  function cicloHtml() {
+    const ciclo = state.plano.ciclo || { blocos: [], volta: 1 };
+    const blocos = ciclo.blocos || [];
+
+    if (blocos.length === 0) {
+      return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
+        '<strong>Seu ciclo está vazio</strong>Gere uma fila ponderada pelas suas matérias (peso, incidência e seu desempenho) e ajuste arrastando.' +
+        '<p style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
+        '<button class="botao" id="ciclo-gerar">✨ Gerar ciclo sugerido</button>' +
+        '<button class="botao botao-secundario" id="ciclo-add">+ Adicionar matéria</button></p></div></div>';
+    }
+
+    const atual = D.blocoCicloAtual(ciclo);
+    const totalMeta = blocos.reduce(function (n, b) { return n + (b.metaMin || 0); }, 0);
+    const totalFeito = blocos.reduce(function (n, b) { return n + Math.min(b.feitoMin || 0, b.metaMin || 0); }, 0);
+    const pctVolta = totalMeta > 0 ? Math.round((totalFeito / totalMeta) * 100) : 0;
+
+    let html = '<div class="card ciclo-card">' +
+      '<div class="ciclo-cab"><div><h3 style="margin:0">Sua fila do ciclo</h3>' +
+      '<p class="sub" style="margin:0.15rem 0 0">Volta ' + (ciclo.volta || 1) + ' · ' + D.formatarMin(totalFeito) + ' de ' + D.formatarMin(totalMeta) + ' (' + pctVolta + '%)</p></div>' +
+      '<div class="ciclo-cab-acoes"><button class="botao-mini botao-secundario" id="ciclo-gerar">✨ Regerar</button>' +
+      '<button class="botao-mini botao-quieto" id="ciclo-reiniciar">↺ Reiniciar volta</button></div></div>' +
+      '<div class="ciclo-lista">';
+
+    blocos.forEach(function (b, i) {
+      const d = D.disciplinaPorId(state, b.disciplinaId);
+      const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+      const feito = Math.min(b.feitoMin || 0, b.metaMin || 0);
+      const completo = feito >= (b.metaMin || 0);
+      const ehAtual = atual && atual.id === b.id;
+      const pct = b.metaMin > 0 ? Math.round((feito / b.metaMin) * 100) : 0;
+      const cor = d ? d.cor : '#9A9DA3';
+      html += '<div class="ciclo-bloco' + (completo ? ' completo' : '') + (ehAtual ? ' atual' : '') +
+        '" draggable="true" data-ciclo-bloco="' + esc(b.id) + '" style="border-left-color:' + esc(cor) + '">' +
+        '<span class="ciclo-bloco-arrasto" aria-hidden="true">⠿</span>' +
+        '<div class="ciclo-bloco-info">' +
+        '<div class="ciclo-bloco-topo"><span class="ciclo-bloco-nome">' + esc(d ? d.nome : b.disciplinaId) +
+        (ehAtual ? ' <span class="ciclo-badge-agora">agora</span>' : '') +
+        (completo ? ' <span class="ciclo-badge-ok">✓</span>' : '') + '</span>' +
+        '<span class="ciclo-bloco-min">' + D.formatarMin(feito) + ' / ' + D.formatarMin(b.metaMin || 0) + '</span></div>' +
+        (t ? '<span class="ciclo-bloco-topico">🎯 ' + esc(t.nome) + '</span>' : '') +
+        '<div class="ciclo-barra"><span style="width:' + pct + '%;background:' + esc(cor) + '"></span></div>' +
+        '</div>' +
+        '<div class="ciclo-bloco-acoes">' +
+        '<button class="ciclo-seta botao-mini botao-quieto" data-ciclo-mover="cima" data-id="' + esc(b.id) + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Subir">▲</button>' +
+        '<button class="ciclo-seta botao-mini botao-quieto" data-ciclo-mover="baixo" data-id="' + esc(b.id) + '"' + (i === blocos.length - 1 ? ' disabled' : '') + ' aria-label="Descer">▼</button>' +
+        '<button class="botao-mini botao-quieto" data-ciclo-editar="' + esc(b.id) + '" aria-label="Editar">✏️</button>' +
+        '<button class="botao-mini botao-quieto" data-ciclo-remover="' + esc(b.id) + '" aria-label="Remover">✕</button>' +
+        '</div></div>';
+    });
+
+    html += '</div>' +
+      '<div class="ciclo-rodape"><button class="botao-mini botao-secundario" id="ciclo-add">+ Adicionar matéria</button>' +
+      '<span class="paleta-dica">arraste pelo ⠿ ou use ▲▼ para reordenar</span></div></div>';
+    return html;
+  }
+
   // Tela de detalhes de um dia (a partir da visão mensal estilo Google)
   function abrirDetalhesDia(dataISO) {
     const blocos = blocosDoDia(dataISO);
@@ -6138,6 +6284,17 @@
   }
 
   function ligarPlanejamento(raiz) {
+    // alternar método (cronograma ↔ ciclo)
+    raiz.querySelectorAll('[data-modo-plan]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const novo = b.getAttribute('data-modo-plan');
+        if (!state.plano || state.plano.modoPlanejamento === novo) return;
+        state.plano.modoPlanejamento = novo;
+        salvar(); render();
+      });
+    });
+    ligarCiclo(raiz);
+
     const editais = raiz.querySelector('#pl-editais');
     if (editais) editais.addEventListener('click', abrirEditaisDisponiveis);
     const novaDiscCard = raiz.querySelector('#pl-nova-disc-card');
@@ -6300,6 +6457,153 @@
       salvar(); render();
       toast(ehNova ? 'Bloco de 1h adicionado — toque nele para ajustar' : 'Bloco reposicionado', 'sucesso');
     }
+  }
+
+  // ---- Ciclo de estudos: eventos e edição da fila ----
+  function ligarCiclo(raiz) {
+    const gerar = raiz.querySelector('#ciclo-gerar');
+    if (gerar) gerar.addEventListener('click', gerarCicloSugerido);
+    const add = raiz.querySelector('#ciclo-add');
+    if (add) add.addEventListener('click', function () { abrirEditarCiclo(null); });
+    const reiniciar = raiz.querySelector('#ciclo-reiniciar');
+    if (reiniciar) reiniciar.addEventListener('click', reiniciarVoltaCiclo);
+
+    raiz.querySelectorAll('[data-ciclo-mover]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        moverBlocoCiclo(b.getAttribute('data-id'), b.getAttribute('data-ciclo-mover'));
+      });
+    });
+    raiz.querySelectorAll('[data-ciclo-editar]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirEditarCiclo(b.getAttribute('data-ciclo-editar')); });
+    });
+    raiz.querySelectorAll('[data-ciclo-remover]').forEach(function (b) {
+      b.addEventListener('click', function () { removerBlocoCiclo(b.getAttribute('data-ciclo-remover')); });
+    });
+
+    // arrastar para reordenar (desktop); ▲▼ cobrem mobile/acessibilidade
+    raiz.querySelectorAll('[data-ciclo-bloco]').forEach(function (el) {
+      el.addEventListener('dragstart', function (e) {
+        e.dataTransfer.setData('text/plain', el.getAttribute('data-ciclo-bloco'));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      el.addEventListener('dragover', function (e) { e.preventDefault(); el.classList.add('drop-antes'); });
+      el.addEventListener('dragleave', function () { el.classList.remove('drop-antes'); });
+      el.addEventListener('drop', function (e) {
+        e.preventDefault();
+        el.classList.remove('drop-antes');
+        reordenarCiclo(e.dataTransfer.getData('text/plain'), el.getAttribute('data-ciclo-bloco'));
+      });
+    });
+  }
+
+  function gerarCicloSugerido() {
+    const ciclo = state.plano.ciclo || (state.plano.ciclo = { blocos: [], volta: 1 });
+    function gerar() {
+      const min = totalMinutosRotina(rotinaEstudosAtual());
+      const blocos = D.sugerirCiclo(state, { minutosSemana: min > 0 ? min : 600 });
+      if (blocos.length === 0) { toast('Adicione disciplinas antes de gerar o ciclo.', 'erro'); return; }
+      ciclo.blocos = blocos;
+      ciclo.volta = 1;
+      salvar(); render();
+      toast('Ciclo gerado pelas suas matérias — ajuste à vontade.', 'sucesso');
+    }
+    if (ciclo.blocos && ciclo.blocos.length > 0) {
+      confirmar({
+        titulo: 'Regerar o ciclo?',
+        mensagem: 'Isso substitui a fila atual e o progresso da volta por uma nova sugestão.',
+        confirmar: 'Regerar', perigo: true
+      }).then(function (ok) { if (ok) gerar(); });
+    } else {
+      gerar();
+    }
+  }
+
+  function reiniciarVoltaCiclo() {
+    const ciclo = state.plano.ciclo;
+    if (!ciclo || !ciclo.blocos || ciclo.blocos.length === 0) return;
+    ciclo.blocos.forEach(function (b) { b.feitoMin = 0; });
+    ciclo.volta = 1;
+    salvar(); render();
+    toast('Volta reiniciada — bora começar de novo!', 'sucesso');
+  }
+
+  function moverBlocoCiclo(id, dir) {
+    const blocos = state.plano.ciclo.blocos;
+    const i = blocos.findIndex(function (b) { return b.id === id; });
+    if (i < 0) return;
+    const j = dir === 'cima' ? i - 1 : i + 1;
+    if (j < 0 || j >= blocos.length) return;
+    const tmp = blocos[i]; blocos[i] = blocos[j]; blocos[j] = tmp;
+    salvar(); render();
+  }
+
+  function reordenarCiclo(idArrastado, idAlvo) {
+    if (!idArrastado || idArrastado === idAlvo) return;
+    const blocos = state.plano.ciclo.blocos;
+    const de = blocos.findIndex(function (b) { return b.id === idArrastado; });
+    if (de < 0) return;
+    const item = blocos.splice(de, 1)[0];
+    const alvo = blocos.findIndex(function (b) { return b.id === idAlvo; });
+    blocos.splice(alvo < 0 ? blocos.length : alvo, 0, item);
+    salvar(); render();
+  }
+
+  function removerBlocoCiclo(id) {
+    const blocos = state.plano.ciclo.blocos;
+    const i = blocos.findIndex(function (b) { return b.id === id; });
+    if (i < 0) return;
+    blocos.splice(i, 1);
+    salvar(); render();
+    toast('Matéria removida do ciclo', 'sucesso');
+  }
+
+  // Modal de adicionar (b === null) ou editar um bloco do ciclo.
+  function abrirEditarCiclo(id) {
+    if (state.disciplinas.length === 0) { abrirNovaDisciplina(); return; }
+    const ciclo = state.plano.ciclo || (state.plano.ciclo = { blocos: [], volta: 1 });
+    const b = id ? ciclo.blocos.find(function (x) { return x.id === id; }) : null;
+    const discIni = b ? b.disciplinaId : state.disciplinas.filter(function (d) { return d.id !== 'ORF'; })[0].id;
+    const optsDisc = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
+      return '<option value="' + esc(d.id) + '"' + (d.id === discIni ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
+    }).join('');
+    const m = abrirModal(
+      '<h3>' + (b ? 'Editar bloco do ciclo' : 'Adicionar ao ciclo') + '</h3>' +
+      '<form id="form-ciclo">' +
+      '<label for="cic-disc">Disciplina</label><select id="cic-disc">' + optsDisc + '</select>' +
+      '<label for="cic-topico">Tópico-alvo (opcional)</label><select id="cic-topico"></select>' +
+      '<label for="cic-min">Meta de tempo (min)</label><input id="cic-min" type="number" min="10" max="240" step="5" value="' + (b ? (b.metaMin || 60) : 60) + '">' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="cic-cancelar">Cancelar</button>' +
+      '<button type="submit">' + (b ? 'Salvar' : 'Adicionar') + '</button></div></form>'
+    );
+    const selDisc = m.querySelector('#cic-disc');
+    const selTop = m.querySelector('#cic-topico');
+    function preencher() {
+      const d = D.disciplinaPorId(state, selDisc.value);
+      selTop.innerHTML = '<option value="">— disciplina inteira —</option>' +
+        (d ? d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
+          return '<option value="' + esc(t.id) + '"' + (b && t.id === b.topicoId ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
+        }).join('') : '');
+    }
+    preencher();
+    selDisc.addEventListener('change', preencher);
+    m.querySelector('#cic-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#form-ciclo').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const metaMin = Math.max(10, parseInt(m.querySelector('#cic-min').value, 10) || 60);
+      if (b) {
+        b.disciplinaId = selDisc.value;
+        b.topicoId = selTop.value || null;
+        b.metaMin = metaMin;
+        if (b.feitoMin > metaMin) b.feitoMin = metaMin;
+      } else {
+        ciclo.blocos.push({
+          id: window.Store.novoId('blc'), disciplinaId: selDisc.value,
+          topicoId: selTop.value || null, metaMin: metaMin, feitoMin: 0
+        });
+      }
+      salvar(); fecharModal(); render();
+      toast(b ? 'Bloco atualizado' : 'Matéria adicionada ao ciclo', 'sucesso');
+    });
   }
 
   // Drag and drop por toque: long-press inicia o arrasto; antes disso o scroll

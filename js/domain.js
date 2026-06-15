@@ -213,6 +213,87 @@
     );
   }
 
+  // ---------- Ciclo de estudos (alternativa ao cronograma fixo) ----------
+  // Fila ponderada de matérias com meta de tempo por bloco; roda no ritmo do
+  // aluno e, ao fechar a volta, recomeça. Tudo puro/testável (sem DOM).
+  function novoIdBloco() {
+    return 'blc-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function cicloAtivo(state) {
+    return (state.plano && state.plano.modoPlanejamento === 'ciclo') ? state.plano.ciclo : null;
+  }
+
+  // Bloco atual = primeiro ainda não concluído; null quando a volta fechou.
+  function blocoCicloAtual(ciclo) {
+    if (!ciclo || !Array.isArray(ciclo.blocos)) return null;
+    for (const b of ciclo.blocos) {
+      if ((b.feitoMin || 0) < (b.metaMin || 0)) return b;
+    }
+    return null;
+  }
+
+  // Gera blocos ponderados por peso da disciplina × incidência dos tópicos
+  // pendentes, com leve reforço para matérias com desempenho baixo. Exclui ORF.
+  function sugerirCiclo(state, opcoes) {
+    opcoes = opcoes || {};
+    const discs = (state.disciplinas || []).filter(function (d) { return d && d.id !== 'ORF'; });
+    if (discs.length === 0) return [];
+
+    const minutosSemana = opcoes.minutosSemana > 0 ? opcoes.minutosSemana : 600;
+    const pesos = discs.map(function (d) {
+      const incidencia = (d.topicos || []).reduce(function (s, t) {
+        if (t.orfao) return s;
+        const pend = t.status !== 'dominado' && t.status !== 'teoria_concluida';
+        return s + (pend ? (t.incidencia_pct || 1) : (t.incidencia_pct || 1) * 0.3);
+      }, 0);
+      const base = (d.peso || 1) * Math.max(1, incidencia);
+      // matéria fraca (desempenho < 70%) ganha até +50% de tempo
+      const pct = desempenhoDisciplina(state, d);
+      const reforco = (pct !== null && pct < 70) ? 1 + (70 - pct) / 140 : 1;
+      return { disc: d, peso: base * reforco };
+    });
+    const somaPesos = pesos.reduce(function (s, p) { return s + p.peso; }, 0) || 1;
+
+    return pesos.map(function (p) {
+      const bruto = (p.peso / somaPesos) * minutosSemana;
+      // múltiplos de 30, entre 30min e 2h (blocos digeríveis; o resto vira mais voltas)
+      const metaMin = Math.min(120, Math.max(30, Math.round(bruto / 30) * 30));
+      return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: null, metaMin: metaMin, feitoMin: 0 };
+    });
+  }
+
+  // Credita `minutos` ao bloco atual (se a disciplina bate) ou ao próximo bloco
+  // pendente daquela disciplina. Fecha a volta (reset + volta++) quando completa.
+  function avancarCiclo(ciclo, disciplinaId, minutos) {
+    const res = { creditou: false, completouBloco: false, completouVolta: false };
+    if (!ciclo || !Array.isArray(ciclo.blocos) || ciclo.blocos.length === 0) return res;
+    minutos = Math.max(0, Math.round(Number(minutos) || 0));
+    if (!minutos || !disciplinaId) return res;
+
+    const atual = blocoCicloAtual(ciclo);
+    let alvo = (atual && atual.disciplinaId === disciplinaId) ? atual : null;
+    if (!alvo) {
+      alvo = ciclo.blocos.find(function (b) {
+        return b.disciplinaId === disciplinaId && (b.feitoMin || 0) < (b.metaMin || 0);
+      }) || null;
+    }
+    if (!alvo) return res; // estudou algo fora do ciclo
+
+    const completoAntes = (alvo.feitoMin || 0) >= (alvo.metaMin || 0);
+    alvo.feitoMin = Math.min(alvo.metaMin || 0, (alvo.feitoMin || 0) + minutos);
+    res.creditou = true;
+    if (!completoAntes && alvo.feitoMin >= (alvo.metaMin || 0)) res.completouBloco = true;
+
+    // volta inteira concluída → zera e incrementa
+    if (!blocoCicloAtual(ciclo)) {
+      ciclo.blocos.forEach(function (b) { b.feitoMin = 0; });
+      ciclo.volta = (ciclo.volta || 1) + 1;
+      res.completouVolta = true;
+    }
+    return res;
+  }
+
   // ---------- RN06 — Fila do dia: revisões vencidas → blocos da semana → reabertos ----------
   function filaHoje(state, hoje) {
     const fila = [];
@@ -912,6 +993,7 @@
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
+    cicloAtivo, blocoCicloAtual, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
