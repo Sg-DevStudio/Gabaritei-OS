@@ -2986,3 +2986,97 @@ canvas.grafico {
     line-height: 1.25;
   }
 }
+
+/* ============================================================
+   Ciclo de estudos (alternativa ao cronograma fixo)
+   ============================================================ */
+.modo-plan-card { padding: 0.85rem 1rem; }
+.modo-plan-toggle {
+  display: inline-flex; gap: 0.25rem; padding: 0.25rem;
+  background: var(--papel-elevado); border-radius: 99px;
+  border: 1px solid var(--grafite-claro);
+}
+.modo-plan-op {
+  border: 0; background: transparent; color: var(--grafite);
+  font: inherit; font-weight: 600; cursor: pointer;
+  padding: 0.4rem 0.95rem; border-radius: 99px; transition: background 0.2s, color 0.2s;
+}
+.modo-plan-op.ativo { background: var(--caneta); color: #fff; }
+.modo-plan-dica { margin: 0.55rem 0 0; }
+
+.ciclo-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.ciclo-cab-acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.ciclo-lista { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.85rem; }
+.ciclo-bloco {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.6rem 0.7rem; border-radius: 12px;
+  background: var(--papel-elevado); border: 1px solid var(--grafite-claro);
+  border-left: 4px solid var(--grafite); cursor: grab;
+}
+.ciclo-bloco.atual { box-shadow: 0 0 0 2px var(--caneta-suave); border-color: var(--caneta); }
+.ciclo-bloco.completo { opacity: 0.62; }
+.ciclo-bloco.drop-antes { border-top: 2px dashed var(--caneta); }
+.ciclo-bloco-arrasto { color: var(--grafite); cursor: grab; user-select: none; font-size: 1.05rem; }
+.ciclo-bloco-info { flex: 1; min-width: 0; }
+.ciclo-bloco-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.ciclo-bloco-nome { font-weight: 600; }
+.ciclo-bloco-min { font-size: 0.8rem; color: var(--grafite); white-space: nowrap; }
+.ciclo-bloco-topico { display: block; font-size: 0.78rem; color: var(--grafite); margin: 0.1rem 0; }
+.ciclo-badge-agora {
+  font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  background: var(--caneta); color: #fff; padding: 0.05rem 0.4rem; border-radius: 99px; vertical-align: middle;
+}
+.ciclo-badge-ok { color: var(--correto); }
+.ciclo-barra { display: block; background: var(--barra-fundo); border-radius: 99px; height: 6px; overflow: hidden; margin-top: 0.35rem; }
+.ciclo-barra > span { display: block; height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+.ciclo-bloco-acoes { display: flex; align-items: center; gap: 0.15rem; flex-shrink: 0; }
+.ciclo-seta { padding: 0.2rem 0.45rem; line-height: 1; }
+.ciclo-seta[disabled] { opacity: 0.3; cursor: default; }
+.ciclo-rodape { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.75rem; }
+
+/* item do ciclo dentro da fila de Hoje */
+.fila-ciclo-atual { box-shadow: inset 0 0 0 2px var(--caneta-suave); border-radius: 12px; }
+.fila-ciclo-marca { color: var(--caneta); font-size: 0.9rem; width: 1.1rem; text-align: center; flex-shrink: 0; }
+.fila-ciclo-barra { display: inline-block; vertical-align: middle; width: 70px; height: 6px; background: var(--barra-fundo); border-radius: 99px; overflow: hidden; margin-left: 0.5rem; }
+.fila-ciclo-barra > span { display: block; height: 100%; border-radius: 99px; }
+
+/* ============================================================
+   Prontidão para a prova (aba Revisões)
+   ============================================================ */
+.etiqueta-alerta { background: var(--errado-suave); color: var(--errado); }
+
+.prontidao-card { display: flex; flex-direction: column; gap: 0.5rem; }
+.prontidao-card.prontidao-sem-prazo {
+  flex-direction: row; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;
+}
+.prontidao-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+.prontidao-cab strong { font-size: 1.02rem; }
+.prontidao-pct { font-family: var(--fonte-mono); font-weight: 700; font-size: 1.1rem; }
+.prontidao-bom .prontidao-pct { color: var(--correto); }
+.prontidao-medio .prontidao-pct { color: var(--alerta); }
+.prontidao-baixo .prontidao-pct { color: var(--errado); }
+.prontidao-sub { margin: 0.1rem 0 0; }
+.prontidao-alerta { color: var(--errado); font-weight: 600; }
+
+/* ============================================================
+   Refino visual — anéis e cards (aba Hoje e disciplina detalhada)
+   ============================================================ */
+/* Disciplina detalhada: os 4 cards de métrica centralizados, com o anel de
+   desempenho alinhado aos valores dos demais (inspirado no print). */
+.detalhe-metricas .card-kpi {
+  align-items: center;
+  text-align: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+}
+.detalhe-metricas .card-kpi-rotulo { align-self: stretch; }
+.detalhe-card-desempenho .detalhe-card-pizza { margin: 0.1rem 0 0.2rem; }
+
+/* Coluna "Rendimento" do edital verticalizado: anéis centralizados na coluna,
+   um alinhado ao outro, em vez de encostados à direita. */
+.edital-disc-card .edital-rend-col { text-align: center; }
+.edital-disc-card td.edital-rend-col .pizza-acertos { display: inline-grid; }
+
+/* Aba Hoje: leve elevação de descanso nos KPIs e respiro do anel no painel. */
+.home-kpis .card-kpi:not(.prova-card) { gap: 0.5rem; }
+.painel-disc-mobile .pizza-acertos { justify-self: end; }
