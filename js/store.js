@@ -58,6 +58,29 @@
     return state;
   }
 
+  // Garante modo de planejamento e ciclo válido em um plano (objeto plano.plano).
+  function normalizarCicloPlano(plano) {
+    if (plano.modoPlanejamento !== 'ciclo') plano.modoPlanejamento = 'cronograma';
+    if (!plano.ciclo || typeof plano.ciclo !== 'object') plano.ciclo = { blocos: [], volta: 1 };
+    if (!Array.isArray(plano.ciclo.blocos)) plano.ciclo.blocos = [];
+    const volta = parseInt(plano.ciclo.volta, 10);
+    plano.ciclo.volta = volta > 0 ? volta : 1;
+    plano.ciclo.blocos = plano.ciclo.blocos
+      .filter(function (b) { return b && b.disciplinaId; })
+      .map(function (b) {
+        const meta = Math.round(Number(b.metaMin));
+        const feito = Math.round(Number(b.feitoMin));
+        return {
+          id: b.id || novoId('blc'),
+          disciplinaId: String(b.disciplinaId),
+          topicoId: b.topicoId || null,
+          metaMin: meta > 0 ? meta : 60,
+          feitoMin: feito > 0 ? Math.min(feito, meta > 0 ? meta : 60) : 0
+        };
+      });
+    return plano;
+  }
+
   function migrar(state) {
     // ponto único para migrações de schema
     if (!state.config) state.config = { ultimoBackup: null, metaQuestoesSemana: 100 };
@@ -105,6 +128,9 @@
     if (state.planoAtivoId && !state.planos.some(function (p) { return p.id === state.planoAtivoId; })) {
       state.planoAtivoId = state.planos.length > 0 ? state.planos[0].id : null;
     }
+    // Ciclo de estudos: cada plano ganha um modo ('cronograma' | 'ciclo') e um
+    // ciclo (fila ponderada de blocos). Planos antigos ficam em 'cronograma'.
+    state.planos.forEach(function (p) { if (p && p.plano) normalizarCicloPlano(p.plano); });
     state.versao = VERSAO_SCHEMA;
     return hidratar(state);
   }

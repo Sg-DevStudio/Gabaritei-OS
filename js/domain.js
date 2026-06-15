@@ -213,6 +213,87 @@
     );
   }
 
+  // ---------- Ciclo de estudos (alternativa ao cronograma fixo) ----------
+  // Fila ponderada de matérias com meta de tempo por bloco; roda no ritmo do
+  // aluno e, ao fechar a volta, recomeça. Tudo puro/testável (sem DOM).
+  function novoIdBloco() {
+    return 'blc-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function cicloAtivo(state) {
+    return (state.plano && state.plano.modoPlanejamento === 'ciclo') ? state.plano.ciclo : null;
+  }
+
+  // Bloco atual = primeiro ainda não concluído; null quando a volta fechou.
+  function blocoCicloAtual(ciclo) {
+    if (!ciclo || !Array.isArray(ciclo.blocos)) return null;
+    for (const b of ciclo.blocos) {
+      if ((b.feitoMin || 0) < (b.metaMin || 0)) return b;
+    }
+    return null;
+  }
+
+  // Gera blocos ponderados por peso da disciplina × incidência dos tópicos
+  // pendentes, com leve reforço para matérias com desempenho baixo. Exclui ORF.
+  function sugerirCiclo(state, opcoes) {
+    opcoes = opcoes || {};
+    const discs = (state.disciplinas || []).filter(function (d) { return d && d.id !== 'ORF'; });
+    if (discs.length === 0) return [];
+
+    const minutosSemana = opcoes.minutosSemana > 0 ? opcoes.minutosSemana : 600;
+    const pesos = discs.map(function (d) {
+      const incidencia = (d.topicos || []).reduce(function (s, t) {
+        if (t.orfao) return s;
+        const pend = t.status !== 'dominado' && t.status !== 'teoria_concluida';
+        return s + (pend ? (t.incidencia_pct || 1) : (t.incidencia_pct || 1) * 0.3);
+      }, 0);
+      const base = (d.peso || 1) * Math.max(1, incidencia);
+      // matéria fraca (desempenho < 70%) ganha até +50% de tempo
+      const pct = desempenhoDisciplina(state, d);
+      const reforco = (pct !== null && pct < 70) ? 1 + (70 - pct) / 140 : 1;
+      return { disc: d, peso: base * reforco };
+    });
+    const somaPesos = pesos.reduce(function (s, p) { return s + p.peso; }, 0) || 1;
+
+    return pesos.map(function (p) {
+      const bruto = (p.peso / somaPesos) * minutosSemana;
+      // múltiplos de 30, entre 30min e 2h (blocos digeríveis; o resto vira mais voltas)
+      const metaMin = Math.min(120, Math.max(30, Math.round(bruto / 30) * 30));
+      return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: null, metaMin: metaMin, feitoMin: 0 };
+    });
+  }
+
+  // Credita `minutos` ao bloco atual (se a disciplina bate) ou ao próximo bloco
+  // pendente daquela disciplina. Fecha a volta (reset + volta++) quando completa.
+  function avancarCiclo(ciclo, disciplinaId, minutos) {
+    const res = { creditou: false, completouBloco: false, completouVolta: false };
+    if (!ciclo || !Array.isArray(ciclo.blocos) || ciclo.blocos.length === 0) return res;
+    minutos = Math.max(0, Math.round(Number(minutos) || 0));
+    if (!minutos || !disciplinaId) return res;
+
+    const atual = blocoCicloAtual(ciclo);
+    let alvo = (atual && atual.disciplinaId === disciplinaId) ? atual : null;
+    if (!alvo) {
+      alvo = ciclo.blocos.find(function (b) {
+        return b.disciplinaId === disciplinaId && (b.feitoMin || 0) < (b.metaMin || 0);
+      }) || null;
+    }
+    if (!alvo) return res; // estudou algo fora do ciclo
+
+    const completoAntes = (alvo.feitoMin || 0) >= (alvo.metaMin || 0);
+    alvo.feitoMin = Math.min(alvo.metaMin || 0, (alvo.feitoMin || 0) + minutos);
+    res.creditou = true;
+    if (!completoAntes && alvo.feitoMin >= (alvo.metaMin || 0)) res.completouBloco = true;
+
+    // volta inteira concluída → zera e incrementa
+    if (!blocoCicloAtual(ciclo)) {
+      ciclo.blocos.forEach(function (b) { b.feitoMin = 0; });
+      ciclo.volta = (ciclo.volta || 1) + 1;
+      res.completouVolta = true;
+    }
+    return res;
+  }
+
   // ---------- RN06 — Fila do dia: revisões vencidas → blocos da semana → reabertos ----------
   function filaHoje(state, hoje) {
     const fila = [];
@@ -775,6 +856,45 @@
     return { fator: f, ajustadas: ajustadas };
   }
 
+  // ---------- Prontidão para a prova: as revisões cabem antes da prova? ----------
+  // A janela da prova fica em state.plano.radar.janela_prova = [iniMes, fimMes]
+  // (strings AAAA-MM). O "prazo" para estar revisado é o INÍCIO da janela (a prova
+  // mais cedo possível), convertido para o 1º dia do mês.
+  function prazoProva(state) {
+    const janela = state.plano && state.plano.radar && state.plano.radar.janela_prova;
+    const ini = janela && janela[0];
+    if (!ini || !/^\d{4}-\d{2}/.test(ini)) return null;
+    return ini.slice(0, 7) + '-01';
+  }
+
+  // Mede quantos tópicos terminam o ciclo de revisão ANTES da prova. Um tópico está
+  // "pronto" se a sua revisão pendente mais distante cai até o prazo; senão, "em risco".
+  // Tópicos sem revisão pendente (todas já feitas) contam como prontos.
+  function prontidaoProva(state, hoje) {
+    const prazo = prazoProva(state);
+    if (!prazo) return null;
+    hoje = hoje || hojeISO();
+    const pend = doPlanoAtivo(state, state.revisoes)
+      .filter(function (r) { return !r.dataConcluida && topicoPorId(state, r.topicoId); });
+
+    const ultimaPorTopico = {};
+    let revisoesForaDoPrazo = 0;
+    pend.forEach(function (r) {
+      if (r.dataAgendada > prazo) revisoesForaDoPrazo++;
+      if (!ultimaPorTopico[r.topicoId] || r.dataAgendada > ultimaPorTopico[r.topicoId]) {
+        ultimaPorTopico[r.topicoId] = r.dataAgendada;
+      }
+    });
+
+    const ids = Object.keys(ultimaPorTopico);
+    let emRisco = 0;
+    ids.forEach(function (id) { if (ultimaPorTopico[id] > prazo) emRisco++; });
+    const totalTopicos = ids.length;
+    const prontos = totalTopicos - emRisco;
+    const pct = totalTopicos > 0 ? Math.round((prontos / totalTopicos) * 100) : 100;
+    return { prazo: prazo, totalTopicos: totalTopicos, prontos: prontos, emRisco: emRisco, revisoesForaDoPrazo: revisoesForaDoPrazo, pct: pct };
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -910,8 +1030,9 @@
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
-    reagendarRevisoesAdaptativo, streak, semaforo,
+    reagendarRevisoesAdaptativo, prazoProva, prontidaoProva, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
+    cicloAtivo, blocoCicloAtual, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
