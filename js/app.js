@@ -32,6 +32,7 @@
   let catalogoGlobalPromise = null;
   let catalogoPublicacaoErro = '';
   let catalogoPublicacaoOkEm = '';
+  let onboardingNomeAberto = false;
 
   // ---------------- utilidades de UI ----------------
   function esc(s) {
@@ -242,14 +243,18 @@
     const carregando = !window.FirebaseSync || (st && st.estado === 'carregando');
     const entrando = st && (st.estado === 'entrando' || st.estado === 'sincronizando');
     const texto = carregando ? 'Preparando acesso seguro...' : (entrando ? 'Conectando sua conta...' : 'Entrar com Google');
+    const constanciaPreview = [0, 7, 8, 14, 15, 16, 22, 23, 29, 30, 31, 36, 37, 38, 39];
     return '<section class="login-shell">' +
       '<div class="login-card">' +
       '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
       '<h1>Seu plano de aprovação, no piloto automático</h1>' +
-      '<p>O Gabaritei OS transforma o edital num cronograma semanal, equilibra teoria e questões, agenda as revisões na hora certa e acompanha seu desempenho — ajustando o ritmo para você chegar pronto no dia da prova.</p>' +
+      '<p>O Gabaritei OS transforma editais verticalizados em um plano de estudos semanal, destaca os tópicos mais cobrados, equilibra teoria e questões, agenda revisões e acompanha seu desempenho até o dia da prova.</p>' +
       '<ul class="login-features">' +
-      '<li><span aria-hidden="true">📅</span> Cronograma gerado a partir do edital, no seu ritmo</li>' +
+      '<li><span aria-hidden="true">📌</span> Editais verticalizados com indicação dos tópicos mais cobrados</li>' +
+      '<li><span aria-hidden="true">📅</span> Plano de estudos gerado a partir do edital, no seu ritmo</li>' +
+      '<li><span aria-hidden="true">⚖️</span> Comparação de editais para decidir se dá para conciliar concursos</li>' +
       '<li><span aria-hidden="true">🔁</span> Revisões espaçadas automáticas (1 · 3 · 7 · 14 · 30 dias)</li>' +
+      '<li><span aria-hidden="true">🃏</span> Flashcards para facilitar a revisão dos pontos difíceis</li>' +
       '<li><span aria-hidden="true">📊</span> Desempenho, metas semanais e plano que se ajusta a você</li>' +
       '</ul>' +
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
@@ -260,7 +265,7 @@
       '<div class="login-preview-line login-preview-line-1"></div>' +
       '<div class="login-preview-line login-preview-line-2"></div>' +
       '<div class="login-preview-grid">' + Array.from({ length: 42 }).map(function (_, i) {
-        return '<span class="' + (i > 34 || i === 8 || i === 16 ? 'ativo' : '') + '"></span>';
+        return '<span class="' + (constanciaPreview.indexOf(i) >= 0 ? 'ativo' : '') + '"></span>';
       }).join('') + '</div>' +
       '</div>' +
       '</section>';
@@ -356,6 +361,52 @@
       document.addEventListener('keydown', aoTecla);
       setTimeout(function () { input.focus(); input.select(); }, 20);
     });
+  }
+
+  function abrirOnboardingNome() {
+    if (!usuarioLogado() || !state.config || state.config.onboardingNomeVisto || onboardingNomeAberto) return;
+    if (document.getElementById('modal-raiz').children.length) return;
+    onboardingNomeAberto = true;
+    const sugerido = state.config.nomeUsuario || nomeUsuario();
+    const m = abrirModal(
+      '<div class="boas-vindas-modal">' +
+      '<div class="dialogo-icone" aria-hidden="true">👋</div>' +
+      '<h3>Bem-vindo ao Gabaritei OS</h3>' +
+      '<p class="sub dialogo-msg">Antes de começar: como você quer ser chamado na aba Hoje?</p>' +
+      '<form id="bv-form">' +
+      '<label for="bv-nome">Nome de saudação</label>' +
+      '<input id="bv-nome" type="text" maxlength="40" autocomplete="given-name" placeholder="Ex.: Ana" value="' + esc(sugerido || '') + '">' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="bv-pular">Pular</button>' +
+      '<button type="submit">Continuar</button></div>' +
+      '</form></div>'
+    );
+    m.classList.add('modal-dialogo', 'modal-boas-vindas');
+    aoFecharModal = function () {
+      onboardingNomeAberto = false;
+      if (!state.config.onboardingNomeVisto) {
+        state.config.onboardingNomeVisto = true;
+        salvar();
+      }
+    };
+    function finalizar(nome) {
+      if (nome) state.config.nomeUsuario = nome;
+      state.config.onboardingNomeVisto = true;
+      onboardingNomeAberto = false;
+      salvar();
+      fecharModal();
+      render();
+      if (nome) toast('Saudação atualizada', 'sucesso');
+    }
+    m.querySelector('#bv-pular').addEventListener('click', function () { finalizar(''); });
+    m.querySelector('#bv-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      finalizar(m.querySelector('#bv-nome').value.trim());
+    });
+    setTimeout(function () {
+      const input = m.querySelector('#bv-nome');
+      input.focus();
+      input.select();
+    }, 20);
   }
 
   // ---------------- tema claro/escuro ----------------
@@ -1093,10 +1144,20 @@
       '<div class="constancia-periodo"><button class="botao-mini botao-quieto" type="button" disabled>‹</button><span>' + D.formatarDataBR(inicio).slice(0, 5) + ' ~ ' + D.formatarDataBR(fim).slice(0, 5) + '</span><button class="botao-mini botao-quieto" type="button" disabled>›</button></div></div>' +
       '<div class="constancia-trilho">' + dias.map(function (d) {
         const fez = d.minutos > 0;
-        const classe = fez ? 'feito' : 'falha';
-        const simbolo = fez ? '✓' : '×';
-        return '<span class="constancia-dia constancia-' + classe + '" title="' + D.formatarDataBR(d.data) + ' — ' + D.formatarMin(d.minutos) + '">' + simbolo + '</span>';
+        const folga = !fez && diaFolgaRotina(d.data);
+        const classe = fez ? 'feito' : (folga ? 'folga' : 'falha');
+        const simbolo = fez ? '✓' : (folga ? '•' : '×');
+        const titulo = D.formatarDataBR(d.data) + ' — ' + (folga ? 'folga planejada' : D.formatarMin(d.minutos));
+        return '<span class="constancia-dia constancia-' + classe + '" title="' + titulo + '">' + simbolo + '</span>';
       }).join('') + '</div></div>';
+  }
+
+  function diaFolgaRotina(dataISO) {
+    const partes = String(dataISO || '').split('-').map(Number);
+    if (partes.length < 3) return false;
+    const chave = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'][new Date(partes[0], partes[1] - 1, partes[2]).getDay()];
+    const rotina = rotinaEstudosAtual();
+    return !!(rotina && rotina.dias && rotina.dias[chave] && !rotina.dias[chave].ativo);
   }
 
   function dadosPainelDisciplinas() {
@@ -2786,8 +2847,9 @@
     const hTop = Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
     html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
+    html += '<div class="card"><h3>Desempenho geral</h3><div class="grafico-box"><canvas class="grafico" id="graf-desempenho-geral"></canvas></div></div>';
     html += '<div class="card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
-    html += '<div class="card"><h3>Desempenho por disciplina × meta de corte</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+    html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
         ? '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>'
@@ -2802,22 +2864,23 @@
   function ligarStats(raiz) {
     if (!window.Graficos.disponivel()) return;
     const hoje = D.hojeISO();
+    const serie = D.serieSemanal(state, hoje, 8);
     const c1 = raiz.querySelector('#graf-evolucao');
-    if (c1) window.Graficos.evolucaoSemanal(c1, D.serieSemanal(state, hoje, 8));
+    if (c1) window.Graficos.evolucaoSemanal(c1, serie);
+    const cGeral = raiz.querySelector('#graf-desempenho-geral');
+    if (cGeral) window.Graficos.desempenhoGeralSemanal(cGeral, serie);
     const cHoras = raiz.querySelector('#graf-horas-disc');
     if (cHoras) window.Graficos.disciplinasHoras(cHoras, dadosHorasPorDisciplina());
     const c2 = raiz.querySelector('#graf-meta');
     if (c2 && state.disciplinas.length > 0) {
-      const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
       const dados = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
         return { sigla: d.id, pct: D.desempenhoDisciplina(state, d) };
       });
-      window.Graficos.desempenhoVsMeta(c2, dados, metaPct);
+      window.Graficos.desempenhoPorDisciplina(c2, dados);
     }
     const cTopicos = raiz.querySelector('#graf-topicos');
     if (cTopicos) {
-      const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
-      window.Graficos.topicosDesempenho(cTopicos, dadosTopicosDesempenho(), metaPct);
+      window.Graficos.topicosDesempenho(cTopicos, dadosTopicosDesempenho());
     }
   }
 
@@ -4215,6 +4278,7 @@
     const nomeUsuarioEl = raiz.querySelector('#aj-nome-usuario');
     if (nomeUsuarioEl) nomeUsuarioEl.addEventListener('change', function () {
       state.config.nomeUsuario = nomeUsuarioEl.value.trim();
+      state.config.onboardingNomeVisto = true;
       salvar();
       toast('Nome atualizado', 'sucesso');
     });
@@ -6987,6 +7051,7 @@
     });
     m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
+      state.config.onboardingNomeVisto = true;
       state.config.somConquistasOff = pfSom ? !pfSom.checked : state.config.somConquistasOff;
       salvar();
       fecharModal();
@@ -7091,6 +7156,7 @@
     atualizarNav(rota);
     atualizarSyncUi();
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
+    setTimeout(abrirOnboardingNome, 0);
   }
 
   // ---------------- inicialização ----------------

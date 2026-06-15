@@ -1,7 +1,5 @@
 /* ============================================================
-   charts.js — os 2 gráficos do MVP (Chart.js via CDN)
-   1. Evolução semanal (horas + questões)
-   2. Desempenho por disciplina × meta de corte
+   charts.js — gráficos da aba Estatísticas (Chart.js via CDN)
    Degrada com aviso se o CDN não carregou (offline).
    ============================================================ */
 (function () {
@@ -16,6 +14,14 @@
   }
 
   const FONTE_MONO = "'IBM Plex Mono', monospace";
+  const AZUL = '#2454D6';
+  const AZUL_FORTE = '#183A9E';
+  const AZUL_CLARO = '#7FA0EE';
+  const LAVANDA = '#6F7FD8';
+  const VERDE_OS = '#2E7D68';
+  const AMBAR = '#A06A00';
+  const VERMELHO = '#B83A2E';
+  const NEUTRO = '#E3E7F0';
 
   function basePlugins() {
     return {
@@ -37,11 +43,11 @@
         datasets: [
           {
             type: 'bar', label: 'Horas estudadas', data: serie.map(function (s) { return s.horas; }),
-            backgroundColor: '#2148C0', borderRadius: 4, yAxisID: 'y'
+            backgroundColor: AZUL, borderRadius: 4, yAxisID: 'y'
           },
           {
             type: 'line', label: '% de acerto', data: serie.map(function (s) { return s.pct; }),
-            borderColor: '#1E7D46', backgroundColor: '#1E7D46', spanGaps: true, tension: 0.2, yAxisID: 'y2'
+            borderColor: LAVANDA, backgroundColor: LAVANDA, spanGaps: true, tension: 0.2, yAxisID: 'y2'
           }
         ]
       },
@@ -58,15 +64,62 @@
     return true;
   }
 
-  // Gráfico 2 — desempenho por disciplina × meta de corte
-  function desempenhoVsMeta(canvas, dados, metaPct) {
+  function desempenhoGeralSemanal(canvas, serie) {
+    if (!disponivel()) return false;
+    destruir(canvas.id);
+    const rotulos = serie.map(function (s) {
+      const [a, m, d] = s.inicio.split('-');
+      return d + '/' + m;
+    });
+    instancias[canvas.id] = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: rotulos,
+        datasets: [{
+          label: '% de acerto geral',
+          data: serie.map(function (s) { return s.pct; }),
+          borderColor: AZUL_FORTE,
+          backgroundColor: 'rgba(36, 84, 214, 0.12)',
+          fill: true,
+          spanGaps: true,
+          tension: 0.25,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: Object.assign(basePlugins(), {
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                const item = serie[ctx.dataIndex];
+                return item.pct === null ? 'Sem questões na semana' : item.pct + '% de acerto · ' + item.qFeitas + ' questões';
+              }
+            }
+          }
+        }),
+        scales: {
+          y: {
+            beginAtZero: true, max: 100,
+            ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
+            grid: { color: '#E3E4E1' }
+          },
+          x: { ticks: { font: { family: FONTE_MONO } } }
+        }
+      }
+    });
+    return true;
+  }
+
+  function desempenhoPorDisciplina(canvas, dados) {
     if (!disponivel()) return false;
     destruir(canvas.id);
     const cores = dados.map(function (d) {
-      if (d.pct === null) return '#E3E4E1';
-      if (d.pct >= metaPct) return '#1E7D46';
-      if (d.pct >= metaPct - 10) return '#9A6B00';
-      return '#C03B2B';
+      if (d.pct === null) return NEUTRO;
+      if (d.pct >= 70) return VERDE_OS;
+      if (d.pct >= 50) return AMBAR;
+      return VERMELHO;
     });
     instancias[canvas.id] = new Chart(canvas, {
       type: 'bar',
@@ -81,10 +134,12 @@
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: Object.assign(basePlugins(), {
-          annotation: undefined,
           tooltip: {
             callbacks: {
-              afterLabel: function () { return 'Meta de corte: ' + metaPct + '%'; }
+              label: function (ctx) {
+                const pct = dados[ctx.dataIndex].pct;
+                return pct === null ? 'Sem questões registradas' : pct + '% de acerto acumulado';
+              }
             }
           }
         }),
@@ -92,7 +147,7 @@
           y: {
             beginAtZero: true, max: 100,
             ticks: { font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
-            grid: { color: function (ctx) { return ctx.tick.value === metaPct ? '#C03B2B' : '#E3E4E1'; } }
+            grid: { color: '#E3E4E1' }
           },
           x: { ticks: { font: { family: FONTE_MONO } } }
         }
@@ -133,7 +188,7 @@
         datasets: [{
           label: 'Horas de estudo',
           data: dados.map(function (d) { return Math.round((d.minutos / 60) * 100) / 100; }),
-          backgroundColor: '#33C7A7',
+          backgroundColor: AZUL_CLARO,
           borderRadius: 0,
           barPercentage: 0.72,
           categoryPercentage: 0.82
@@ -169,13 +224,13 @@
     return true;
   }
 
-  function topicosDesempenho(canvas, dados, metaPct) {
+  function topicosDesempenho(canvas, dados) {
     if (!disponivel()) return false;
     destruir(canvas.id);
     const cores = dados.map(function (d) {
-      if (d.pct >= metaPct) return '#1F9D55';
-      if (d.pct >= metaPct - 10) return '#E0A800';
-      return '#C03B2B';
+      if (d.pct >= 70) return VERDE_OS;
+      if (d.pct >= 50) return AMBAR;
+      return VERMELHO;
     });
     instancias[canvas.id] = new Chart(canvas, {
       type: 'bar',
@@ -205,8 +260,7 @@
               label: function (ctx) {
                 const item = dados[ctx.dataIndex];
                 return item.qFeitas + ' questões · ' + item.pct + '% de acerto';
-              },
-              afterLabel: function () { return 'Meta: ' + metaPct + '%'; }
+              }
             }
           }
         }),
@@ -227,5 +281,9 @@
     return true;
   }
 
-  window.Graficos = { evolucaoSemanal, desempenhoVsMeta, disciplinasHoras, topicosDesempenho, disponivel };
+  window.Graficos = {
+    evolucaoSemanal, desempenhoGeralSemanal, desempenhoPorDisciplina,
+    desempenhoVsMeta: desempenhoPorDisciplina,
+    disciplinasHoras, topicosDesempenho, disponivel
+  };
 })();

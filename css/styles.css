@@ -12,8 +12,8 @@
   --caneta: #2454D6;
   --caneta-forte: #183A9E;
   --caneta-suave: #E7EDFF;
-  --correto: #1F7A4D;
-  --correto-suave: #E5F4EC;
+  --correto: #2E7D68;
+  --correto-suave: #E4F1EE;
   --errado: #B83A2E;
   --errado-suave: #F9E7E4;
   --alerta: #8A6500;
@@ -63,8 +63,8 @@ html[data-tema="escuro"] {
   --caneta: #7C9AF5;
   --caneta-forte: #A8BCFA;
   --caneta-suave: rgba(124, 154, 245, 0.16);
-  --correto: #53C68C;
-  --correto-suave: rgba(83, 198, 140, 0.14);
+  --correto: #76CDB6;
+  --correto-suave: rgba(118, 205, 182, 0.14);
   --errado: #EA7367;
   --errado-suave: rgba(234, 115, 103, 0.14);
   --alerta: #E5BE54;
@@ -499,6 +499,29 @@ html[data-tema="escuro"] .login-preview-grid span { background: #262A35; }
   }
   .login-preview { display: none; }
   .login-card { border-radius: 20px; }
+}
+
+@media (min-width: 761px) and (max-height: 780px) {
+  .login-card { padding: 1.45rem; }
+  .login-card h1 {
+    font-size: 2.55rem;
+    margin-bottom: 0.55rem;
+  }
+  .login-card p { font-size: 0.94rem; }
+  .login-features {
+    gap: 0.38rem;
+    margin-top: 0.8rem;
+  }
+  .login-features li {
+    font-size: 0.88rem;
+    line-height: 1.28;
+  }
+  .login-botao {
+    min-height: 44px;
+    margin-top: 0.9rem;
+    margin-bottom: 0.55rem;
+  }
+  .login-nota { font-size: 0.76rem !important; }
 }
 
 @media (max-width: 760px) {
@@ -1391,7 +1414,7 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
 }
 .constancia-faixa-topo p { color: var(--tinta); font-size: 0.95rem; }
 .constancia-faixa-topo strong { color: var(--caneta-forte); }
-.constancia-periodo { display: flex; align-items: center; gap: 0.42rem; color: #0E8F78; font-family: var(--fonte-mono); font-size: 0.82rem; }
+.constancia-periodo { display: flex; align-items: center; gap: 0.42rem; color: var(--caneta-forte); font-family: var(--fonte-mono); font-size: 0.82rem; }
 .constancia-periodo button { min-height: 28px; padding-inline: 0.45rem; opacity: 0.56; }
 .constancia-trilho {
   display: grid;
@@ -1413,8 +1436,23 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
 }
 .constancia-dia:hover { transform: scale(1.08); box-shadow: 0 6px 14px rgba(23, 24, 28, 0.16); z-index: 1; }
 .constancia-dia:last-child { border-right: none; }
-.constancia-feito { background: #66DCC8; color: #147866; }
+.constancia-feito { background: #AFC3FF; color: #183A9E; }
 .constancia-falha { background: #FFD4D9; color: #D9414A; }
+.constancia-folga {
+  position: relative;
+  background: #EEF1F6;
+  color: transparent;
+}
+.constancia-folga::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #B9C0CC;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+}
+html[data-tema="escuro"] .constancia-folga { background: #252A35; }
+html[data-tema="escuro"] .constancia-folga::before { background: #697180; }
 
 /* Barra de progresso */
 .barra { background: var(--barra-fundo); border-radius: 99px; height: 9px; overflow: hidden; }

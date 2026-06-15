@@ -39,6 +39,7 @@
       config: {
         ultimoBackup: null,
         metaQuestoesSemana: 100,
+        onboardingNomeVisto: false,
         tema: 'claro',
         criadoEm: agora,
         atualizadoEm: agora,
@@ -63,6 +64,7 @@
     if (!state.config.criadoEm) state.config.criadoEm = agoraISO();
     if (!state.config.atualizadoEm) state.config.atualizadoEm = state.config.criadoEm;
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
+    if (state.config.onboardingNomeVisto === undefined) state.config.onboardingNomeVisto = !!state.config.nomeUsuario;
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
