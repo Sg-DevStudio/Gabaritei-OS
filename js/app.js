@@ -4878,16 +4878,43 @@
     return 'geral';
   }
 
-  function alternarGrupos(lista, limite) {
+  // Escolhe até `limite` disciplinas variando o grupo cognitivo (linguagem/lógica/
+  // direito/...) para a semana não ser monótona. Com `alternarDif`, no início do
+  // plano também evita emendar duas matérias "difíceis", intercalando com as
+  // fáceis/normais — assim o aluno sente progresso e não desanima.
+  // Recebe os docs já ordenados por importância (score) e devolve a ORDEM DE INÍCIO
+  // com as dificuldades espalhadas: rodízio difícil → normal → fácil. Dentro de cada
+  // dificuldade preserva a ordem de importância. Garante que as primeiras semanas
+  // já intercalem matérias difíceis com fáceis/normais (motivação no começo) sem
+  // atrasar as difíceis, que entram logo na primeira rodada.
+  function espalharPorDificuldade(docsOrdenados) {
+    const filas = { dificil: [], media: [], facil: [] };
+    docsOrdenados.forEach(function (d) { (filas[d.dif] || filas.media).push(d); });
+    const ordem = [];
+    const sequencia = [filas.dificil, filas.media, filas.facil];
+    while (sequencia.some(function (f) { return f.length; })) {
+      sequencia.forEach(function (f) { if (f.length) ordem.push(f.shift()); });
+    }
+    return ordem;
+  }
+
+  function alternarGrupos(lista, limite, alternarDif) {
     const pool = lista.slice();
     const escolhidos = [];
-    let ultimoGrupo = '';
+    let ultimoGrupo = '', ultimaDif = '';
     while (pool.length > 0 && escolhidos.length < limite) {
-      let idx = pool.findIndex(function (x) { return x.grupo !== ultimoGrupo; });
+      let idx = -1;
+      if (alternarDif) {
+        // ideal: muda grupo E dificuldade ao mesmo tempo
+        idx = pool.findIndex(function (x) { return x.grupo !== ultimoGrupo && (x.dif || 'media') !== ultimaDif; });
+      }
+      if (idx < 0) idx = pool.findIndex(function (x) { return x.grupo !== ultimoGrupo; });
+      if (idx < 0 && alternarDif) idx = pool.findIndex(function (x) { return (x.dif || 'media') !== ultimaDif; });
       if (idx < 0) idx = 0;
       const item = pool.splice(idx, 1)[0];
       escolhidos.push(item);
       ultimoGrupo = item.grupo;
+      ultimaDif = item.dif || 'media';
     }
     return escolhidos;
   }
@@ -5044,15 +5071,26 @@
         disciplina: d,
         idx,
         grupo: grupoCognitivoDisciplina(d),
+        dif: d.dificuldade || 'media',
         topicos,
         cursor: 0,
-        score: (d.peso || 1) * 4 * multDificuldade(d) + incidencia / 20 + prioridade / Math.max(1, topicos.length),
+        // A dificuldade dá só uma leve dianteira na ORDEM (matéria difícil convém
+        // começar cedo p/ ter tempo de maturar), mas sem dominar o início. O ganho
+        // real de tempo de uma matéria difícil vem das HORAS por semana
+        // (distribuicaoSemanal), não de monopolizar as primeiras semanas. Assim o
+        // começo intercala difíceis com fáceis/normais e o aluno colhe vitórias logo.
+        score: (d.peso || 1) * 4 * multDificuldadeOrdem(d) + incidencia / 20 + prioridade / Math.max(1, topicos.length),
         inicio: 1
       };
     }).filter(function (d) { return d.topicos.length > 0; }).sort(function (a, b) {
       return b.score - a.score || a.idx - b.idx;
     });
-    docs.forEach(function (d, idx) {
+    // A SEMANA DE INÍCIO segue um rodízio de dificuldade (difícil → normal → fácil
+    // → difícil ...), não o score puro. Sem isso, com pesos/incidências parecidos,
+    // as matérias difíceis ocupariam sozinhas as primeiras semanas e o aluno
+    // começaria o plano só apanhando. Assim a largada já mistura difícil com
+    // fácil/normal — vitórias rápidas no começo, sem perder o foco no que é pesado.
+    espalharPorDificuldade(docs).forEach(function (d, idx) {
       d.inicio = idx < 3 ? 1 : Math.min(semanas, 2 + Math.floor((idx - 2) * semanas / Math.max(1, docs.length)));
     });
     const estudadosPorSemana = {};
@@ -5070,7 +5108,10 @@
       const passoRampa = Math.max(3, Math.round(semanas / Math.max(1, docs.length)));
       const rampa = Math.min(limiteMax, 3 + Math.floor((s - 1) / passoRampa));
       const limite = s < semanas * 0.72 ? rampa : Math.min(limiteMax, rampa + 1);
-      alternarGrupos(ativos, limite).forEach(function (d) {
+      // No início do plano (primeiros ~40%) também alterna a dificuldade percebida,
+      // para cada semana misturar matéria difícil com fácil/normal e não desmotivar.
+      const inicioPlano = s <= Math.max(2, Math.round(semanas * 0.4));
+      alternarGrupos(ativos, limite, inicioPlano).forEach(function (d) {
         const item = d.topicos[d.cursor++];
         if (!item) return;
         const t = item.topico;
@@ -6044,6 +6085,14 @@
   // ---------------- TELA: Planos (multiconcurso + perfil do aluno) ----------------
   function multDificuldade(d) {
     return d.dificuldade === 'facil' ? 0.75 : d.dificuldade === 'dificil' ? 1.4 : 1;
+  }
+
+  // Versão suavizada usada só na ORDEM do cronograma (qual matéria começa antes e
+  // sua prioridade na semana). Mantém uma leve dianteira para as difíceis sem
+  // deixá-las monopolizar o início — o tempo extra real vem das horas
+  // (multDificuldade em distribuicaoSemanal), não da ordem.
+  function multDificuldadeOrdem(d) {
+    return d.dificuldade === 'facil' ? 0.9 : d.dificuldade === 'dificil' ? 1.15 : 1;
   }
 
   // distribuição de horas da semana corrente: peso do concurso × dificuldade do aluno
