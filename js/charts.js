@@ -19,7 +19,7 @@
   const AZUL_CLARO = '#7FA0EE';
   const LAVANDA = '#6F7FD8';
   const VERDE_OS = '#2E7D68';
-  const AMBAR = '#A06A00';
+  const VERDE_MEDIO = '#6FAE8F';
   const VERMELHO = '#B83A2E';
   const NEUTRO = '#E3E7F0';
 
@@ -118,7 +118,7 @@
     const cores = dados.map(function (d) {
       if (d.pct === null) return NEUTRO;
       if (d.pct >= 70) return VERDE_OS;
-      if (d.pct >= 50) return AMBAR;
+      if (d.pct >= 50) return VERDE_MEDIO;
       return VERMELHO;
     });
     instancias[canvas.id] = new Chart(canvas, {
@@ -229,7 +229,7 @@
     destruir(canvas.id);
     const cores = dados.map(function (d) {
       if (d.pct >= 70) return VERDE_OS;
-      if (d.pct >= 50) return AMBAR;
+      if (d.pct >= 50) return VERDE_MEDIO;
       return VERMELHO;
     });
     instancias[canvas.id] = new Chart(canvas, {

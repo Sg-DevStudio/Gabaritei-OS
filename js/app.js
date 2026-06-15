@@ -33,6 +33,7 @@
   let catalogoPublicacaoErro = '';
   let catalogoPublicacaoOkEm = '';
   let onboardingNomeAberto = false;
+  let statsTopicosFiltro = { disciplina: '', ordem: 'piores', limite: '18' };
 
   // ---------------- utilidades de UI ----------------
   function esc(s) {
@@ -1148,7 +1149,7 @@
         const classe = fez ? 'feito' : (folga ? 'folga' : 'falha');
         const simbolo = fez ? '✓' : (folga ? '•' : '×');
         const titulo = D.formatarDataBR(d.data) + ' — ' + (folga ? 'folga planejada' : D.formatarMin(d.minutos));
-        return '<span class="constancia-dia constancia-' + classe + '" title="' + titulo + '">' + simbolo + '</span>';
+        return '<span class="constancia-dia constancia-' + classe + '" aria-label="' + esc(titulo) + '">' + simbolo + '</span>';
       }).join('') + '</div></div>';
   }
 
@@ -2789,28 +2790,63 @@
     return txt.length > max ? txt.slice(0, max - 1) + '…' : txt;
   }
 
-  function dadosTopicosDesempenho() {
+  function dadosTopicosDesempenho(opcoes) {
+    opcoes = opcoes || {};
     const porTopico = {};
     D.sessoesDoPlano(state).forEach(function (s) {
       if (!s.qFeitas) return;
       const t = D.topicoPorId(state, s.topicoId);
       const d = D.disciplinaDoTopico(state, s.topicoId);
       if (!t || !d || t.orfao) return;
+      if (opcoes.disciplina && d.id !== opcoes.disciplina) return;
       const item = porTopico[t.id] = porTopico[t.id] || {
         id: t.id, topico: t.nome, topicoCurto: encurtarTexto(t.nome, 54),
-        disciplina: d.nome, qFeitas: 0, qCertas: 0, pct: 0
+        disciplina: d.nome, disciplinaId: d.id, qFeitas: 0, qCertas: 0, pct: 0
       };
       item.qFeitas += s.qFeitas || 0;
       item.qCertas += s.qCertas || 0;
     });
-    return Object.keys(porTopico).map(function (id) {
+    const lista = Object.keys(porTopico).map(function (id) {
       const item = porTopico[id];
       item.pct = item.qFeitas > 0 ? Math.round((item.qCertas / item.qFeitas) * 100) : 0;
       item.topicoCurto = encurtarTexto(item.topico, 54);
       return item;
-    }).sort(function (a, b) {
+    });
+    const ordem = opcoes.ordem || 'piores';
+    lista.sort(function (a, b) {
+      if (ordem === 'melhores') return b.pct - a.pct || b.qFeitas - a.qFeitas || a.topico.localeCompare(b.topico);
+      if (ordem === 'maisQuestoes') return b.qFeitas - a.qFeitas || a.pct - b.pct || a.topico.localeCompare(b.topico);
       return a.pct - b.pct || b.qFeitas - a.qFeitas || a.topico.localeCompare(b.topico);
-    }).slice(0, 18);
+    });
+    const limite = opcoes.limite === 'todos' ? lista.length : Math.max(1, parseInt(opcoes.limite, 10) || 18);
+    return lista.slice(0, limite);
+  }
+
+  function controlesTopicosDesempenhoHtml() {
+    const disciplinasComQuestoes = new Set();
+    D.sessoesDoPlano(state).forEach(function (s) {
+      if (!s.qFeitas) return;
+      const d = D.disciplinaDoTopico(state, s.topicoId);
+      if (d && d.id !== 'ORF') disciplinasComQuestoes.add(d.id);
+    });
+    const optsDisc = state.disciplinas.filter(function (d) {
+      return d.id !== 'ORF' && disciplinasComQuestoes.has(d.id);
+    }).map(function (d) {
+      return '<option value="' + esc(d.id) + '"' + (statsTopicosFiltro.disciplina === d.id ? ' selected' : '') + '>' + esc(nomeDiscCurto(d.nome)) + '</option>';
+    }).join('');
+    return '<div class="grafico-filtros">' +
+      '<select id="stats-topicos-disc" aria-label="Filtrar tópicos por disciplina"><option value="">Todas as disciplinas</option>' + optsDisc + '</select>' +
+      '<select id="stats-topicos-ordem" aria-label="Ordenar tópicos por desempenho">' +
+      '<option value="piores"' + (statsTopicosFiltro.ordem === 'piores' ? ' selected' : '') + '>Piores rendimentos</option>' +
+      '<option value="melhores"' + (statsTopicosFiltro.ordem === 'melhores' ? ' selected' : '') + '>Melhores rendimentos</option>' +
+      '<option value="maisQuestoes"' + (statsTopicosFiltro.ordem === 'maisQuestoes' ? ' selected' : '') + '>Mais questões</option>' +
+      '</select>' +
+      '<select id="stats-topicos-limite" aria-label="Quantidade de tópicos no gráfico">' +
+      ['12', '18', '30', '50', 'todos'].map(function (v) {
+        const rot = v === 'todos' ? 'Todos' : 'Top ' + v;
+        return '<option value="' + v + '"' + (statsTopicosFiltro.limite === v ? ' selected' : '') + '>' + rot + '</option>';
+      }).join('') +
+      '</select></div>';
   }
 
   function telaStats() {
@@ -2842,19 +2878,18 @@
     html += '<div class="card">' + constanciaFaixaHtml(30) + '</div>';
 
     const horasDisc = dadosHorasPorDisciplina();
-    const topicosDesempenho = dadosTopicosDesempenho();
+    const topicosDesempenho = dadosTopicosDesempenho(statsTopicosFiltro);
     const hDisc = Math.max(260, Math.min(560, horasDisc.length * 44 + 78));
     const hTop = Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
-    html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
-    html += '<div class="card"><h3>Desempenho geral</h3><div class="grafico-box"><canvas class="grafico" id="graf-desempenho-geral"></canvas></div></div>';
-    html += '<div class="card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
     html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+    html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
-        ? '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>'
+        ? controlesTopicosDesempenhoHtml() + '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>'
         : '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem questões por tópico</strong>Registre questões nas sessões para ver o gráfico.</div>') +
       '</div>';
+    html += '<div class="card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
     if (!window.Graficos.disponivel()) {
       html += '<div class="aviso aviso-info">Os gráficos precisam de internet na primeira carga (Chart.js via CDN). Os demais números continuam funcionando offline.</div>';
     }
@@ -2867,8 +2902,6 @@
     const serie = D.serieSemanal(state, hoje, 8);
     const c1 = raiz.querySelector('#graf-evolucao');
     if (c1) window.Graficos.evolucaoSemanal(c1, serie);
-    const cGeral = raiz.querySelector('#graf-desempenho-geral');
-    if (cGeral) window.Graficos.desempenhoGeralSemanal(cGeral, serie);
     const cHoras = raiz.querySelector('#graf-horas-disc');
     if (cHoras) window.Graficos.disciplinasHoras(cHoras, dadosHorasPorDisciplina());
     const c2 = raiz.querySelector('#graf-meta');
@@ -2880,8 +2913,20 @@
     }
     const cTopicos = raiz.querySelector('#graf-topicos');
     if (cTopicos) {
-      window.Graficos.topicosDesempenho(cTopicos, dadosTopicosDesempenho());
+      window.Graficos.topicosDesempenho(cTopicos, dadosTopicosDesempenho(statsTopicosFiltro));
     }
+    const topDisc = raiz.querySelector('#stats-topicos-disc');
+    const topOrdem = raiz.querySelector('#stats-topicos-ordem');
+    const topLimite = raiz.querySelector('#stats-topicos-limite');
+    [topDisc, topOrdem, topLimite].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('change', function () {
+        statsTopicosFiltro.disciplina = topDisc ? topDisc.value : '';
+        statsTopicosFiltro.ordem = topOrdem ? topOrdem.value : 'piores';
+        statsTopicosFiltro.limite = topLimite ? topLimite.value : '18';
+        render();
+      });
+    });
   }
 
   // ---------------- TELA: Disciplina detalhada ----------------

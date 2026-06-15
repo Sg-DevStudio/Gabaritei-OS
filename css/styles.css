@@ -1276,8 +1276,8 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
   font-weight: 800;
   color: #fff;
 }
-.painel-pct-bom { background: #18A957; }
-.painel-pct-medio { background: #E0A800; color: #17181C; }
+.painel-pct-bom { background: var(--correto); }
+.painel-pct-medio { background: #6FAE8F; color: #FFFFFF; }
 .painel-pct-baixo { background: #C03B2B; }
 .painel-pct-neutro { background: var(--grafite-claro); color: var(--tinta); }
 
@@ -1432,9 +1432,9 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
   border-right: 1px solid rgba(255, 255, 255, 0.7);
   font-weight: 800;
   font-size: 0.78rem;
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  transition: filter 0.14s ease, box-shadow 0.14s ease;
 }
-.constancia-dia:hover { transform: scale(1.08); box-shadow: 0 6px 14px rgba(23, 24, 28, 0.16); z-index: 1; }
+.constancia-dia:hover { filter: brightness(0.98); box-shadow: inset 0 0 0 2px rgba(24, 58, 158, 0.24); z-index: 1; }
 .constancia-dia:last-child { border-right: none; }
 .constancia-feito { background: #AFC3FF; color: #183A9E; }
 .constancia-falha { background: #FFD4D9; color: #D9414A; }
@@ -2540,6 +2540,20 @@ canvas.grafico {
   width: 100% !important;
   height: 100% !important;
   max-height: none;
+}
+
+.grafico-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.6rem;
+}
+.grafico-filtros select {
+  min-height: 36px;
+  min-width: 150px;
+  width: auto;
+  font-size: 0.86rem;
+  padding-block: 0.35rem;
 }
 
 .ferramenta-card {
