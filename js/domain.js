@@ -776,6 +776,51 @@
     return { lista: defs, ganhas: defs.filter(function (d) { return d.ganha; }).length, total: defs.length };
   }
 
+  // ---------------- Flashcards: repetição espaçada (SM-2 simplificado) ----------------
+  // Recebe o estado SR de uma carta + a nota dada e devolve o novo estado SR.
+  // notas: 'errei' | 'dificil' | 'bom' | 'facil'. Datas em ISO (YYYY-MM-DD).
+  function revisarFlashcard(sr, nota, hoje) {
+    hoje = hoje || hojeISO();
+    const base = sr || {};
+    let ease = typeof base.facilidade === 'number' ? base.facilidade : 2.5;
+    let rep = base.repeticoes || 0;
+    let intervalo = base.intervalo || 0;
+    let lapsos = base.lapsos || 0;
+
+    if (nota === 'errei') {
+      ease = Math.max(1.3, ease - 0.2);
+      rep = 0;
+      lapsos += 1;
+      intervalo = 1; // volta no dia seguinte (e reaparece na sessão atual)
+    } else if (nota === 'dificil') {
+      ease = Math.max(1.3, ease - 0.15);
+      rep += 1;
+      intervalo = rep <= 1 ? 1 : Math.max(1, Math.round((intervalo || 1) * 1.2));
+    } else if (nota === 'facil') {
+      ease = ease + 0.15;
+      rep += 1;
+      intervalo = rep === 1 ? 2 : Math.max(2, Math.round((intervalo || 1) * ease * 1.3));
+    } else { // 'bom' (padrão)
+      rep += 1;
+      intervalo = rep === 1 ? 1 : rep === 2 ? 3 : Math.max(1, Math.round((intervalo || 1) * ease));
+    }
+    return {
+      intervalo: intervalo,
+      facilidade: Math.round(ease * 100) / 100,
+      repeticoes: rep,
+      lapsos: lapsos,
+      proximaRevisao: addDias(hoje, intervalo),
+      ultimaRevisao: hoje
+    };
+  }
+
+  // Carta nova (sem agendamento) ou vencida conta como "devida".
+  function flashcardDevido(card, hoje) {
+    hoje = hoje || hojeISO();
+    const sr = card && card.sr;
+    return !sr || !sr.proximaRevisao || sr.proximaRevisao <= hoje;
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -785,6 +830,7 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, ajustePosRevisao, revisaoReforco, combinarEditais, conquistas
+    conciliarPlanos, ajustePosRevisao, revisaoReforco, combinarEditais, conquistas,
+    revisarFlashcard, flashcardDevido
   };
 })();

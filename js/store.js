@@ -35,6 +35,7 @@
       simulados: [], // {id, planoId, data, tipo, acertos:[{disciplinaId, certas, total}]}
       agenda: [],    // {id, planoId, data, disciplinaId, topicoId|null, duracaoMin, obs, feito, gerado}
       editais: [],   // editais esquematizados {id, titulo, banca, notaCorte, criadoEm, disciplinas}
+      flashcards: [], // {id, planoId, disciplinaId, nome, criadoEm, cards:[{id, frente, verso, criadoEm, sr}]}
       config: {
         ultimoBackup: null,
         metaQuestoesSemana: 100,
@@ -76,6 +77,7 @@
     if (!state.simulados) state.simulados = [];
     if (!state.agenda) state.agenda = [];
     if (!Array.isArray(state.editais)) state.editais = [];
+    if (!Array.isArray(state.flashcards)) state.flashcards = [];
 
     // v1 → v2: embrulha o plano único em planos[] e carimba o histórico
     if (!state.planos) {

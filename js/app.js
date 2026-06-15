@@ -1227,8 +1227,7 @@
           html += '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
             checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
             '<div class="fila-corpo">' +
-            '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div>' +
-            '<div class="fila-sub">planejado por você · ' + D.formatarMin(a.duracaoMin || 0) + (a.obs ? ' · ' + esc(a.obs) : '') + '</div></div>' +
+            '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
             '<div class="fila-rodape">' +
             (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
@@ -1901,17 +1900,25 @@
     });
   }
 
-  function telaRevisoes() {
+  let revisoesAba = 'agendadas'; // 'agendadas' | 'flashcards'
+
+  function embaralhar(lista) {
+    const a = lista.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function revisoesAgendadasHtml() {
     const hoje = D.hojeISO();
     const pendentes = doAtivo(state.revisoes)
       .filter(function (r) { return !r.dataConcluida && D.topicoPorId(state, r.topicoId); })
       .sort(function (a, b) { return a.dataAgendada.localeCompare(b.dataAgendada); });
 
-    let html = '<div class="cab-pagina"><div><h1>Revisões</h1>' +
-      '<p class="sub">Agendadas automaticamente: 24h, 7 dias e 30 dias após concluir a teoria.</p></div></div>';
-
     if (pendentes.length === 0) {
-      return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
+      return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
         '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 7d · 30d.</div></div>';
     }
 
@@ -1922,6 +1929,7 @@
       { titulo: 'Mais adiante', filtro: function (r) { return r.dataAgendada > D.addDias(hoje, 7); }, classe: 'etiqueta-feito' }
     ];
 
+    let html = '';
     grupos.forEach(function (g) {
       const itens = pendentes.filter(g.filtro);
       if (itens.length === 0) return;
@@ -1942,9 +1950,250 @@
     return html;
   }
 
+  function telaRevisoes() {
+    let html = '<div class="cab-pagina"><div><h1>Revisões</h1>' +
+      '<p class="sub">Ciclo automático de teoria (24h · 7d · 30d) e seus flashcards de memorização.</p></div></div>';
+    html += '<div class="rev-seg">' +
+      '<button class="botao-mini ' + (revisoesAba === 'agendadas' ? '' : 'botao-quieto') + '" data-rev-aba="agendadas">Agendadas</button>' +
+      '<button class="botao-mini ' + (revisoesAba === 'flashcards' ? '' : 'botao-quieto') + '" data-rev-aba="flashcards">Flashcards</button>' +
+      '</div>';
+    html += revisoesAba === 'flashcards' ? flashcardsHtml() : revisoesAgendadasHtml();
+    return html;
+  }
+
+  // ---------------- Flashcards (repetição espaçada) ----------------
+  function decksDoPlano() {
+    return doAtivo(state.flashcards);
+  }
+
+  function flashcardsHtml() {
+    const hoje = D.hojeISO();
+    if (!state.plano) {
+      return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
+        '<strong>Sem plano ativo</strong>Crie ou ative um plano para organizar seus flashcards por disciplina.</div></div>';
+    }
+    const decks = decksDoPlano();
+    let devidasTotal = 0, cartasTotal = 0;
+    decks.forEach(function (dk) {
+      (dk.cards || []).forEach(function (c) { cartasTotal++; if (D.flashcardDevido(c, hoje)) devidasTotal++; });
+    });
+
+    let html = '<div class="card fc-topo">' +
+      '<div class="fc-topo-acoes">' +
+      '<button class="botao" id="fc-aleatorio"' + (devidasTotal ? '' : ' disabled') + '>🔀 Estudo aleatório' + (devidasTotal ? ' (' + devidasTotal + ')' : '') + '</button>' +
+      '<button class="botao-secundario" id="fc-novo-deck">+ Novo deck</button>' +
+      '</div>' +
+      '<p class="sub">' + cartasTotal + ' carta(s) no total · ' + devidasTotal + ' para revisar hoje</p>' +
+      '</div>';
+
+    if (decks.length === 0) {
+      return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
+        '<strong>Nenhum flashcard ainda</strong>Crie um deck por disciplina e adicione cartas (frente e verso). A revisão usa repetição espaçada (Errei · Difícil · Bom · Fácil).</div></div>';
+    }
+
+    // agrupa decks por disciplina (pasta); disciplinas do plano primeiro, "geral" por último
+    const porDisc = {};
+    decks.forEach(function (dk) { const k = dk.disciplinaId || '__geral'; (porDisc[k] = porDisc[k] || []).push(dk); });
+    const ordem = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; })
+      .map(function (d) { return d.id; }).filter(function (id) { return porDisc[id]; });
+    Object.keys(porDisc).forEach(function (k) { if (k !== '__geral' && ordem.indexOf(k) < 0) ordem.push(k); });
+    if (porDisc['__geral']) ordem.push('__geral');
+
+    ordem.forEach(function (k) {
+      const disc = k === '__geral' ? null : D.disciplinaPorId(state, k);
+      const nomePasta = disc ? nomeDiscCurto(disc.nome) : 'Sem disciplina';
+      html += '<div class="card fc-pasta">' +
+        '<div class="fc-pasta-cab">' + (disc ? tagDisc(disc) + ' ' : '') + '<h3>' + esc(nomePasta) + '</h3></div>' +
+        '<div class="fc-decks">' + porDisc[k].map(function (dk) {
+          const cards = dk.cards || [];
+          const devidas = cards.filter(function (c) { return D.flashcardDevido(c, hoje); }).length;
+          return '<div class="fc-deck">' +
+            '<div class="fc-deck-info"><strong>' + esc(dk.nome) + '</strong>' +
+            '<span class="sub">' + cards.length + ' carta(s)' + (devidas ? ' · <span class="fc-devidas">' + devidas + ' a revisar</span>' : (cards.length ? ' · em dia' : '')) + '</span></div>' +
+            '<div class="fc-deck-acoes">' +
+            '<button class="botao-mini" data-fc-estudar="' + esc(dk.id) + '"' + (cards.length ? '' : ' disabled') + '>Estudar</button>' +
+            '<button class="botao-mini botao-quieto" data-fc-gerenciar="' + esc(dk.id) + '">Cartas</button>' +
+            '</div></div>';
+        }).join('') + '</div></div>';
+    });
+    return html;
+  }
+
+  function abrirNovoDeck() {
+    if (!state.plano) { toast('Ative um plano antes de criar flashcards.', 'erro'); return; }
+    const discs = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    const opts = discs.map(function (d) { return '<option value="' + esc(d.id) + '">' + esc(nomeDiscCurto(d.nome)) + '</option>'; }).join('');
+    const m = abrirModal('<h3>Novo deck de flashcards</h3>' +
+      '<label for="fc-deck-disc">Disciplina</label>' +
+      '<select id="fc-deck-disc">' + opts + '<option value="">Sem disciplina (geral)</option></select>' +
+      '<label for="fc-deck-nome" style="display:block;margin-top:0.6rem">Nome do deck</label>' +
+      '<input id="fc-deck-nome" type="text" maxlength="60" placeholder="Ex.: Princípios constitucionais">' +
+      '<div class="modal-acoes"><button class="botao-quieto" id="fc-deck-cancelar">Cancelar</button>' +
+      '<button id="fc-deck-criar">Criar deck</button></div>');
+    m.querySelector('#fc-deck-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#fc-deck-criar').addEventListener('click', function () {
+      const nome = m.querySelector('#fc-deck-nome').value.trim();
+      if (!nome) { toast('Dê um nome ao deck.', 'erro'); return; }
+      state.flashcards.push({
+        id: window.Store.novoId('fcd'), planoId: state.planoAtivoId,
+        disciplinaId: m.querySelector('#fc-deck-disc').value || null,
+        nome: nome, criadoEm: D.hojeISO(), cards: []
+      });
+      salvar();
+      fecharModal();
+      revisoesAba = 'flashcards';
+      render();
+      toast('Deck criado — adicione cartas', 'sucesso');
+    });
+  }
+
+  function abrirEditarCarta(card, aoSalvar) {
+    pedirTexto({ titulo: 'Editar frente', mensagem: 'Pergunta / frente da carta.', valor: card.frente, confirmar: 'Próximo', maxlength: 300 }).then(function (frente) {
+      if (frente === null) return;
+      pedirTexto({ titulo: 'Editar verso', mensagem: 'Resposta / verso da carta.', valor: card.verso, confirmar: 'Salvar', maxlength: 500 }).then(function (verso) {
+        if (verso === null) return;
+        card.frente = frente; card.verso = verso;
+        salvar();
+        if (aoSalvar) aoSalvar();
+        toast('Carta atualizada', 'sucesso');
+      });
+    });
+  }
+
+  function abrirGerenciarDeck(deckId) {
+    const deck = state.flashcards.find(function (d) { return d.id === deckId; });
+    if (!deck) return;
+    function corpo() {
+      const cards = deck.cards || [];
+      const lista = cards.length ? cards.map(function (c) {
+        return '<div class="fc-carta-linha"><div class="fc-carta-fv"><strong>' + esc(c.frente) + '</strong><span>' + esc(c.verso) + '</span></div>' +
+          '<div class="fc-carta-linha-acoes"><button class="botao-mini botao-quieto" data-fc-edit="' + esc(c.id) + '">Editar</button>' +
+          '<button class="botao-mini botao-perigo" data-fc-del="' + esc(c.id) + '" aria-label="Excluir carta">✕</button></div></div>';
+      }).join('') : '<p class="sub">Nenhuma carta ainda. Adicione a primeira abaixo.</p>';
+      return '<h3>Cartas · ' + esc(deck.nome) + '</h3>' +
+        '<div class="fc-cartas-lista">' + lista + '</div>' +
+        '<div class="fc-add-carta"><label style="display:block">Nova carta</label>' +
+        '<textarea id="fc-frente" rows="2" placeholder="Frente (pergunta)"></textarea>' +
+        '<textarea id="fc-verso" rows="2" placeholder="Verso (resposta)"></textarea>' +
+        '<div class="modal-acoes"><button class="botao-quieto" id="fc-fechar">Fechar</button>' +
+        '<button id="fc-add">Adicionar carta</button></div>';
+    }
+    const m = abrirModal(corpo());
+    m.classList.add('modal-amplo');
+    function wire() {
+      m.querySelector('#fc-fechar').addEventListener('click', function () { fecharModal(); render(); });
+      m.querySelector('#fc-add').addEventListener('click', function () {
+        const frente = m.querySelector('#fc-frente').value.trim();
+        const verso = m.querySelector('#fc-verso').value.trim();
+        if (!frente || !verso) { toast('Preencha frente e verso.', 'erro'); return; }
+        deck.cards.push({
+          id: window.Store.novoId('fck'), frente: frente, verso: verso, criadoEm: D.hojeISO(),
+          sr: { intervalo: 0, facilidade: 2.5, repeticoes: 0, lapsos: 0, proximaRevisao: null, ultimaRevisao: null }
+        });
+        salvar();
+        m.innerHTML = corpo(); wire();
+        toast('Carta adicionada', 'sucesso');
+      });
+      m.querySelectorAll('[data-fc-del]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          deck.cards = deck.cards.filter(function (c) { return c.id !== b.getAttribute('data-fc-del'); });
+          salvar();
+          m.innerHTML = corpo(); wire();
+        });
+      });
+      m.querySelectorAll('[data-fc-edit]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          const c = deck.cards.find(function (x) { return x.id === b.getAttribute('data-fc-edit'); });
+          if (c) abrirEditarCarta(c, function () { m.innerHTML = corpo(); wire(); });
+        });
+      });
+    }
+    wire();
+  }
+
+  // Sessão de estudo: vira a carta e pontua com repetição espaçada.
+  function iniciarEstudoFlashcards(cards) {
+    if (!cards || cards.length === 0) { toast('Nada para estudar aqui.', 'erro'); return; }
+    let fila = cards.slice();
+    let feitas = 0;
+    const reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function proxima() {
+      if (fila.length === 0) {
+        const fim = abrirModal('<div class="fc-fim"><div class="fc-fim-emoji" aria-hidden="true">🎉</div>' +
+          '<h3>Sessão concluída!</h3><p class="sub">Você revisou ' + feitas + ' carta(s).</p>' +
+          '<div class="modal-acoes" style="justify-content:center"><button id="fc-fim-ok">Fechar</button></div></div>');
+        fim.querySelector('#fc-fim-ok').addEventListener('click', function () { fecharModal(); render(); });
+        return;
+      }
+      const card = fila[0];
+      const m = abrirModal('<div class="fc-sessao">' +
+        '<div class="fc-sessao-prog">Restantes: ' + fila.length + '</div>' +
+        '<div class="fc-carta' + (reduz ? ' fc-sem-anima' : '') + '" id="fc-carta">' +
+        '<div class="fc-carta-face fc-carta-frente"><span>' + esc(card.frente) + '</span></div>' +
+        '<div class="fc-carta-face fc-carta-verso"><span>' + esc(card.verso) + '</span></div>' +
+        '</div>' +
+        '<div class="fc-sessao-acao" id="fc-revelar-wrap"><button class="botao" id="fc-revelar">Mostrar resposta</button></div>' +
+        '<div class="fc-sr-acoes oculto" id="fc-sr">' +
+        '<button class="botao-mini fc-sr fc-sr-errei" data-nota="errei">Errei</button>' +
+        '<button class="botao-mini fc-sr fc-sr-dificil" data-nota="dificil">Difícil</button>' +
+        '<button class="botao-mini fc-sr fc-sr-bom" data-nota="bom">Bom</button>' +
+        '<button class="botao-mini fc-sr fc-sr-facil" data-nota="facil">Fácil</button>' +
+        '</div>' +
+        '<div class="modal-acoes" style="justify-content:center"><button class="botao-quieto" id="fc-sair">Encerrar sessão</button></div>' +
+        '</div>');
+      m.classList.add('modal-amplo');
+      m.querySelector('#fc-sair').addEventListener('click', function () { fecharModal(); render(); });
+      const carta = m.querySelector('#fc-carta');
+      m.querySelector('#fc-revelar').addEventListener('click', function () {
+        carta.classList.add('virada');
+        m.querySelector('#fc-revelar-wrap').classList.add('oculto');
+        m.querySelector('#fc-sr').classList.remove('oculto');
+      });
+      m.querySelectorAll('[data-nota]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          const nota = b.getAttribute('data-nota');
+          card.sr = D.revisarFlashcard(card.sr, nota, D.hojeISO());
+          salvar();
+          fila.shift();
+          feitas++;
+          if (nota === 'errei') fila.push(card); // reaparece no fim da sessão
+          proxima();
+        });
+      });
+    }
+    proxima();
+  }
+
   function ligarRevisoes(raiz) {
+    raiz.querySelectorAll('[data-rev-aba]').forEach(function (b) {
+      b.addEventListener('click', function () { revisoesAba = b.getAttribute('data-rev-aba'); render(); });
+    });
     raiz.querySelectorAll('[data-rev]').forEach(function (b) {
       b.addEventListener('click', function () { abrirConcluirRevisao(b.getAttribute('data-rev')); });
+    });
+    const novoDeck = raiz.querySelector('#fc-novo-deck');
+    if (novoDeck) novoDeck.addEventListener('click', abrirNovoDeck);
+    const aleatorio = raiz.querySelector('#fc-aleatorio');
+    if (aleatorio) aleatorio.addEventListener('click', function () {
+      const hoje = D.hojeISO();
+      const devidas = [];
+      decksDoPlano().forEach(function (dk) {
+        (dk.cards || []).forEach(function (c) { if (D.flashcardDevido(c, hoje)) devidas.push(c); });
+      });
+      iniciarEstudoFlashcards(embaralhar(devidas));
+    });
+    raiz.querySelectorAll('[data-fc-estudar]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const dk = state.flashcards.find(function (d) { return d.id === b.getAttribute('data-fc-estudar'); });
+        if (!dk) return;
+        const hoje = D.hojeISO();
+        let cards = (dk.cards || []).filter(function (c) { return D.flashcardDevido(c, hoje); });
+        if (cards.length === 0) cards = (dk.cards || []).slice(); // nada devido: revisa o deck todo
+        iniciarEstudoFlashcards(embaralhar(cards));
+      });
+    });
+    raiz.querySelectorAll('[data-fc-gerenciar]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirGerenciarDeck(b.getAttribute('data-fc-gerenciar')); });
     });
   }
 
@@ -3757,6 +4006,7 @@
         state.revisoes = [];
         state.simulados = [];
         state.agenda = [];
+        state.flashcards = [];
         window.Store.hidratar(state);
         state.config.apagadoEm = new Date().toISOString();
         salvar(); render();
@@ -4489,6 +4739,7 @@
     state.revisoes = state.revisoes.filter(function (r) { return !pertenceAoPlano(r, planoId); });
     state.simulados = state.simulados.filter(function (s) { return !pertenceAoPlano(s, planoId); });
     state.agenda = state.agenda.filter(function (a) { return !pertenceAoPlano(a, planoId); });
+    state.flashcards = state.flashcards.filter(function (f) { return !pertenceAoPlano(f, planoId); });
   }
 
   async function excluirPlano(planoId, limparHistorico) {
