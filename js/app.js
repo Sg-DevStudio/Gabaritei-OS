@@ -1062,34 +1062,43 @@
     });
   }
 
-  // No mobile mostramos só as primeiras disciplinas; o resto fica atrás do "Ver mais".
-  // Estado guardado fora do DOM para sobreviver a re-renders (sync, conquistas etc.).
-  const PAINEL_DISC_LIMITE_MOBILE = 7;
+  // Limite inicial do painel de disciplinas: 4 no mobile, 7 no desktop. O resto
+  // fica atrás do "Ver mais". Estado guardado fora do DOM para sobreviver a
+  // re-renders (sync, conquistas etc.).
+  const PAINEL_DISC_LIMITE_MOBILE = 4;
+  const PAINEL_DISC_LIMITE_DESKTOP = 7;
   let painelDiscExpandido = false;
+  function painelDiscLimite() {
+    return (window.matchMedia && window.matchMedia('(max-width: 760px)').matches)
+      ? PAINEL_DISC_LIMITE_MOBILE : PAINEL_DISC_LIMITE_DESKTOP;
+  }
   // Paleta de chips no Planejamento: 1 linha (5) no mobile, resto atrás do "+N".
   const PALETA_LIMITE_MOBILE = 5;
 
   function painelDisciplinasHojeHtml() {
     const linhas = dadosPainelDisciplinas();
     if (linhas.length === 0) return '';
-    const ocultas = Math.max(0, linhas.length - PAINEL_DISC_LIMITE_MOBILE);
-    // Se não houver excedente, não rendderiza o botão "Ver mais" nem reseta o
-    // estado expandido (que é controlado fora do DOM para sobreviver a renders).
-    if (ocultas === 0) painelDiscExpandido = false;
-    const expClass = painelDiscExpandido ? ' expandido' : '';
+    // Limite conforme a tela atual (4 mobile / 7 desktop). Mostra todos quando
+    // expandido. O botão só aparece quando há excedente para a tela atual.
+    const limite = painelDiscLimite();
+    const temExcedente = linhas.length > limite;
+    if (!temExcedente) painelDiscExpandido = false;
+    const visiveis = (painelDiscExpandido || !temExcedente) ? linhas : linhas.slice(0, limite);
+    const ocultas = Math.max(0, linhas.length - limite);
     const verMaisTxt = painelDiscExpandido ? 'Ver menos' : ('Ver mais ' + ocultas + ' disciplina' + (ocultas > 1 ? 's' : ''));
+    const botaoVerMais = temExcedente
+      ? '<button type="button" class="painel-disc-vermais botao-mini botao-quieto" data-painel-vermais aria-expanded="' + (painelDiscExpandido ? 'true' : 'false') + '">' + verMaisTxt + '</button>'
+      : '';
     return '<div class="card painel-disciplinas-card"><h3 class="painel-titulo">Painel de disciplinas</h3>' +
-      '<div class="painel-disciplinas-mobile' + expClass + '">' + linhas.map(function (d, i) {
-        return '<button type="button" class="painel-disc-mobile' + (i >= PAINEL_DISC_LIMITE_MOBILE ? ' painel-disc-extra' : '') + '" data-disc-detalhe="' + esc(d.id) + '" style="--disc-cor:' + esc(d.cor) + '">' +
+      '<div class="painel-disciplinas-mobile">' + visiveis.map(function (d) {
+        return '<button type="button" class="painel-disc-mobile" data-disc-detalhe="' + esc(d.id) + '" style="--disc-cor:' + esc(d.cor) + '">' +
           '<span class="painel-disc-mobile-nome">' + esc(nomeDiscCurto(d.nome)) + '</span>' +
           pizzaAcertosHtml(d.certas, d.erros, { classe: 'pizza-sm', titulo: d.nome }) +
           '</button>';
-      }).join('') +
-      (ocultas > 0 ? '<button type="button" class="painel-disc-vermais botao-mini botao-quieto" data-painel-vermais aria-expanded="' + (painelDiscExpandido ? 'true' : 'false') + '">' + verMaisTxt + '</button>' : '') +
-      '</div>' +
+      }).join('') + '</div>' +
       '<div class="painel-scroll"><table class="painel-disciplinas"><thead><tr>' +
       '<th>Matéria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">Questões</th><th class="num">%</th></tr></thead><tbody>' +
-      linhas.map(function (d) {
+      visiveis.map(function (d) {
         const pctClasse = d.pct === null ? 'neutro' : d.pct >= 70 ? 'bom' : d.pct >= 60 ? 'medio' : 'baixo';
         return '<tr data-disc-detalhe="' + esc(d.id) + '" role="button" tabindex="0">' +
           '<td><span class="disc-link" style="--disc-cor:' + esc(d.cor) + '">' + esc(nomeDiscCurto(d.nome)) + '</span></td>' +
@@ -1100,7 +1109,9 @@
           '<td class="num"><span class="painel-pct painel-pct-' + pctClasse + '">' + (d.pct === null ? '0' : d.pct) + '</span></td>' +
           '</tr>';
       }).join('') +
-      '</tbody></table></div></div>';
+      '</tbody></table></div>' +
+      botaoVerMais +
+      '</div>';
   }
 
   function telaHoje() {
@@ -1190,7 +1201,7 @@
     html += painelDisciplinasHojeHtml();
 
     // fila do dia (RN06 + agenda manual)
-    html += '<div class="card estudar-hoje-card"><h3 style="margin-bottom:0.25rem">O que estudar hoje</h3>';
+    html += '<div class="card estudar-hoje-card"><h3 style="margin-bottom:0.25rem">O que estudar hoje? 🤔</h3>';
     if (sem && sem.futura) {
       html += '<p class="sub" style="color:var(--grafite);font-size:0.85rem">O cronograma começa em ' + D.formatarDataBR(sem.proxima.inicio) + ' (semana 1). Revisões e tópicos reabertos já aparecem aqui.</p>';
     } else if (sem && sem.encerrado) {
@@ -1215,14 +1226,16 @@
           const tituloA = (dA ? tagDisc(dA) + ' ' : '') + esc(tituloATexto);
           html += '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
             checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
+            '<div class="fila-corpo">' +
             '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div>' +
             '<div class="fila-sub">planejado por você · ' + D.formatarMin(a.duracaoMin || 0) + (a.obs ? ' · ' + esc(a.obs) : '') + '</div></div>' +
+            '<div class="fila-rodape">' +
             (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
               '<div class="fila-acoes">' +
               '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
               '<button class="botao-mini" data-acao="concluir-agenda" data-id="' + esc(a.id) + '">Registrar</button></div>') +
-            '</div>';
+            '</div></div></div>';
           continue;
         }
         const t = D.topicoPorId(state, item.topicoId);
@@ -1254,10 +1267,12 @@
           : checkEstudoHtml(!!item.feito, 'registrar', item.topicoId, item.categoria === 'reaberto' ? 'questoes' : item.tipoBloco, tituloTopico);
         html += '<div class="fila-item fila-checklist' + (item.feito ? ' fila-feita' : '') + '">' +
           check +
+          '<div class="fila-corpo">' +
           '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
           '<div class="fila-sub">' + sub + '</div></div>' +
-          etiqueta +
-          '<div class="fila-acoes">' + acoes + '</div></div>';
+          '<div class="fila-rodape">' + etiqueta +
+          '<div class="fila-acoes">' + acoes + '</div></div>' +
+          '</div></div>';
       }
     }
     html += '</div>';
@@ -6407,6 +6422,15 @@
     window.scrollTo(0, 0);
     render();
   });
+
+  // Re-renderiza ao cruzar o breakpoint mobile/desktop (ex.: limite do painel
+  // de disciplinas muda de 4 para 7), mantendo a tela coerente após resize.
+  if (window.matchMedia) {
+    const mqMobile = window.matchMedia('(max-width: 760px)');
+    const aoMudarBreakpoint = function () { if (usuarioLogado()) render(); };
+    if (mqMobile.addEventListener) mqMobile.addEventListener('change', aoMudarBreakpoint);
+    else if (mqMobile.addListener) mqMobile.addListener(aoMudarBreakpoint);
+  }
 
   document.addEventListener('click', function (e) {
     const link = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
