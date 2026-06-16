@@ -417,6 +417,13 @@
 
   function abrirOnboardingNome() {
     if (!usuarioLogado() || !state.config || state.config.onboardingNomeVisto || onboardingNomeAberto) return;
+    const nomeConta = nomeUsuario();
+    if (nomeConta) {
+      state.config.nomeUsuario = state.config.nomeUsuario || nomeConta;
+      state.config.onboardingNomeVisto = true;
+      salvar();
+      return;
+    }
     if (document.getElementById('modal-raiz').children.length) return;
     onboardingNomeAberto = true;
     const sugerido = state.config.nomeUsuario || nomeUsuario();
@@ -6320,6 +6327,16 @@
       if (modoPlano === 'ciclo') {
         state.plano.ordemAtaque = ordemAtaque;
         state.plano.modoPlanejamento = 'ciclo';
+        state.plano.ritmoAtivo = 'plano_ativo';
+        state.plano.ritmos = {};
+        state.plano.ritmos.plano_ativo = {
+          meses: meses,
+          semanas: semanasPorMeses(meses),
+          h_semana: horas,
+          nomeRitmo: nomeRitmo
+        };
+        state.plano.gerado_em = D.segundaDaSemana(D.hojeISO());
+        state.plano.ultimaRecalcSemana = D.segundaDaSemana(D.hojeISO());
         limparCronogramasPlanoAtivo();
         const cicloBlocos = D.sugerirCiclo(state, {
           minutosSemana: totalMinutos,
@@ -6335,6 +6352,10 @@
           entradaAtiva.plano.modoPlanejamento = 'ciclo';
           entradaAtiva.plano.ciclo = state.plano.ciclo;
           entradaAtiva.plano.ordemAtaque = ordemAtaque;
+          entradaAtiva.plano.ritmoAtivo = state.plano.ritmoAtivo;
+          entradaAtiva.plano.ritmos = state.plano.ritmos;
+          entradaAtiva.plano.gerado_em = state.plano.gerado_em;
+          entradaAtiva.plano.ultimaRecalcSemana = state.plano.ultimaRecalcSemana;
         }
         limparAgendaGeradaPlano(state.planoAtivoId);
         salvar();
