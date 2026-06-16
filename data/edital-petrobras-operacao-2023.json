@@ -2,11 +2,11 @@
   "tipo": "edital_esquematizado",
   "versao": 1,
   "gerado_em": "2026-06-15",
-  "titulo": "Petrobras - Profissional de Nivel Tecnico Junior, Enfase 8: Operacao (PSP 2023.2)",
+  "titulo": "Petrobras - Profissional de Nível Técnico Júnior, Ênfase 8: Operação (PSP 2023.2)",
   "banca": "Cebraspe",
-  "orgao": "Petroleo Brasileiro S.A. - Petrobras",
-  "cargo": "Profissional Petrobras de Nivel Tecnico Junior - Enfase 8: Operacao",
-  "area": "Operacao",
+  "orgao": "Petróleo Brasileiro S.A. - Petrobras",
+  "cargo": "Profissional Petrobras de Nível Técnico Júnior - Ênfase 8: Operação",
+  "area": "Operação",
   "estado": "BR",
   "nivel": "tecnico",
   "escolaridade": "tecnico",
@@ -17,19 +17,19 @@
     "fim": "2024-03"
   },
   "em_alta": true,
-  "fonte": "Edital n. 1 - Petrobras/PSP RH 2023.2; Cebraspe PETROBRAS_23_NTJ; Edital n. 11 - resultado final; Edital n. 19 - inclusoes/retificacao da Enfase 8; Rankei Petrobras PSP 2023.2, etapa 82, consulta em 2026-06-15.",
+  "fonte": "Edital n. 1 - Petrobras/PSP RH 2023.2; Cebraspe PETROBRAS_23_NTJ; Edital n. 11 - resultado final; Edital n. 19 - inclusões/retificação da Ênfase 8; Rankei Petrobras PSP 2023.2, etapa 82, consulta em 2026-06-15.",
   "observacoes": [
-    "Prova objetiva Cebraspe: 100 itens de certo/errado, sendo 40 de conhecimentos basicos e 60 de conhecimentos especificos.",
+    "Prova objetiva Cebraspe: 100 itens de certo/errado, sendo 40 de conhecimentos básicos e 60 de conhecimentos específicos.",
     "Minimos eliminatorios do edital: 8 pontos em P1, 18 pontos em P2 e 30 pontos no conjunto das provas objetivas.",
-    "As incidencias abaixo organizam o estudo a partir do edital e da estrutura da prova; devem ser recalibradas quando houver estatistica consolidada por questao da prova de Operacao.",
-    "Meta sugerida de 57% registrada a partir da informacao atual trazida pelo usuario e da lista extraoficial Rankei de convocacoes; o resultado final original dentro das vagas ficou acima disso."
+    "As incidências abaixo organizam o estudo a partir do edital e da estrutura da prova; devem ser recalibradas quando houver estatistica consolidada por questão da prova de Operação.",
+    "Meta sugerida de 57% registrada a partir da informação atual trazida pelo usuário e da lista extraoficial Rankei de convocacoes; o resultado final original dentro das vagas ficou acima disso."
   ],
   "notas_corte_ultimo_nomeado": {
-    "escala": "nota final objetiva de 0 a 100; a meta sugerida de 57 pontos representa referencia atual aproximada de convocacao para Operacao informada pelo usuario/Rankei; os cortes por polo abaixo usam a classificacao do resultado final publicado pelo Cebraspe para contextualizacao.",
+    "escala": "nota final objetiva de 0 a 100; a meta sugerida de 57 pontos representa referência atual aproximada de convocação para Operação informada pelo usuário/Rankei; os cortes por polo abaixo usam a classificação do resultado final publicado pelo Cebraspe para contextualizacao.",
     "convocacao_atual_operacao": {
       "geral_aproximada": 57,
       "geral_pct": 57,
-      "fonte": "Rankei Petrobras PSP 2023.2, etapa 82, lista extraoficial de convocacao; informacao confirmada pelo usuario como referencia atual aproximada."
+      "fonte": "Rankei Petrobras PSP 2023.2, etapa 82, lista extraoficial de convocação; informação confirmada pelo usuário como referência atual aproximada."
     },
     "Ipojuca": {
       "ampla": 73,
@@ -59,101 +59,479 @@
   "disciplinas": [
     {
       "id": "POR",
-      "nome": "Lingua Portuguesa",
+      "nome": "Língua Portuguesa",
       "cor": "#2563EB",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "POR-01", "nome": "Compreensao e interpretacao de textos", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 1 },
-        { "id": "POR-02", "nome": "Generos e tipos textuais: narracao, descricao e dissertacao", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "POR-03", "nome": "Ortografia oficial", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "POR-04", "nome": "Classes de palavras", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "POR-05", "nome": "Estruturas morfossintaticas do texto", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "POR-06", "nome": "Regencia nominal e verbal", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 6 },
-        { "id": "POR-07", "nome": "Concordancia nominal e verbal", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 },
-        { "id": "POR-08", "nome": "Pontuacao", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 8 },
-        { "id": "POR-09", "nome": "Reescritura de frases e paragrafos", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 9 }
+        {
+          "id": "POR-01",
+          "nome": "Compreensão e interpretação de textos",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "POR-02",
+          "nome": "Gêneros e tipos textuais: narração, descrição e dissertação",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "POR-03",
+          "nome": "Ortografia oficial",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "POR-04",
+          "nome": "Classes de palavras",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "POR-05",
+          "nome": "Estruturas morfossintáticas do texto",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-06",
+          "nome": "Regência nominal e verbal",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "POR-07",
+          "nome": "Concordância nominal e verbal",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "POR-08",
+          "nome": "Pontuação",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "POR-09",
+          "nome": "Reescritura de frases e parágrafos",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 9
+        }
       ]
     },
     {
       "id": "MAT",
-      "nome": "Matematica",
+      "nome": "Matemática",
       "cor": "#7C3AED",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "MAT-01", "nome": "Teoria dos conjuntos, conjuntos numericos e relacoes entre conjuntos", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "MAT-02", "nome": "Equacoes de 1 grau e equacoes polinomiais reduzidas ao 2 grau", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "MAT-03", "nome": "Funcoes exponenciais, logaritmicas e trigonometricas", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 3 },
-        { "id": "MAT-04", "nome": "Equacoes exponenciais, logaritmicas e trigonometricas", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "MAT-05", "nome": "Analise combinatoria e eventos independentes", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 5 },
-        { "id": "MAT-06", "nome": "Progressao aritmetica e progressao geometrica", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 6 },
-        { "id": "MAT-07", "nome": "Matrizes, determinantes e sistemas lineares", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 7, "semana_sugerida": 7 },
-        { "id": "MAT-08", "nome": "Trigonometria", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 7, "semana_sugerida": 8 },
-        { "id": "MAT-09", "nome": "Geometria plana e geometria espacial", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 8, "semana_sugerida": 9 },
-        { "id": "MAT-10", "nome": "Geometria analitica: reta, parabola e circulo", "incidencia_pct": 4, "prioridade": 3, "horas_estimadas": 6, "semana_sugerida": 10 },
-        { "id": "MAT-11", "nome": "Matematica financeira: capital, juros simples, juros compostos e montante", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 11 }
+        {
+          "id": "MAT-01",
+          "nome": "Teoria dos conjuntos, conjuntos numéricos e relações entre conjuntos",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "MAT-02",
+          "nome": "Equações de 1 grau e equações polinomiais reduzidas ao 2 grau",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "MAT-03",
+          "nome": "Funções exponenciais, logarítmicas e trigonométricas",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "MAT-04",
+          "nome": "Equações exponenciais, logarítmicas e trigonométricas",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "MAT-05",
+          "nome": "Análise combinatória e eventos independentes",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "MAT-06",
+          "nome": "Progressão aritmética e progressão geométrica",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "MAT-07",
+          "nome": "Matrizes, determinantes e sistemas lineares",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "MAT-08",
+          "nome": "Trigonometria",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "MAT-09",
+          "nome": "Geometria plana e geometria espacial",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "MAT-10",
+          "nome": "Geometria analítica: reta, parabola e círculo",
+          "incidencia_pct": 4,
+          "prioridade": 3,
+          "horas_estimadas": 6,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "MAT-11",
+          "nome": "Matemática financeira: capital, juros simples, juros compostos e montante",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 11
+        }
       ]
     },
     {
       "id": "QUI",
-      "nome": "Quimica e Fundamentos da Materia",
+      "nome": "Química e Fundamentos da Matéria",
       "cor": "#2E7D68",
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "QUI-01", "nome": "Acidos, bases, sais e oxidos", "incidencia_pct": 11, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "QUI-02", "nome": "Reacoes de oxido-reducao", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "QUI-03", "nome": "Calculos estequiometricos", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 3 },
-        { "id": "QUI-04", "nome": "Transformacoes quimicas e equilibrio", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "QUI-05", "nome": "Condicoes de equilibrio", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "QUI-06", "nome": "Solucoes aquosas", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 },
-        { "id": "QUI-07", "nome": "Dispersoes", "incidencia_pct": 5, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 7 },
-        { "id": "QUI-08", "nome": "Natureza eletrica da materia", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 8 },
-        { "id": "QUI-09", "nome": "Quimica organica: hidrocarbonetos e polimeros", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 9 },
-        { "id": "QUI-10", "nome": "Termoquimica", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 10 },
-        { "id": "QUI-11", "nome": "Estudo dos gases", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 11 },
-        { "id": "QUI-12", "nome": "Propriedades e processos termicos aplicados a sistemas quimicos", "incidencia_pct": 5, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 12 },
-        { "id": "QUI-13", "nome": "Escalas de temperatura", "incidencia_pct": 5, "prioridade": 3, "horas_estimadas": 3, "semana_sugerida": 13 }
+        {
+          "id": "QUI-01",
+          "nome": "Ácidos, bases, sais e óxidos",
+          "incidencia_pct": 11,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "QUI-02",
+          "nome": "Reações de oxido-reducao",
+          "incidencia_pct": 9,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "QUI-03",
+          "nome": "Cálculos estequiométricos",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "QUI-04",
+          "nome": "Transformações quimicas e equilíbrio",
+          "incidencia_pct": 9,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "QUI-05",
+          "nome": "Condições de equilíbrio",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "QUI-06",
+          "nome": "Soluções aquosas",
+          "incidencia_pct": 9,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "QUI-07",
+          "nome": "Dispersões",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "QUI-08",
+          "nome": "Natureza elétrica da matéria",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "QUI-09",
+          "nome": "Química orgânica: hidrocarbonetos e polímeros",
+          "incidencia_pct": 9,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "QUI-10",
+          "nome": "Termoquímica",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "QUI-11",
+          "nome": "Estudo dos gases",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 11
+        },
+        {
+          "id": "QUI-12",
+          "nome": "Propriedades e processos térmicos aplicados a sistemas químicos",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 12
+        },
+        {
+          "id": "QUI-13",
+          "nome": "Escalas de temperatura",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 3,
+          "semana_sugerida": 13
+        }
       ]
     },
     {
       "id": "FIS",
-      "nome": "Fisica, Eletricidade e Termodinamica",
+      "nome": "Física, Eletricidade e Termodinâmica",
       "cor": "#1D4ED8",
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "FIS-01", "nome": "Leis de Newton", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "FIS-02", "nome": "Estatica, cinematica e dinamica", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 2 },
-        { "id": "FIS-03", "nome": "Conservacao de energia mecanica", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "FIS-04", "nome": "Hidrostatica", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "FIS-05", "nome": "Termodinamica basica", "incidencia_pct": 11, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 5 },
-        { "id": "FIS-06", "nome": "Maquinas termicas e processos naturais", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 6 },
-        { "id": "FIS-07", "nome": "Eletrostatica", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 7 },
-        { "id": "FIS-08", "nome": "Cargas em movimento", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 8 },
-        { "id": "FIS-09", "nome": "Eletromagnetismo", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 9 },
-        { "id": "FIS-10", "nome": "Radiacao eletromagnetica", "incidencia_pct": 5, "prioridade": 3, "horas_estimadas": 4, "semana_sugerida": 10 },
-        { "id": "FIS-11", "nome": "Nocoes de eletricidade e eletronica", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 11 },
-        { "id": "FIS-12", "nome": "Nocoes de instrumentacao", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 12 },
-        { "id": "FIS-13", "nome": "Nocoes de metrologia", "incidencia_pct": 3, "prioridade": 3, "horas_estimadas": 4, "semana_sugerida": 13 }
+        {
+          "id": "FIS-01",
+          "nome": "Leis de Newton",
+          "incidencia_pct": 9,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "FIS-02",
+          "nome": "Estática, cinemática e dinâmica",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "FIS-03",
+          "nome": "Conservacao de energia mecânica",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "FIS-04",
+          "nome": "Hidrostática",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "FIS-05",
+          "nome": "Termodinâmica básica",
+          "incidencia_pct": 11,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "FIS-06",
+          "nome": "Máquinas termicas e processos naturais",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "FIS-07",
+          "nome": "Eletrostática",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "FIS-08",
+          "nome": "Cargas em movimento",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "FIS-09",
+          "nome": "Eletromagnetismo",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "FIS-10",
+          "nome": "Radiação eletromagnetica",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "FIS-11",
+          "nome": "Noções de eletricidade e eletrônica",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 11
+        },
+        {
+          "id": "FIS-12",
+          "nome": "Noções de instrumentação",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 12
+        },
+        {
+          "id": "FIS-13",
+          "nome": "Noções de metrologia",
+          "incidencia_pct": 3,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 13
+        }
       ]
     },
     {
       "id": "OPE",
-      "nome": "Operacoes, Processos e Seguranca",
+      "nome": "Operações, Processos e Segurança",
       "cor": "#0F766E",
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "OPE-01", "nome": "Nocoes de controle de processo", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 1 },
-        { "id": "OPE-02", "nome": "Nocoes de operacoes unitarias", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 10, "semana_sugerida": 2 },
-        { "id": "OPE-03", "nome": "Bombas centrifugas e alternativas", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
-        { "id": "OPE-04", "nome": "Permutadores de casco e tubo", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "OPE-05", "nome": "Tubulacoes industriais, valvulas e acessorios", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 5 },
-        { "id": "OPE-06", "nome": "Seguranca, meio ambiente e saude", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 6 },
-        { "id": "OPE-07", "nome": "Mecanica dos fluidos", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 7 },
-        { "id": "OPE-08", "nome": "Transmissao e transmissores pneumaticos e eletronicos", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 8 }
+        {
+          "id": "OPE-01",
+          "nome": "Noções de controle de processo",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "OPE-02",
+          "nome": "Noções de operações unitarias",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 10,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "OPE-03",
+          "nome": "Bombas centrífugas e alternativas",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "OPE-04",
+          "nome": "Permutadores de casco e tubo",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "OPE-05",
+          "nome": "Tubulações industriais, válvulas e acessórios",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "OPE-06",
+          "nome": "Segurança, meio ambiente e saúde",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "OPE-07",
+          "nome": "Mecanica dos fluidos",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "OPE-08",
+          "nome": "Transmissão e transmissores pneumáticos e eletronicos",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 8
+        }
       ]
     }
   ]

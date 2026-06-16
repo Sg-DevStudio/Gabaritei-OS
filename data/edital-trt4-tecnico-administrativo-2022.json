@@ -2,10 +2,10 @@
   "tipo": "edital_esquematizado",
   "versao": 1,
   "gerado_em": "2026-06-15",
-  "titulo": "TRT4 RS - Tecnico Judiciario Area Administrativa (Edital 2022)",
+  "titulo": "TRT4 RS - Técnico Judiciário Área Administrativa (Edital 2022)",
   "banca": "FCC",
-  "orgao": "Tribunal Regional do Trabalho da 4a Regiao - TRT4/RS",
-  "cargo": "Tecnico Judiciario",
+  "orgao": "Tribunal Regional do Trabalho da 4ª Região - TRT4/RS",
+  "cargo": "Técnico Judiciário",
   "area": "Administrativa",
   "estado": "RS",
   "nivel": "medio",
@@ -17,16 +17,16 @@
     "fim": "2027-02"
   },
   "em_alta": true,
-  "fonte": "Base: Edital 01/2022 TRT4/RS, cargo T15 Tecnico Judiciario - Area Administrativa; pagina oficial TRT4 Servidores 2022; prova FCC 2022 no Qconcursos; pagina TEC Concursos do concurso TRT4/2022; noticias recentes sobre comissao formada para novo edital.",
+  "fonte": "Base: Edital 01/2022 TRT4/RS, cargo T15 Técnico Judiciário - Área Administrativa; página oficial TRT4 Servidores 2022; prova FCC 2022 no Qconcursos; página TEC Concursos do concurso TRT4/2022; notícias recentes sobre comissao formada para novo edital.",
   "observacoes": [
-    "Arquivo pensado para reaproveitamento em pre-edital 2026: o ultimo edital do TRT4 foi FCC 2022 e o novo concurso ja aparece em acompanhamento por sites especializados.",
-    "Estrutura oficial do edital 2022: provas objetivas de Conhecimentos Basicos e Conhecimentos Especificos, alem de Redacao. A prova foi aplicada em 10/07/2022 pela FCC.",
-    "A calibragem de incidencia usa o edital oficial para delimitar conteudo e o Qconcursos/TEC como referencia de recorrencia da prova. No Qconcursos, as disciplinas mais cobradas na prova foram Portugues, Direito do Trabalho e Direito Processual do Trabalho.",
-    "A nota de corte sugerida e apenas aproximacao para a plataforma, pois a FCC usa nota padronizada. Levantamento publico aponta primeiro convocado em 333,09 e ultimo convocado em 260,69 para Tecnico Judiciario - Area Administrativa.",
-    "Se o novo edital trocar banca ou atualizar a matriz nacional dos TRTs, recomenda-se recalibrar principalmente Informatica, LGPD, Acessibilidade e Administracao Publica."
+    "Arquivo pensado para reaproveitamento em pre-edital 2026: o último edital do TRT4 foi FCC 2022 e o novo concurso ja aparece em acompanhamento por sites especializados.",
+    "Estrutura oficial do edital 2022: provas objetivas de Conhecimentos Básicos e Conhecimentos Específicos, além de Redação. A prova foi aplicada em 10/07/2022 pela FCC.",
+    "A calibragem de incidência usa o edital oficial para delimitar conteúdo e o Qconcursos/TEC como referência de recorrencia da prova. No Qconcursos, as disciplinas mais cobradas na prova foram Portugues, Direito do Trabalho e Direito Processual do Trabalho.",
+    "A nota de corte sugerida é apenas aproximacao para a plataforma, pois a FCC usa nota padronizada. Levantamento público aponta primeiro convocado em 333,09 e último convocado em 260,69 para Técnico Judiciário - Área Administrativa.",
+    "Se o novo edital trocar banca ou atualizar a matriz nacional dos TRTs, recomenda-se recalibrar principalmente Informática, LGPD, Acessibilidade e Administração Pública."
   ],
   "notas_corte_ultimo_nomeado": {
-    "escala": "nota final padronizada FCC, nao percentual bruto de acertos",
+    "escala": "nota final padronizada FCC, não percentual bruto de acertos",
     "tecnico_administrativo_2022": {
       "primeiro_convocado": 333.09,
       "ultimo_convocado": 260.69,
@@ -45,61 +45,257 @@
       "peso": 4,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "POR-01", "nome": "Inteleccao, compreensao e interpretacao de texto", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 1 },
-        { "id": "POR-02", "nome": "Redacao: confronto e reconhecimento de frases corretas e incorretas", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "POR-03", "nome": "Ortografia oficial e acentuacao grafica", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "POR-04", "nome": "Flexao nominal e verbal", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "POR-05", "nome": "Pronomes: emprego, tratamento e colocacao", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "POR-06", "nome": "Tempos, modos e vozes verbais", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 },
-        { "id": "POR-07", "nome": "Concordancia nominal e verbal", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 },
-        { "id": "POR-08", "nome": "Regencia nominal e verbal", "incidencia_pct": 7, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 8 },
-        { "id": "POR-09", "nome": "Crase", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 9 },
-        { "id": "POR-10", "nome": "Pontuacao", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 10 }
+        {
+          "id": "POR-01",
+          "nome": "Inteleccao, compreensão e interpretação de texto",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "POR-02",
+          "nome": "Redação: confronto e reconhecimento de frases corretas e incorretas",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "POR-03",
+          "nome": "Ortografia oficial e acentuação gráfica",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "POR-04",
+          "nome": "Flexao nominal e verbal",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "POR-05",
+          "nome": "Pronomes: emprego, tratamento e colocacao",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-06",
+          "nome": "Tempos, modos e vozes verbais",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "POR-07",
+          "nome": "Concordância nominal e verbal",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "POR-08",
+          "nome": "Regência nominal e verbal",
+          "incidencia_pct": 7,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "POR-09",
+          "nome": "Crase",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "POR-10",
+          "nome": "Pontuação",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 10
+        }
       ]
     },
     {
       "id": "MAT",
-      "nome": "Matematica",
+      "nome": "Matemática",
       "cor": "#B45309",
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "MAT-01", "nome": "Numeros inteiros, operacoes, multiplos e divisores", "incidencia_pct": 16, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "MAT-02", "nome": "Numeros racionais: fracoes e decimais", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "MAT-03", "nome": "Razao, proporcao, divisao proporcional e regra de tres", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
-        { "id": "MAT-04", "nome": "Porcentagem e juros simples", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "MAT-05", "nome": "Funcoes de 1o e 2o graus e problemas", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "MAT-06", "nome": "Sistemas de medidas decimais e nao decimais", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 }
+        {
+          "id": "MAT-01",
+          "nome": "Números inteiros, operações, multiplos e divisores",
+          "incidencia_pct": 16,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "MAT-02",
+          "nome": "Números racionais: fracoes e decimais",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "MAT-03",
+          "nome": "Razao, proporcao, divisao proporcional e regra de tres",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "MAT-04",
+          "nome": "Porcentagem e juros simples",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "MAT-05",
+          "nome": "Funções de 1o e 2o graus e problemas",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "MAT-06",
+          "nome": "Sistemas de medidas decimais e não decimais",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
       "id": "LEG",
-      "nome": "Legislacao - Lei 8.112/1990",
+      "nome": "Legislação - Lei 8.112/1990",
       "cor": "#0E7490",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "LEG-01", "nome": "Disposicoes preliminares, provimento e vacancia", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "LEG-02", "nome": "Remocao, redistribuicao e substituicao", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "LEG-03", "nome": "Vencimento, remuneracao, ferias e direito de peticao", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "LEG-04", "nome": "Deveres, proibicoes e acumulacao", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "LEG-05", "nome": "Responsabilidades e penalidades", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "LEG-06", "nome": "Processo administrativo disciplinar e pontos correlatos", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 }
+        {
+          "id": "LEG-01",
+          "nome": "Disposicoes preliminares, provimento e vacância",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "LEG-02",
+          "nome": "Remocao, redistribuicao e substituição",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "LEG-03",
+          "nome": "Vencimento, remuneração, férias e direito de petição",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "LEG-04",
+          "nome": "Deveres, proibições e acumulacao",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "LEG-05",
+          "nome": "Responsabilidades e penalidades",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "LEG-06",
+          "nome": "Processo administrativo disciplinar e pontos correlatos",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
       "id": "INF",
-      "nome": "Nocoes de Informatica",
+      "nome": "Noções de Informática",
       "cor": "#0369A1",
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "INF-01", "nome": "Computacao, microinformatica e trabalho em rede", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "INF-02", "nome": "Internet, intranet e navegadores", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "INF-03", "nome": "Seguranca, prevencao de virus e correio eletronico", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 3 },
-        { "id": "INF-04", "nome": "Organizacao de arquivos e metodos de acesso", "incidencia_pct": 16, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "INF-05", "nome": "Windows XP ou superior", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "INF-06", "nome": "Editores de texto: Microsoft Word e BROffice", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 }
+        {
+          "id": "INF-01",
+          "nome": "Computacao, microinformatica e trabalho em rede",
+          "incidencia_pct": 14,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "INF-02",
+          "nome": "Internet, intranet e navegadores",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "INF-03",
+          "nome": "Segurança, prevenção de vírus e correio eletrônico",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "INF-04",
+          "nome": "Organização de arquivos e métodos de acesso",
+          "incidencia_pct": 16,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "INF-05",
+          "nome": "Windows XP ou superior",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "INF-06",
+          "nome": "Editores de texto: Microsoft Word e BROffice",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
@@ -109,12 +305,54 @@
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DAD-01", "nome": "Regime juridico administrativo e principios", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "DAD-02", "nome": "Agentes publicos e Lei 8.112/1990", "incidencia_pct": 28, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 2 },
-        { "id": "DAD-03", "nome": "Licitacoes e Lei 14.133/2021", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 3 },
-        { "id": "DAD-04", "nome": "Atos administrativos e poderes da administracao", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 4 },
-        { "id": "DAD-05", "nome": "Responsabilidade civil do Estado e controle da administracao", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "DAD-06", "nome": "Servicos publicos e organizacao administrativa", "incidencia_pct": 6, "prioridade": 3, "horas_estimadas": 4, "semana_sugerida": 6 }
+        {
+          "id": "DAD-01",
+          "nome": "Regime jurídico administrativo e princípios",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DAD-02",
+          "nome": "Agentes públicos e Lei 8.112/1990",
+          "incidencia_pct": 28,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DAD-03",
+          "nome": "Licitações e Lei 14.133/2021",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DAD-04",
+          "nome": "Atos administrativos e poderes da administração",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DAD-05",
+          "nome": "Responsabilidade civil do Estado e controle da administração",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DAD-06",
+          "nome": "Serviços públicos e organização administrativa",
+          "incidencia_pct": 6,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
@@ -124,25 +362,95 @@
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "CON-01", "nome": "Principios fundamentais da Republica", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "CON-02", "nome": "Teoria dos direitos fundamentais", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "CON-03", "nome": "Direitos individuais, remedios e garantias processuais", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
-        { "id": "CON-04", "nome": "Direitos politicos", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "CON-05", "nome": "Administracao publica na Constituicao", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "CON-06", "nome": "Servidores publicos na Constituicao", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 6 }
+        {
+          "id": "CON-01",
+          "nome": "Princípios fundamentais da República",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "CON-02",
+          "nome": "Teoria dos direitos fundamentais",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "CON-03",
+          "nome": "Direitos individuais, remedios e garantias processuais",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "CON-04",
+          "nome": "Direitos politicos",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "CON-05",
+          "nome": "Administração pública na Constituição",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "CON-06",
+          "nome": "Servidores públicos na Constituição",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
       "id": "LTRT",
-      "nome": "Legislacao dos Tribunais do Trabalho",
+      "nome": "Legislação dos Tribunais do Trabalho",
       "cor": "#7C3AED",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "LTRT-01", "nome": "Organizacao do TRT da 4a Regiao", "incidencia_pct": 34, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "LTRT-02", "nome": "Regimento interno e estrutura administrativa", "incidencia_pct": 26, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "LTRT-03", "nome": "Servicos auxiliares, unidades e atribuicoes", "incidencia_pct": 20, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 3 },
-        { "id": "LTRT-04", "nome": "Normativos internos e funcionamento dos TRTs", "incidencia_pct": 20, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 4 }
+        {
+          "id": "LTRT-01",
+          "nome": "Organização do TRT da 4ª Região",
+          "incidencia_pct": 34,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "LTRT-02",
+          "nome": "Regimento interno e estrutura administrativa",
+          "incidencia_pct": 26,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "LTRT-03",
+          "nome": "Serviços auxiliares, unidades e atribuicoes",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "LTRT-04",
+          "nome": "Normativos internos e funcionamento dos TRTs",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        }
       ]
     },
     {
@@ -152,86 +460,331 @@
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DDG-01", "nome": "LGPD: fundamentos, principios e bases legais", "incidencia_pct": 40, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "DDG-02", "nome": "LGPD: direitos dos titulares e tratamento pelo poder publico", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "DDG-03", "nome": "Estatuto da Pessoa com Deficiencia e acessibilidade", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 3 }
+        {
+          "id": "DDG-01",
+          "nome": "LGPD: fundamentos, princípios e bases legais",
+          "incidencia_pct": 40,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DDG-02",
+          "nome": "LGPD: direitos dos titulares e tratamento pelo poder público",
+          "incidencia_pct": 30,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DDG-03",
+          "nome": "Estatuto da Pessoa com Deficiência e acessibilidade",
+          "incidencia_pct": 30,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        }
       ]
     },
     {
       "id": "APU",
-      "nome": "Nocoes de Administracao Publica",
+      "nome": "Noções de Administração Pública",
       "cor": "#0F766E",
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "APU-01", "nome": "Organizacoes formais, estruturas e departamentalizacao", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "APU-02", "nome": "Gestao publica x privada e gestao por resultados", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "APU-03", "nome": "Processo organizacional: planejamento, direcao, controle e avaliacao", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
-        { "id": "APU-04", "nome": "Gestao estrategica, tatica e operacional", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "APU-05", "nome": "Gestao de pessoas, desempenho e competencia interpessoal", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "APU-06", "nome": "Gestao por processos, projetos e contratos", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 },
-        { "id": "APU-07", "nome": "Gestao da qualidade, excelencia e ciclo PDCA", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 7 },
-        { "id": "APU-08", "nome": "Administracao de recursos materiais", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 8 }
+        {
+          "id": "APU-01",
+          "nome": "Organizacoes formais, estruturas e departamentalizacao",
+          "incidencia_pct": 14,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "APU-02",
+          "nome": "Gestao pública x privada e gestao por resultados",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "APU-03",
+          "nome": "Processo organizacional: planejamento, direção, controle e avaliacao",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "APU-04",
+          "nome": "Gestao estrategica, tatica e operacional",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "APU-05",
+          "nome": "Gestao de pessoas, desempenho e competência interpessoal",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "APU-06",
+          "nome": "Gestao por processos, projetos e contratos",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "APU-07",
+          "nome": "Gestao da qualidade, excelencia e ciclo PDCA",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "APU-08",
+          "nome": "Administração de recursos materiais",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 8
+        }
       ]
     },
     {
       "id": "AFO",
-      "nome": "Administracao Financeira e Orcamentaria",
+      "nome": "Administração Financeira e Orcamentaria",
       "cor": "#C2410C",
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "AFO-01", "nome": "Orcamento publico: conceito e principios orcamentarios", "incidencia_pct": 35, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "AFO-02", "nome": "Receitas e despesas extraorcamentarias", "incidencia_pct": 20, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "AFO-03", "nome": "Orcamento-programa: conceitos e objetivos", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 3 },
-        { "id": "AFO-04", "nome": "Orcamento na Constituicao Federal", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 4 }
+        {
+          "id": "AFO-01",
+          "nome": "Orçamento público: conceito e princípios orçamentários",
+          "incidencia_pct": 35,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "AFO-02",
+          "nome": "Receitas e despesas extraorcamentarias",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "AFO-03",
+          "nome": "Orçamento-programa: conceitos e objetivos",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "AFO-04",
+          "nome": "Orçamento na Constituição Federal",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        }
       ]
     },
     {
       "id": "DTR",
-      "nome": "Nocoes de Direito do Trabalho",
+      "nome": "Noções de Direito do Trabalho",
       "cor": "#9333EA",
       "peso": 4,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DTR-01", "nome": "Principios, fontes e direitos constitucionais dos trabalhadores", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "DTR-02", "nome": "Relacao de trabalho e relacao de emprego", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 2 },
-        { "id": "DTR-03", "nome": "Empregado, empregador e poderes do empregador", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "DTR-04", "nome": "Contrato individual, alteracao, suspensao e interrupcao", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 4 },
-        { "id": "DTR-05", "nome": "Rescisao, justa causa, despedida indireta, culpa reciproca e aviso previo", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 5 },
-        { "id": "DTR-06", "nome": "Duracao do trabalho, jornada, intervalos, DSR, noturno e extra", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 6 },
-        { "id": "DTR-07", "nome": "Salario, remuneracao, 13o salario e salario-minimo", "incidencia_pct": 9, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 7 },
-        { "id": "DTR-08", "nome": "Ferias, trabalho do menor e protecao ao trabalho da mulher", "incidencia_pct": 5, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 8 }
+        {
+          "id": "DTR-01",
+          "nome": "Princípios, fontes e direitos constitucionais dos trabalhadores",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DTR-02",
+          "nome": "Relacao de trabalho e relacao de emprego",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DTR-03",
+          "nome": "Empregado, empregador e poderes do empregador",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DTR-04",
+          "nome": "Contrato individual, alteracao, suspensao e interrupcao",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DTR-05",
+          "nome": "Rescisao, justa causa, despedida indireta, culpa reciproca e aviso prévio",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DTR-06",
+          "nome": "Duração do trabalho, jornada, intervalos, DSR, noturno e extra",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "DTR-07",
+          "nome": "Salario, remuneração, 13º salário e salário-mínimo",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "DTR-08",
+          "nome": "Férias, trabalho do menor e proteção ao trabalho da mulher",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        }
       ]
     },
     {
       "id": "DPT",
-      "nome": "Nocoes de Direito Processual do Trabalho",
+      "nome": "Noções de Direito Processual do Trabalho",
       "cor": "#6D28D9",
       "peso": 4,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DPT-01", "nome": "Justica do Trabalho: organizacao, jurisdicao e competencia", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
-        { "id": "DPT-02", "nome": "Varas, TRTs, secretarias e distribuidores", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "DPT-03", "nome": "Principios gerais e aplicacao subsidiaria do CPC", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "DPT-04", "nome": "Atos, termos, prazos, custas e emolumentos", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "DPT-05", "nome": "Partes, procuradores, jus postulandi, representacao e honorarios", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "DPT-06", "nome": "Audiencias, notificacao, arquivamento, revelia e confissao", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 6 },
-        { "id": "DPT-07", "nome": "Dissidios individuais, reclamacao e legitimidade", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 7 },
-        { "id": "DPT-08", "nome": "Procedimento ordinario e sumarissimo", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 8 }
+        {
+          "id": "DPT-01",
+          "nome": "Justiça do Trabalho: organização, jurisdição e competência",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DPT-02",
+          "nome": "Varas, TRTs, secretarias e distribuidores",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DPT-03",
+          "nome": "Princípios gerais e aplicacao subsidiaria do CPC",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DPT-04",
+          "nome": "Atos, termos, prazos, custas e emolumentos",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DPT-05",
+          "nome": "Partes, procuradores, jus postulandi, representação e honorarios",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DPT-06",
+          "nome": "Audiências, notificação, arquivamento, revelia e confissão",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "DPT-07",
+          "nome": "Dissidios individuais, reclamação e legitimidade",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "DPT-08",
+          "nome": "Procedimento ordinário e sumaríssimo",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 8
+        }
       ]
     },
     {
       "id": "RED",
-      "nome": "Redacao",
+      "nome": "Redação",
       "cor": "#BE123C",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "RED-01", "nome": "Texto dissertativo-argumentativo para FCC", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "RED-02", "nome": "Tese, repertorio e desenvolvimento argumentativo", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "RED-03", "nome": "Coesao, coerencia e progressao textual", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "RED-04", "nome": "Norma culta, clareza e transcricao final", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 4 }
+        {
+          "id": "RED-01",
+          "nome": "Texto dissertativo-argumentativo para FCC",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "RED-02",
+          "nome": "Tese, repertorio e desenvolvimento argumentativo",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "RED-03",
+          "nome": "Coesao, coerência e progressão textual",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "RED-04",
+          "nome": "Norma culta, clareza e transcrição final",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        }
       ]
     }
   ]

@@ -19,6 +19,174 @@
     return prefixo + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
   }
 
+  const LETRAS_PT = 'A-Za-zÀ-ÖØ-öø-ÿ';
+  const REGRAS_ACENTOS_PT = [
+    ['Nao', 'Não'], ['nao', 'não'], ['Voce', 'Você'], ['voce', 'você'],
+    ['Ate', 'Até'], ['ate', 'até'], ['ha', 'há'],
+    ['catalogo', 'catálogo'], ['Catalogo', 'Catálogo'],
+    ['usuarios', 'usuários'], ['usuario', 'usuário'], ['publicacao', 'publicação'],
+    ['configuracoes', 'configurações'], ['revisoes', 'revisões'], ['revisao', 'revisão'],
+    ['estatisticas', 'estatísticas'], ['historico', 'histórico'], ['sessoes', 'sessões'], ['sessao', 'sessão'],
+    ['acoes', 'ações'], ['acao', 'ação'], ['opcoes', 'opções'], ['opcao', 'opção'],
+    ['questoes', 'questões'], ['questao', 'questão'], ['topicos', 'tópicos'], ['topico', 'tópico'],
+    ['proxima', 'próxima'], ['proximo', 'próximo'], ['ultimo', 'último'], ['ultima', 'última'],
+    ['conteudo', 'conteúdo'], ['geracao', 'geração'], ['observacoes', 'observações'], ['observacao', 'observação'],
+    ['incidencias', 'incidências'], ['incidencia', 'incidência'], ['classificacao', 'classificação'],
+    ['convocacao', 'convocação'], ['nomeacoes', 'nomeações'], ['informacao', 'informação'], ['retificacao', 'retificação'],
+    ['inclusoes', 'inclusões'], ['comparacao', 'comparação'], ['edicao', 'edição'],
+    ['noticia', 'notícia'], ['noticias', 'notícias'], ['possivel', 'possível'],
+    ['Basicos', 'Básicos'], ['basicos', 'básicos'], ['Especificos', 'Específicos'], ['especificos', 'específicos'],
+    ['multipla', 'múltipla'], ['maxima', 'máxima'], ['alem', 'além'],
+    ['confiavel', 'confiável'], ['rapida', 'rápida'], ['conferencia', 'conferência'],
+    ['Compreensao', 'Compreensão'], ['compreensao', 'compreensão'],
+    ['Interpretacao', 'Interpretação'], ['interpretacao', 'interpretação'],
+    ['Acentuacao', 'Acentuação'], ['acentuacao', 'acentuação'],
+    ['Ortografica', 'Ortográfica'], ['ortografica', 'ortográfica'],
+    ['Grafica', 'Gráfica'], ['grafica', 'gráfica'],
+    ['Tecnico', 'Técnico'], ['tecnico', 'técnico'], ['Judiciario', 'Judiciário'], ['judiciario', 'judiciário'],
+    ['area', 'área'], ['Area', 'Área'], ['medio', 'médio'], ['Medio', 'Médio'],
+    ['Publica', 'Pública'], ['publica', 'pública'], ['Publico', 'Público'], ['publico', 'público'],
+    ['Policia', 'Polícia'], ['policia', 'polícia'], ['Rodoviaria', 'Rodoviária'], ['rodoviaria', 'rodoviária'],
+    ['Juridica', 'Jurídica'], ['juridica', 'jurídica'], ['juridico', 'jurídico'],
+    ['Lingua', 'Língua'], ['lingua', 'língua'], ['Etica', 'Ética'], ['etica', 'ética'],
+    ['Raciocinio', 'Raciocínio'], ['raciocinio', 'raciocínio'], ['Logico', 'Lógico'], ['logico', 'lógico'],
+    ['Nocoes', 'Noções'], ['nocoes', 'noções'], ['Matematica', 'Matemática'], ['matematica', 'matemática'],
+    ['Fisica', 'Física'], ['fisica', 'física'], ['Quimica', 'Química'], ['quimica', 'química'],
+    ['Informatica', 'Informática'], ['informatica', 'informática'], ['Legislacao', 'Legislação'], ['legislacao', 'legislação'],
+    ['Justica', 'Justiça'], ['justica', 'justiça'], ['Ministerio', 'Ministério'], ['ministerio', 'ministério'],
+    ['Codigo', 'Código'], ['codigo', 'código'], ['Analise', 'Análise'], ['analise', 'análise'],
+    ['materia', 'matéria'], ['Materia', 'Matéria'], ['pagina', 'página'], ['Pagina', 'Página'],
+    ['disponiveis', 'disponíveis'], ['disponivel', 'disponível'], ['cronometro', 'cronômetro'],
+    ['calendario', 'calendário'], ['horario', 'horário'], ['graficos', 'gráficos'],
+    ['notificacoes', 'notificações'], ['notificacao', 'notificação'], ['autenticacao', 'autenticação'],
+    ['seguranca', 'segurança'], ['memoria', 'memória'], ['rapido', 'rápido'], ['Rapido', 'Rápido'],
+    ['maximo', 'máximo'], ['minimo', 'mínimo'], ['numero', 'número'], ['invalido', 'inválido'],
+    ['media', 'média'], ['Media', 'Média'], ['referencia', 'referência'], ['referencias', 'referências'],
+    ['Brasilia', 'Brasília'], ['Ceara', 'Ceará'], ['Sao', 'São'], ['Regiao', 'Região'], ['Secao', 'Seção'],
+    ['Nivel', 'Nível'], ['nivel', 'nível'], ['Junior', 'Júnior'], ['Enfase', 'Ênfase'], ['Operacao', 'Operação'],
+    ['Petroleo', 'Petróleo'], ['generos', 'gêneros'], ['Generos', 'Gêneros'], ['narracao', 'narração'],
+    ['descricao', 'descrição'], ['dissertacao', 'dissertação'], ['morfossintaticas', 'morfossintáticas'],
+    ['Regencia', 'Regência'], ['regencia', 'regência'], ['Concordancia', 'Concordância'], ['concordancia', 'concordância'],
+    ['Pontuacao', 'Pontuação'], ['pontuacao', 'pontuação'], ['paragrafos', 'parágrafos'],
+    ['numericos', 'numéricos'], ['Relacoes', 'Relações'], ['relacoes', 'relações'], ['Equacoes', 'Equações'], ['equacoes', 'equações'],
+    ['Funcoes', 'Funções'], ['funcoes', 'funções'], ['logaritmicas', 'logarítmicas'], ['trigonometricas', 'trigonométricas'],
+    ['analitica', 'analítica'], ['circulo', 'círculo'], ['combinatoria', 'combinatória'],
+    ['Progressao', 'Progressão'], ['progressao', 'progressão'], ['aritmetica', 'aritmética'], ['geometrica', 'geométrica'],
+    ['Acidos', 'Ácidos'], ['acidos', 'ácidos'], ['oxidos', 'óxidos'], ['Reacoes', 'Reações'], ['reacoes', 'reações'],
+    ['Calculos', 'Cálculos'], ['calculos', 'cálculos'], ['estequiometricos', 'estequiométricos'],
+    ['Transformacoes', 'Transformações'], ['transformacoes', 'transformações'], ['equilibrio', 'equilíbrio'],
+    ['Condicoes', 'Condições'], ['condicoes', 'condições'], ['Solucoes', 'Soluções'], ['solucoes', 'soluções'],
+    ['Dispersoes', 'Dispersões'], ['dispersoes', 'dispersões'], ['eletrica', 'elétrica'], ['organica', 'orgânica'],
+    ['polimeros', 'polímeros'], ['Termoquimica', 'Termoquímica'], ['termicos', 'térmicos'], ['quimicos', 'químicos'],
+    ['Estatica', 'Estática'], ['cinematica', 'cinemática'], ['dinamica', 'dinâmica'], ['mecanica', 'mecânica'],
+    ['Hidrostatica', 'Hidrostática'], ['Termodinamica', 'Termodinâmica'], ['basica', 'básica'],
+    ['Maquinas', 'Máquinas'], ['Eletrostatica', 'Eletrostática'], ['Radiacao', 'Radiação'],
+    ['eletronica', 'eletrônica'], ['instrumentacao', 'instrumentação'], ['metrologia', 'metrologia'],
+    ['Operacoes', 'Operações'], ['operacoes', 'operações'], ['Seguranca', 'Segurança'], ['saude', 'saúde'], ['Tubulacoes', 'Tubulações'], ['valvulas', 'válvulas'],
+    ['acessorios', 'acessórios'], ['Transmissao', 'Transmissão'], ['pneumaticos', 'pneumáticos'],
+    ['centrifugas', 'centrífugas'], ['Administracao', 'Administração'], ['administracao', 'administração'],
+    ['Constituicao', 'Constituição'], ['constituicao', 'constituição'], ['disposicoes', 'disposições'],
+    ['publicos', 'públicos'], ['Licitacoes', 'Licitações'], ['licitacoes', 'licitações'], ['proibicoes', 'proibições'],
+    ['vacancia', 'vacância'], ['Principios', 'Princípios'], ['principios', 'princípios'], ['Republica', 'República'],
+    ['Sucessao', 'Sucessão'], ['sucessao', 'sucessão'], ['Remuneracao', 'Remuneração'], ['remuneracao', 'remuneração'],
+    ['salario', 'salário'], ['Duracao', 'Duração'], ['duracao', 'duração'], ['protecao', 'proteção'],
+    ['Ferias', 'Férias'], ['ferias', 'férias'], ['previo', 'prévio'], ['Competencia', 'Competência'], ['competencia', 'competência'],
+    ['Organizacao', 'Organização'], ['organizacao', 'organização'], ['Direcao', 'Direção'], ['direcao', 'direção'],
+    ['Comunicacao', 'Comunicação'], ['comunicacao', 'comunicação'], ['citacao', 'citação'], ['citacoes', 'citações'],
+    ['intimacao', 'intimação'], ['intimacoes', 'intimações'], ['sumario', 'sumário'], ['suspeicao', 'suspeição'],
+    ['distribuicao', 'distribuição'], ['peticao', 'petição'], ['provisoria', 'provisória'],
+    ['Resolucao', 'Resolução'], ['resolucao', 'resolução'], ['Deficiencia', 'Deficiência'], ['deficiencia', 'deficiência'],
+    ['Orcamento', 'Orçamento'], ['orcamento', 'orçamento'], ['orcamentarios', 'orçamentários'],
+    ['politico', 'político'], ['tramitacao', 'tramitação'], ['expedicao', 'expedição'],
+    ['Metodos', 'Métodos'], ['metodos', 'métodos'], ['Numeros', 'Números'], ['numeros', 'números'],
+    ['aritmeticos', 'aritméticos'], ['geometricos', 'geométricos'],
+    ['Prevencao', 'Prevenção'], ['prevencao', 'prevenção'], ['virus', 'vírus'], ['eletronico', 'eletrônico'],
+    ['Servicos', 'Serviços'], ['servicos', 'serviços'], ['jurisdicao', 'jurisdição'],
+    ['Redacao', 'Redação'], ['redacao', 'redação'],
+    ['Audiencias', 'Audiências'], ['audiencias', 'audiências'], ['notificacao', 'notificação'], ['confissao', 'confissão'],
+    ['ordinario', 'ordinário'], ['sumarissimo', 'sumaríssimo'], ['Dissidio', 'Dissídio'], ['dissidio', 'dissídio'],
+    ['reclamacao', 'reclamação'], ['representacao', 'representação'], ['substituicao', 'substituição'],
+    ['vicios', 'vícios'], ['correcao', 'correção'], ['concisao', 'concisão'], ['precisao', 'precisão'],
+    ['Coerencia', 'Coerência'], ['coerencia', 'coerência'], ['argumentacao', 'argumentação'],
+    ['transcricao', 'transcrição'], ['contemporaneo', 'contemporâneo']
+  ].map(function (par) {
+    return { re: new RegExp('(^|[^' + LETRAS_PT + '])' + par[0] + '(?=$|[^' + LETRAS_PT + '])', 'g'), para: '$1' + par[1] };
+  });
+
+  const CAMPOS_TEXTO_PT = {
+    titulo: true, nome: true, concurso: true, orgao: true, cargo: true, area: true,
+    fonte: true, corte_fonte: true, escala: true, observacoes: true, observacao: true, descricao: true,
+    desc: true, texto: true, nomeRitmo: true, frente: true, verso: true
+  };
+
+  function corrigirAcentosTexto(valor) {
+    if (typeof valor !== 'string') return valor;
+    let texto = valor;
+    REGRAS_ACENTOS_PT.forEach(function (r) { texto = texto.replace(r.re, r.para); });
+    texto = texto
+      .replace(/\bPúblicação\b/g, 'Publicação')
+      .replace(/\bpúblicação\b/g, 'publicação')
+      .replace(/\bpúblicações\b/g, 'publicações')
+      .replace(/\bsugerida e (apenas|aproximada)\b/g, 'sugerida é $1')
+      .replace(/\bsugerida e (somente|muito)\b/g, 'sugerida é $1')
+      .replace(/\b3a Região\b/g, '3ª Região')
+      .replace(/\b4a Região\b/g, '4ª Região')
+      .replace(/\b13o\b/g, '13º')
+      .replace(/\boxido-redução\b/gi, function (m) { return m[0] === 'O' ? 'Óxido-redução' : 'óxido-redução'; });
+    return texto;
+  }
+
+  function normalizarAcentosCampos(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    Object.keys(obj).forEach(function (chave) {
+      const valor = obj[chave];
+      if (typeof valor === 'string' && CAMPOS_TEXTO_PT[chave]) {
+        obj[chave] = corrigirAcentosTexto(valor);
+      } else if (Array.isArray(valor) && CAMPOS_TEXTO_PT[chave]) {
+        obj[chave] = valor.map(function (item) {
+          return typeof item === 'string' ? corrigirAcentosTexto(item) : normalizarAcentosCampos(item);
+        });
+      }
+    });
+    return obj;
+  }
+
+  function normalizarAcentosDisciplinas(disciplinas) {
+    if (!Array.isArray(disciplinas)) return disciplinas;
+    disciplinas.forEach(function (d) {
+      normalizarAcentosCampos(d);
+      (d.topicos || []).forEach(normalizarAcentosCampos);
+    });
+    return disciplinas;
+  }
+
+  function normalizarAcentosEdital(edital) {
+    normalizarAcentosCampos(edital);
+    if (edital && edital.notas_corte_ultimo_nomeado) {
+      normalizarAcentosCampos(edital.notas_corte_ultimo_nomeado);
+      Object.keys(edital.notas_corte_ultimo_nomeado).forEach(function (k) {
+        normalizarAcentosCampos(edital.notas_corte_ultimo_nomeado[k]);
+      });
+    }
+    normalizarAcentosDisciplinas(edital && edital.disciplinas);
+    return edital;
+  }
+
+  function normalizarAcentosConteudo(state) {
+    if (!state || typeof state !== 'object') return state;
+    (state.planos || []).forEach(function (p) {
+      normalizarAcentosCampos(p && p.plano);
+      if (p && p.plano && p.plano.meta) normalizarAcentosCampos(p.plano.meta);
+      normalizarAcentosDisciplinas(p && p.disciplinas);
+    });
+    (state.editais || []).forEach(normalizarAcentosEdital);
+    (state.flashcards || []).forEach(function (deck) {
+      normalizarAcentosCampos(deck);
+      (deck.cards || []).forEach(normalizarAcentosCampos);
+    });
+    return state;
+  }
+
   function estadoVazio() {
     const agora = agoraISO();
     return {
@@ -131,6 +299,7 @@
     // Ciclo de estudos: cada plano ganha um modo ('cronograma' | 'ciclo') e um
     // ciclo (fila ponderada de blocos). Planos antigos ficam em 'cronograma'.
     state.planos.forEach(function (p) { if (p && p.plano) normalizarCicloPlano(p.plano); });
+    normalizarAcentosConteudo(state);
     state.versao = VERSAO_SCHEMA;
     return hidratar(state);
   }
@@ -211,6 +380,7 @@
 
   window.Store = {
     carregar, salvar, estadoVazio, normalizar: migrar, hidratar, novoId,
-    ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados
+    ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados,
+    corrigirAcentosTexto, normalizarAcentosEdital, normalizarAcentosConteudo
   };
 })();

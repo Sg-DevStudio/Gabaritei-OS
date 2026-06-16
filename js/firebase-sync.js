@@ -290,7 +290,7 @@ async function carregarCatalogoGlobal() {
 
 async function publicarCatalogoGlobal(editais) {
   if (!usuario || String(usuario.email || '').toLowerCase() !== 'casar70@gmail.com') {
-    throw new Error('Apenas o administrador pode publicar o catalogo global.');
+    throw new Error('Apenas o administrador pode publicar o catálogo global.');
   }
   await setDoc(refCatalogo, {
     editais: Array.isArray(editais) ? editais : [],

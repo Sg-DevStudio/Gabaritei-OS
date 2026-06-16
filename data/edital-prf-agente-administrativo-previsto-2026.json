@@ -4,7 +4,7 @@
   "gerado_em": "2026-06-15",
   "titulo": "PRF - Agente Administrativo (previsto 2026/2027)",
   "banca": "A definir",
-  "orgao": "Policia Rodoviaria Federal - PRF",
+  "orgao": "Polícia Rodoviária Federal - PRF",
   "cargo": "Agente Administrativo",
   "area": "Administrativa",
   "estado": "BR",
@@ -17,15 +17,15 @@
     "fim": "2027-01"
   },
   "em_alta": true,
-  "fonte": "Base: Edital n. 01/2014-PRF-Brasilia/DF, cargo A01 Agente Administrativo, FUNCAB/INCAB, publicado no gov.br/MJ; pagina de concursos anteriores da PRF; TEC Concursos Agente Administrativo PRF/2014; Folha Dirigida por Qconcursos sobre notas de corte do PRF Administrativo 2014 e pedido de novo edital.",
+  "fonte": "Base: Edital n. 01/2014-PRF-Brasília/DF, cargo A01 Agente Administrativo, FUNCAB/INCAB, publicado no gov.br/MJ; página de concursos anteriores da PRF; TEC Concursos Agente Administrativo PRF/2014; Folha Dirigida por Qconcursos sobre notas de corte do PRF Administrativo 2014 e pedido de novo edital.",
   "observacoes": [
-    "Arquivo de pre-edital: nao ha edital novo publicado em 2026 ate a data de geracao. O conteudo usa o ultimo edital oficial de Agente Administrativo da PRF como base.",
-    "Ultimo edital: prova objetiva de 60 questoes de multipla escolha, 5 alternativas, nota maxima 90 pontos. Lingua Portuguesa teve 12 questoes com peso 2; Etica e Raciocinio Logico tiveram 6 questoes com peso 1; conhecimentos especificos tiveram 6 questoes por disciplina com peso 1,5.",
-    "Nota de corte sugerida de 76% usa o pior caso divulgado para 2014: Ceara com 68 pontos em 90, aproximadamente 75,6%. Para outros estados, as notas foram menores.",
-    "Incidencias por topico sao estimativas para organizar estudo a partir do edital anterior e devem ser recalibradas com TEC/Qconcursos quando houver prova/banca do novo concurso."
+    "Arquivo de pre-edital: não há edital novo publicado em 2026 até a data de geração. O conteúdo usa o último edital oficial de Agente Administrativo da PRF como base.",
+    "Ultimo edital: prova objetiva de 60 questões de múltipla escolha, 5 alternativas, nota máxima 90 pontos. Língua Portuguesa teve 12 questões com peso 2; Ética e Raciocínio Lógico tiveram 6 questões com peso 1; conhecimentos específicos tiveram 6 questões por disciplina com peso 1,5.",
+    "Nota de corte sugerida de 76% usa o pior caso divulgado para 2014: Ceará com 68 pontos em 90, aproximadamente 75,6%. Para outros estados, as notas foram menores.",
+    "Incidencias por tópico sao estimativas para organizar estudo a partir do edital anterior e devem ser recalibradas com TEC/Qconcursos quando houver prova/banca do novo concurso."
   ],
   "notas_corte_ultimo_nomeado": {
-    "escala": "nota final objetiva de 0 a 90 no edital de 2014; percentual = nota/90. Dados disponiveis por levantamento jornalistico de nota de corte/classificacao, nao por lista completa de ultimo efetivamente nomeado por cota.",
+    "escala": "nota final objetiva de 0 a 90 no edital de 2014; percentual = nota/90. Dados disponíveis por levantamento jornalistico de nota de corte/classificação, não por lista completa de último efetivamente nomeado por cota.",
     "maior_corte_2014_CE": {
       "ampla": 68,
       "ampla_pct": 75.6,
@@ -45,156 +45,667 @@
   "disciplinas": [
     {
       "id": "POR",
-      "nome": "Lingua Portuguesa",
+      "nome": "Língua Portuguesa",
       "cor": "#2563EB",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "POR-01", "nome": "Compreensao e interpretacao de textos", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 1 },
-        { "id": "POR-02", "nome": "Tipologia textual", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "POR-03", "nome": "Ortografia oficial e acentuacao grafica", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 3 },
-        { "id": "POR-04", "nome": "Substantivo e adjetivo", "incidencia_pct": 3, "prioridade": 2, "horas_estimadas": 2, "semana_sugerida": 4 },
-        { "id": "POR-05", "nome": "Verbo e adverbio", "incidencia_pct": 5, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 4 },
-        { "id": "POR-06", "nome": "Pronomes e colocacao pronominal", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 5 },
-        { "id": "POR-07", "nome": "Artigo, preposicao, conjuncao e interjeicao", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 2, "semana_sugerida": 5 },
-        { "id": "POR-08", "nome": "Crase", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 },
-        { "id": "POR-09", "nome": "Sintaxe da oracao e do periodo", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 7 },
-        { "id": "POR-10", "nome": "Pontuacao", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 8 },
-        { "id": "POR-11", "nome": "Concordancia nominal e verbal", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 9 },
-        { "id": "POR-12", "nome": "Regencia nominal e verbal", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 10 },
-        { "id": "POR-13", "nome": "Significacao das palavras", "incidencia_pct": 3, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 11 },
-        { "id": "POR-14", "nome": "Redacao oficial e Manual de Redacao da Presidencia da Republica", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 12 }
+        {
+          "id": "POR-01",
+          "nome": "Compreensão e interpretação de textos",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "POR-02",
+          "nome": "Tipologia textual",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "POR-03",
+          "nome": "Ortografia oficial e acentuação gráfica",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "POR-04",
+          "nome": "Substantivo e adjetivo",
+          "incidencia_pct": 3,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "POR-05",
+          "nome": "Verbo e adverbio",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "POR-06",
+          "nome": "Pronomes e colocacao pronominal",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-07",
+          "nome": "Artigo, preposicao, conjuncao e interjeicao",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-08",
+          "nome": "Crase",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "POR-09",
+          "nome": "Sintaxe da oracao e do periodo",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "POR-10",
+          "nome": "Pontuação",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "POR-11",
+          "nome": "Concordância nominal e verbal",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "POR-12",
+          "nome": "Regência nominal e verbal",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "POR-13",
+          "nome": "Significacao das palavras",
+          "incidencia_pct": 3,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 11
+        },
+        {
+          "id": "POR-14",
+          "nome": "Redação oficial e Manual de Redação da Presidencia da República",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 12
+        }
       ]
     },
     {
       "id": "ETI",
-      "nome": "Etica e Conduta Publica",
+      "nome": "Ética e Conduta Pública",
       "cor": "#7C3AED",
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "ETI-01", "nome": "Etica, moral, principios e valores no servico publico", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "ETI-02", "nome": "Etica e democracia: exercicio da cidadania", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 2 },
-        { "id": "ETI-03", "nome": "Etica e funcao publica", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "ETI-04", "nome": "Etica no setor publico e conduta do servidor", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "ETI-05", "nome": "Decreto 1.171/1994: Codigo de Etica do Servidor Publico", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "ETI-06", "nome": "Decreto 6.029/2007: Sistema de Gestao da Etica", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 },
-        { "id": "ETI-07", "nome": "Lei 8.112/1990: regime disciplinar", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 },
-        { "id": "ETI-08", "nome": "Lei 8.429/1992: improbidade administrativa", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 8 }
+        {
+          "id": "ETI-01",
+          "nome": "Ética, moral, princípios e valores no servico público",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "ETI-02",
+          "nome": "Ética e democracia: exercicio da cidadania",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "ETI-03",
+          "nome": "Ética e funcao pública",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "ETI-04",
+          "nome": "Ética no setor público e conduta do servidor",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "ETI-05",
+          "nome": "Decreto 1.171/1994: Código de Ética do Servidor Público",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "ETI-06",
+          "nome": "Decreto 6.029/2007: Sistema de Gestao da Ética",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "ETI-07",
+          "nome": "Lei 8.112/1990: regime disciplinar",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "ETI-08",
+          "nome": "Lei 8.429/1992: improbidade administrativa",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 8
+        }
       ]
     },
     {
       "id": "RLM",
-      "nome": "Raciocinio Logico",
+      "nome": "Raciocínio Lógico",
       "cor": "#0F766E",
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "RLM-01", "nome": "Estruturas logicas", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "RLM-02", "nome": "Logica de argumentacao: analogias, inferencias, deducoes e conclusoes", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "RLM-03", "nome": "Logica proposicional: proposicoes simples e compostas", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "RLM-04", "nome": "Tabelas-verdade, equivalencias e Leis de De Morgan", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "RLM-05", "nome": "Diagramas logicos e logica de primeira ordem", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "RLM-06", "nome": "Principios de contagem e probabilidade", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 6 },
-        { "id": "RLM-07", "nome": "Operacoes com conjuntos e problemas aritmeticos, geometricos e matriciais", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 7 }
+        {
+          "id": "RLM-01",
+          "nome": "Estruturas logicas",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "RLM-02",
+          "nome": "Logica de argumentação: analogias, inferencias, deducoes e conclusoes",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "RLM-03",
+          "nome": "Logica proposicional: proposicoes simples e compostas",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "RLM-04",
+          "nome": "Tabelas-verdade, equivalencias e Leis de De Morgan",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "RLM-05",
+          "nome": "Diagramas logicos e logica de primeira ordem",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "RLM-06",
+          "nome": "Princípios de contagem e probabilidade",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "RLM-07",
+          "nome": "Operações com conjuntos e problemas aritméticos, geométricos e matriciais",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 7
+        }
       ]
     },
     {
       "id": "CON",
-      "nome": "Nocoes de Direito Constitucional",
+      "nome": "Noções de Direito Constitucional",
       "cor": "#1D4ED8",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "CON-01", "nome": "Constituicao: conceito, classificacoes e principios fundamentais", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "CON-02", "nome": "Direitos e deveres individuais e coletivos", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 2 },
-        { "id": "CON-03", "nome": "Direitos sociais, nacionalidade, cidadania e direitos politicos", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "CON-04", "nome": "Organizacao politico-administrativa", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 4 },
-        { "id": "CON-05", "nome": "Administracao publica na Constituicao", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "CON-06", "nome": "Poder Executivo", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 6 },
-        { "id": "CON-07", "nome": "Seguranca publica", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 }
+        {
+          "id": "CON-01",
+          "nome": "Constituição: conceito, classificacoes e princípios fundamentais",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "CON-02",
+          "nome": "Direitos e deveres individuais e coletivos",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "CON-03",
+          "nome": "Direitos sociais, nacionalidade, cidadania e direitos politicos",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "CON-04",
+          "nome": "Organização político-administrativa",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "CON-05",
+          "nome": "Administração pública na Constituição",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "CON-06",
+          "nome": "Poder Executivo",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "CON-07",
+          "nome": "Segurança pública",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        }
       ]
     },
     {
       "id": "ADM",
-      "nome": "Nocoes de Direito Administrativo",
+      "nome": "Noções de Direito Administrativo",
       "cor": "#9333EA",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "ADM-01", "nome": "Ato administrativo: conceito, requisitos, atributos e classificacao", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
-        { "id": "ADM-02", "nome": "Anulacao, revogacao, invalidacao e prescricao", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "ADM-03", "nome": "Controle da administracao publica", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "ADM-04", "nome": "Agentes publicos, investidura, exercicio, direitos e deveres", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "ADM-05", "nome": "Processo administrativo: conceito, principios, fases e modalidades", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "ADM-06", "nome": "Poderes da administracao publica", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 },
-        { "id": "ADM-07", "nome": "Principios basicos e responsabilidade objetiva da administracao", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 7 },
-        { "id": "ADM-08", "nome": "Improbidade administrativa", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 8 },
-        { "id": "ADM-09", "nome": "Servicos publicos e administracao direta e indireta", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 9 },
-        { "id": "ADM-10", "nome": "Lei 8.112/1990, Lei 8.666/1993 e Lei 9.784/1999", "incidencia_pct": 11, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 10 }
+        {
+          "id": "ADM-01",
+          "nome": "Ato administrativo: conceito, requisitos, atributos e classificação",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "ADM-02",
+          "nome": "Anulacao, revogacao, invalidacao e prescricao",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "ADM-03",
+          "nome": "Controle da administração pública",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "ADM-04",
+          "nome": "Agentes públicos, investidura, exercicio, direitos e deveres",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "ADM-05",
+          "nome": "Processo administrativo: conceito, princípios, fases e modalidades",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "ADM-06",
+          "nome": "Poderes da administração pública",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "ADM-07",
+          "nome": "Princípios básicos e responsabilidade objetiva da administração",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "ADM-08",
+          "nome": "Improbidade administrativa",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "ADM-09",
+          "nome": "Serviços públicos e administração direta e indireta",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "ADM-10",
+          "nome": "Lei 8.112/1990, Lei 8.666/1993 e Lei 9.784/1999",
+          "incidencia_pct": 11,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 10
+        }
       ]
     },
     {
       "id": "ADG",
-      "nome": "Nocoes de Administracao",
+      "nome": "Noções de Administração",
       "cor": "#2E7D68",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "ADG-01", "nome": "Processo administrativo organizacional: planejamento, organizacao, direcao e controle", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
-        { "id": "ADG-02", "nome": "Funcoes e habilidades do administrador", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "ADG-03", "nome": "Comportamento organizacional, motivacao e lideranca", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "ADG-04", "nome": "Comunicacao, equipes e clima organizacional", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 4 },
-        { "id": "ADG-05", "nome": "Gestao de pessoas e gestao por competencias", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "ADG-06", "nome": "Administracao de materiais, patrimonio e logistica", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 6 },
-        { "id": "ADG-07", "nome": "Administracao financeira e orcamentaria publica", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 7 },
-        { "id": "ADG-08", "nome": "Atendimento ao publico e qualidade no servico publico", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 8 },
-        { "id": "ADG-09", "nome": "Organizacao, sistemas e metodos", "incidencia_pct": 5, "prioridade": 3, "horas_estimadas": 5, "semana_sugerida": 9 },
-        { "id": "ADG-10", "nome": "Educacao corporativa e educacao a distancia", "incidencia_pct": 5, "prioridade": 3, "horas_estimadas": 4, "semana_sugerida": 10 }
+        {
+          "id": "ADG-01",
+          "nome": "Processo administrativo organizacional: planejamento, organização, direção e controle",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "ADG-02",
+          "nome": "Funções e habilidades do administrador",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "ADG-03",
+          "nome": "Comportamento organizacional, motivacao e lideranca",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "ADG-04",
+          "nome": "Comunicação, equipes e clima organizacional",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "ADG-05",
+          "nome": "Gestao de pessoas e gestao por competencias",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "ADG-06",
+          "nome": "Administração de materiais, patrimonio e logistica",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "ADG-07",
+          "nome": "Administração financeira e orcamentaria pública",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "ADG-08",
+          "nome": "Atendimento ao público e qualidade no servico público",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "ADG-09",
+          "nome": "Organização, sistemas e métodos",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 5,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "ADG-10",
+          "nome": "Educacao corporativa e educacao a distancia",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 10
+        }
       ]
     },
     {
       "id": "ARQ",
-      "nome": "Nocoes de Arquivologia",
+      "nome": "Noções de Arquivologia",
       "cor": "#0891B2",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "ARQ-01", "nome": "Arquivistica: principios e conceitos", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "ARQ-02", "nome": "Gestao de documentos", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "ARQ-03", "nome": "Protocolo: recebimento, registro, distribuicao, tramitacao e expedicao", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "ARQ-04", "nome": "Classificacao, arquivamento e ordenacao de documentos", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "ARQ-05", "nome": "Tabela de temporalidade de documentos de arquivo", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "ARQ-06", "nome": "Acondicionamento, armazenamento, preservacao e conservacao", "incidencia_pct": 16, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 6 }
+        {
+          "id": "ARQ-01",
+          "nome": "Arquivistica: princípios e conceitos",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "ARQ-02",
+          "nome": "Gestao de documentos",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "ARQ-03",
+          "nome": "Protocolo: recebimento, registro, distribuição, tramitação e expedição",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "ARQ-04",
+          "nome": "Classificacao, arquivamento e ordenacao de documentos",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "ARQ-05",
+          "nome": "Tabela de temporalidade de documentos de arquivo",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "ARQ-06",
+          "nome": "Acondicionamento, armazenamento, preservacao e conservacao",
+          "incidencia_pct": 16,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
       "id": "INF",
-      "nome": "Nocoes de Informatica",
+      "nome": "Noções de Informática",
       "cor": "#4F46E5",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "INF-01", "nome": "Editor de textos", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "INF-02", "nome": "Planilhas eletronicas", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "INF-03", "nome": "Aplicativos de apresentacao", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "INF-04", "nome": "Internet: conceitos, ferramentas, aplicativos e procedimentos", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "INF-05", "nome": "Correio eletronico, grupos de discussao, busca e pesquisa", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "INF-06", "nome": "Redes de computadores", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 6 },
-        { "id": "INF-07", "nome": "Seguranca da informacao", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 7 }
+        {
+          "id": "INF-01",
+          "nome": "Editor de textos",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "INF-02",
+          "nome": "Planilhas eletronicas",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "INF-03",
+          "nome": "Aplicativos de apresentacao",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "INF-04",
+          "nome": "Internet: conceitos, ferramentas, aplicativos e procedimentos",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "INF-05",
+          "nome": "Correio eletrônico, grupos de discussao, busca e pesquisa",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "INF-06",
+          "nome": "Redes de computadores",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "INF-07",
+          "nome": "Segurança da informação",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        }
       ]
     },
     {
       "id": "LPRF",
-      "nome": "Legislacao Relativa a PRF",
+      "nome": "Legislação Relativa a PRF",
       "cor": "#B83A2E",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "LPRF-01", "nome": "Art. 144 da Constituicao Federal: perfil constitucional e funcoes institucionais", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "LPRF-02", "nome": "Art. 20 da Lei 9.503/1997: competencias da PRF no CTB", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "LPRF-03", "nome": "Decreto 1.655/1995: competencia da PRF", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 3 },
-        { "id": "LPRF-04", "nome": "Decreto 6.061/2007 e estrutura regimental vinculada", "incidencia_pct": 15, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 }
+        {
+          "id": "LPRF-01",
+          "nome": "Art. 144 da Constituição Federal: perfil constitucional e funções institucionais",
+          "incidencia_pct": 30,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "LPRF-02",
+          "nome": "Art. 20 da Lei 9.503/1997: competencias da PRF no CTB",
+          "incidencia_pct": 30,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "LPRF-03",
+          "nome": "Decreto 1.655/1995: competência da PRF",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "LPRF-04",
+          "nome": "Decreto 6.061/2007 e estrutura regimental vinculada",
+          "incidencia_pct": 15,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        }
       ]
     }
   ]

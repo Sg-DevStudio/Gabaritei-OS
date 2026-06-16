@@ -2,10 +2,10 @@
   "tipo": "edital_esquematizado",
   "versao": 1,
   "gerado_em": "2026-06-15",
-  "titulo": "TJSP - Escrevente Tecnico Judiciario (Edital 2025)",
+  "titulo": "TJSP - Escrevente Técnico Judiciário (Edital 2025)",
   "banca": "Vunesp",
-  "orgao": "Tribunal de Justica do Estado de Sao Paulo - TJSP",
-  "cargo": "Escrevente Tecnico Judiciario",
+  "orgao": "Tribunal de Justiça do Estado de São Paulo - TJSP",
+  "cargo": "Escrevente Técnico Judiciário",
   "area": "Judiciaria",
   "estado": "SP",
   "nivel": "medio",
@@ -17,18 +17,18 @@
     "fim": "2025-12"
   },
   "em_alta": true,
-  "fonte": "Base: Edital TJSP2503/2025 - Escrevente Tecnico Judiciario, Vunesp; noticia oficial TJSP de publicacao do edital; pagina oficial Vunesp TJSP2503; levantamentos publicos de notas de corte do edital TJSP Escrevente 2024.",
+  "fonte": "Base: Edital TJSP2503/2025 - Escrevente Técnico Judiciário, Vunesp; notícia oficial TJSP de publicação do edital; página oficial Vunesp TJSP2503; levantamentos públicos de notas de corte do edital TJSP Escrevente 2024.",
   "observacoes": [
     "Edital atual publicado em 2025 para cadastro de reserva na Capital e circunscricoes da 1a RAJ.",
-    "Prova objetiva com 70 questoes de multipla escolha, todas com o mesmo peso, mais redacao eliminatoria. Blocos I e II exigem no minimo 50% de acertos.",
-    "Distribuicao oficial: Lingua Portuguesa 16 questoes; Conhecimentos em Direito 30 questoes; Conhecimentos Gerais 24 questoes, sendo Atualidades 4, Matematica 4, Informatica 9 e Raciocinio Logico 7.",
-    "Nota de corte sugerida usa a maior ampla divulgada no edital anterior de 2024: Sao Jose do Rio Preto com 7,7/10. Para Capital 2024, o corte divulgado foi 7,0/10.",
-    "Levantamentos publicos divergiram quanto ao maior corte da lista de negros em 2024: uma fonte aponta 6,1/10 e outra aponta 6,9/10. Usar a modalidade negros com cautela ate conferir o documento oficial da Vunesp."
+    "Prova objetiva com 70 questões de múltipla escolha, todas com o mesmo peso, mais redação eliminatoria. Blocos I e II exigem no mínimo 50% de acertos.",
+    "Distribuicao oficial: Língua Portuguesa 16 questões; Conhecimentos em Direito 30 questões; Conhecimentos Gerais 24 questões, sendo Atualidades 4, Matemática 4, Informática 9 e Raciocínio Lógico 7.",
+    "Nota de corte sugerida usa a maior ampla divulgada no edital anterior de 2024: São Jose do Rio Preto com 7,7/10. Para Capital 2024, o corte divulgado foi 7,0/10.",
+    "Levantamentos públicos divergiram quanto ao maior corte da lista de negros em 2024: uma fonte aponta 6,1/10 e outra aponta 6,9/10. Usar a modalidade negros com cautela até conferir o documento oficial da Vunesp."
   ],
   "notas_corte_ultimo_nomeado": {
     "escala": "nota objetiva de 0 a 10 no edital TJSP Escrevente 2024",
     "capital_2024": {
-      "ampla": 7.0,
+      "ampla": 7,
       "ampla_pct": 70,
       "negros": null,
       "negros_pct": null,
@@ -45,34 +45,142 @@
       "pcd_pct": 62
     },
     "capital_e_grande_sp_2023": {
-      "Sao_Bernardo_do_Campo": { "ampla": 8.2, "negros": 6.6, "pcd": 6.4 },
-      "Santo_Andre": { "ampla": 8.5, "negros": 6.8, "pcd": 7.0 },
-      "Osasco": { "ampla": 8.3, "negros": 6.6, "pcd": 6.2 },
-      "Guarulhos": { "ampla": 8.3, "negros": 6.6, "pcd": 6.8 },
-      "Mogi_das_Cruzes": { "ampla": 8.1, "negros": 6.5, "pcd": 6.2 },
-      "Itapecerica_da_Serra": { "ampla": 8.0, "negros": 6.4, "pcd": 6.7 }
+      "Sao_Bernardo_do_Campo": {
+        "ampla": 8.2,
+        "negros": 6.6,
+        "pcd": 6.4
+      },
+      "Santo_Andre": {
+        "ampla": 8.5,
+        "negros": 6.8,
+        "pcd": 7
+      },
+      "Osasco": {
+        "ampla": 8.3,
+        "negros": 6.6,
+        "pcd": 6.2
+      },
+      "Guarulhos": {
+        "ampla": 8.3,
+        "negros": 6.6,
+        "pcd": 6.8
+      },
+      "Mogi_das_Cruzes": {
+        "ampla": 8.1,
+        "negros": 6.5,
+        "pcd": 6.2
+      },
+      "Itapecerica_da_Serra": {
+        "ampla": 8,
+        "negros": 6.4,
+        "pcd": 6.7
+      }
     }
   },
   "disciplinas": [
     {
       "id": "POR",
-      "nome": "Lingua Portuguesa",
+      "nome": "Língua Portuguesa",
       "cor": "#2563EB",
       "peso": 4,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "POR-01", "nome": "Analise, compreensao e interpretacao de textos", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 1 },
-        { "id": "POR-02", "nome": "Informacoes literais, inferencias e ponto de vista do autor", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "POR-03", "nome": "Estruturacao textual, relacoes entre ideias e coesao", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "POR-04", "nome": "Significacao contextual, sinonimos, antonimos e sentido figurado", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "POR-05", "nome": "Substantivo, adjetivo, artigo e numeral", "incidencia_pct": 5, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 5 },
-        { "id": "POR-06", "nome": "Pronome e colocacao pronominal", "incidencia_pct": 7, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 5 },
-        { "id": "POR-07", "nome": "Verbo e adverbio", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 },
-        { "id": "POR-08", "nome": "Preposicao e conjuncao", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 2, "semana_sugerida": 6 },
-        { "id": "POR-09", "nome": "Concordancia verbal e nominal", "incidencia_pct": 6, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 },
-        { "id": "POR-10", "nome": "Regencia verbal e nominal", "incidencia_pct": 5, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 8 },
-        { "id": "POR-11", "nome": "Crase", "incidencia_pct": 3, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 9 },
-        { "id": "POR-12", "nome": "Pontuacao", "incidencia_pct": 4, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 10 }
+        {
+          "id": "POR-01",
+          "nome": "Análise, compreensão e interpretação de textos",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "POR-02",
+          "nome": "Informacoes literais, inferencias e ponto de vista do autor",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "POR-03",
+          "nome": "Estruturacao textual, relações entre ideias e coesao",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "POR-04",
+          "nome": "Significacao contextual, sinonimos, antonimos e sentido figurado",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "POR-05",
+          "nome": "Substantivo, adjetivo, artigo e numeral",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-06",
+          "nome": "Pronome e colocacao pronominal",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-07",
+          "nome": "Verbo e adverbio",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "POR-08",
+          "nome": "Preposicao e conjuncao",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "POR-09",
+          "nome": "Concordância verbal e nominal",
+          "incidencia_pct": 6,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "POR-10",
+          "nome": "Regência verbal e nominal",
+          "incidencia_pct": 5,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "POR-11",
+          "nome": "Crase",
+          "incidencia_pct": 3,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "POR-12",
+          "nome": "Pontuação",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 10
+        }
       ]
     },
     {
@@ -82,12 +190,54 @@
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DPE-01", "nome": "Falsidade documental: arts. 293 a 305 do Codigo Penal", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
-        { "id": "DPE-02", "nome": "Falsa identidade, fraudes em certames e adulteracao de sinal veicular", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "DPE-03", "nome": "Crimes praticados por funcionario publico contra a Administracao", "incidencia_pct": 26, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 3 },
-        { "id": "DPE-04", "nome": "Crimes praticados por particular contra a Administracao", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "DPE-05", "nome": "Crimes contra a Administracao da Justica", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "DPE-06", "nome": "Demais artigos expressos: 336, 337, 357 e 359", "incidencia_pct": 4, "prioridade": 3, "horas_estimadas": 3, "semana_sugerida": 6 }
+        {
+          "id": "DPE-01",
+          "nome": "Falsidade documental: arts. 293 a 305 do Código Penal",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DPE-02",
+          "nome": "Falsa identidade, fraudes em certames e adulteracao de sinal veicular",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DPE-03",
+          "nome": "Crimes praticados por funcionario público contra a Administração",
+          "incidencia_pct": 26,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DPE-04",
+          "nome": "Crimes praticados por particular contra a Administração",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DPE-05",
+          "nome": "Crimes contra a Administração da Justiça",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DPE-06",
+          "nome": "Demais artigos expressos: 336, 337, 357 e 359",
+          "incidencia_pct": 4,
+          "prioridade": 3,
+          "horas_estimadas": 3,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
@@ -97,12 +247,54 @@
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DPP-01", "nome": "Juiz, Ministerio Publico, acusado, defensor e auxiliares da Justica", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "DPP-02", "nome": "Citacoes e intimacoes", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 2 },
-        { "id": "DPP-03", "nome": "Procedimento comum: arts. 394 a 497 do CPP", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 3 },
-        { "id": "DPP-04", "nome": "Procedimento sumario e atos processuais especificos", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 4 },
-        { "id": "DPP-05", "nome": "Recursos no processo penal", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 5 },
-        { "id": "DPP-06", "nome": "Juizados Especiais Criminais: Lei 9.099/1995", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 }
+        {
+          "id": "DPP-01",
+          "nome": "Juiz, Ministério Público, acusado, defensor e auxiliares da Justiça",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DPP-02",
+          "nome": "Citacoes e intimações",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DPP-03",
+          "nome": "Procedimento comum: arts. 394 a 497 do CPP",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DPP-04",
+          "nome": "Procedimento sumário e atos processuais específicos",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DPP-05",
+          "nome": "Recursos no processo penal",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DPP-06",
+          "nome": "Juizados Especiais Criminais: Lei 9.099/1995",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
@@ -112,13 +304,62 @@
       "peso": 4,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DPC-01", "nome": "Impedimento, suspeicao e atos processuais", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "DPC-02", "nome": "Comunicacao dos atos, citacao, intimacao e cartas", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 2 },
-        { "id": "DPC-03", "nome": "Prazos, nulidades, distribuicao, valor da causa e tutela provisoria", "incidencia_pct": 15, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 3 },
-        { "id": "DPC-04", "nome": "Procedimento comum: peticao inicial, resposta, saneamento e julgamento", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 10, "semana_sugerida": 4 },
-        { "id": "DPC-05", "nome": "Cumprimento de sentenca e processos nos tribunais", "incidencia_pct": 13, "prioridade": 2, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "DPC-06", "nome": "Recursos civeis: arts. 994 a 1026 do CPC", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 6 },
-        { "id": "DPC-07", "nome": "Juizados Especiais Civeis e Fazenda Publica", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 7 }
+        {
+          "id": "DPC-01",
+          "nome": "Impedimento, suspeição e atos processuais",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DPC-02",
+          "nome": "Comunicação dos atos, citação, intimação e cartas",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DPC-03",
+          "nome": "Prazos, nulidades, distribuição, valor da causa e tutela provisória",
+          "incidencia_pct": 15,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DPC-04",
+          "nome": "Procedimento comum: petição inicial, resposta, saneamento e julgamento",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 10,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DPC-05",
+          "nome": "Cumprimento de sentenca e processos nos tribunais",
+          "incidencia_pct": 13,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DPC-06",
+          "nome": "Recursos civeis: arts. 994 a 1026 do CPC",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "DPC-07",
+          "nome": "Juizados Especiais Civeis e Fazenda Pública",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        }
       ]
     },
     {
@@ -128,12 +369,54 @@
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "CON-01", "nome": "Direitos e deveres individuais e coletivos", "incidencia_pct": 28, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
-        { "id": "CON-02", "nome": "Direitos sociais", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "CON-03", "nome": "Nacionalidade", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 3 },
-        { "id": "CON-04", "nome": "Administracao publica na Constituicao", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "CON-05", "nome": "Servidores publicos", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "CON-06", "nome": "Poder Judiciario: artigo 92 da Constituicao", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 6 }
+        {
+          "id": "CON-01",
+          "nome": "Direitos e deveres individuais e coletivos",
+          "incidencia_pct": 28,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "CON-02",
+          "nome": "Direitos sociais",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "CON-03",
+          "nome": "Nacionalidade",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "CON-04",
+          "nome": "Administração pública na Constituição",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "CON-05",
+          "nome": "Servidores públicos",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "CON-06",
+          "nome": "Poder Judiciário: artigo 92 da Constituição",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
@@ -143,29 +426,127 @@
       "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "DAD-01", "nome": "Estatuto SP: provimento, exercicio, posse e vacancia", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 1 },
-        { "id": "DAD-02", "nome": "Estatuto SP: direitos, vantagens, licencas e tempo de servico", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 2 },
-        { "id": "DAD-03", "nome": "Estatuto SP: deveres, proibicoes e responsabilidades", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 3 },
-        { "id": "DAD-04", "nome": "Estatuto SP: processo administrativo disciplinar", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "DAD-05", "nome": "Improbidade administrativa: Lei 8.429/1992", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "DAD-06", "nome": "Principios e sancoes aplicaveis ao servidor publico", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 }
+        {
+          "id": "DAD-01",
+          "nome": "Estatuto SP: provimento, exercicio, posse e vacância",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DAD-02",
+          "nome": "Estatuto SP: direitos, vantagens, licencas e tempo de servico",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DAD-03",
+          "nome": "Estatuto SP: deveres, proibições e responsabilidades",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DAD-04",
+          "nome": "Estatuto SP: processo administrativo disciplinar",
+          "incidencia_pct": 16,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DAD-05",
+          "nome": "Improbidade administrativa: Lei 8.429/1992",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DAD-06",
+          "nome": "Princípios e sancoes aplicaveis ao servidor público",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        }
       ]
     },
     {
       "id": "LIN",
-      "nome": "Legislacao Interna TJSP",
+      "nome": "Legislação Interna TJSP",
       "cor": "#0E7490",
       "peso": 4,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "LIN-01", "nome": "Normas da Corregedoria: Capitulo II", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "LIN-02", "nome": "Normas da Corregedoria: Capitulo III, secoes I, II, V, VI e VII", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 2 },
-        { "id": "LIN-03", "nome": "Normas da Corregedoria: Capitulo III, secao VIII e subsecoes", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
-        { "id": "LIN-04", "nome": "Normas da Corregedoria: Capitulo III, secoes IX a XIX", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 4 },
-        { "id": "LIN-05", "nome": "Normas da Corregedoria: Capitulo XI", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 5 },
-        { "id": "LIN-06", "nome": "Resolucao TJSP 850/2021: teletrabalho", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 },
-        { "id": "LIN-07", "nome": "Resolucao TJSP 963/2025: governanca e eproc", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 },
-        { "id": "LIN-08", "nome": "LC 1.111/2010 e Regimento Interno do TJSP", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 8 }
+        {
+          "id": "LIN-01",
+          "nome": "Normas da Corregedoria: Capitulo II",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "LIN-02",
+          "nome": "Normas da Corregedoria: Capitulo III, secoes I, II, V, VI e VII",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "LIN-03",
+          "nome": "Normas da Corregedoria: Capitulo III, secao VIII e subsecoes",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "LIN-04",
+          "nome": "Normas da Corregedoria: Capitulo III, secoes IX a XIX",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "LIN-05",
+          "nome": "Normas da Corregedoria: Capitulo XI",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "LIN-06",
+          "nome": "Resolução TJSP 850/2021: teletrabalho",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "LIN-07",
+          "nome": "Resolução TJSP 963/2025: governanca e eproc",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "LIN-08",
+          "nome": "LC 1.111/2010 e Regimento Interno do TJSP",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        }
       ]
     },
     {
@@ -175,72 +556,282 @@
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "ATU-01", "nome": "Fatos politicos e institucionais a partir do 1o semestre de 2025", "incidencia_pct": 22, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "ATU-02", "nome": "Fatos economicos nacionais e internacionais", "incidencia_pct": 18, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "ATU-03", "nome": "Fatos sociais, culturais, tecnologia e meio ambiente", "incidencia_pct": 20, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "ATU-04", "nome": "Estatuto da Pessoa com Deficiencia: arts. 1 a 13", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 4 },
-        { "id": "ATU-05", "nome": "Estatuto da Pessoa com Deficiencia: arts. 34 a 38", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 5 }
+        {
+          "id": "ATU-01",
+          "nome": "Fatos politicos e institucionais a partir do 1o semestre de 2025",
+          "incidencia_pct": 22,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "ATU-02",
+          "nome": "Fatos economicos nacionais e internacionais",
+          "incidencia_pct": 18,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "ATU-03",
+          "nome": "Fatos sociais, culturais, tecnologia e meio ambiente",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "ATU-04",
+          "nome": "Estatuto da Pessoa com Deficiência: arts. 1 a 13",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "ATU-05",
+          "nome": "Estatuto da Pessoa com Deficiência: arts. 34 a 38",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 5
+        }
       ]
     },
     {
       "id": "MAT",
-      "nome": "Matematica",
+      "nome": "Matemática",
       "cor": "#B45309",
       "peso": 1,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "MAT-01", "nome": "Operacoes com numeros reais, MMC e MDC", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "MAT-02", "nome": "Razao, proporcao, porcentagem e regra de tres", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "MAT-03", "nome": "Media aritmetica simples e ponderada", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 3 },
-        { "id": "MAT-04", "nome": "Juros simples", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "MAT-05", "nome": "Equacoes de 1o e 2o graus e sistemas", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 5 },
-        { "id": "MAT-06", "nome": "Tabelas, graficos e sistemas de medidas", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 6 },
-        { "id": "MAT-07", "nome": "Geometria: perimetro, area, volume, angulos e Pitagoras", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 7 },
-        { "id": "MAT-08", "nome": "Resolucao de situacoes-problema", "incidencia_pct": 8, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 8 }
+        {
+          "id": "MAT-01",
+          "nome": "Operações com números reais, MMC e MDC",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "MAT-02",
+          "nome": "Razao, proporcao, porcentagem e regra de tres",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "MAT-03",
+          "nome": "Média aritmética simples e ponderada",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "MAT-04",
+          "nome": "Juros simples",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "MAT-05",
+          "nome": "Equações de 1o e 2o graus e sistemas",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "MAT-06",
+          "nome": "Tabelas, gráficos e sistemas de medidas",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "MAT-07",
+          "nome": "Geometria: perimetro, área, volume, angulos e Pitagoras",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "MAT-08",
+          "nome": "Resolução de situacoes-problema",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        }
       ]
     },
     {
       "id": "INF",
-      "nome": "Informatica",
+      "nome": "Informática",
       "cor": "#0369A1",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "INF-01", "nome": "Windows 10 ou superior: pastas, arquivos, atalhos e area de transferencia", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "INF-02", "nome": "Word: edicao, formatacao, tabelas, impressao e objetos", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 2 },
-        { "id": "INF-03", "nome": "Excel: celulas, formulas, funcoes, graficos e classificacao de dados", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 3 },
-        { "id": "INF-04", "nome": "Correio eletronico: envio, preparo de mensagens e anexos", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 4 },
-        { "id": "INF-05", "nome": "Internet: navegacao, URL, links, sites, busca e impressao", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 5 },
-        { "id": "INF-06", "nome": "Microsoft Teams: chats, chamadas, grupos, reunioes e gravacao", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 },
-        { "id": "INF-07", "nome": "Microsoft 365, SharePoint, OneNote, PowerPoint e OneDrive", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 7 }
+        {
+          "id": "INF-01",
+          "nome": "Windows 10 ou superior: pastas, arquivos, atalhos e área de transferencia",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "INF-02",
+          "nome": "Word: edição, formatacao, tabelas, impressao e objetos",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "INF-03",
+          "nome": "Excel: celulas, formulas, funções, gráficos e classificação de dados",
+          "incidencia_pct": 24,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "INF-04",
+          "nome": "Correio eletrônico: envio, preparo de mensagens e anexos",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "INF-05",
+          "nome": "Internet: navegacao, URL, links, sites, busca e impressao",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "INF-06",
+          "nome": "Microsoft Teams: chats, chamadas, grupos, reunioes e gravacao",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "INF-07",
+          "nome": "Microsoft 365, SharePoint, OneNote, PowerPoint e OneDrive",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        }
       ]
     },
     {
       "id": "RLM",
-      "nome": "Raciocinio Logico",
+      "nome": "Raciocínio Lógico",
       "cor": "#475569",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "RLM-01", "nome": "Estruturas logicas", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "RLM-02", "nome": "Logica de argumentacao", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "RLM-03", "nome": "Diagramas logicos", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "RLM-04", "nome": "Sequencias numericas", "incidencia_pct": 17, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 4 },
-        { "id": "RLM-05", "nome": "Sequencias figurais e padroes", "incidencia_pct": 17, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 }
+        {
+          "id": "RLM-01",
+          "nome": "Estruturas logicas",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "RLM-02",
+          "nome": "Logica de argumentação",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "RLM-03",
+          "nome": "Diagramas logicos",
+          "incidencia_pct": 22,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "RLM-04",
+          "nome": "Sequencias numericas",
+          "incidencia_pct": 17,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "RLM-05",
+          "nome": "Sequencias figurais e padroes",
+          "incidencia_pct": 17,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        }
       ]
     },
     {
       "id": "RED",
-      "nome": "Redacao",
+      "nome": "Redação",
       "cor": "#BE123C",
       "peso": 2,
       "base_teorica": "pdf",
       "topicos": [
-        { "id": "RED-01", "nome": "Texto dissertativo-argumentativo", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 1 },
-        { "id": "RED-02", "nome": "Tese, posicionamento e defesa de ponto de vista", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "RED-03", "nome": "Coesao, coerencia e progressao argumentativa", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "RED-04", "nome": "Norma-padrao, clareza e legibilidade", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 4 },
-        { "id": "RED-05", "nome": "Treino com textos motivadores e repertorio conectado ao tema", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 5 }
+        {
+          "id": "RED-01",
+          "nome": "Texto dissertativo-argumentativo",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "RED-02",
+          "nome": "Tese, posicionamento e defesa de ponto de vista",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "RED-03",
+          "nome": "Coesao, coerência e progressão argumentativa",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "RED-04",
+          "nome": "Norma-padrao, clareza e legibilidade",
+          "incidencia_pct": 20,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "RED-05",
+          "nome": "Treino com textos motivadores e repertorio conectado ao tema",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 5
+        }
       ]
     }
   ]

@@ -19,7 +19,7 @@
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
   let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
-  let autenticacaoExpirou = false; // rede de seguranca: se o Firebase nunca responder, libera a tela de login
+  let autenticacaoExpirou = false; // rede de segurança: se o Firebase nunca responder, libera a tela de login
   let pintarTimerAtual = null;
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let audioCtx = null;
@@ -56,6 +56,7 @@
 
   function normalizarEditalCatalogo(e, origem) {
     const c = clonarJson(e);
+    if (window.Store && window.Store.normalizarAcentosEdital) window.Store.normalizarAcentosEdital(c);
     c.id = c.id || ((origem === 'global' ? 'global-' : 'edt-') + slugCatalogo(c.titulo));
     c.disciplinas = Array.isArray(c.disciplinas) ? c.disciplinas : [];
     c.arquivado = !!c.arquivado;
@@ -94,7 +95,7 @@
       render();
       return catalogoGlobalEditais;
     }).catch(function (e) {
-      console.warn('Nao consegui carregar catalogo global.', e);
+      console.warn('Não consegui carregar catálogo global.', e);
       return catalogoGlobalEditais;
     }).finally(function () {
       catalogoGlobalPromise = null;
@@ -111,11 +112,11 @@
       catalogoGlobalTentado = false;
       catalogoPublicacaoErro = '';
       catalogoPublicacaoOkEm = new Date().toISOString();
-      if (opcoes.toast) toast('Catalogo global publicado para todos os usuarios.', 'sucesso');
+      if (opcoes.toast) toast('Catálogo global publicado para todos os usuários.', 'sucesso');
     }).catch(function (e) {
-      console.warn('Nao consegui publicar catalogo global.', e);
+      console.warn('Não consegui publicar catálogo global.', e);
       catalogoPublicacaoOkEm = '';
-      catalogoPublicacaoErro = 'Nao consegui publicar o catalogo global. Atualize as regras do Firestore para liberar public/catalogo ao admin.';
+      catalogoPublicacaoErro = 'Não consegui publicar o catálogo global. Atualize as regras do Firestore para liberar public/catalogo ao admin.';
       if (opcoes.toast) toast(catalogoPublicacaoErro, 'erro');
       render();
     });
@@ -128,7 +129,7 @@
       render();
       return catalogoGlobalEditais;
     }).catch(function (e) {
-      console.warn('Nao consegui carregar catalogo global.', e);
+      console.warn('Não consegui carregar catálogo global.', e);
       return catalogoGlobalEditais;
     });
   }
@@ -139,7 +140,7 @@
     return window.FirebaseSync.publicarCatalogoGlobal(editais).then(function () {
       catalogoGlobalEditais = normalizarCatalogoGlobal(editais);
     }).catch(function (e) {
-      console.warn('Nao consegui publicar catalogo global.', e);
+      console.warn('Não consegui publicar catálogo global.', e);
       toast('Não consegui publicar o catálogo global no Firebase.', 'erro');
     });
   }
@@ -4127,7 +4128,7 @@
 
   function vereditoConciliacaoHtml(res) {
     const cores = { alta: 'verde', moderada: 'amarelo', baixa: 'alerta', nao_recomendado: 'vermelho' };
-    const rotulos = { alta: 'Compatibilidade alta', moderada: 'Compatibilidade moderada', baixa: 'Compatibilidade baixa', nao_recomendado: 'Nao recomendado' };
+    const rotulos = { alta: 'Compatibilidade alta', moderada: 'Compatibilidade moderada', baixa: 'Compatibilidade baixa', nao_recomendado: 'Não recomendado' };
     const d = res.detalhes;
     function item(rot, val) { return '<div><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></div>'; }
     const comuns = (d.disciplinasComuns || []).map(function (x) {
@@ -4137,17 +4138,17 @@
     return '<div class="cmp-visual">' +
       '<div class="cmp-pensamento conciliar-' + cores[res.nivel] + '"><strong>' + rotulos[res.nivel] + '</strong><p>' + esc(res.mensagem) + '</p></div>' +
       '<div class="cmp-colunas">' +
-      '<section class="cmp-col"><span class="cm-rotulo">Disciplinas aproveitaveis</span><ul>' + (comuns || '<li><span class="cmp-vazio">Nenhuma disciplina comum clara.</span></li>') + '</ul></section>' +
-      '<section class="cmp-col"><span class="cm-rotulo">⚠️ Pontos de atencao</span>' + exclusivos +
-      '<p class="sub">Topicos em comum: <strong>' + d.topicosComuns + '</strong> (' + d.overlapPct + '%). Quanto maior esse numero, mais estudo voce reaproveita.</p></section>' +
+      '<section class="cmp-col"><span class="cm-rotulo">Disciplinas aproveitáveis</span><ul>' + (comuns || '<li><span class="cmp-vazio">Nenhuma disciplina comum clara.</span></li>') + '</ul></section>' +
+      '<section class="cmp-col"><span class="cm-rotulo">⚠️ Pontos de atenção</span>' + exclusivos +
+      '<p class="sub">Tópicos em comum: <strong>' + d.topicosComuns + '</strong> (' + d.overlapPct + '%). Quanto maior esse número, mais estudo você reaproveita.</p></section>' +
       '</div>' +
       '<div class="conciliar-grid">' +
       item('Disciplinas em comum', d.nDisciplinasComuns) +
-      item('Topicos em comum', d.topicosComuns + ' (' + d.overlapPct + '%)') +
+      item('Tópicos em comum', d.topicosComuns + ' (' + d.overlapPct + '%)') +
       item('Exclusivos de cada', d.exclusivosA + ' / ' + d.exclusivosB) +
       item('Carga semanal exigida', '~' + d.exigidaSemana + 'h') +
-      item('Voce tem por semana', '~' + d.horasSemana + 'h') +
-      item('Ate a prova mais proxima', d.provaDefinida ? 'aprox. ' + d.semanasDisponiveis + ' sem' : 'sem data') +
+      item('Você tem por semana', '~' + d.horasSemana + 'h') +
+      item('Até a prova mais próxima', d.provaDefinida ? 'aprox. ' + d.semanasDisponiveis + ' sem' : 'sem data') +
       '</div></div>';
   }
 
@@ -7361,8 +7362,8 @@
     const tz = fusoHorarioLocal();
     const partesDesc = [
       state.plano ? state.plano.concurso : '',
-      t ? 'Topico: ' + t.nome : '',
-      bloco.obs ? 'Observacao: ' + bloco.obs : '',
+      t ? 'Tópico: ' + t.nome : '',
+      bloco.obs ? 'Observação: ' + bloco.obs : '',
       'Sincronizado pelo Gabaritei OS'
     ].filter(Boolean);
     return {
@@ -7390,7 +7391,7 @@
       semanaInicio: semanaInicio,
       tipo: 'revisao',
       payload: {
-        summary: 'Revisao ' + revisao.tipo + ': ' + (t ? t.nome : revisao.topicoId),
+        summary: 'Revisão ' + revisao.tipo + ': ' + (t ? t.nome : revisao.topicoId),
         description: [d ? d.nome : '', state.plano ? state.plano.concurso : '', 'Sincronizado pelo Gabaritei OS'].filter(Boolean).join('\n'),
         start: { date: revisao.dataAgendada },
         end: { date: D.addDias(revisao.dataAgendada, 1) },
