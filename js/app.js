@@ -3138,23 +3138,24 @@
     let totalMin = 0, totalQ = 0, totalC = 0;
     D.sessoesDoPlano(state).forEach(function (s) { totalMin += s.duracaoMin || 0; totalQ += s.qFeitas || 0; totalC += s.qCertas || 0; });
 
-    let html = '<h1>Estatísticas</h1><div class="linha-cards">' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Tempo total</div><div class="card-kpi-valor">' + D.formatarMin(totalMin) + '</div>' +
+    const statsMobile = window.matchMedia && window.matchMedia('(max-width: 560px)').matches;
+    let html = '<h1>Estatísticas</h1><div class="linha-cards stats-kpis">' +
+      '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Tempo total</div><div class="card-kpi-valor">' + D.formatarMin(totalMin) + '</div>' +
       '<div class="card-kpi-extra">' + D.formatarMin(meta.minutos) + ' nesta semana</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + totalQ + '</div>' +
+      '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + totalQ + '</div>' +
       '<div class="card-kpi-extra">' + (totalQ > 0 ? Math.round((totalC / totalQ) * 100) + '% de acerto' : '—') + '</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">Desempenho × meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
+      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">Desempenho × meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
       '<div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
-      '<div class="card card-kpi"><div class="card-kpi-rotulo">⚡ Constância</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
+      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">⚡ Constância</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
       '<div class="card-kpi-extra">recorde: ' + st.recorde + ' · edital: ' + prog.pct + '%</div></div>' +
       '</div>';
 
-    html += '<div class="card">' + constanciaFaixaHtml(30) + '</div>';
+    html += '<div class="card stats-constancia-faixa">' + constanciaFaixaHtml(30) + '</div>';
 
     const horasDisc = dadosHorasPorDisciplina();
     const topicosDesempenho = dadosTopicosDesempenho(statsTopicosFiltro);
-    const hDisc = Math.max(260, Math.min(560, horasDisc.length * 44 + 78));
-    const hTop = Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
+    const hDisc = statsMobile ? 340 : Math.max(260, Math.min(560, horasDisc.length * 44 + 78));
+    const hTop = statsMobile ? 360 : Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
     html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
     html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
@@ -3205,7 +3206,8 @@
         const canvas = raiz.querySelector('#graf-topicos');
         if (!canvas) return;
         const box = canvas.closest('.grafico-box');
-        if (box) box.style.height = Math.max(280, Math.min(640, dados.length * 38 + 86)) + 'px';
+        const statsMobileAgora = window.matchMedia && window.matchMedia('(max-width: 560px)').matches;
+        if (box) box.style.height = (statsMobileAgora ? 360 : Math.max(280, Math.min(640, dados.length * 38 + 86))) + 'px';
         window.Graficos.topicosDesempenho(canvas, dados);
       });
     });

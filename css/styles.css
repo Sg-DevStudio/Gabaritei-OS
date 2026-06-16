@@ -2629,6 +2629,46 @@ canvas.grafico {
   .card { padding: 0.95rem; }
   .linha-cards { grid-template-columns: 1fr; gap: 0.7rem; }
   .card-kpi { min-height: 108px; }
+  .stats-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.58rem;
+    margin-bottom: 0.78rem;
+  }
+  .stats-kpis .card-kpi {
+    min-height: 92px;
+    padding: 0.72rem 0.76rem;
+    border-radius: 10px;
+  }
+  .stats-kpis .stats-kpi-inline {
+    grid-column: auto;
+  }
+  .stats-kpis .stats-kpi-full {
+    grid-column: 1 / -1;
+  }
+  .stats-kpis .card-kpi-rotulo {
+    font-size: 0.61rem;
+    letter-spacing: 0.12em;
+  }
+  .stats-kpis .card-kpi-valor {
+    font-size: 1.45rem;
+  }
+  .stats-kpis .card-kpi-extra {
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+  .stats-constancia-faixa {
+    display: none;
+  }
+  .grafico-filtros {
+    gap: 0.42rem;
+    margin: 0.58rem 0 0.5rem;
+  }
+  .grafico-filtros select {
+    width: 100%;
+    min-width: 0;
+    min-height: 34px;
+    font-size: 0.8rem;
+  }
   /* fila "O que estudar hoje": o corpo (texto + rodapé) ocupa toda a largura
      ao lado do check; tags e ações já vão no rodapé pelo .fila-rodape. */
   .check-estudo { margin-top: 0.1rem; }

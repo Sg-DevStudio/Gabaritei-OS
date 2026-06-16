@@ -8,6 +8,13 @@
   const instancias = {};
 
   function disponivel() { return typeof window.Chart !== 'undefined'; }
+  function graficoMobile() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 560px)').matches);
+  }
+  function curto(txt, max) {
+    txt = String(txt || '');
+    return txt.length > max ? txt.slice(0, max - 1) + '…' : txt;
+  }
 
   function destruir(id) {
     if (instancias[id]) { instancias[id].destroy(); delete instancias[id]; }
@@ -181,6 +188,7 @@
     if (!disponivel()) return false;
     destruir(canvas.id);
     const P = paleta();
+    const mobile = graficoMobile();
     const labelsPlugin = {
       id: 'labelsHoras',
       afterDatasetsDraw: function (chart) {
@@ -207,7 +215,7 @@
     instancias[canvas.id] = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: dados.map(function (d) { return d.nome; }),
+        labels: dados.map(function (d) { return mobile ? curto(d.nome, 16) : d.nome; }),
         datasets: [{
           label: 'Horas de estudo',
           data: dados.map(function (d) { return Math.round((d.minutos / 60) * 100) / 100; }),
@@ -218,7 +226,7 @@
         }]
       },
       options: {
-        indexAxis: 'y',
+        indexAxis: mobile ? 'x' : 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: Object.assign(basePlugins(P), {
@@ -229,7 +237,17 @@
             }
           }
         }),
-        scales: {
+        scales: mobile ? {
+          y: {
+            beginAtZero: true,
+            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
+            grid: { color: P.grade }
+          },
+          x: {
+            ticks: { color: P.texto, font: { family: FONTE_UI, size: 10 }, maxRotation: 55, minRotation: 35 },
+            grid: { color: P.grade }
+          }
+        } : {
           x: {
             beginAtZero: true,
             position: 'top',
@@ -242,7 +260,7 @@
           }
         }
       },
-      plugins: [labelsPlugin]
+      plugins: mobile ? [] : [labelsPlugin]
     });
     return true;
   }
@@ -251,6 +269,7 @@
     if (!disponivel()) return false;
     destruir(canvas.id);
     const P = paleta();
+    const mobile = graficoMobile();
     const cores = dados.map(function (d) {
       if (d.pct >= 70) return VERDE_OS;
       if (d.pct >= 50) return VERDE_MEDIO;
@@ -259,7 +278,7 @@
     instancias[canvas.id] = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: dados.map(function (d) { return d.topicoCurto; }),
+        labels: dados.map(function (d) { return mobile ? curto(d.topico, 16) : d.topicoCurto; }),
         datasets: [{
           label: 'Desempenho',
           data: dados.map(function (d) { return d.pct; }),
@@ -270,7 +289,7 @@
         }]
       },
       options: {
-        indexAxis: 'y',
+        indexAxis: mobile ? 'x' : 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: Object.assign(basePlugins(P), {
@@ -288,7 +307,18 @@
             }
           }
         }),
-        scales: {
+        scales: mobile ? {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
+            grid: { color: P.grade }
+          },
+          x: {
+            ticks: { color: P.texto, font: { family: FONTE_UI, size: 10 }, maxRotation: 55, minRotation: 35 },
+            grid: { display: false }
+          }
+        } : {
           x: {
             beginAtZero: true,
             max: 100,
