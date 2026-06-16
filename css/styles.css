@@ -2704,6 +2704,49 @@ canvas.grafico {
   background: rgba(0,0,0,0.08); color: inherit; font-size: 1rem; line-height: 1; padding: 0;
 }
 .comparar-chip-x:hover { background: rgba(0,0,0,0.16); box-shadow: none; }
+.cmp-visual { display: grid; gap: 0.8rem; }
+.cmp-pensamento {
+  position: relative;
+  border-radius: var(--raio-s);
+  padding: 0.9rem 1rem;
+  border-left: 4px solid currentColor;
+}
+.cmp-pensamento::after {
+  content: "";
+  position: absolute;
+  left: 1.2rem;
+  bottom: -8px;
+  border-width: 8px 8px 0 0;
+  border-style: solid;
+  border-color: currentColor transparent transparent transparent;
+  opacity: 0.28;
+}
+.cmp-pensamento p { margin: 0.35rem 0 0; }
+.cmp-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.cmp-col {
+  background: var(--cartao-2);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-s);
+  padding: 0.85rem;
+}
+.cmp-col ul { list-style: none; padding: 0; margin: 0.55rem 0 0; display: grid; gap: 0.4rem; }
+.cmp-col li { display: flex; gap: 0.45rem; align-items: flex-start; }
+.cmp-ok {
+  color: var(--correto);
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+.cmp-vazio { color: var(--grafite); }
+.cmp-exclusivos { display: grid; gap: 0.45rem; margin: 0.55rem 0; }
+.cmp-exclusivos span {
+  background: var(--fundo);
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+}
+@media (max-width: 760px) {
+  .cmp-colunas { grid-template-columns: 1fr; }
+}
 /* card selecionado para comparação + botão "Comparando" */
 .catalogo-card-comparando { border-color: var(--caneta); box-shadow: 0 0 0 1px var(--caneta) inset, var(--sombra-suave); }
 .catalogo-comparar-on { background: var(--caneta); color: #fff; }

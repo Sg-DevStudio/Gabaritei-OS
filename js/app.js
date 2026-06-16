@@ -683,7 +683,7 @@
     return primeiroNome(state.config && state.config.nomeUsuario) ||
       primeiroNome(firebaseStatus && firebaseStatus.usuario && firebaseStatus.usuario.nome) ||
       primeiroNome(firebaseStatus && firebaseStatus.usuario && firebaseStatus.usuario.email) ||
-      'Samuel';
+      'Fulano(a)';
   }
 
   function recordeAntesDeHoje(sessoes, hoje) {
@@ -4093,20 +4093,28 @@
 
   function vereditoConciliacaoHtml(res) {
     const cores = { alta: 'verde', moderada: 'amarelo', baixa: 'alerta', nao_recomendado: 'vermelho' };
-    const rotulos = { alta: 'Compatibilidade alta', moderada: 'Compatibilidade moderada', baixa: 'Compatibilidade baixa', nao_recomendado: 'Não recomendado' };
+    const rotulos = { alta: 'Compatibilidade alta', moderada: 'Compatibilidade moderada', baixa: 'Compatibilidade baixa', nao_recomendado: 'Nao recomendado' };
     const d = res.detalhes;
     function item(rot, val) { return '<div><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></div>'; }
-    return '<div class="conciliar-veredito conciliar-' + cores[res.nivel] + '"><strong>' + rotulos[res.nivel] + '</strong>' +
-      '<p>' + esc(res.mensagem) + '</p></div>' +
+    const comuns = (d.disciplinasComuns || []).map(function (x) {
+      return '<li><span class="cmp-ok">?</span><span>' + esc(x) + '</span></li>';
+    }).join('');
+    const exclusivos = '<div class="cmp-exclusivos"><span><strong>' + d.exclusivosA + '</strong> exclusivos no 1o edital</span><span><strong>' + d.exclusivosB + '</strong> exclusivos no 2o edital</span></div>';
+    return '<div class="cmp-visual">' +
+      '<div class="cmp-pensamento conciliar-' + cores[res.nivel] + '"><strong>' + rotulos[res.nivel] + '</strong><p>' + esc(res.mensagem) + '</p></div>' +
+      '<div class="cmp-colunas">' +
+      '<section class="cmp-col"><span class="cm-rotulo">Disciplinas aproveitaveis</span><ul>' + (comuns || '<li><span class="cmp-vazio">Nenhuma disciplina comum clara.</span></li>') + '</ul></section>' +
+      '<section class="cmp-col"><span class="cm-rotulo">Pontos de atencao</span>' + exclusivos +
+      '<p class="sub">Topicos em comum: <strong>' + d.topicosComuns + '</strong> (' + d.overlapPct + '%). Quanto maior esse numero, mais estudo voce reaproveita.</p></section>' +
+      '</div>' +
       '<div class="conciliar-grid">' +
       item('Disciplinas em comum', d.nDisciplinasComuns) +
-      item('Tópicos em comum', d.topicosComuns + ' (' + d.overlapPct + '%)') +
+      item('Topicos em comum', d.topicosComuns + ' (' + d.overlapPct + '%)') +
       item('Exclusivos de cada', d.exclusivosA + ' / ' + d.exclusivosB) +
       item('Carga semanal exigida', '~' + d.exigidaSemana + 'h') +
-      item('Você tem por semana', '~' + d.horasSemana + 'h') +
-      item('Até a prova mais próxima', d.provaDefinida ? '≈' + d.semanasDisponiveis + ' sem' : 'sem data') +
-      '</div>' +
-      (d.disciplinasComuns.length ? '<p class="sub" style="margin-top:0.5rem">Em comum: ' + esc(d.disciplinasComuns.join(', ')) + '</p>' : '');
+      item('Voce tem por semana', '~' + d.horasSemana + 'h') +
+      item('Ate a prova mais proxima', d.provaDefinida ? 'aprox. ' + d.semanasDisponiveis + ' sem' : 'sem data') +
+      '</div></div>';
   }
 
   function abrirCompararPlanos(idA) {
@@ -4926,13 +4934,14 @@
     const cores = ['#2454D6', '#1F7A4D', '#B8762B', '#8E44AD', '#C0392B', '#0E7490', '#5B6B2F', '#99357F'];
     const cor = cores[state.disciplinas.length % cores.length];
     const m = abrirModal(
-      '<h3>Nova disciplina (manual)</h3>' +
+      '<h3>Nova disciplina</h3>' +
       '<p style="font-size:0.85rem;color:var(--grafite)">Para organizar seus estudos sem plano importado. Ela ganha um tópico "Geral" para registrar sessões.</p>' +
       '<form id="form-disc">' +
       '<label for="nd-nome">Nome</label><input id="nd-nome" type="text" placeholder="Ex.: Direito Constitucional" required maxlength="60">' +
       '<div class="grade-2">' +
       '<div><label for="nd-sigla">Sigla (2–4 letras)</label><input id="nd-sigla" type="text" maxlength="4" style="text-transform:uppercase" placeholder="CON" required></div>' +
       '<div><label for="nd-cor">Cor</label><input id="nd-cor" type="color" value="' + cor + '"></div></div>' +
+      '<label for="nd-topicos">Assuntos iniciais (opcional)</label><textarea id="nd-topicos" rows="5" placeholder="Ex.: Aula 1 - conceitos basicos\nLista de exercicios\nRevisao para prova"></textarea>' +
       '<div class="msg-erro oculto" id="nd-erro"></div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="nd-cancelar">Cancelar</button>' +
       '<button type="submit">Criar disciplina</button></div></form>'
@@ -4952,9 +4961,13 @@
       const sigla = siglaEl.value.trim().toUpperCase();
       if (!/^[A-Z\u00C0-\u017F]{2,4}$/.test(sigla)) { erroEl.textContent = 'Sigla deve ter de 2 a 4 letras.'; erroEl.classList.remove('oculto'); return; }
       if (D.disciplinaPorId(state, sigla)) { erroEl.textContent = 'Já existe uma disciplina com a sigla ' + sigla + '.'; erroEl.classList.remove('oculto'); return; }
+      const topicosTexto = m.querySelector('#nd-topicos').value.split(/\n+/).map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 40);
+      const topicos = (topicosTexto.length ? topicosTexto : ['Geral']).map(function (top, i) {
+        return { id: sigla + '-' + String(i + 1).padStart(2, '0'), nome: top, incidencia_pct: 0, prioridade: 2, horas_estimadas: 1, semana_sugerida: null, status: 'pendente', reaberto: false, orfao: false };
+      });
       state.disciplinas.push({
         id: sigla, nome: nome, cor: m.querySelector('#nd-cor').value, peso: 1, base_teorica: 'pdf',
-        topicos: [{ id: sigla + '-01', nome: 'Geral', incidencia_pct: 0, prioridade: 2, horas_estimadas: 0, semana_sugerida: null, status: 'pendente', reaberto: false, orfao: false }]
+        topicos: topicos
       });
       salvar(); fecharModal(); render();
       toast('Disciplina ' + sigla + ' criada', 'sucesso');
@@ -7834,7 +7847,9 @@
       .then(function (json) {
         modoDemo = true;            // antes de adicionarPlano: salvar() vira no-op
         state = window.Store.estadoVazio();
+        state.config.nomeUsuario = 'Fulano(a)';
         adicionarPlano(json);
+        state.config.nomeUsuario = 'Fulano(a)';
         if (location.hash === '#hoje') render(); else location.hash = '#hoje';
         toast('Modo exemplo ativado — explore à vontade', 'sucesso');
       })
