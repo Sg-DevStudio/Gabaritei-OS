@@ -1583,7 +1583,7 @@ html[data-tema="escuro"] .constancia-folga::before { background: #697180; }
 }
 
 .timer-modo-info { color: #C9CCD4; font-size: 0.88rem; min-height: 1.2em; margin-top: 0.6rem; }
-.timer-acoes { display: flex; gap: 2.5rem; justify-content: center; align-items: center; flex-wrap: nowrap; margin-top: 1.5rem; }
+.timer-acoes { display: flex; gap: clamp(1.25rem, 6vw, 2.5rem); justify-content: center; align-items: center; flex-wrap: nowrap; margin-top: 1.5rem; }
 .timer-acoes button {
   width: 72px; height: 72px; min-height: 0; border-radius: 50%;
   padding: 0; font-size: 0.72rem; font-weight: 700; line-height: 1.2;
