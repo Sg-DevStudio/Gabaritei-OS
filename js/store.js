@@ -208,6 +208,7 @@
         ultimoBackup: null,
         metaQuestoesSemana: 100,
         onboardingNomeVisto: false,
+        onboardingGuiaVisto: false,
         tema: 'claro',
         criadoEm: agora,
         atualizadoEm: agora,
