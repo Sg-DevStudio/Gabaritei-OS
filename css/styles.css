@@ -2659,6 +2659,66 @@ canvas.grafico {
   .stats-constancia-faixa {
     display: none;
   }
+  .stats-horas-disc-card {
+    display: none;
+  }
+  .stats-topicos-mobile {
+    margin-top: 0.72rem;
+  }
+  .stats-topicos-resumo {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.15rem 0 0.72rem;
+    border-bottom: 1px solid var(--linha);
+  }
+  .stats-topicos-resumo strong {
+    color: var(--tinta);
+    font-size: 2.4rem;
+    line-height: 1;
+  }
+  .stats-topicos-resumo span {
+    color: var(--grafite);
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+  .stats-topicos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.04rem;
+    margin-top: 0.3rem;
+  }
+  .stats-topico-item {
+    display: grid;
+    grid-template-columns: 0.78rem minmax(0, 1fr) auto;
+    gap: 0.48rem;
+    align-items: start;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--linha);
+  }
+  .stats-topico-cor {
+    width: 0.72rem;
+    height: 0.72rem;
+    margin-top: 0.22rem;
+    border-radius: 3px;
+  }
+  .stats-topico-bom { background: var(--cor-verde, #2E7D68); }
+  .stats-topico-medio { background: #D6A03A; }
+  .stats-topico-ruim { background: var(--cor-vermelho, #B83A2E); }
+  .stats-topico-nome {
+    color: var(--tinta);
+    font-size: 0.94rem;
+    line-height: 1.22;
+    overflow-wrap: anywhere;
+  }
+  .stats-topico-valor {
+    color: var(--tinta);
+    font-family: var(--fonte-mono);
+    font-size: 0.86rem;
+    line-height: 1.22;
+    text-align: right;
+    white-space: nowrap;
+  }
   .grafico-filtros {
     gap: 0.42rem;
     margin: 0.58rem 0 0.5rem;

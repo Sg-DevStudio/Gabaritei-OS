@@ -3123,6 +3123,26 @@
       '</select></div>';
   }
 
+  function topicosDesempenhoMobileHtml(dados) {
+    const totalQ = dados.reduce(function (n, d) { return n + (d.qFeitas || 0); }, 0);
+    const totalC = dados.reduce(function (n, d) { return n + (d.qCertas || 0); }, 0);
+    const pctGeral = totalQ > 0 ? Math.round((totalC / totalQ) * 100) : 0;
+    function classe(item) {
+      if (item.pct >= 70) return 'stats-topico-bom';
+      if (item.pct >= 50) return 'stats-topico-medio';
+      return 'stats-topico-ruim';
+    }
+    return '<div class="stats-topicos-mobile">' +
+      '<div class="stats-topicos-resumo"><strong>' + pctGeral + '%</strong><span>' + totalQ + ' questões<br>' + totalC + ' acertos</span></div>' +
+      '<div class="stats-topicos-lista">' + dados.map(function (item) {
+        return '<div class="stats-topico-item">' +
+          '<span class="stats-topico-cor ' + classe(item) + '"></span>' +
+          '<span class="stats-topico-nome">' + esc(item.topico) + '</span>' +
+          '<strong class="stats-topico-valor">' + item.qCertas + '/' + item.qFeitas + ' (' + item.pct + '%)</strong>' +
+          '</div>';
+      }).join('') + '</div></div>';
+  }
+
   function telaStats() {
     const hoje = D.hojeISO();
     if (D.sessoesDoPlano(state).length === 0) {
@@ -3161,10 +3181,12 @@
     html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
-        ? controlesTopicosDesempenhoHtml() + '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>'
+        ? controlesTopicosDesempenhoHtml() + '<div id="stats-topicos-corpo">' + (statsMobile
+          ? topicosDesempenhoMobileHtml(topicosDesempenho)
+          : '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>') + '</div>'
         : '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem questões por tópico</strong>Registre questões nas sessões para ver o gráfico.</div>') +
       '</div>';
-    html += '<div class="card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
+    html += '<div class="card stats-horas-disc-card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
     if (!window.Graficos.disponivel()) {
       html += '<div class="aviso aviso-info">Os gráficos precisam de internet na primeira carga (Chart.js via CDN). Os demais números continuam funcionando offline.</div>';
     }
@@ -3203,10 +3225,15 @@
         statsTopicosFiltro.ordem = topOrdem ? topOrdem.value : 'piores';
         statsTopicosFiltro.limite = topLimite ? topLimite.value : '18';
         const dados = dadosTopicosDesempenho(statsTopicosFiltro);
+        const corpo = raiz.querySelector('#stats-topicos-corpo');
+        const statsMobileAgora = window.matchMedia && window.matchMedia('(max-width: 560px)').matches;
+        if (statsMobileAgora && corpo) {
+          corpo.innerHTML = topicosDesempenhoMobileHtml(dados);
+          return;
+        }
         const canvas = raiz.querySelector('#graf-topicos');
         if (!canvas) return;
         const box = canvas.closest('.grafico-box');
-        const statsMobileAgora = window.matchMedia && window.matchMedia('(max-width: 560px)').matches;
         if (box) box.style.height = (statsMobileAgora ? 360 : Math.max(280, Math.min(640, dados.length * 38 + 86))) + 'px';
         window.Graficos.topicosDesempenho(canvas, dados);
       });
