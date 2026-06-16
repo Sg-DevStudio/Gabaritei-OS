@@ -1110,7 +1110,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 @media (max-width: 420px) {
   .fc-topo-acoes > button { padding-left: 0.7rem; padding-right: 0.7rem; font-size: 0.9rem; }
 }
-.fc-pasta { padding: 0.85rem 1rem; }
+/* Disciplinas (pastas) lado a lado, 2–3 por linha; cada pasta cresce para baixo
+   ao expandir um deck, sem esticar/desalinhar as vizinhas (align-items: start). */
+.fc-pastas { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.8rem; align-items: start; }
+.fc-pasta { padding: 0.85rem 1rem; margin: 0; }
 .fc-pasta-cab { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
 .fc-pasta-cab h3 { margin: 0; font-size: 1rem; }
 .fc-decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.6rem; }
@@ -2974,9 +2977,8 @@ canvas.grafico {
 .medalha-icone { font-size: 1.5rem; line-height: 1; }
 .medalha-titulo { font-size: 0.72rem; font-weight: 600; line-height: 1.15; color: var(--tinta); }
 .medalha:not(.ganha) .medalha-titulo { color: var(--grafite); }
-.medalha.ganha.medalha-lendaria { border-color: #C9A227; box-shadow: 0 0 0 1px #C9A22755, var(--sombra); }
-.medalha.ganha.medalha-epica { border-color: #8B5CF6; }
-.medalha.ganha.medalha-rara { border-color: #2E86DE; }
+/* Todas as conquistas conquistadas usam a mesma borda — a raridade aparece no
+   detalhe (modal), não como bordas coloridas só em algumas (parecia erro). */
 @media (max-width: 480px) {
   .conquistas-grade { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
 }

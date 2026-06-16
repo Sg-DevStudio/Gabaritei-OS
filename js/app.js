@@ -2383,10 +2383,11 @@
     Object.keys(porDisc).forEach(function (k) { if (k !== '__geral' && ordem.indexOf(k) < 0) ordem.push(k); });
     if (porDisc['__geral']) ordem.push('__geral');
 
+    let pastas = '';
     ordem.forEach(function (k) {
       const disc = k === '__geral' ? null : D.disciplinaPorId(state, k);
       const nomePasta = disc ? nomeDiscCurto(disc.nome) : 'Sem disciplina';
-      html += '<div class="card fc-pasta">' +
+      pastas += '<div class="card fc-pasta">' +
         '<div class="fc-pasta-cab">' + (disc ? tagDisc(disc) + ' ' : '') + '<h3>' + esc(nomePasta) + '</h3></div>' +
         '<div class="fc-decks">' + porDisc[k].map(function (dk) {
           const cards = dk.cards || [];
@@ -2409,6 +2410,7 @@
             '</div>';
         }).join('') + '</div></div>';
     });
+    html += '<div class="fc-pastas">' + pastas + '</div>';
     return html;
   }
 
@@ -3139,13 +3141,21 @@
     const topDisc = raiz.querySelector('#stats-topicos-disc');
     const topOrdem = raiz.querySelector('#stats-topicos-ordem');
     const topLimite = raiz.querySelector('#stats-topicos-limite');
+    // Ao trocar um filtro, redesenha SÓ o gráfico de "Tópicos × desempenho"
+    // (os demais gráficos e KPIs não dependem desses filtros), evitando recarregar
+    // a tela inteira a cada seleção.
     [topDisc, topOrdem, topLimite].forEach(function (el) {
       if (!el) return;
       el.addEventListener('change', function () {
         statsTopicosFiltro.disciplina = topDisc ? topDisc.value : '';
         statsTopicosFiltro.ordem = topOrdem ? topOrdem.value : 'piores';
         statsTopicosFiltro.limite = topLimite ? topLimite.value : '18';
-        render();
+        const dados = dadosTopicosDesempenho(statsTopicosFiltro);
+        const canvas = raiz.querySelector('#graf-topicos');
+        if (!canvas) return;
+        const box = canvas.closest('.grafico-box');
+        if (box) box.style.height = Math.max(280, Math.min(640, dados.length * 38 + 86)) + 'px';
+        window.Graficos.topicosDesempenho(canvas, dados);
       });
     });
   }
