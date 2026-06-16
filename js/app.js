@@ -3232,7 +3232,7 @@
 
     html += '<div class="stats-graficos-linha">' +
       '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>' +
-      '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>' +
+      '<div class="card stats-evolucao-card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>' +
       '</div>';
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
@@ -3259,7 +3259,7 @@
     const c2 = raiz.querySelector('#graf-meta');
     if (c2 && state.disciplinas.length > 0) {
       const dados = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
-        return { sigla: d.id, pct: D.desempenhoDisciplina(state, d) };
+        return { sigla: d.id, nome: d.nome, cor: d.cor, pct: D.desempenhoDisciplina(state, d) };
       });
       window.Graficos.desempenhoPorDisciplina(c2, dados);
     }

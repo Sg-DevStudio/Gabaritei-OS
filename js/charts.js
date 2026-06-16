@@ -144,6 +144,7 @@
     destruir(canvas.id);
     const P = paleta();
     const cores = dados.map(function (d) {
+      if (d.cor && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(d.cor)) return d.cor;
       if (d.pct === null) return NEUTRO;
       if (d.pct >= 70) return VERDE_OS;
       if (d.pct >= 50) return VERDE_MEDIO;
@@ -186,13 +187,22 @@
       return true;
     }
     instancias[canvas.id] = new Chart(canvas, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: dados.map(function (d) { return d.sigla; }),
         datasets: [{
           label: '% de acerto acumulado',
           data: dados.map(function (d) { return d.pct; }),
-          backgroundColor: cores, borderRadius: 4
+          borderColor: AZUL,
+          backgroundColor: cores,
+          pointBackgroundColor: cores,
+          pointBorderColor: P.card,
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          tension: 0.22,
+          fill: false
         }]
       },
       options: {
@@ -213,7 +223,7 @@
             ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
             grid: { color: P.grade }
           },
-          x: { ticks: { color: P.sub, font: { family: FONTE_MONO } }, grid: { color: P.grade } }
+          x: { ticks: { color: P.sub, font: { family: FONTE_MONO }, maxRotation: 0 }, grid: { color: P.grade } }
         }
       }
     });
@@ -225,33 +235,10 @@
     destruir(canvas.id);
     const P = paleta();
     const mobile = graficoMobile();
-    const labelsPlugin = {
-      id: 'labelsHoras',
-      afterDatasetsDraw: function (chart) {
-        const ctx = chart.ctx;
-        const dataset = chart.data.datasets[0];
-        const meta = chart.getDatasetMeta(0);
-        ctx.save();
-        ctx.font = '600 12px ' + FONTE_UI;
-        ctx.textBaseline = 'middle';
-        meta.data.forEach(function (bar, i) {
-          const valor = dataset.data[i];
-          if (!valor) return;
-          const texto = dados[i].rotulo;
-          const x = bar.x - 10;
-          const dentro = bar.width > 76;
-          // dentro da barra azul: branco; fora: cor de texto do tema (some no escuro se for fixo)
-          ctx.fillStyle = dentro ? '#FFFFFF' : P.texto;
-          ctx.textAlign = dentro ? 'right' : 'left';
-          ctx.fillText(texto, dentro ? x : bar.x + 8, bar.y);
-        });
-        ctx.restore();
-      }
-    };
     instancias[canvas.id] = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: dados.map(function (d) { return mobile ? curto(d.nome, 16) : d.nome; }),
+        labels: dados.map(function (d) { return curto(d.nome, mobile ? 16 : 18); }),
         datasets: [{
           label: 'Horas de estudo',
           data: dados.map(function (d) { return Math.round((d.minutos / 60) * 100) / 100; }),
@@ -262,7 +249,7 @@
         }]
       },
       options: {
-        indexAxis: mobile ? 'x' : 'y',
+        indexAxis: 'x',
         responsive: true,
         maintainAspectRatio: false,
         plugins: Object.assign(basePlugins(P), {
@@ -273,30 +260,18 @@
             }
           }
         }),
-        scales: mobile ? {
+        scales: {
           y: {
             beginAtZero: true,
             ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
             grid: { color: P.grade }
           },
           x: {
-            ticks: { color: P.texto, font: { family: FONTE_UI, size: 10 }, maxRotation: 55, minRotation: 35 },
-            grid: { color: P.grade }
-          }
-        } : {
-          x: {
-            beginAtZero: true,
-            position: 'top',
-            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
-            grid: { color: P.grade }
-          },
-          y: {
-            ticks: { color: P.texto, font: { family: FONTE_UI, size: 12 } },
+            ticks: { color: P.texto, font: { family: FONTE_UI, size: mobile ? 10 : 11 }, maxRotation: 55, minRotation: 35 },
             grid: { color: P.grade }
           }
         }
-      },
-      plugins: mobile ? [] : [labelsPlugin]
+      }
     });
     return true;
   }
