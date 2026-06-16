@@ -2666,7 +2666,7 @@ canvas.grafico {
     margin-top: 0.72rem;
   }
   .stats-topicos-spark {
-    height: 132px;
+    height: 158px;
     margin: 0.1rem 0 0.55rem;
   }
   .stats-topicos-spark svg {
@@ -2686,16 +2686,22 @@ canvas.grafico {
   }
   .stats-topicos-spark polyline {
     fill: none;
-    stroke: var(--grafite);
     stroke-width: 1.4;
     stroke-dasharray: 4 5;
     stroke-linecap: round;
     stroke-linejoin: round;
-    opacity: 0.75;
+    opacity: 0.42;
   }
   .stats-topicos-spark circle {
     stroke: var(--papel-card);
     stroke-width: 2;
+  }
+  .stats-topicos-spark .stats-topicos-eixo {
+    stroke: var(--grafite);
+    opacity: 0.42;
+  }
+  .stats-topicos-spark .stats-topicos-x {
+    font-size: 0.55rem;
   }
   .stats-topicos-resumo {
     display: flex;
