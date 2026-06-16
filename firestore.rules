@@ -18,8 +18,11 @@ service cloud.firestore {
       allow read, write: if signedIn() && request.auth.uid == userId;
     }
 
+    // Catálogo de editais: leitura pública (vitrine/demo para visitantes não
+    // logados); somente o admin publica/edita. Contém apenas metadados e capas
+    // de editais — nada sensível.
     match /public/catalogo {
-      allow read: if signedIn();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
