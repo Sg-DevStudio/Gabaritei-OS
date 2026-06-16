@@ -3132,11 +3132,6 @@
       if (item.pct >= 50) return 'stats-topico-medio';
       return 'stats-topico-ruim';
     }
-    function cor(item) {
-      if (item.pct >= 70) return '#2E7D68';
-      if (item.pct >= 50) return '#D6A03A';
-      return '#B83A2E';
-    }
     const ids = new Set(dados.map(function (d) { return d.id; }));
     const sessoes = D.sessoesDoPlano(state).filter(function (s) {
       return s.qFeitas && ids.has(s.topicoId);
@@ -3144,60 +3139,50 @@
     const anoMes = sessoes.map(function (s) { return (s.data || '').slice(0, 7); }).filter(Boolean);
     const spanAnos = anoMes.length ? (+anoMes[anoMes.length - 1].slice(0, 4) - +anoMes[0].slice(0, 4)) : 0;
     const porAno = spanAnos >= 2;
-    const porTopicoPeriodo = {};
+    const porPeriodo = {};
     const periodosSet = new Set();
     sessoes.forEach(function (s) {
       const periodo = porAno ? s.data.slice(0, 4) : s.data.slice(0, 7);
       if (!periodo) return;
       periodosSet.add(periodo);
-      const chave = s.topicoId + '|' + periodo;
-      const item = porTopicoPeriodo[chave] = porTopicoPeriodo[chave] || { topicoId: s.topicoId, periodo: periodo, qFeitas: 0, qCertas: 0 };
+      const item = porPeriodo[periodo] = porPeriodo[periodo] || { periodo: periodo, qFeitas: 0, qCertas: 0 };
       item.qFeitas += s.qFeitas || 0;
       item.qCertas += s.qCertas || 0;
     });
     let periodos = Array.from(periodosSet).sort();
     if (!porAno && periodos.length > 8) periodos = periodos.slice(-8);
-    const periodoIndex = new Map(periodos.map(function (p, i) { return [p, i]; }));
     const largura = 320, altura = 150, esquerda = 34, direita = 10, topo = 10, base = 108;
     const passo = periodos.length > 1 ? (largura - esquerda - direita) / (periodos.length - 1) : 0;
-    const porTopico = {};
-    Object.keys(porTopicoPeriodo).forEach(function (k) {
-      const p = porTopicoPeriodo[k];
-      if (!periodoIndex.has(p.periodo)) return;
-      const item = dados.find(function (d) { return d.id === p.topicoId; });
-      if (!item) return;
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const pontos = periodos.map(function (periodo, i) {
+      const p = porPeriodo[periodo] || { qFeitas: 0, qCertas: 0 };
       const pct = p.qFeitas > 0 ? Math.round((p.qCertas / p.qFeitas) * 100) : 0;
-      const x = periodos.length > 1 ? esquerda + periodoIndex.get(p.periodo) * passo : esquerda + (largura - esquerda - direita) / 2;
+      const x = periodos.length > 1 ? esquerda + i * passo : esquerda + (largura - esquerda - direita) / 2;
       const y = topo + ((100 - Math.max(0, Math.min(100, pct))) / 100) * (base - topo);
-      (porTopico[p.topicoId] = porTopico[p.topicoId] || { item: item, pontos: [] }).pontos.push({
+      return {
+        periodo: periodo,
         x: Math.round(x * 10) / 10,
         y: Math.round(y * 10) / 10,
-        pct: pct
-      });
+        pct: pct,
+        cor: pct >= 70 ? '#2E7D68' : pct >= 50 ? '#D6A03A' : '#B83A2E'
+      };
     });
-    const series = Object.keys(porTopico).map(function (id) { return porTopico[id]; });
-    const linhas = series.map(function (s) {
-      if (s.pontos.length < 2) return '';
-      const pts = s.pontos.map(function (p) { return p.x + ',' + p.y; }).join(' ');
-      return '<polyline points="' + pts + '" stroke="' + cor(s.item) + '"></polyline>';
+    const linha = pontos.map(function (p) { return p.x + ',' + p.y; }).join(' ');
+    const pontosSvg = pontos.map(function (p) {
+      return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4.8" fill="' + p.cor + '"></circle>';
     }).join('');
-    const pontos = series.map(function (s) {
-      return s.pontos.map(function (p) {
-        return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4.2" fill="' + cor(s.item) + '"></circle>';
-      }).join('');
-    }).join('');
-    const rotulosX = periodos.map(function (p, i) {
-      const x = periodos.length > 1 ? esquerda + i * passo : esquerda + (largura - esquerda - direita) / 2;
-      const rot = porAno ? p : p.slice(5, 7) + '/' + p.slice(2, 4);
-      return '<text class="stats-topicos-x" x="' + x + '" y="138" text-anchor="middle">' + rot + '</text>';
+    const rotulosX = pontos.map(function (p) {
+      const rot = porAno ? p.periodo : meses[(parseInt(p.periodo.slice(5, 7), 10) || 1) - 1];
+      return '<text class="stats-topicos-x" x="' + p.x + '" y="138" text-anchor="middle">' + rot + '</text>';
     }).join('');
     const spark = '<div class="stats-topicos-spark" aria-hidden="true"><svg viewBox="0 0 ' + largura + ' ' + altura + '" focusable="false">' +
       '<text x="0" y="14">100%</text><text x="7" y="63">50%</text><text x="14" y="112">0%</text>' +
       '<line x1="' + esquerda + '" y1="' + topo + '" x2="' + (largura - direita) + '" y2="' + topo + '"></line>' +
+      '<line class="stats-topicos-meta" x1="' + esquerda + '" y1="' + (topo + ((100 - 70) / 100) * (base - topo)) + '" x2="' + (largura - direita) + '" y2="' + (topo + ((100 - 70) / 100) * (base - topo)) + '"></line>' +
       '<line x1="' + esquerda + '" y1="' + ((topo + base) / 2) + '" x2="' + (largura - direita) + '" y2="' + ((topo + base) / 2) + '"></line>' +
       '<line x1="' + esquerda + '" y1="' + base + '" x2="' + (largura - direita) + '" y2="' + base + '"></line>' +
       '<line class="stats-topicos-eixo" x1="' + esquerda + '" y1="' + base + '" x2="' + (largura - direita) + '" y2="' + base + '"></line>' +
-      linhas + pontos + rotulosX +
+      '<polyline class="stats-topicos-linha" points="' + linha + '"></polyline>' + pontosSvg + rotulosX +
       '</svg></div>';
     return '<div class="stats-topicos-mobile">' +
       spark +

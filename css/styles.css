@@ -2687,10 +2687,18 @@ canvas.grafico {
   .stats-topicos-spark polyline {
     fill: none;
     stroke-width: 1.4;
-    stroke-dasharray: 4 5;
     stroke-linecap: round;
     stroke-linejoin: round;
-    opacity: 0.42;
+  }
+  .stats-topicos-spark .stats-topicos-linha {
+    stroke: var(--caneta);
+    stroke-width: 2;
+    opacity: 0.82;
+  }
+  .stats-topicos-spark .stats-topicos-meta {
+    stroke: var(--grafite);
+    stroke-dasharray: 4 5;
+    opacity: 0.34;
   }
   .stats-topicos-spark circle {
     stroke: var(--papel-card);
