@@ -2737,9 +2737,24 @@ canvas.grafico {
 .cmp-col ul { list-style: none; padding: 0; margin: 0.55rem 0 0; display: grid; gap: 0.4rem; }
 .cmp-col li { display: flex; gap: 0.45rem; align-items: flex-start; }
 .cmp-ok {
-  color: var(--correto);
-  font-weight: 800;
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--correto);
   flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+.cmp-ok::after {
+  content: "";
+  position: absolute;
+  left: 0.32rem;
+  top: 0.18rem;
+  width: 0.26rem;
+  height: 0.52rem;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 .cmp-vazio { color: var(--grafite); }
 .cmp-exclusivos { display: grid; gap: 0.45rem; margin: 0.55rem 0; }

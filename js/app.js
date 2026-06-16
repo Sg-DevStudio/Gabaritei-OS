@@ -4097,14 +4097,14 @@
     const d = res.detalhes;
     function item(rot, val) { return '<div><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></div>'; }
     const comuns = (d.disciplinasComuns || []).map(function (x) {
-      return '<li><span class="cmp-ok">?</span><span>' + esc(x) + '</span></li>';
+      return '<li><span class="cmp-ok" aria-hidden="true"></span><span>' + esc(x) + '</span></li>';
     }).join('');
-    const exclusivos = '<div class="cmp-exclusivos"><span><strong>' + d.exclusivosA + '</strong> exclusivos no 1o edital</span><span><strong>' + d.exclusivosB + '</strong> exclusivos no 2o edital</span></div>';
+    const exclusivos = '<div class="cmp-exclusivos"><span><strong>' + d.exclusivosA + '</strong> exclusivos no 1° edital</span><span><strong>' + d.exclusivosB + '</strong> exclusivos no 2° edital</span></div>';
     return '<div class="cmp-visual">' +
       '<div class="cmp-pensamento conciliar-' + cores[res.nivel] + '"><strong>' + rotulos[res.nivel] + '</strong><p>' + esc(res.mensagem) + '</p></div>' +
       '<div class="cmp-colunas">' +
       '<section class="cmp-col"><span class="cm-rotulo">Disciplinas aproveitaveis</span><ul>' + (comuns || '<li><span class="cmp-vazio">Nenhuma disciplina comum clara.</span></li>') + '</ul></section>' +
-      '<section class="cmp-col"><span class="cm-rotulo">Pontos de atencao</span>' + exclusivos +
+      '<section class="cmp-col"><span class="cm-rotulo">⚠️ Pontos de atencao</span>' + exclusivos +
       '<p class="sub">Topicos em comum: <strong>' + d.topicosComuns + '</strong> (' + d.overlapPct + '%). Quanto maior esse numero, mais estudo voce reaproveita.</p></section>' +
       '</div>' +
       '<div class="conciliar-grid">' +
