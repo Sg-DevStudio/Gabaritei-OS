@@ -1104,9 +1104,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
    ============================================================ */
 .rev-seg { display: flex; gap: 0.45rem; margin-bottom: 1rem; }
 .fc-topo { display: flex; flex-direction: column; gap: 0.5rem; }
-.fc-topo-acoes { display: flex; gap: 0.5rem; align-items: stretch; }
+.fc-topo-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch; }
 .fc-topo-acoes > button { flex: 1 1 0; min-width: 0; white-space: nowrap; }
 .fc-topo .sub { margin: 0; }
+/* No mobile os 3 botões não cabem em uma linha (o texto era cortado). O principal
+   ocupa a linha inteira e os outros dois dividem a linha de baixo. */
+@media (max-width: 560px) {
+  .fc-topo-acoes > button { flex: 1 1 calc(50% - 0.25rem); }
+  .fc-topo-acoes > button:first-child { flex-basis: 100%; }
+}
 @media (max-width: 420px) {
   .fc-topo-acoes > button { padding-left: 0.7rem; padding-right: 0.7rem; font-size: 0.9rem; }
 }
@@ -2011,6 +2017,9 @@ td.num, th.num { text-align: right; }
 /* Foto 3x4 do órgão dentro do card "Plano atual" */
 .plano-atual-head { align-items: center; }
 .plano-atual-foto { width: 54px; height: 72px; flex: 0 0 54px; }
+.plano-atual-foto.catalogo-foto-placeholder,
+.plano-mini-top-foto .catalogo-foto-placeholder,
+.ee-foto-linha .catalogo-foto-placeholder { font-size: 1.05rem; }
 .plano-atual-head > :not(.plano-atual-foto):not(.plano-progresso) { flex: 1 1 auto; min-width: 0; }
 .plano-progresso {
   font-size: 1.25rem;
@@ -2687,10 +2696,14 @@ canvas.grafico {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--caneta-forte);
+  color: #fff;
   font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
   font-family: var(--fonte-mono);
-  background: linear-gradient(180deg, var(--caneta-suave), var(--papel-elevado));
+  text-shadow: 0 1px 6px rgba(10, 14, 40, 0.35);
+  border-color: transparent;
+  background: linear-gradient(145deg, #5B8DEF 0%, #6E6CF0 55%, #9A6CF0 100%);
 }
 .etiqueta-alta { background: var(--alerta-suave); color: var(--alerta); }
 .catalogo-metricas { display: flex; flex-wrap: wrap; gap: 0.45rem; }
