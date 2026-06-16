@@ -1475,13 +1475,18 @@ html[data-tema="escuro"] .constancia-folga::before { background: #697180; }
   flex-direction: column;
 }
 .tela-timer {
-  background: linear-gradient(180deg, #112C55 0%, #1E4274 100%);
-  color: #F7F8F6;
-  border-radius: var(--raio);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(157, 144, 255, 0.30), transparent 60%),
+    radial-gradient(80% 60% at 85% 110%, rgba(124, 177, 255, 0.22), transparent 65%),
+    linear-gradient(165deg, #1B2350 0%, #141A33 55%, #0F1428 100%);
+  color: #F4F6FF;
+  border-radius: 28px;
   padding: clamp(2rem, 6vw, 3.6rem) clamp(1.5rem, 4vw, 3rem) clamp(2.4rem, 5vw, 3.4rem);
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 18px 45px rgba(16, 17, 22, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 24px 60px rgba(10, 12, 28, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   max-width: 760px;
   width: 100%;
   margin: 0.5rem auto 0;
@@ -1543,25 +1548,36 @@ html[data-tema="escuro"] .constancia-folga::before { background: #697180; }
 
 .timer-relogio-frame {
   position: relative;
-  width: min(72vw, 286px);
-  margin: clamp(0.8rem, 2vh, 1.5rem) auto;
+  width: min(74vw, 300px);
+  margin: clamp(0.8rem, 2vh, 1.6rem) auto;
 }
 .timer-clock-svg {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 12px 32px rgba(0,0,0,0.55));
+}
+.timer-track { stroke: rgba(255, 255, 255, 0.08); }
+.timer-arco {
+  stroke: url(#timer-grad);
+  filter: drop-shadow(0 0 10px rgba(157, 144, 255, 0.55));
+  transition: stroke-dashoffset 0.95s linear;
+}
+.timer-dot {
+  fill: #fff;
+  filter: drop-shadow(0 0 6px rgba(199, 146, 255, 0.9));
 }
 .timer-relogio-frame .timer-display {
   position: absolute;
-  top: 64%; left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  font-size: clamp(1.35rem, 7vw, 1.7rem);
+  font-size: clamp(2.2rem, 11vw, 3rem);
   font-weight: 600;
+  letter-spacing: 0.01em;
   margin: 0;
   line-height: 1;
-  color: #F7F8F6;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  color: #F4F6FF;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 18px rgba(8, 10, 24, 0.7);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -1573,12 +1589,19 @@ html[data-tema="escuro"] .constancia-folga::before { background: #697180; }
   padding: 0; font-size: 0.72rem; font-weight: 700; line-height: 1.2;
   display: flex; align-items: center; justify-content: center; flex: 0 0 72px;
 }
-.tela-timer .timer-acoes button.botao-quieto {
-  background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); color: #D0D2DA;
+.tela-timer .timer-acoes button {
+  border: 1px solid transparent; transition: transform 0.14s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
+.tela-timer .timer-acoes button:hover { transform: translateY(-2px); }
+.tela-timer .timer-acoes button.botao-quieto {
+  background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); color: #D7DAEA;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.tela-timer .timer-acoes button.botao-quieto:hover { background: rgba(255,255,255,0.13); }
 .tela-timer .timer-acoes button:not(.botao-quieto) {
-  background: var(--caneta); border-color: transparent; color: #fff;
-  box-shadow: 0 6px 20px rgba(36,84,214,0.4);
+  background: linear-gradient(140deg, #7CB1FF 0%, #9D90FF 55%, #C792FF 100%);
+  border-color: transparent; color: #fff;
+  box-shadow: 0 10px 28px rgba(124, 100, 255, 0.45);
 }
 .timer-limite { max-width: 180px; margin: 0.85rem auto 0; text-align: left; }
 .timer-limite input { text-align: center; }
@@ -1597,24 +1620,35 @@ html[data-tema="escuro"] .constancia-folga::before { background: #697180; }
 .timer-display.timer-extra,
 .timer-mini-clock .timer-display.timer-extra { color: #4ADE80; text-shadow: 0 0 14px rgba(74, 222, 128, 0.55); }
 .timer-info-extra { color: #4ADE80; font-weight: 700; }
-.timer-relogio-frame.timer-frame-extra .timer-clock-svg {
-  filter: drop-shadow(0 0 18px rgba(74, 222, 128, 0.6));
+.timer-relogio-frame.timer-frame-extra .timer-arco {
+  stroke: #4ADE80;
+  filter: drop-shadow(0 0 16px rgba(74, 222, 128, 0.7));
   animation: timer-extra-glow 1.8s ease-in-out infinite;
 }
+.timer-relogio-frame.timer-frame-extra .timer-dot { fill: #4ADE80; filter: drop-shadow(0 0 8px rgba(74,222,128,0.9)); }
 @keyframes timer-extra-glow {
-  0%, 100% { filter: drop-shadow(0 0 12px rgba(74, 222, 128, 0.45)); }
-  50% { filter: drop-shadow(0 0 22px rgba(74, 222, 128, 0.75)); }
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.45)); }
+  50% { filter: drop-shadow(0 0 22px rgba(74, 222, 128, 0.85)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .timer-relogio-frame.timer-frame-extra .timer-clock-svg { animation: none; }
+  .timer-relogio-frame.timer-frame-extra .timer-arco { animation: none; }
+  .timer-arco { transition: none; }
 }
 
-.seletor-modo { display: inline-flex; border: 1px solid #3A3D45; border-radius: var(--raio-s); overflow: hidden; background: rgba(255, 255, 255, 0.03); }
-.seletor-modo button {
-  background: transparent; color: #B9BBC1; border-radius: 0; min-height: 38px;
-  font-size: 0.85rem; padding: 0.3rem 1rem; box-shadow: none;
+.seletor-modo {
+  display: inline-flex; gap: 0.25rem; padding: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
 }
-.seletor-modo button.ativo { background: #2454D6; color: #fff; }
+.seletor-modo button {
+  background: transparent; color: #C2C6DC; border-radius: 999px; min-height: 36px;
+  font-size: 0.85rem; font-weight: 600; padding: 0.3rem 1.1rem; box-shadow: none;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.seletor-modo button.ativo {
+  background: linear-gradient(140deg, #7CB1FF, #9D90FF 60%, #C792FF);
+  color: #fff; box-shadow: 0 4px 14px rgba(124, 100, 255, 0.4);
+}
 
 .assuntos-modal-cab {
   display: flex;
