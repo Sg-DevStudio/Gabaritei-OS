@@ -3132,7 +3132,29 @@
       if (item.pct >= 50) return 'stats-topico-medio';
       return 'stats-topico-ruim';
     }
+    function cor(item) {
+      if (item.pct >= 70) return '#2E7D68';
+      if (item.pct >= 50) return '#D6A03A';
+      return '#B83A2E';
+    }
+    const largura = 320, altura = 124, esquerda = 34, direita = 10, topo = 10, base = 98;
+    const passo = dados.length > 1 ? (largura - esquerda - direita) / (dados.length - 1) : 0;
+    const pontos = dados.map(function (item, i) {
+      const x = dados.length > 1 ? esquerda + i * passo : esquerda + (largura - esquerda - direita) / 2;
+      const y = topo + ((100 - Math.max(0, Math.min(100, item.pct))) / 100) * (base - topo);
+      return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, item: item };
+    });
+    const linha = pontos.map(function (p) { return p.x + ',' + p.y; }).join(' ');
+    const spark = '<div class="stats-topicos-spark" aria-hidden="true"><svg viewBox="0 0 ' + largura + ' ' + altura + '" focusable="false">' +
+      '<text x="0" y="14">100%</text><text x="7" y="58">50%</text><text x="14" y="102">0%</text>' +
+      '<line x1="' + esquerda + '" y1="' + topo + '" x2="' + (largura - direita) + '" y2="' + topo + '"></line>' +
+      '<line x1="' + esquerda + '" y1="' + ((topo + base) / 2) + '" x2="' + (largura - direita) + '" y2="' + ((topo + base) / 2) + '"></line>' +
+      '<line x1="' + esquerda + '" y1="' + base + '" x2="' + (largura - direita) + '" y2="' + base + '"></line>' +
+      '<polyline points="' + linha + '"></polyline>' +
+      pontos.map(function (p) { return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4.6" fill="' + cor(p.item) + '"></circle>'; }).join('') +
+      '</svg></div>';
     return '<div class="stats-topicos-mobile">' +
+      spark +
       '<div class="stats-topicos-resumo"><strong>' + pctGeral + '%</strong><span>' + totalQ + ' questões<br>' + totalC + ' acertos</span></div>' +
       '<div class="stats-topicos-lista">' + dados.map(function (item) {
         return '<div class="stats-topico-item">' +
