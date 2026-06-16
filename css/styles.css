@@ -2977,8 +2977,14 @@ canvas.grafico {
 .medalha-icone { font-size: 1.5rem; line-height: 1; }
 .medalha-titulo { font-size: 0.72rem; font-weight: 600; line-height: 1.15; color: var(--tinta); }
 .medalha:not(.ganha) .medalha-titulo { color: var(--grafite); }
-/* Todas as conquistas conquistadas usam a mesma borda — a raridade aparece no
-   detalhe (modal), não como bordas coloridas só em algumas (parecia erro). */
+/* Borda colorida por raridade em TODAS as conquistas (não só em algumas). Nas
+   bloqueadas, o filtro grayscale suaviza a cor naturalmente. */
+.medalha.medalha-lendaria { border-color: #C9A227; }
+.medalha.medalha-epica { border-color: #8B5CF6; }
+.medalha.medalha-rara { border-color: #2E86DE; }
+.medalha.medalha-incomum { border-color: var(--correto); }
+.medalha.medalha-comum { border-color: var(--grafite); }
+.medalha.ganha.medalha-lendaria { box-shadow: 0 0 0 1px #C9A22755, var(--sombra); }
 @media (max-width: 480px) {
   .conquistas-grade { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
 }
