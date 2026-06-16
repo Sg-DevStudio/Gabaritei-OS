@@ -404,6 +404,12 @@
       onboardingNomeAberto = false;
       salvar();
       fecharModal();
+      // Primeiro acesso e ainda sem plano: leva o usuário direto ao catálogo de
+      // editais, onde o guia de boas-vindas explica como escolher (ou montar) um plano.
+      const semPlano = !state.plano;
+      if (semPlano && location.hash !== '#planos') {
+        location.hash = '#planos';
+      }
       render();
       if (nome) toast('Saudação atualizada', 'sucesso');
     }
@@ -3883,6 +3889,7 @@
       return '<select data-cat-filtro="' + campo + '" title="' + rotulo + '"><option value="">' + rotulo + '</option>' + opts + '</select>';
     }
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de editais</span><h1>Planos</h1></div></div>' +
+      guiaBoasVindasPlanosHtml() +
       cardAvisoCompararHtml() +
       '<div class="catalogo-toolbar">' +
       '<input id="cat-busca" type="search" placeholder="Pesquisar edital" value="' + esc(catalogoFiltro.busca || '') + '">' +
@@ -3895,6 +3902,39 @@
     }
     html += '<div class="catalogo-grade">' + lista.map(catalogoCardCompacto).join('') + '</div>';
     return html;
+  }
+
+  // Mostra um guia de boas-vindas, centralizado, logo após o usuário informar o
+  // nome no primeiro acesso. Explica como o sistema funciona e oferece os dois
+  // caminhos: escolher um edital do catálogo ou montar um plano manual (útil para
+  // quem não estuda para concurso, ex.: faculdade). Some assim que a pessoa já
+  // tiver um plano ativo ou tocar em "Entendi".
+  function deveMostrarGuiaPlanos() {
+    return usuarioLogado() && !modoDemo && !state.plano &&
+      !(state.config && state.config.onboardingGuiaVisto);
+  }
+
+  function guiaBoasVindasPlanosHtml() {
+    if (!deveMostrarGuiaPlanos()) return '';
+    const nome = (state.config && state.config.nomeUsuario || '').trim();
+    const ola = nome ? 'Tudo certo, ' + esc(nome) + '! ' : 'Tudo certo! ';
+    return '<div class="card guia-planos">' +
+      '<button class="guia-planos-fechar" type="button" id="guia-planos-fechar" aria-label="Fechar guia">×</button>' +
+      '<div class="guia-planos-icone" aria-hidden="true">🎯</div>' +
+      '<h2>' + ola + 'Vamos começar sua jornada</h2>' +
+      '<p class="sub">O Gabaritei OS monta seu cronograma de estudos, agenda revisões automáticas ' +
+      'e acompanha seu progresso. Para começar, <strong>escolha o seu edital</strong> no catálogo abaixo — ' +
+      'o sistema gera um plano sob medida com base nele.</p>' +
+      '<p class="sub guia-planos-alt">Não está estudando para um concurso específico (ex.: provas da faculdade)? ' +
+      'Você também pode <strong>montar um plano do zero</strong>.</p>' +
+      '<div class="guia-planos-acoes">' +
+      '<button class="botao" type="button" id="guia-planos-manual">✏️ Criar plano manual</button>' +
+      '<button class="botao-quieto" type="button" id="guia-planos-ok">Entendi, ver editais ↓</button>' +
+      '</div></div>';
+  }
+
+  function fecharGuiaPlanos() {
+    if (state.config) { state.config.onboardingGuiaVisto = true; salvar(); }
   }
 
   function editaisComparaveis() {
@@ -4092,6 +4132,16 @@
     });
     raiz.querySelectorAll('[data-pl-comparar]').forEach(function (b) {
       b.addEventListener('click', function () { alternarComparacao(b.getAttribute('data-pl-comparar')); });
+    });
+    const guiaFechar = raiz.querySelector('#guia-planos-fechar');
+    const guiaOk = raiz.querySelector('#guia-planos-ok');
+    [guiaFechar, guiaOk].forEach(function (b) {
+      if (b) b.addEventListener('click', function () { fecharGuiaPlanos(); render(); });
+    });
+    const guiaManual = raiz.querySelector('#guia-planos-manual');
+    if (guiaManual) guiaManual.addEventListener('click', function () {
+      fecharGuiaPlanos();
+      criarPlanoManualComPrompt();
     });
   }
 
@@ -5048,8 +5098,9 @@
       if (ed) src = ed.foto || ed.fotoUrl || ed.imagem || '';
     }
     const iniciais = String(plano.orgao || plano.concurso || 'ED').replace(/[^0-9A-Za-zÀ-ſ ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(function (p) { return p.charAt(0); }).join('').toUpperCase() || 'ED';
+    const onerr = "var s=this.parentNode;s.classList.add('catalogo-foto-placeholder');s.setAttribute('aria-hidden','true');s.textContent='" + esc(iniciais) + "';";
     return src
-      ? '<span class="catalogo-foto plano-atual-foto"><img src="' + esc(src) + '" alt=""></span>'
+      ? '<span class="catalogo-foto plano-atual-foto"><img src="' + esc(src) + '" alt="" onerror="' + esc(onerr) + '"></span>'
       : '<span class="catalogo-foto catalogo-foto-placeholder plano-atual-foto" aria-hidden="true">' + esc(iniciais) + '</span>';
   }
 
@@ -7876,7 +7927,14 @@
         adicionarPlano(json);
         state.config.nomeUsuario = '';
         state.config.onboardingNomeVisto = true;
-        if (location.hash === '#hoje') render(); else location.hash = '#hoje';
+        // garante o plano ativo mesmo se houver corrida com o status do Firebase
+        if (!state.planoAtivoId && state.planos && state.planos.length) {
+          window.Store.ativarPlano(state, state.planos[0].id);
+        }
+        // navega para #hoje e renderiza de forma determinística (não depende só do
+        // evento hashchange, que pode não disparar se já estávamos em #hoje).
+        if (location.hash !== '#hoje') location.hash = '#hoje';
+        render();
         toast('Modo exemplo ativado — explore à vontade', 'sucesso');
       })
       .catch(function () {
@@ -7984,7 +8042,7 @@
         const usuarioDepois = novoStatus && novoStatus.usuario ? novoStatus.usuario.email : null;
         // saiu do modo exemplo ao logar: descarta os dados de demonstração para não
         // poluir/sincronizar a conta real (reconciliação parte de um estado limpo).
-        if (novoStatus && novoStatus.usuario && modoDemo) {
+        if (novoStatus && novoStatus.usuario && modoDemo && usuarioAntes !== usuarioDepois) {
           modoDemo = false;
           state = window.Store.estadoVazio();
           window.Store.salvar(state, { marcarAlterado: false });
