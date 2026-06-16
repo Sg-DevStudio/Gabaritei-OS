@@ -103,6 +103,34 @@
     return catalogoGlobalPromise;
   }
 
+  // Editais empacotados no próprio app (data/). Servem de catálogo padrão quando o
+  // catálogo global do Firebase ainda não chegou (ex.: usuário não logado ou no
+  // MODO EXEMPLO), garantindo que a aba "Planos" nunca apareça vazia.
+  const EDITAIS_LOCAIS = [
+    'edital-trf3-tjaa-2024',
+    'edital-tjsp-escrevente-2025',
+    'edital-prf-agente-administrativo-previsto-2026',
+    'edital-petrobras-operacao-2023',
+    'edital-trt3-tecnico-administrativo-2022',
+    'edital-trt4-tecnico-administrativo-2022'
+  ];
+  let editaisLocaisTentado = false;
+  function carregarEditaisLocais() {
+    if (editaisLocaisTentado) return Promise.resolve();
+    editaisLocaisTentado = true;
+    return Promise.all(EDITAIS_LOCAIS.map(function (nome) {
+      return fetch('data/' + nome + '.json')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    })).then(function (lista) {
+      const ids = new Set(catalogoGlobalEditais.map(function (e) { return e.id; }));
+      const novos = lista.filter(Boolean)
+        .map(function (e) { return normalizarEditalCatalogo(e, 'global'); })
+        .filter(function (e) { return !ids.has(e.id); }); // não sobrescreve o que veio do Firebase
+      if (novos.length) { catalogoGlobalEditais = catalogoGlobalEditais.concat(novos); render(); }
+    });
+  }
+
   function publicarCatalogoAdmin(opcoes) {
     opcoes = opcoes || {};
     if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
@@ -7945,6 +7973,7 @@
         // evento hashchange, que pode não disparar se já estávamos em #hoje).
         if (location.hash !== '#hoje') location.hash = '#hoje';
         render();
+        carregarEditaisLocais(); // garante o catálogo de editais visível no modo exemplo
         toast('Modo exemplo ativado — explore à vontade', 'sucesso');
       })
       .catch(function () {
@@ -8071,4 +8100,5 @@
   }
   window.addEventListener('firebase-sync-ready', iniciarFirebaseSync);
   iniciarFirebaseSync();
+  carregarEditaisLocais(); // catálogo padrão (offline / não logado / modo exemplo)
 })();
