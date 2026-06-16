@@ -413,6 +413,11 @@
   function mesclarPlano(stateAtual, json) {
     const statusAntigo = {};
     const nomesAntigos = {};
+    function listaMesclada(chave) {
+      const atual = Array.isArray(stateAtual[chave]) ? stateAtual[chave] : [];
+      const seed = Array.isArray(json[chave]) ? json[chave] : [];
+      return atual.length > 0 ? atual : seed;
+    }
     (stateAtual.disciplinas || []).forEach(function (d) {
       d.topicos.forEach(function (t) {
         statusAntigo[t.id] = { status: t.status, reaberto: !!t.reaberto };
@@ -432,8 +437,8 @@
             id: t.id, nome: t.nome,
             incidencia_pct: t.incidencia_pct, prioridade: t.prioridade || 2,
             horas_estimadas: t.horas_estimadas || 2, semana_sugerida: t.semana_sugerida || null,
-            status: antigo ? antigo.status : 'pendente',
-            reaberto: antigo ? antigo.reaberto : false,
+            status: antigo ? antigo.status : (t.status || 'pendente'),
+            reaberto: antigo ? antigo.reaberto : !!t.reaberto,
             orfao: false
           };
         })
@@ -484,10 +489,12 @@
         hardcore: (json.cronograma && json.cronograma.hardcore) || []
       },
       links: json.links || [],
-      sessoes: stateAtual.sessoes || [],
-      revisoes: stateAtual.revisoes || [],
-      simulados: stateAtual.simulados || [],
-      config: stateAtual.config || {}
+      sessoes: listaMesclada('sessoes'),
+      revisoes: listaMesclada('revisoes'),
+      simulados: listaMesclada('simulados'),
+      agenda: listaMesclada('agenda'),
+      flashcards: listaMesclada('flashcards'),
+      config: Object.assign({}, json.config || {}, stateAtual.config || {})
     };
   }
 

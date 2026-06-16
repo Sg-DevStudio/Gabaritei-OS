@@ -699,8 +699,32 @@
   }
 
   function saudacaoCompleta(saudacao) {
+    if (modoDemo) return saudacao;
     const nome = nomeUsuario();
     return nome ? saudacao + ', ' + nome : saudacao;
+  }
+
+  function cortesDoPlanoAtivo() {
+    if (!state.plano || !state.plano.meta) return null;
+    const meta = state.plano.meta;
+    const normalizar = function (cortes) {
+      if (!cortes || typeof cortes !== 'object') return null;
+      const ampla = cortes.ampla != null ? cortes.ampla : meta.corte_pct;
+      const negros = cortes.negros != null ? cortes.negros : (cortes.cn != null ? cortes.cn : null);
+      const pcd = cortes.pcd != null ? cortes.pcd : null;
+      if (ampla == null && negros == null && pcd == null) return null;
+      return { ampla: ampla, negros: negros, pcd: pcd };
+    };
+    const doMeta = normalizar(meta.cortes || meta.cortes_pct || null);
+    if (doMeta) return doMeta;
+    const edital = state.plano && state.plano.concurso
+      ? editaisDoCatalogo().find(function (e) { return e && e.titulo === state.plano.concurso; })
+      : null;
+    const doEdital = edital
+      ? normalizar(edital.cortes || { ampla: edital.notaCorte, negros: null, pcd: null })
+      : null;
+    if (doEdital) return doEdital;
+    return { ampla: meta.corte_pct != null ? meta.corte_pct : 70, negros: null, pcd: null };
   }
 
   function hojeMesISO() {
@@ -2840,8 +2864,12 @@
         '<p style="margin-top:0.5rem"><a class="botao-quieto" href="#ajustes" style="font-size:0.85rem">ou importar um plano</a></p></div></div>';
     }
     const meta = state.plano.meta.corte_pct;
+    const cortes = cortesDoPlanoAtivo();
+    const metaTexto = cortes
+      ? 'Ampla ' + (cortes.ampla || meta) + '% · CN ' + (cortes.negros || cortes.cn || '—') + '% · PCD ' + (cortes.pcd || '—') + '%'
+      : meta + '% (' + esc(state.plano.meta.corte_fonte || 'nota de corte estimada') + ')';
     let html = '<div class="cab-pagina"><div><h1>Simulados</h1>' +
-      '<p class="sub">Meta: ' + meta + '% (' + esc(state.plano.meta.corte_fonte || 'nota de corte estimada') + ')</p></div>' +
+      '<p class="sub">Meta: ' + metaTexto + '</p></div>' +
       '<button id="btn-novo-simulado">Preencher gabarito</button></div>';
 
     const simuladosAtivos = doAtivo(state.simulados);
@@ -2856,7 +2884,8 @@
       let totalC = 0, totalQ = 0;
       sim.acertos.forEach(function (a) { totalC += a.certas; totalQ += a.total; });
       const pctGeral = totalQ > 0 ? Math.round((totalC / totalQ) * 100) : null;
-      html += '<div class="card"><h3>' + (sim.tipo === 'total' ? 'Simulado total' : 'Simulado parcial') +
+      const tituloSimulado = sim.tipo === 'total' ? 'Simulado total' : sim.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
+      html += '<div class="card"><h3>' + tituloSimulado +
         ' — ' + D.formatarDataBR(sim.data) + ' · geral: ' + semaforoHtml(pctGeral, meta) + '</h3>' +
         '<table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">%</th><th class="num">vs. meta ' + meta + '%</th></tr></thead><tbody>';
       sim.acertos.forEach(function (a) {
@@ -3340,20 +3369,6 @@
       '<button class="botao-quieto" id="fb-logout">Sair</button>' +
       '</div></div>';
 
-    const gc = state.config.googleCalendar || {};
-    const vinculados = gc.eventos ? Object.keys(gc.eventos).length : 0;
-    html += '<div class="card"><h3>Google Calendar</h3>' +
-      '<p class="sub">Sincroniza a semana aberta no Planejamento com o calendario do aluno. A exclusao do plano remove os eventos vinculados quando houver autorizacao.</p>' +
-      '<div class="grade-2">' +
-      '<div><label for="aj-gcal-client">Client ID OAuth</label>' +
-      '<input id="aj-gcal-client" type="text" value="' + esc(gc.clientId || '') + '" placeholder="...apps.googleusercontent.com"></div>' +
-      '<div><label for="aj-gcal-cal">Calendario</label>' +
-      '<input id="aj-gcal-cal" type="text" value="' + esc(gc.calendarId || 'primary') + '" placeholder="primary"></div></div>' +
-      '<p class="sub">' + vinculados + ' eventos vinculados pelo app.</p>' +
-      '<div class="modal-acoes" style="justify-content:flex-start">' +
-      '<button class="botao-secundario botao-mini" id="gcal-salvar">Salvar Calendar</button>' +
-      '<button class="botao-mini botao-quieto" id="gcal-ir-planejamento">Ir para Planejamento</button>' +
-      '</div></div>';
     html += '</div>'; // .ajustes-sync-grid
 
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
@@ -3689,7 +3704,26 @@
     const json = {
       versao: 1,
       gerado_em: D.hojeISO(),
-      plano: { concurso: e.titulo, banca: e.banca || '', orgao: e.orgao || '', cargo: e.cargo || '', estado: e.estado || '', foto: e.foto || e.fotoUrl || e.imagem || '', meta: { corte_pct: e.notaCorte || 70, corte_lista: normalizarListaCorte(e.tipoCorte) }, radar: radarSeed, ritmos: null },
+      plano: {
+        concurso: e.titulo,
+        banca: e.banca || '',
+        orgao: e.orgao || '',
+        cargo: e.cargo || '',
+        estado: e.estado || '',
+        foto: e.foto || e.fotoUrl || e.imagem || '',
+        meta: {
+          corte_pct: e.notaCorte || 70,
+          corte_lista: normalizarListaCorte(e.tipoCorte),
+          corte_fonte: 'notas de corte do edital',
+          cortes: {
+            ampla: e.cortes && e.cortes.ampla != null ? e.cortes.ampla : (e.notaCorte || 70),
+            negros: e.cortes && e.cortes.negros != null ? e.cortes.negros : null,
+            pcd: e.cortes && e.cortes.pcd != null ? e.cortes.pcd : null
+          }
+        },
+        radar: radarSeed,
+        ritmos: null
+      },
       disciplinas: e.disciplinas,
       cronograma: {}
     };
@@ -4578,6 +4612,13 @@
     };
     state.planos.push(entrada);
     window.Store.ativarPlano(state, entrada.id);
+    ['sessoes', 'revisoes', 'simulados', 'agenda', 'flashcards'].forEach(function (ch) {
+      if (!Array.isArray(base[ch])) return;
+      state[ch] = (state[ch] || []).concat(base[ch].map(function (item) {
+        return Object.assign({}, item, { planoId: entrada.id });
+      }));
+    });
+    if (base.config) state.config = Object.assign({}, state.config || {}, base.config);
     editalAbertas = new Set();
     if (state.config) delete state.config.apagadoEm; // há dados de novo: remove o marcador de exclusão
     salvar();
@@ -4656,23 +4697,6 @@
       window.FirebaseSync.logout().catch(function () {
         toast('Não consegui sair do Firebase.', 'erro');
       });
-    });
-
-    const gcalSalvar = raiz.querySelector('#gcal-salvar');
-    if (gcalSalvar) gcalSalvar.addEventListener('click', function () {
-      if (!state.config.googleCalendar) state.config.googleCalendar = { clientId: '', calendarId: 'primary', eventos: {} };
-      const clientEl = raiz.querySelector('#aj-gcal-client');
-      const calEl = raiz.querySelector('#aj-gcal-cal');
-      state.config.googleCalendar.clientId = clientEl ? clientEl.value.trim() : '';
-      state.config.googleCalendar.calendarId = (calEl && calEl.value.trim()) || 'primary';
-      if (!state.config.googleCalendar.eventos) state.config.googleCalendar.eventos = {};
-      googleCalendarToken = null;
-      salvar();
-      toast('Google Calendar salvo', 'sucesso');
-    });
-    const gcalIrPlanejamento = raiz.querySelector('#gcal-ir-planejamento');
-    if (gcalIrPlanejamento) gcalIrPlanejamento.addEventListener('click', function () {
-      location.hash = '#planejamento';
     });
 
     ligarEditaisEsquematizados(raiz);
@@ -6386,8 +6410,7 @@
       '<button class="botao-mini botao-quieto" id="pl-hoje">Hoje</button></div>' +
       '<div class="agenda-nav">' +
       '<button class="botao-mini ' + (agendaModo === 'semana' ? '' : 'botao-quieto') + '" data-modo-ag="semana">Semanal</button>' +
-      '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button>' +
-      '<button class="botao-mini botao-quieto" id="pl-sync-calendar" title="Sincronizar a semana aberta com o Google Calendar">↻ Sincronizar semana</button></div></div>';
+      '<button class="botao-mini ' + (agendaModo === 'mes' ? '' : 'botao-quieto') + '" data-modo-ag="mes">Mensal</button></div></div>';
 
     if (agendaModo === 'semana') {
       html += '<div class="agenda-grid">';
@@ -6644,16 +6667,6 @@
       agendaRef = D.segundaDaSemana(D.hojeISO());
       mesRef = D.hojeISO().slice(0, 7);
       render();
-    });
-    const syncCalendarBtn = raiz.querySelector('#pl-sync-calendar');
-    if (syncCalendarBtn) syncCalendarBtn.addEventListener('click', function () {
-      syncCalendarBtn.disabled = true;
-      sincronizarGoogleCalendarSemana().catch(function (e) {
-        console.warn('Falha ao sincronizar Google Calendar', e);
-        toast('Nao consegui sincronizar o Google Calendar: ' + e.message, 'erro');
-      }).finally(function () {
-        syncCalendarBtn.disabled = false;
-      });
     });
     raiz.querySelectorAll('[data-modo-ag]').forEach(function (b) {
       b.addEventListener('click', function () { agendaModo = b.getAttribute('data-modo-ag'); render(); });
@@ -7672,6 +7685,7 @@
   function abrirPerfilUsuario() {
     const atual = statusSincronizacao();
     const email = atual && atual.usuario && atual.usuario.email ? atual.usuario.email : null;
+    const temPlano = !!state.plano;
     const m = abrirModal(
       '<h3>Perfil</h3>' +
       '<label for="pf-nome">Seu nome na tela Hoje</label>' +
@@ -7681,6 +7695,12 @@
       '<input id="pf-som-conquistas" type="checkbox"' + (state.config.somConquistasOff ? '' : ' checked') + '></label>' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
+      '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
+      '<strong style="display:block;font-size:0.95rem">Calendário</strong>' +
+      '<p class="sub" style="margin:0.3rem 0 0">Exporte um arquivo <strong>.ics</strong> para importar no Google Calendar, Apple ou Outlook.</p>' +
+      '<div class="modal-acoes" style="justify-content:flex-start;margin-top:0.75rem">' +
+      '<button type="button" class="botao-secundario" id="pf-exportar-cal"' + (temPlano ? '' : ' disabled') + '>Exportar calendário (.ics)</button>' +
+      '</div></div>' +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
@@ -7700,6 +7720,11 @@
       state.config.somConquistasOff = !pfSom.checked;
       salvar({ sincronizar: false });
       if (pfSom.checked) tocarSomConquista(50); // prévia do som ao reativar
+    });
+    const pfExportarCal = m.querySelector('#pf-exportar-cal');
+    if (pfExportarCal) pfExportarCal.addEventListener('click', function () {
+      fecharModal();
+      abrirExportarCalendario();
     });
     m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
@@ -7787,7 +7812,7 @@
       return;
     }
     document.body.classList.remove('login-gate');
-    if (!pulaRecalcSemanal) verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
+    if (!modoDemo && !pulaRecalcSemanal) verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
@@ -7847,9 +7872,9 @@
       .then(function (json) {
         modoDemo = true;            // antes de adicionarPlano: salvar() vira no-op
         state = window.Store.estadoVazio();
-        state.config.nomeUsuario = 'Fulano(a)';
         adicionarPlano(json);
-        state.config.nomeUsuario = 'Fulano(a)';
+        state.config.nomeUsuario = '';
+        state.config.onboardingNomeVisto = true;
         if (location.hash === '#hoje') render(); else location.hash = '#hoje';
         toast('Modo exemplo ativado — explore à vontade', 'sucesso');
       })

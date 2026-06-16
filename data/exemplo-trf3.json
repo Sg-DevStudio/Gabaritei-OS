@@ -59,7 +59,7 @@
           "prioridade": 1,
           "horas_estimadas": 5,
           "semana_sugerida": 1,
-          "status": "teoria_concluida"
+          "status": "dominado"
         },
         {
           "id": "POR-02",
@@ -113,7 +113,7 @@
           "prioridade": 1,
           "horas_estimadas": 1,
           "semana_sugerida": 12,
-          "status": "teoria_concluida"
+          "status": "dominado"
         },
         {
           "id": "POR-08",
@@ -316,7 +316,7 @@
           "prioridade": 1,
           "horas_estimadas": 2,
           "semana_sugerida": 5,
-          "status": "teoria_concluida"
+          "status": "dominado"
         },
         {
           "id": "RLM-02",
@@ -561,7 +561,7 @@
           "prioridade": 1,
           "horas_estimadas": 3,
           "semana_sugerida": 1,
-          "status": "teoria_concluida"
+          "status": "dominado"
         },
         {
           "id": "INF-06",
@@ -8593,7 +8593,7 @@
   ],
   "planoId": "demo-trf3",
   "config": {
-    "nomeUsuario": "Fulano(a)",
+    "nomeUsuario": "",
     "metaQuestoesSemana": 180
   },
   "sessoes": [
@@ -9047,6 +9047,83 @@
       "qFeitas": 9,
       "qCertas": 8,
       "teoriaOk": false
+    },
+    {
+      "id": "demo-sess-42",
+      "planoId": "demo-trf3",
+      "data": "2026-06-09",
+      "topicoId": "INF-05",
+      "tipo": "questoes",
+      "duracaoMin": 120,
+      "qFeitas": 24,
+      "qCertas": 19,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-sess-43",
+      "planoId": "demo-trf3",
+      "data": "2026-06-09",
+      "topicoId": "APU-03",
+      "tipo": "questoes",
+      "duracaoMin": 80,
+      "qFeitas": 14,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-sess-44",
+      "planoId": "demo-trf3",
+      "data": "2026-06-12",
+      "topicoId": "ADM-02",
+      "tipo": "questoes",
+      "duracaoMin": 110,
+      "qFeitas": 21,
+      "qCertas": 17,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-sess-45",
+      "planoId": "demo-trf3",
+      "data": "2026-06-12",
+      "topicoId": "POR-01",
+      "tipo": "questoes",
+      "duracaoMin": 95,
+      "qFeitas": 16,
+      "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-sess-46",
+      "planoId": "demo-trf3",
+      "data": "2026-06-14",
+      "topicoId": "CON-01",
+      "tipo": "questoes",
+      "duracaoMin": 105,
+      "qFeitas": 20,
+      "qCertas": 15,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-sess-47",
+      "planoId": "demo-trf3",
+      "data": "2026-06-14",
+      "topicoId": "AFO-03",
+      "tipo": "questoes",
+      "duracaoMin": 90,
+      "qFeitas": 18,
+      "qCertas": 14,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-sess-48",
+      "planoId": "demo-trf3",
+      "data": "2026-06-15",
+      "topicoId": "LEG-02",
+      "tipo": "questoes",
+      "duracaoMin": 85,
+      "qFeitas": 17,
+      "qCertas": 13,
+      "teoriaOk": false
     }
   ],
   "revisoes": [
@@ -9282,29 +9359,49 @@
       "id": "demo-deck-por",
       "planoId": "demo-trf3",
       "disciplinaId": "POR",
-      "nome": "Portugu?s - pontos cr?ticos",
+      "nome": "Português - pontos críticos",
       "criadoEm": "2026-05-27",
       "cards": [
         {
           "id": "demo-card-1",
           "frente": "Quando usar crase?",
-          "verso": "Quando h? fus?o de preposi??o a + artigo a/as, respeitadas as exce??es.",
+          "verso": "Quando há fusão de preposição a + artigo a/as, respeitadas as exceções.",
           "criadoEm": "2026-05-27",
           "sr": {
             "intervalo": 2,
             "facilidade": 2.3,
-            "proxima": "2026-06-16"
+            "repeticoes": 3,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-14",
+            "proximaRevisao": "2026-06-16"
           }
         },
         {
           "id": "demo-card-2",
-          "frente": "O que observar em interpreta??o FCC?",
-          "verso": "Comando da quest?o, infer?ncias poss?veis e troca de conectivos.",
+          "frente": "O que observar em interpretação FCC?",
+          "verso": "Comando da questão, inferências possíveis e troca de conectivos.",
           "criadoEm": "2026-05-27",
           "sr": {
             "intervalo": 3,
             "facilidade": 2.3,
-            "proxima": "2026-06-17"
+            "repeticoes": 4,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-14",
+            "proximaRevisao": "2026-06-17"
+          }
+        },
+        {
+          "id": "demo-card-3",
+          "frente": "Como decorar regência mais cobrada?",
+          "verso": "Monte pares verbo + preposição e revise pelos erros frequentes da banca.",
+          "criadoEm": "2026-06-08",
+          "sr": {
+            "intervalo": 1,
+            "facilidade": 2.2,
+            "repeticoes": 2,
+            "lapsos": 1,
+            "ultimaRevisao": "2026-06-15",
+            "proximaRevisao": "2026-06-16"
           }
         }
       ]
@@ -9312,30 +9409,36 @@
     {
       "id": "demo-deck-adm",
       "planoId": "demo-trf3",
-      "disciplinaId": "DAD",
+      "disciplinaId": "ADM",
       "nome": "Administrativo - Lei 8.112",
       "criadoEm": "2026-05-31",
       "cards": [
         {
-          "id": "demo-card-3",
-          "frente": "Remo??o x redistribui??o",
-          "verso": "Remo??o desloca servidor; redistribui??o desloca cargo efetivo.",
+          "id": "demo-card-4",
+          "frente": "Remoção x redistribuição",
+          "verso": "Remoção desloca servidor; redistribuição desloca cargo efetivo.",
           "criadoEm": "2026-05-27",
           "sr": {
             "intervalo": 4,
             "facilidade": 2.3,
-            "proxima": "2026-06-18"
+            "repeticoes": 4,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-14",
+            "proximaRevisao": "2026-06-18"
           }
         },
         {
-          "id": "demo-card-4",
+          "id": "demo-card-5",
           "frente": "PAD: garantia central",
-          "verso": "Contradit?rio e ampla defesa em todas as fases relevantes.",
+          "verso": "Contraditório e ampla defesa em todas as fases relevantes.",
           "criadoEm": "2026-05-27",
           "sr": {
             "intervalo": 5,
             "facilidade": 2.3,
-            "proxima": "2026-06-15"
+            "repeticoes": 5,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-10",
+            "proximaRevisao": "2026-06-15"
           }
         }
       ]
@@ -9344,29 +9447,137 @@
       "id": "demo-deck-rlm",
       "planoId": "demo-trf3",
       "disciplinaId": "RLM",
-      "nome": "RLM - proposi??es",
+      "nome": "RLM - proposições",
       "criadoEm": "2026-06-04",
       "cards": [
         {
-          "id": "demo-card-5",
-          "frente": "Nega??o de todo A ? B",
-          "verso": "Existe A que n?o ? B.",
+          "id": "demo-card-6",
+          "frente": "Negação de todo A é B",
+          "verso": "Existe A que não é B.",
           "criadoEm": "2026-05-27",
           "sr": {
             "intervalo": 1,
             "facilidade": 2.3,
-            "proxima": "2026-06-16"
+            "repeticoes": 2,
+            "lapsos": 1,
+            "ultimaRevisao": "2026-06-15",
+            "proximaRevisao": "2026-06-16"
           }
         },
         {
-          "id": "demo-card-6",
-          "frente": "Equival?ncia de P -> Q",
-          "verso": "N?o P ou Q.",
+          "id": "demo-card-7",
+          "frente": "Equivalência de P -> Q",
+          "verso": "Não P ou Q.",
           "criadoEm": "2026-05-27",
           "sr": {
             "intervalo": 2,
             "facilidade": 2.3,
-            "proxima": "2026-06-17"
+            "repeticoes": 3,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-15",
+            "proximaRevisao": "2026-06-17"
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-deck-con",
+      "planoId": "demo-trf3",
+      "disciplinaId": "CON",
+      "nome": "Constitucional - controle e direitos",
+      "criadoEm": "2026-06-06",
+      "cards": [
+        {
+          "id": "demo-card-8",
+          "frente": "Controle difuso x concentrado",
+          "verso": "Difuso ocorre no caso concreto; concentrado discute a norma em tese.",
+          "criadoEm": "2026-06-06",
+          "sr": {
+            "intervalo": 3,
+            "facilidade": 2.4,
+            "repeticoes": 4,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-13",
+            "proximaRevisao": "2026-06-16"
+          }
+        },
+        {
+          "id": "demo-card-9",
+          "frente": "Mandado de segurança cabe contra lei em tese?",
+          "verso": "Não. Exige ato concreto de autoridade.",
+          "criadoEm": "2026-06-06",
+          "sr": {
+            "intervalo": 5,
+            "facilidade": 2.5,
+            "repeticoes": 5,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-11",
+            "proximaRevisao": "2026-06-17"
+          }
+        },
+        {
+          "id": "demo-card-10",
+          "frente": "Cláusulas pétreas podem ser ampliadas?",
+          "verso": "Sua proteção é materialmente reforçada, mas não autoriza leitura que esvazie o texto constitucional.",
+          "criadoEm": "2026-06-06",
+          "sr": {
+            "intervalo": 1,
+            "facilidade": 2.2,
+            "repeticoes": 2,
+            "lapsos": 1,
+            "ultimaRevisao": "2026-06-15",
+            "proximaRevisao": "2026-06-16"
+          }
+        }
+      ]
+    },
+    {
+      "id": "demo-deck-inf",
+      "planoId": "demo-trf3",
+      "disciplinaId": "INF",
+      "nome": "Informática - atalhos e Excel",
+      "criadoEm": "2026-06-07",
+      "cards": [
+        {
+          "id": "demo-card-11",
+          "frente": "Atalho para localizar no Word/Chrome",
+          "verso": "Ctrl + L localiza a barra de endereços e Ctrl + F procura no conteúdo da página ou documento.",
+          "criadoEm": "2026-06-07",
+          "sr": {
+            "intervalo": 4,
+            "facilidade": 2.35,
+            "repeticoes": 4,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-12",
+            "proximaRevisao": "2026-06-16"
+          }
+        },
+        {
+          "id": "demo-card-12",
+          "frente": "PROCV x PROCX",
+          "verso": "PROCX cobre cenários clássicos do PROCV com busca mais flexível e sem depender da coluna índice.",
+          "criadoEm": "2026-06-07",
+          "sr": {
+            "intervalo": 6,
+            "facilidade": 2.55,
+            "repeticoes": 5,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-10",
+            "proximaRevisao": "2026-06-18"
+          }
+        },
+        {
+          "id": "demo-card-13",
+          "frente": "Congelar painéis serve para quê?",
+          "verso": "Manter cabeçalhos ou colunas visíveis ao rolar planilhas grandes.",
+          "criadoEm": "2026-06-07",
+          "sr": {
+            "intervalo": 2,
+            "facilidade": 2.25,
+            "repeticoes": 3,
+            "lapsos": 0,
+            "ultimaRevisao": "2026-06-14",
+            "proximaRevisao": "2026-06-16"
           }
         }
       ]
