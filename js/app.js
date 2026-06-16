@@ -72,19 +72,21 @@
 
   function editaisDoCatalogo() {
     const mapa = new Map();
-    const titulos = new Set();
     // 1) catálogo global do Firebase (tem as capas/imagens cadastradas pelo admin)
     catalogoGlobalEditais.forEach(function (e) {
       const n = normalizarEditalCatalogo(e, 'global');
-      mapa.set(n.id, n); titulos.add(slugCatalogo(n.titulo));
-    });
-    // 2) editais empacotados: só entram se o mesmo edital ainda não veio do global
-    //    (assim a versão com foto do Firebase tem prioridade)
-    catalogoLocalEditais.forEach(function (e) {
-      const n = normalizarEditalCatalogo(e, 'global');
-      if (mapa.has(n.id) || titulos.has(slugCatalogo(n.titulo))) return;
       mapa.set(n.id, n);
     });
+    // 2) editais empacotados (data/) são SÓ fallback: entram apenas quando o
+    //    catálogo global está vazio (não carregou / leitura pública negada).
+    //    Assim, quando o catálogo público funciona, todo card mostra a capa real
+    //    e não aparecem editais sem foto misturados.
+    if (catalogoGlobalEditais.length === 0) {
+      catalogoLocalEditais.forEach(function (e) {
+        const n = normalizarEditalCatalogo(e, 'global');
+        if (!mapa.has(n.id)) mapa.set(n.id, n);
+      });
+    }
     (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
     return Array.from(mapa.values());
   }
