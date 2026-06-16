@@ -103,6 +103,34 @@
     return catalogoGlobalPromise;
   }
 
+  // Editais empacotados no próprio app (data/). Servem de catálogo padrão quando o
+  // catálogo global do Firebase ainda não chegou (ex.: usuário não logado ou no
+  // MODO EXEMPLO), garantindo que a aba "Planos" nunca apareça vazia.
+  const EDITAIS_LOCAIS = [
+    'edital-trf3-tjaa-2024',
+    'edital-tjsp-escrevente-2025',
+    'edital-prf-agente-administrativo-previsto-2026',
+    'edital-petrobras-operacao-2023',
+    'edital-trt3-tecnico-administrativo-2022',
+    'edital-trt4-tecnico-administrativo-2022'
+  ];
+  let editaisLocaisTentado = false;
+  function carregarEditaisLocais() {
+    if (editaisLocaisTentado) return Promise.resolve();
+    editaisLocaisTentado = true;
+    return Promise.all(EDITAIS_LOCAIS.map(function (nome) {
+      return fetch('data/' + nome + '.json')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    })).then(function (lista) {
+      const ids = new Set(catalogoGlobalEditais.map(function (e) { return e.id; }));
+      const novos = lista.filter(Boolean)
+        .map(function (e) { return normalizarEditalCatalogo(e, 'global'); })
+        .filter(function (e) { return !ids.has(e.id); }); // não sobrescreve o que veio do Firebase
+      if (novos.length) { catalogoGlobalEditais = catalogoGlobalEditais.concat(novos); render(); }
+    });
+  }
+
   function publicarCatalogoAdmin(opcoes) {
     opcoes = opcoes || {};
     if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
@@ -1813,20 +1841,6 @@
   }
 
   // ---------------- TELA: Timer ----------------
-  function gerarTicksTimer() {
-    var cx = 150, cy = 150, R = 134, out = '';
-    for (var i = 0; i < 60; i++) {
-      var a = i * 6 * Math.PI / 180;
-      var major = i % 5 === 0;
-      var len = major ? 14 : 7;
-      var x1 = (cx + R * Math.sin(a)).toFixed(2), y1 = (cy - R * Math.cos(a)).toFixed(2);
-      var x2 = (cx + (R - len) * Math.sin(a)).toFixed(2), y2 = (cy - (R - len) * Math.cos(a)).toFixed(2);
-      out += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
-        '" stroke-width="' + (major ? '2.5' : '1.5') + '" stroke-opacity="' + (major ? '.8' : '.35') + '" stroke-linecap="round"/>';
-    }
-    return out;
-  }
-
   function abrirModalAssuntosTimer(disciplinaId, selecionadoId, aoEscolher) {
     const d = D.disciplinaPorId(state, disciplinaId);
     if (!d) return;
@@ -1887,16 +1901,18 @@
         '<p class="timer-topico-ativo">' + esc(nomeTopicoCompleto(ativo.topicoId).replace((discAtiva ? discAtiva.id + ' · ' : ''), '')) + '</p></div>';
     }
 
-    const ticksSvg = gerarTicksTimer();
     const tempoIni = ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00';
     return '<section class="timer-page"><div class="tela-timer"><div class="timer-conteudo">' +
       selecao +
       '<div class="timer-relogio-frame">' +
       '<svg class="timer-clock-svg" viewBox="0 0 300 300" aria-hidden="true">' +
-      '<circle cx="150" cy="150" r="138" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="5"/>' +
-      '<g stroke="rgba(255,255,255,.85)">' + ticksSvg + '</g>' +
-      '<line id="timer-hand" x1="150" y1="150" x2="150" y2="34" stroke="rgba(255,255,255,.92)" stroke-width="3" stroke-linecap="round"/>' +
-      '<circle cx="150" cy="150" r="5" fill="rgba(255,255,255,.92)"/>' +
+      '<defs><linearGradient id="timer-grad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+      '<stop offset="0%" stop-color="#7CB1FF"/><stop offset="55%" stop-color="#9D90FF"/><stop offset="100%" stop-color="#C792FF"/>' +
+      '</linearGradient></defs>' +
+      '<circle class="timer-track" cx="150" cy="150" r="132" fill="none" stroke-width="12"/>' +
+      '<circle id="timer-arco" class="timer-arco" cx="150" cy="150" r="132" fill="none" stroke-width="12" stroke-linecap="round" ' +
+      'transform="rotate(-90 150 150)" stroke-dasharray="829.4" stroke-dashoffset="829.4"/>' +
+      '<g id="timer-dot-g"><circle class="timer-dot" cx="150" cy="18" r="6"/></g>' +
       '</svg>' +
       '<div class="timer-display" id="timer-display">' + tempoIni + '</div>' +
       '</div>' +
@@ -1907,7 +1923,9 @@
 
   function ligarTimer(raiz) {
     const display = raiz.querySelector('#timer-display');
-    const timerHand = raiz.querySelector('#timer-hand');
+    const arco = raiz.querySelector('#timer-arco');
+    const dotG = raiz.querySelector('#timer-dot-g');
+    const ARCO_C = 829.4; // circunferência do anel (2π·132)
     const info = raiz.querySelector('#timer-info');
     const acoes = raiz.querySelector('#timer-acoes');
     const limiteInput = raiz.querySelector('#timer-limite');
@@ -1972,10 +1990,22 @@
       if (display) {
         display.textContent = window.Timer.formatar(e.modo === 'pomodoro' ? e.pomoRestanteMs : e.decorridoMs);
       }
-      if (timerHand) {
-        var secs = (e.decorridoMs / 1000) % 60;
-        timerHand.setAttribute('transform', 'rotate(' + (secs * 6).toFixed(2) + ',150,150)');
+      var secs = (e.decorridoMs / 1000) % 60;
+      // ponto orbitando marca os segundos correndo (vida no relógio)
+      if (dotG) dotG.setAttribute('transform', 'rotate(' + (secs * 6).toFixed(2) + ' 150 150)');
+      // anel de progresso: pomodoro/limite preenchem rumo à meta; cronômetro livre
+      // usa a varredura do minuto como respiração visual.
+      var prog;
+      if (e.modo === 'pomodoro') {
+        var faseTotal = (e.pomoFase === 'foco' ? window.Timer.POMO_FOCO_MIN : window.Timer.POMO_PAUSA_MIN) * 60000;
+        prog = faseTotal ? (faseTotal - e.pomoRestanteMs) / faseTotal : 0;
+      } else if (e.limiteMs) {
+        prog = e.decorridoMs / e.limiteMs;
+      } else {
+        prog = secs / 60;
       }
+      prog = Math.max(0, Math.min(1, prog));
+      if (arco) arco.style.strokeDashoffset = (ARCO_C * (1 - prog)).toFixed(1);
       // Passou do tempo planejado → destaque verde "tempo extra" (estudou além da meta).
       const passouLimite = e.modo !== 'pomodoro' && e.limiteMin && e.decorridoMs >= e.limiteMs;
       const extraMin = passouLimite ? Math.floor((e.decorridoMs - e.limiteMs) / 60000) : 0;
@@ -2383,10 +2413,11 @@
     Object.keys(porDisc).forEach(function (k) { if (k !== '__geral' && ordem.indexOf(k) < 0) ordem.push(k); });
     if (porDisc['__geral']) ordem.push('__geral');
 
+    let pastas = '';
     ordem.forEach(function (k) {
       const disc = k === '__geral' ? null : D.disciplinaPorId(state, k);
       const nomePasta = disc ? nomeDiscCurto(disc.nome) : 'Sem disciplina';
-      html += '<div class="card fc-pasta">' +
+      pastas += '<div class="card fc-pasta">' +
         '<div class="fc-pasta-cab">' + (disc ? tagDisc(disc) + ' ' : '') + '<h3>' + esc(nomePasta) + '</h3></div>' +
         '<div class="fc-decks">' + porDisc[k].map(function (dk) {
           const cards = dk.cards || [];
@@ -2409,6 +2440,7 @@
             '</div>';
         }).join('') + '</div></div>';
     });
+    html += '<div class="fc-pastas">' + pastas + '</div>';
     return html;
   }
 
@@ -3139,13 +3171,21 @@
     const topDisc = raiz.querySelector('#stats-topicos-disc');
     const topOrdem = raiz.querySelector('#stats-topicos-ordem');
     const topLimite = raiz.querySelector('#stats-topicos-limite');
+    // Ao trocar um filtro, redesenha SÓ o gráfico de "Tópicos × desempenho"
+    // (os demais gráficos e KPIs não dependem desses filtros), evitando recarregar
+    // a tela inteira a cada seleção.
     [topDisc, topOrdem, topLimite].forEach(function (el) {
       if (!el) return;
       el.addEventListener('change', function () {
         statsTopicosFiltro.disciplina = topDisc ? topDisc.value : '';
         statsTopicosFiltro.ordem = topOrdem ? topOrdem.value : 'piores';
         statsTopicosFiltro.limite = topLimite ? topLimite.value : '18';
-        render();
+        const dados = dadosTopicosDesempenho(statsTopicosFiltro);
+        const canvas = raiz.querySelector('#graf-topicos');
+        if (!canvas) return;
+        const box = canvas.closest('.grafico-box');
+        if (box) box.style.height = Math.max(280, Math.min(640, dados.length * 38 + 86)) + 'px';
+        window.Graficos.topicosDesempenho(canvas, dados);
       });
     });
   }
@@ -7935,6 +7975,7 @@
         // evento hashchange, que pode não disparar se já estávamos em #hoje).
         if (location.hash !== '#hoje') location.hash = '#hoje';
         render();
+        carregarEditaisLocais(); // garante o catálogo de editais visível no modo exemplo
         toast('Modo exemplo ativado — explore à vontade', 'sucesso');
       })
       .catch(function () {
@@ -8061,4 +8102,5 @@
   }
   window.addEventListener('firebase-sync-ready', iniciarFirebaseSync);
   iniciarFirebaseSync();
+  carregarEditaisLocais(); // catálogo padrão (offline / não logado / modo exemplo)
 })();
