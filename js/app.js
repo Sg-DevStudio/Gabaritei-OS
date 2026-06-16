@@ -15,6 +15,7 @@
   // Tudo fica só em memória — nada é persistido nem sincronizado.
   let modoDemo = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
+  let catalogoLocalEditais = []; // editais empacotados (data/), só preenchem lacunas do catálogo global
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
@@ -71,7 +72,19 @@
 
   function editaisDoCatalogo() {
     const mapa = new Map();
-    catalogoGlobalEditais.forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'global')); });
+    const titulos = new Set();
+    // 1) catálogo global do Firebase (tem as capas/imagens cadastradas pelo admin)
+    catalogoGlobalEditais.forEach(function (e) {
+      const n = normalizarEditalCatalogo(e, 'global');
+      mapa.set(n.id, n); titulos.add(slugCatalogo(n.titulo));
+    });
+    // 2) editais empacotados: só entram se o mesmo edital ainda não veio do global
+    //    (assim a versão com foto do Firebase tem prioridade)
+    catalogoLocalEditais.forEach(function (e) {
+      const n = normalizarEditalCatalogo(e, 'global');
+      if (mapa.has(n.id) || titulos.has(slugCatalogo(n.titulo))) return;
+      mapa.set(n.id, n);
+    });
     (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
     return Array.from(mapa.values());
   }
@@ -123,11 +136,10 @@
         .then(function (r) { return r.ok ? r.json() : null; })
         .catch(function () { return null; });
     })).then(function (lista) {
-      const ids = new Set(catalogoGlobalEditais.map(function (e) { return e.id; }));
-      const novos = lista.filter(Boolean)
-        .map(function (e) { return normalizarEditalCatalogo(e, 'global'); })
-        .filter(function (e) { return !ids.has(e.id); }); // não sobrescreve o que veio do Firebase
-      if (novos.length) { catalogoGlobalEditais = catalogoGlobalEditais.concat(novos); render(); }
+      const novos = lista.filter(Boolean);
+      // guardados à parte: editaisDoCatalogo() só os usa quando o mesmo edital
+      // não veio do catálogo global do Firebase (que tem as imagens).
+      if (novos.length) { catalogoLocalEditais = novos; render(); }
     });
   }
 
@@ -8077,6 +8089,9 @@
     if (!window.FirebaseSync || iniciarFirebaseSync.iniciado) return;
     iniciarFirebaseSync.iniciado = true;
     firebaseStatus = window.FirebaseSync.status();
+    // Catálogo global é de leitura pública: carrega já no início (mesmo sem login)
+    // para que visitantes e o modo exemplo vejam as imagens reais dos editais.
+    carregarCatalogoGlobalFirebase();
     window.FirebaseSync.iniciar(Object.assign({}, opcoesSyncBase, {
       aoStatus: function (novoStatus) {
         const usuarioAntes = firebaseStatus && firebaseStatus.usuario ? firebaseStatus.usuario.email : null;
