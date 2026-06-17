@@ -15,7 +15,6 @@
   // Tudo fica só em memória — nada é persistido nem sincronizado.
   let modoDemo = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
-  let catalogoLocalEditais = []; // editais empacotados (data/), só preenchem lacunas do catálogo global
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
@@ -97,16 +96,9 @@
       const n = normalizarEditalCatalogo(e, 'global');
       mapa.set(n.id, n);
     });
-    // 2) editais empacotados (data/) são SÓ fallback: entram apenas quando o
-    //    catálogo global está vazio (não carregou / leitura pública negada).
-    //    Assim, quando o catálogo público funciona, todo card mostra a capa real
-    //    e não aparecem editais sem foto misturados.
-    if (catalogoGlobalEditais.length === 0 && catalogoGlobalCarregado) {
-      catalogoLocalEditais.forEach(function (e) {
-        const n = normalizarEditalCatalogo(e, 'global');
-        if (!mapa.has(n.id)) mapa.set(n.id, n);
-      });
-    }
+    // 2) editais do perfil do usuário. O catálogo é SÓ o global do Firebase (+ perfil):
+    //    não há mais fallback de editais empacotados. Offline/sem catálogo, a aba
+    //    Planos fica vazia de propósito (o resto do site continua funcionando).
     (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
     return Array.from(mapa.values());
   }
@@ -158,33 +150,6 @@
       catalogoGlobalPromise = null;
     });
     return catalogoGlobalPromise;
-  }
-
-  // Editais empacotados no próprio app (data/). Servem de catálogo padrão quando o
-  // catálogo global do Firebase ainda não chegou (ex.: usuário não logado ou no
-  // MODO EXEMPLO), garantindo que a aba "Planos" nunca apareça vazia.
-  const EDITAIS_LOCAIS = [
-    'edital-trf3-tjaa-2024',
-    'edital-tjsp-escrevente-2025',
-    'edital-prf-agente-administrativo-previsto-2026',
-    'edital-petrobras-operacao-2023',
-    'edital-trt3-tecnico-administrativo-2022',
-    'edital-trt4-tecnico-administrativo-2022'
-  ];
-  let editaisLocaisTentado = false;
-  function carregarEditaisLocais() {
-    if (editaisLocaisTentado) return Promise.resolve();
-    editaisLocaisTentado = true;
-    return Promise.all(EDITAIS_LOCAIS.map(function (nome) {
-      return fetch('data/' + nome + '.json')
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .catch(function () { return null; });
-    })).then(function (lista) {
-      const novos = lista.filter(Boolean);
-      // guardados à parte: editaisDoCatalogo() só os usa quando o mesmo edital
-      // não veio do catálogo global do Firebase (que tem as imagens).
-      if (novos.length) { catalogoLocalEditais = novos; render(); }
-    });
   }
 
   function publicarCatalogoAdmin(opcoes) {
@@ -4222,7 +4187,13 @@
       '<div class="catalogo-filtros">' + selectFiltro('orgao', 'Órgão') + selectFiltro('cargo', 'Cargo') + selectFiltro('estado', 'Estado') +
       '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
     if (lista.length === 0) {
-      html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum edital encontrado</strong>' +
+      const filtroAtivo = !!(catalogoFiltro.busca || catalogoFiltro.orgao || catalogoFiltro.cargo || catalogoFiltro.estado);
+      let titulo, sub;
+      if (!catalogoGlobalCarregado) { titulo = 'Carregando catálogo…'; sub = 'Buscando os editais publicados.'; }
+      else if (filtroAtivo) { titulo = 'Nenhum edital encontrado'; sub = 'Tente outra busca ou peça um edital.'; }
+      else { titulo = 'Catálogo indisponível'; sub = 'Sem conexão com o catálogo de editais. Verifique sua internet — o resto do app funciona normalmente.'; }
+      html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>' + titulo + '</strong>' +
+        '<p class="sub">' + sub + '</p>' +
         '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
       return html;
     }
@@ -8358,7 +8329,7 @@
         // evento hashchange, que pode não disparar se já estávamos em #hoje).
         if (location.hash !== '#hoje') location.hash = '#hoje';
         render();
-        carregarEditaisLocais(); // garante o catálogo de editais visível no modo exemplo
+        carregarCatalogoGlobalFirebase(); // modo exemplo vê o catálogo global real (Firebase)
         toast('Modo exemplo ativado — explore à vontade', 'sucesso');
       })
       .catch(function () {
@@ -8490,8 +8461,7 @@
   }
   window.addEventListener('firebase-sync-ready', iniciarFirebaseSync);
   iniciarFirebaseSync();
-  carregarEditaisLocais(); // catálogo padrão (offline / não logado / modo exemplo)
-  // sem Firebase não há catálogo global a aguardar: libera o fallback empacotado
-  // para não deixar a aba Planos vazia.
+  // sem Firebase não há catálogo global a carregar: o catálogo (aba Planos) fica
+  // indisponível offline de propósito; o resto do site continua funcionando.
   if (!window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) catalogoGlobalCarregado = true;
 })();
