@@ -5158,6 +5158,19 @@
     return String(Math.floor((min || 0) / 60)).padStart(2, '0') + ':' + String((min || 0) % 60).padStart(2, '0');
   }
 
+  // Máscara ao DIGITAR: mantém só dígitos e vai montando HH:MM, com teto de 12:00
+  // (720 min). Evita lixo do tipo "66666" no campo de horas da rotina.
+  function mascararHoraDia(valor) {
+    const d = String(valor || '').replace(/\D/g, '').slice(0, 4);
+    if (d === '') return '';
+    if (d.length <= 2) return parseInt(d, 10) > 12 ? '12' : d;
+    const h = parseInt(d.slice(0, d.length - 2), 10);
+    let min = parseInt(d.slice(d.length - 2), 10);
+    if (h >= 12) return '12:00';
+    if (min > 59) min = 59;
+    return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+  }
+
   function rotinaPadrao() {
     const dias = {};
     ROTINA_DIAS.forEach(function (d) {
@@ -6557,14 +6570,17 @@
     }
 
     atualizarTotal();
-    m.querySelectorAll('[data-rot-ativo], [data-rot-horas], #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
+    m.querySelectorAll('[data-rot-ativo], #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
       el.addEventListener('change', atualizarTotal);
       el.addEventListener('input', atualizarTotal);
     });
-    // Horas por dia: ao sair do campo, normaliza para o formato HH:MM (00:00 a
-    // 12:00). Qualquer coisa digitada (ex.: "0000000", "8", "abc") é convertida
-    // para minutos, limitada a 0–720 e reexibida como HH:MM — não fica lixo.
+    // Horas por dia: máscara HH:MM ao digitar (teto 12:00) e, ao sair do campo,
+    // normaliza/limita a 0–720 min e reexibe como HH:MM — nunca fica lixo na tela.
     m.querySelectorAll('[data-rot-horas]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        el.value = mascararHoraDia(el.value);
+        atualizarTotal();
+      });
       el.addEventListener('blur', function () {
         el.value = formatarHorasDia(Math.max(0, Math.min(720, parseHorasDia(el.value))));
         atualizarTotal();
