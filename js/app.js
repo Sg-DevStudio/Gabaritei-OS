@@ -4488,13 +4488,7 @@
   function abrirDetalhesEdital(id) {
     const e = editalPorId(id);
     if (!e) return;
-    function caraterLabel(c) {
-      if (c === 'eliminatoria') return 'Eliminatória';
-      if (c === 'classificatoria') return 'Classificatória';
-      if (c === 'eliminatoria_classificatoria' || c === 'ambas') return 'Elim. + Class.';
-      return '—';
-    }
-    // Nível 2 — detalhamento por disciplina (tópicos · incidência · horas)
+    // Disciplinas com tópicos · incidência · horas (antiga "tela 2", agora direto)
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
       const linhas = tops.map(function (t) {
@@ -4505,16 +4499,6 @@
         '<span class="tag-disc" style="background:' + esc(cor) + '22;color:' + esc(cor) + '">' + esc(d.nome) + '</span>' +
         '<span class="sub">peso ' + (d.peso || 1) + ' · ' + (d.topicos || []).length + ' tópicos</span></div>' +
         '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">Incid.</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
-    }).join('');
-    // Nível 1 — visão geral: disciplinas, peso, caráter e nota mínima
-    const visaoLinhas = (e.disciplinas || []).map(function (d) {
-      const cor = /^#/.test(d.cor || '') ? d.cor : '#6B7180';
-      const min = (d.nota_minima_pct != null && d.nota_minima_pct !== '') ? d.nota_minima_pct + '%' : '—';
-      return '<tr>' +
-        '<td><span class="tag-disc" style="background:' + esc(cor) + '22;color:' + esc(cor) + '">' + esc(d.nome) + '</span></td>' +
-        '<td class="num">' + (d.peso || 1) + '</td>' +
-        '<td>' + esc(caraterLabel(d.carater)) + '</td>' +
-        '<td class="num">' + min + '</td></tr>';
     }).join('');
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     const m = abrirModal('<h3 class="detalhe-titulo">' + esc(e.titulo) + '</h3>' +
@@ -4528,28 +4512,12 @@
       (e.salario ? metrica('Salário', esc(e.salario)) : '') +
       (e.vagas != null && e.vagas !== '' ? metrica('Vagas', esc(e.vagas)) : '') +
       '</div>' +
-      // Nível 1: visão geral (abre primeiro)
-      '<div id="det-visao">' +
       (e.beneficios ? '<p class="sub" style="margin:0.1rem 0 0.5rem"><strong>Benefícios:</strong> ' + esc(e.beneficios) + '</p>' : '') +
-      '<p class="sub" style="margin:0.2rem 0 0.4rem">Visão geral das disciplinas. Toque em "Ver tópicos" para o detalhamento.</p>' +
-      '<table class="tabela-topicos"><thead><tr><th>Disciplina</th><th class="num">Peso</th><th>Caráter</th><th class="num">Nota mín.</th></tr></thead><tbody>' + visaoLinhas + '</tbody></table>' +
-      '<div class="compact-actions" style="margin-top:0.7rem"><button class="botao-mini botao-secundario" id="det-ver-topicos">Ver tópicos e detalhes →</button></div>' +
-      '</div>' +
-      // Nível 2: detalhamento (oculto até o usuário avançar)
-      '<div id="det-detalhes" class="detalhe-discs oculto">' +
-      '<div class="compact-actions" style="margin-bottom:0.6rem"><button class="botao-mini botao-quieto" id="det-voltar-visao">← Visão geral</button></div>' +
-      discHtml + '</div>' +
+      '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (incidência nas provas e horas estimadas).</p>' +
+      '<div class="detalhe-discs">' + discHtml + '</div>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
       '<button id="det-iniciar">Iniciar plano</button></div>');
     m.classList.add('modal-amplo');
-    const visao = m.querySelector('#det-visao');
-    const detalhes = m.querySelector('#det-detalhes');
-    m.querySelector('#det-ver-topicos').addEventListener('click', function () {
-      visao.classList.add('oculto'); detalhes.classList.remove('oculto');
-    });
-    m.querySelector('#det-voltar-visao').addEventListener('click', function () {
-      detalhes.classList.add('oculto'); visao.classList.remove('oculto');
-    });
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
   }
@@ -4803,10 +4771,6 @@
         '<select class="ed-d-dif" data-di="' + di + '">' +
         ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
         '</select>' +
-        '<select class="ed-d-carater" data-di="' + di + '" title="Caráter da disciplina">' +
-        [['', '— caráter'], ['classificatoria', 'Classificatória'], ['eliminatoria', 'Eliminatória'], ['eliminatoria_classificatoria', 'Elim. + Class.']].map(function (o) { return '<option value="' + o[0] + '"' + (((d.carater || '') === o[0]) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') +
-        '</select>' +
-        '<label class="mini-rot">nota mín.%<input class="ed-d-notamin" data-di="' + di + '" type="number" min="0" max="100" value="' + (d.nota_minima_pct != null && d.nota_minima_pct !== '' ? d.nota_minima_pct : '') + '" placeholder="—"></label>' +
         '<button class="botao-mini botao-quieto" data-rem-disc="' + di + '">remover</button></div>' +
         '<table class="editor-topicos"><thead><tr><th>Tópico</th><th>Incid.%</th><th>Prior.</th><th>Horas</th><th></th></tr></thead><tbody>';
       d.topicos.forEach(function (t, ti) {
@@ -4855,8 +4819,6 @@
     body.querySelectorAll('.ed-d-cor').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].cor = inp.value; });
     body.querySelectorAll('.ed-d-peso').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].peso = Math.max(1, parseInt(inp.value, 10) || 1); });
     body.querySelectorAll('.ed-d-dif').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].dificuldade = inp.value; });
-    body.querySelectorAll('.ed-d-carater').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].carater = inp.value; });
-    body.querySelectorAll('.ed-d-notamin').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) { const v = inp.value.trim(); e.disciplinas[di].nota_minima_pct = v === '' ? null : Math.max(0, Math.min(100, parseInt(v, 10) || 0)); } });
     body.querySelectorAll('.ed-t-nome').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].nome = inp.value; });
     body.querySelectorAll('.ed-t-inc').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].incidencia_pct = Math.max(0, Math.min(100, parseInt(inp.value, 10) || 0)); });
     body.querySelectorAll('.ed-t-pri').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].prioridade = Math.max(1, Math.min(3, parseInt(inp.value, 10) || 2)); });
