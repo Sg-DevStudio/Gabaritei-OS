@@ -3854,7 +3854,10 @@
       notaCorte: amplaFinal != null ? amplaFinal : (corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null),
       tipoCorte: 'ampla',
       janelaProva: { inicio: (jp.inicio || '').toString(), fim: (jp.fim || '').toString() },
-      emAlta: !!(json.em_alta || json.emAlta)
+      emAlta: !!(json.em_alta || json.emAlta),
+      salario: (json.salario || json.remuneracao || '').toString().trim(),
+      beneficios: (json.beneficios || '').toString().trim(),
+      vagas: (json.vagas != null ? json.vagas : (json.vagas_ultimo_edital != null ? json.vagas_ultimo_edital : '')).toString().trim()
     };
   }
 
@@ -3906,7 +3909,9 @@
       titulo: titulo, banca: banca, orgao: orgao, cargo: cargo, area: meta.area || '',
       estado: estado, nivel: meta.nivel || '', notaCorte: corte, tipoCorte: meta.tipoCorte || 'ampla',
       cortes: meta.cortes || { ampla: corte, negros: null, pcd: null },
-      janelaProva: meta.janelaProva, emAlta: meta.emAlta, disciplinas: disciplinas
+      janelaProva: meta.janelaProva, emAlta: meta.emAlta,
+      salario: meta.salario || '', beneficios: meta.beneficios || '', vagas: meta.vagas || '',
+      disciplinas: disciplinas
     });
   }
 
@@ -4403,9 +4408,12 @@
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Data estimada', esc(janelaProvaTexto(e))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
+      (e.salario ? metrica('Salário', esc(e.salario)) : '') +
+      (e.vagas != null && e.vagas !== '' ? metrica('Vagas', esc(e.vagas)) : '') +
       '</div>' +
       // Nível 1: visão geral (abre primeiro)
       '<div id="det-visao">' +
+      (e.beneficios ? '<p class="sub" style="margin:0.1rem 0 0.5rem"><strong>Benefícios:</strong> ' + esc(e.beneficios) + '</p>' : '') +
       '<p class="sub" style="margin:0.2rem 0 0.4rem">Visão geral das disciplinas. Toque em "Ver tópicos" para o detalhamento.</p>' +
       '<table class="tabela-topicos"><thead><tr><th>Disciplina</th><th class="num">Peso</th><th>Caráter</th><th class="num">Nota mín.</th></tr></thead><tbody>' + visaoLinhas + '</tbody></table>' +
       '<div class="compact-actions" style="margin-top:0.7rem"><button class="botao-mini botao-secundario" id="det-ver-topicos">Ver tópicos e detalhes →</button></div>' +
@@ -4529,7 +4537,7 @@
     return { id: '', nome: '', cor: '#3B82F6', peso: 1, dificuldade: 'media', base_teorica: 'pdf', topicos: [topicoEmBranco()] };
   }
   function editalEmBranco() {
-    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', cortes: { ampla: 70, negros: null, pcd: null }, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
+    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', cortes: { ampla: 70, negros: null, pcd: null }, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, salario: '', beneficios: '', vagas: '', disciplinas: [] };
   }
 
   const LISTAS_CORTE = { ampla: 'Ampla concorrência', negros: 'Cota negros', pcd: 'Cota PcD', indigenas: 'Cota indígenas' };
@@ -4584,6 +4592,9 @@
       return {
         id: d.id || '', nome: d.nome || '', cor: d.cor || '#3B82F6', peso: d.peso || 1,
         dificuldade: d.dificuldade || 'media', base_teorica: d.base_teorica || 'pdf',
+        // visão geral do edital: caráter e nota mínima por disciplina (opcionais)
+        carater: d.carater || '',
+        nota_minima_pct: (d.nota_minima_pct != null && d.nota_minima_pct !== '') ? d.nota_minima_pct : null,
         topicos: (d.topicos || []).map(function (t) {
           return {
             id: t.id || '', nome: t.nome || '', incidencia_pct: t.incidencia_pct || 0,
@@ -4795,6 +4806,7 @@
         cortes: dadosImport.cortes || { ampla: dadosImport.notaCorte, negros: null, pcd: null },
         janelaProva: dadosImport.janelaProva || { inicio: '', fim: '' },
         emAlta: !!dadosImport.emAlta,
+        salario: dadosImport.salario || '', beneficios: dadosImport.beneficios || '', vagas: dadosImport.vagas || '',
         disciplinas: dadosImport.disciplinas
       });
     } else if (editalId) {
@@ -4836,6 +4848,7 @@
       estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte),
       cortes: e.cortes || { ampla: e.notaCorte, negros: null, pcd: null }, emAlta: e.emAlta,
       foto: e.foto || '',
+      salario: e.salario || '', beneficios: e.beneficios || '', vagas: e.vagas || '',
       arquivado: !!e.arquivado, janelaProva: { inicio: e.janelaProva.inicio || '', fim: e.janelaProva.fim || '' },
       disciplinas: disciplinas
     };

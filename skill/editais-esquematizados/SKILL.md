@@ -139,6 +139,9 @@ Siga `references/contrato-edital.md`. Resumo do schema:
   "lista_corte": "ampla",
   "janela_prova": { "inicio": "AAAA-MM", "fim": "AAAA-MM" },
   "em_alta": false,
+  "salario": "R$ 5.563,90",
+  "beneficios": "vale-refeição, plano de saúde, previdência complementar",
+  "vagas": "1119",
   "fonte": "edital + listas de nomeação usadas",
   "notas_corte_ultimo_nomeado": {
     "escala": "como a nota final é calculada e qual o máximo",
