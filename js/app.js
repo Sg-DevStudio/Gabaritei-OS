@@ -1082,6 +1082,29 @@
     return false;
   }
 
+  // Conclui a teoria de um tópico. Se há um cronômetro em andamento DESTE tópico,
+  // finaliza e registra a sessão (assim o tempo de hoje conta na carga diária e o
+  // bloco aparece riscado no calendário) — além de agendar as revisões. Sem timer
+  // ativo, apenas marca a teoria como concluída e agenda revisões.
+  // Retorna true se registrou tempo de estudo (havia timer do tópico).
+  function concluirTopicoTeoria(topicoId) {
+    const t = D.topicoPorId(state, topicoId);
+    if (!t) return false;
+    const tEstado = window.Timer.estado();
+    if (tEstado && tEstado.topicoId === topicoId && tEstado.decorridoMin >= 1) {
+      window.Timer.finalizar();
+      atualizarTituloTimer(null);
+      // concluirRegistro já cria a sessão, marca teoria_concluida, agenda revisões,
+      // credita o ciclo e salva.
+      concluirRegistro({ topicoId: topicoId, tipo: 'teoria', duracaoMin: Math.max(1, tEstado.decorridoMin), qFeitas: 0, qCertas: 0, teoriaOk: true });
+      return true;
+    }
+    if (t.status !== 'dominado') t.status = 'teoria_concluida';
+    agendarRevisoesSeNecessario(topicoId);
+    salvar();
+    return false;
+  }
+
   function removerRevisoesPendentes(topicoId) {
     state.revisoes = state.revisoes.filter(function (r) {
       return r.topicoId !== topicoId || r.dataConcluida;
@@ -2939,8 +2962,21 @@
       const checkedInput = m.querySelector('input[name="top-status"]:checked');
       const novo = checkedInput ? checkedInput.value : t.status;
       const antes = t.status;
+      const concluindo = (novo === 'teoria_concluida' || novo === 'dominado') && antes !== 'teoria_concluida' && antes !== 'dominado';
+      // se há cronômetro deste tópico em andamento, registra a sessão (conta o
+      // tempo de hoje e risca o calendário) ao concluir.
+      const tEstado = concluindo ? window.Timer.estado() : null;
+      if (tEstado && tEstado.topicoId === t.id && tEstado.decorridoMin >= 1) {
+        t.status = 'em_curso'; // garante que concluirRegistro credite e agende revisões
+        window.Timer.finalizar(); atualizarTituloTimer(null);
+        concluirRegistro({ topicoId: t.id, tipo: 'teoria', duracaoMin: Math.max(1, tEstado.decorridoMin), qFeitas: 0, qCertas: 0, teoriaOk: true });
+        if (novo === 'dominado') { t.status = 'dominado'; t.reaberto = false; salvar(); }
+        fecharModal(); render();
+        toast('Status salvo — estudo de hoje registrado ✓', 'sucesso');
+        return;
+      }
       t.status = novo;
-      if ((novo === 'teoria_concluida' || novo === 'dominado') && antes !== 'teoria_concluida' && antes !== 'dominado') {
+      if (concluindo) {
         if (agendarRevisoesSeNecessario(t.id)) toast('Revisões agendadas: 24h · 3d · 7d · 14d · 30d', 'sucesso');
       }
       if ((novo === 'pendente' || novo === 'em_curso') && (antes === 'teoria_concluida' || antes === 'dominado')) {
@@ -3469,10 +3505,15 @@
         const t = D.topicoPorId(state, b.getAttribute('data-topico-check'));
         if (!t) return;
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
-        t.status = feito ? 'em_curso' : 'teoria_concluida';
-        if (!feito) agendarRevisoesSeNecessario(t.id);
-        salvar(); render();
-        toast(feito ? 'Tópico reaberto' : 'Tópico concluído', 'sucesso');
+        if (feito) {
+          t.status = 'em_curso';
+          salvar(); render();
+          toast('Tópico reaberto', 'sucesso');
+        } else {
+          const registrouTempo = concluirTopicoTeoria(t.id);
+          render();
+          toast(registrouTempo ? 'Tópico concluído — estudo de hoje registrado ✓' : 'Tópico concluído', 'sucesso');
+        }
       });
     });
     raiz.querySelectorAll('[data-topico-detalhe]').forEach(function (linha) {
