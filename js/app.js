@@ -4188,13 +4188,15 @@
       '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
     if (lista.length === 0) {
       const filtroAtivo = !!(catalogoFiltro.busca || catalogoFiltro.orgao || catalogoFiltro.cargo || catalogoFiltro.estado);
-      let titulo, sub;
+      let titulo, sub, offline = false;
       if (!catalogoGlobalCarregado) { titulo = 'Carregando catálogo…'; sub = 'Buscando os editais publicados.'; }
       else if (filtroAtivo) { titulo = 'Nenhum edital encontrado'; sub = 'Tente outra busca ou peça um edital.'; }
-      else { titulo = 'Catálogo indisponível'; sub = 'Sem conexão com o catálogo de editais. Verifique sua internet — o resto do app funciona normalmente.'; }
+      else { titulo = 'Fique online para ver o catálogo'; sub = 'O catálogo de planos precisa de internet. O resto do app continua funcionando normalmente.'; offline = true; }
       html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>' + titulo + '</strong>' +
         '<p class="sub">' + sub + '</p>' +
-        '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p></div>';
+        // sem internet não dá pra pedir edital; só oferece o botão quando online
+        (offline || !catalogoGlobalCarregado ? '' : '<p style="margin-top:1rem"><button class="botao" type="button" data-pedir-edital>✉ Pedir um edital</button></p>') +
+        '</div>';
       return html;
     }
     html += '<div class="catalogo-grade">' + lista.map(catalogoCardCompacto).join('') + '</div>';
