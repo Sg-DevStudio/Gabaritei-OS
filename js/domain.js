@@ -820,19 +820,14 @@
     return (ano - parseInt(h[0], 10)) * 12 + (mes - parseInt(h[1], 10));
   }
 
+  // Mensagem OBJETIVA: só o veredito acionável. Os números (sobreposição, carga,
+  // semanas, exclusivos) já aparecem na grade/colunas do card, então não repetimos
+  // aqui. O título "Compatibilidade X" também já é mostrado em negrito à parte.
   function mensagemConciliacao(nivel, d) {
-    const comuns = d.disciplinasComuns.length;
-    const base = comuns > 0
-      ? 'Os dois concursos compartilham ' + comuns + ' disciplina' + (comuns > 1 ? 's' : '') + ' e cerca de ' + d.topicosComuns + ' tópico' + (d.topicosComuns !== 1 ? 's' : '') + ' equivalentes (' + d.overlapPct + '% de sobreposição de conteúdo), economizando cerca de ' + d.economiaH + 'h de estudo. '
-      : 'Os dois concursos quase não têm conteúdo em comum, então estudar os dois soma quase toda a carga. ';
-    const carga = 'Para cobrir tudo na janela mais próxima seriam ~' + d.exigidaSemana + 'h/semana, e você tem ~' + d.horasSemana + 'h disponíveis' +
-      (d.provaDefinida ? ' (≈' + d.semanasDisponiveis + ' semanas até a prova mais próxima). ' : ' (sem data de prova definida; estimei 6 meses). ');
-    let veredito;
-    if (nivel === 'alta') veredito = '✅ Compatibilidade alta: muito conteúdo em comum e a carga cabe na sua rotina — dá para conciliar com folga.';
-    else if (nivel === 'moderada') veredito = '🟡 Compatibilidade moderada: dá para conciliar aproveitando o conteúdo compartilhado, mas fica no limite — priorize o que cai nos dois.';
-    else if (nivel === 'baixa') veredito = '🟠 Compatibilidade baixa: conciliar vai exigir cortar conteúdo e aumentar as horas semanais.';
-    else veredito = '⛔ Não recomendado: pouco conteúdo em comum e a carga combinada não cabe no tempo disponível.';
-    return base + carga + veredito;
+    if (nivel === 'alta') return 'Muito conteúdo em comum e a carga cabe na sua rotina — dá para conciliar com folga.';
+    if (nivel === 'moderada') return 'Dá para conciliar aproveitando o conteúdo comum, mas fica no limite — priorize o que cai nos dois.';
+    if (nivel === 'baixa') return 'Conciliar exige cortar conteúdo e aumentar as horas por semana.';
+    return 'Pouco conteúdo em comum e a carga combinada não cabe no tempo disponível.';
   }
 
   function conciliarPlanos(edA, edB, opcoes) {
