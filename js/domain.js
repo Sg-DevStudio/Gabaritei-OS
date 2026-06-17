@@ -1181,6 +1181,74 @@
     return !sr || !sr.proximaRevisao || sr.proximaRevisao <= hoje;
   }
 
+  // Mescla a estrutura de um edital ATUALIZADO em um plano já existente, casando
+  // por id de disciplina/tópico. NÃO perde progresso: sessões/revisões ficam em
+  // state.sessoes/revisoes (keyed por topicoId), então só atualizamos as
+  // DEFINIÇÕES. Tópicos/disciplinas novos entram; os que sumiram do edital são
+  // mantidos e marcados (removidoDoEdital) para preservar o histórico; os que
+  // continuam recebem a definição nova e mantêm o estado de estudo (status/etc.).
+  function mesclarEditalNoPlano(discPlano, discEdital) {
+    discPlano = Array.isArray(discPlano) ? discPlano : [];
+    discEdital = Array.isArray(discEdital) ? discEdital : [];
+    const RUNTIME = ['status', 'reaberto', 'orfao'];
+    const resumo = { disciplinasNovas: 0, disciplinasRemovidas: 0, topicosNovos: 0, topicosRemovidos: 0, topicosMantidos: 0 };
+
+    function mergeTopicos(tPlano, tEdital) {
+      tPlano = tPlano || []; tEdital = tEdital || [];
+      const porId = {};
+      tPlano.forEach(function (t) { if (t && t.id) porId[t.id] = t; });
+      const usados = {};
+      const out = tEdital.map(function (te) {
+        const tp = te && te.id ? porId[te.id] : null;
+        const novo = Object.assign({}, te);
+        delete novo.removidoDoEdital;
+        if (tp) {
+          usados[te.id] = true;
+          RUNTIME.forEach(function (k) { if (tp[k] !== undefined) novo[k] = tp[k]; });
+          resumo.topicosMantidos++;
+        } else {
+          resumo.topicosNovos++;
+        }
+        return novo;
+      });
+      tPlano.forEach(function (tp) {
+        if (tp && tp.id && !usados[tp.id]) {
+          resumo.topicosRemovidos++;
+          out.push(Object.assign({}, tp, { removidoDoEdital: true }));
+        }
+      });
+      return out;
+    }
+
+    const porId = {};
+    discPlano.forEach(function (d) { if (d && d.id) porId[d.id] = d; });
+    const usadas = {};
+    const merged = discEdital.map(function (de) {
+      const dp = de && de.id ? porId[de.id] : null;
+      const novo = Object.assign({}, de);
+      delete novo.removidoDoEdital;
+      if (dp) {
+        usadas[de.id] = true;
+        novo.topicos = mergeTopicos(dp.topicos, de.topicos);
+      } else {
+        resumo.disciplinasNovas++;
+        novo.topicos = (de.topicos || []).map(function (t) { return Object.assign({}, t); });
+        resumo.topicosNovos += novo.topicos.length;
+      }
+      return novo;
+    });
+    discPlano.forEach(function (dp) {
+      if (dp && dp.id && !usadas[dp.id]) {
+        resumo.disciplinasRemovidas++;
+        merged.push(Object.assign({}, dp, {
+          removidoDoEdital: true,
+          topicos: (dp.topicos || []).map(function (t) { return Object.assign({}, t, { removidoDoEdital: true }); })
+        }));
+      }
+    });
+    return { disciplinas: merged, resumo: resumo };
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -1192,7 +1260,7 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, ajustePosRevisao, revisaoReforco, combinarEditais, conquistas,
+    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, combinarEditais, conquistas,
     revisarFlashcard, flashcardDevido
   };
 })();
