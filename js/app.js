@@ -4039,7 +4039,7 @@
       '<div class="catalogo-metricas">' +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Prova', esc(janelaProvaTexto(e))) +
+      metrica('Data estimada', esc(janelaProvaTexto(e))) +
       metrica('Tempo médio', '~' + tempoMedioMesesEdital(e) + ' meses') +
       '</div>' +
       '<div class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</div>' +
@@ -4067,7 +4067,7 @@
       '<div class="catalogo-metricas">' +
       metrica('Corte', esc(rotuloCorteEdital(e))) +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Prova', esc(janelaProvaTexto(e))) +
+      metrica('Data estimada', esc(janelaProvaTexto(e))) +
       '</div>' +
       '<div class="catalogo-acoes">' +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e incidências">Detalhes</button>' +
@@ -4401,7 +4401,7 @@
       (e.area ? metrica('Área', esc(e.area)) : '') +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Prova', esc(janelaProvaTexto(e))) +
+      metrica('Data estimada', esc(janelaProvaTexto(e))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
       '</div>' +
       // Nível 1: visão geral (abre primeiro)
