@@ -34,6 +34,10 @@
   let adminPedidosGlobais = null;
   let googleCalendarToken = null;
   let catalogoGlobalTentado = false;
+  // true quando a tentativa de carregar o catálogo global terminou (sucesso, falha
+  // ou ausência de Firebase). Só então o fallback empacotado (data/) pode aparecer —
+  // evita a "piscada" dos editais-exemplo sem foto enquanto o global ainda carrega.
+  let catalogoGlobalCarregado = false;
   let catalogoGlobalPromise = null;
   let catalogoPublicacaoErro = '';
   let catalogoPublicacaoOkEm = '';
@@ -97,7 +101,7 @@
     //    catálogo global está vazio (não carregou / leitura pública negada).
     //    Assim, quando o catálogo público funciona, todo card mostra a capa real
     //    e não aparecem editais sem foto misturados.
-    if (catalogoGlobalEditais.length === 0) {
+    if (catalogoGlobalEditais.length === 0 && catalogoGlobalCarregado) {
       catalogoLocalEditais.forEach(function (e) {
         const n = normalizarEditalCatalogo(e, 'global');
         if (!mapa.has(n.id)) mapa.set(n.id, n);
@@ -133,14 +137,22 @@
 
   function carregarCatalogoGlobalFirebase() {
     if (catalogoGlobalPromise) return catalogoGlobalPromise;
-    if (catalogoGlobalTentado || !window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) return Promise.resolve(catalogoGlobalEditais);
+    if (catalogoGlobalTentado) return Promise.resolve(catalogoGlobalEditais);
+    if (!window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) {
+      // sem fonte remota: o fallback empacotado é legítimo, libera-o
+      catalogoGlobalCarregado = true;
+      return Promise.resolve(catalogoGlobalEditais);
+    }
     catalogoGlobalTentado = true;
     catalogoGlobalPromise = window.FirebaseSync.carregarCatalogoGlobal().then(function (lista) {
       catalogoGlobalEditais = normalizarCatalogoGlobal(lista || []);
+      catalogoGlobalCarregado = true;
       render();
       return catalogoGlobalEditais;
     }).catch(function (e) {
       console.warn('Não consegui carregar catálogo global.', e);
+      catalogoGlobalCarregado = true;
+      render();
       return catalogoGlobalEditais;
     }).finally(function () {
       catalogoGlobalPromise = null;
@@ -8343,4 +8355,7 @@
   window.addEventListener('firebase-sync-ready', iniciarFirebaseSync);
   iniciarFirebaseSync();
   carregarEditaisLocais(); // catálogo padrão (offline / não logado / modo exemplo)
+  // sem Firebase não há catálogo global a aguardar: libera o fallback empacotado
+  // para não deixar a aba Planos vazia.
+  if (!window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) catalogoGlobalCarregado = true;
 })();
