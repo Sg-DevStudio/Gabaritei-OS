@@ -6244,7 +6244,7 @@
       return '<label class="rotina-dia">' +
         '<input type="checkbox" data-rot-ativo="' + d.id + '"' + (cfg.ativo ? ' checked' : '') + '>' +
         '<span class="rotina-dia-badge">' + d.label + '</span>' +
-        '<input data-rot-horas="' + d.id + '" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + '">' +
+        '<input data-rot-horas="' + d.id + '" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + ' (formato HH:MM)">' +
         '</label>';
     }).join('');
     // Passo 1 — Ritmo: cartões qualitativos com o prazo ESTIMADO pelo tamanho do edital.
@@ -6424,6 +6424,15 @@
     m.querySelectorAll('[data-rot-ativo], [data-rot-horas], #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
       el.addEventListener('change', atualizarTotal);
       el.addEventListener('input', atualizarTotal);
+    });
+    // Horas por dia: ao sair do campo, normaliza para o formato HH:MM (00:00 a
+    // 12:00). Qualquer coisa digitada (ex.: "0000000", "8", "abc") é convertida
+    // para minutos, limitada a 0–720 e reexibida como HH:MM — não fica lixo.
+    m.querySelectorAll('[data-rot-horas]').forEach(function (el) {
+      el.addEventListener('blur', function () {
+        el.value = formatarHorasDia(Math.max(0, Math.min(720, parseHorasDia(el.value))));
+        atualizarTotal();
+      });
     });
 
     // Passo 1 — escolha do prazo por cartões
