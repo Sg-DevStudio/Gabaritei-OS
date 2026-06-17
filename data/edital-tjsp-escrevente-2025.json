@@ -6,15 +6,15 @@
   "banca": "Vunesp",
   "orgao": "Tribunal de Justiça do Estado de São Paulo - TJSP",
   "cargo": "Escrevente Técnico Judiciário",
-  "area": "Judiciaria",
+  "area": "Judiciária",
   "estado": "SP",
   "nivel": "medio",
   "escolaridade": "medio",
   "nota_corte_sugerida_pct": 77,
   "lista_corte": "ampla",
   "janela_prova": {
-    "inicio": "2025-12",
-    "fim": "2025-12"
+    "inicio": "",
+    "fim": ""
   },
   "em_alta": true,
   "fonte": "Base: Edital TJSP2503/2025 - Escrevente Técnico Judiciário, Vunesp; notícia oficial TJSP de publicação do edital; página oficial Vunesp TJSP2503; levantamentos públicos de notas de corte do edital TJSP Escrevente 2024.",
@@ -23,7 +23,8 @@
     "Prova objetiva com 70 questões de múltipla escolha, todas com o mesmo peso, mais redação eliminatoria. Blocos I e II exigem no mínimo 50% de acertos.",
     "Distribuicao oficial: Língua Portuguesa 16 questões; Conhecimentos em Direito 30 questões; Conhecimentos Gerais 24 questões, sendo Atualidades 4, Matemática 4, Informática 9 e Raciocínio Lógico 7.",
     "Nota de corte sugerida usa a maior ampla divulgada no edital anterior de 2024: São Jose do Rio Preto com 7,7/10. Para Capital 2024, o corte divulgado foi 7,0/10.",
-    "Levantamentos públicos divergiram quanto ao maior corte da lista de negros em 2024: uma fonte aponta 6,1/10 e outra aponta 6,9/10. Usar a modalidade negros com cautela até conferir o documento oficial da Vunesp."
+    "Levantamentos públicos divergiram quanto ao maior corte da lista de negros em 2024: uma fonte aponta 6,1/10 e outra aponta 6,9/10. Usar a modalidade negros com cautela até conferir o documento oficial da Vunesp.",
+    "janela_prova esvaziada: a data dez/2025 já passou relativo à data atual; se a prova ainda for acontecer, preencher com a data futura real (a janela alimenta cronograma e revisões)."
   ],
   "notas_corte_ultimo_nomeado": {
     "escala": "nota objetiva de 0 a 10 no edital TJSP Escrevente 2024",
