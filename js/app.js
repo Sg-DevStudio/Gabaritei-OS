@@ -3935,6 +3935,10 @@
         cargo: e.cargo || '',
         estado: e.estado || '',
         foto: e.foto || e.fotoUrl || e.imagem || '',
+        // vínculo com o edital de origem: permite atualizar o plano quando o
+        // edital mudar (ex.: sai o edital real depois do pré-edital).
+        origemEditalId: e.id || null,
+        origemEditalVersao: e.atualizadoEm || '',
         meta: {
           corte_pct: e.notaCorte || 70,
           corte_lista: normalizarListaCorte(e.tipoCorte),
@@ -3973,6 +3977,56 @@
     if (location.hash !== '#planejamento') history.pushState(null, '', '#planejamento');
     render();
     abrirGerarPlanoComRotina({ novoPlanoId: entrada.id, planoAnteriorId: planoAnteriorId });
+  }
+
+  // ---- Atualização de plano quando o edital de origem muda (pré-edital → real) ----
+  function editalDaOrigemDoPlano(planoEntry) {
+    const pl = planoEntry && planoEntry.plano;
+    if (!pl || !pl.origemEditalId) return null;
+    return editaisDoCatalogo().find(function (e) { return e.id === pl.origemEditalId; }) || null;
+  }
+
+  // Retorna o edital de origem se houver versão mais nova que a do plano; senão null.
+  function atualizacaoEditalPendente(planoEntry) {
+    const ed = editalDaOrigemDoPlano(planoEntry);
+    if (!ed || !ed.atualizadoEm) return null;
+    const versaoPlano = (planoEntry.plano && planoEntry.plano.origemEditalVersao) || '';
+    return ed.atualizadoEm !== versaoPlano ? ed : null;
+  }
+
+  function planoAtivoEntry() {
+    return (state.planos || []).find(function (p) { return p.id === state.planoAtivoId; }) || null;
+  }
+
+  function atualizarPlanoAtivoDoEdital() {
+    const planoEntry = planoAtivoEntry();
+    if (!planoEntry) return;
+    const ed = atualizacaoEditalPendente(planoEntry);
+    if (!ed) { toast('Este plano já está na versão atual do edital.', 'sucesso'); return; }
+    const res = D.mesclarEditalNoPlano(planoEntry.disciplinas, clonarJson(ed.disciplinas));
+    planoEntry.disciplinas = res.disciplinas;
+    const pl = planoEntry.plano; pl.meta = pl.meta || {};
+    pl.meta.corte_pct = ed.notaCorte || pl.meta.corte_pct || 70;
+    pl.meta.cortes = {
+      ampla: ed.cortes && ed.cortes.ampla != null ? ed.cortes.ampla : (ed.notaCorte || pl.meta.corte_pct),
+      negros: ed.cortes && ed.cortes.negros != null ? ed.cortes.negros : null,
+      pcd: ed.cortes && ed.cortes.pcd != null ? ed.cortes.pcd : null
+    };
+    if (ed.foto) pl.foto = ed.foto;
+    const jp = ed.janelaProva || {};
+    if (jp.inicio) {
+      const prev = pl.radar || {};
+      pl.radar = { janela_prova: [jp.inicio, jp.fim || jp.inicio], confianca: prev.confianca || 'manual', reavaliar_em: prev.reavaliar_em || null };
+    }
+    pl.origemEditalVersao = ed.atualizadoEm;
+    window.Store.hidratar(state);
+    salvar();
+    render();
+    const r = res.resumo; const partes = [];
+    if (r.topicosNovos) partes.push(r.topicosNovos + ' tópico(s) novo(s)');
+    if (r.topicosRemovidos) partes.push(r.topicosRemovidos + ' removido(s)');
+    if (r.disciplinasNovas) partes.push(r.disciplinasNovas + ' disciplina(s) nova(s)');
+    toast('Plano atualizado pelo edital (' + (partes.length ? partes.join(', ') : 'metadados atualizados') + '). Recalcule o plano para encaixar os novos tópicos.', 'sucesso');
   }
 
   function ligarEditaisEsquematizados(raiz) {
@@ -4849,6 +4903,9 @@
       cortes: e.cortes || { ampla: e.notaCorte, negros: null, pcd: null }, emAlta: e.emAlta,
       foto: e.foto || '',
       salario: e.salario || '', beneficios: e.beneficios || '', vagas: e.vagas || '',
+      // carimbo de versão: muda a cada save e dispara o aviso de "atualizar plano"
+      // nos planos criados a partir deste edital.
+      atualizadoEm: new Date().toISOString(),
       arquivado: !!e.arquivado, janelaProva: { inicio: e.janelaProva.inicio || '', fim: e.janelaProva.fim || '' },
       disciplinas: disciplinas
     };
@@ -5377,12 +5434,18 @@
         '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
     }
     const progresso = D.progressoEdital(state);
+    const editalNovo = atualizacaoEditalPendente(planoAtivoEntry());
+    const avisoAtualizacao = editalNovo
+      ? '<div class="plano-edital-atualizado"><span>📣 O edital deste plano foi atualizado. Atualize para receber novos tópicos sem perder seu progresso.</span>' +
+        '<button class="botao-mini" id="pl-atualizar-edital">Atualizar plano</button></div>'
+      : '';
     return '<div class="card planejamento-card plano-atual-card">' +
       '<div class="plano-atual-head">' + fotoPlanoAtivoHtml() + '<div><div class="card-kpi-rotulo">Plano atual</div>' +
       '<h3>' + esc(state.plano.concurso) + '</h3>' +
       '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
       '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
+      avisoAtualizacao +
       '<div class="compact-actions plano-acoes-card">' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
@@ -6961,6 +7024,12 @@
     const acaoExcluir = raiz.querySelector('#pl-acao-excluir');
     if (acaoExcluir) acaoExcluir.addEventListener('click', async function () {
       if (state.planoAtivoId) await excluirPlano(state.planoAtivoId, true);
+    });
+    const atualizarEd = raiz.querySelector('#pl-atualizar-edital');
+    if (atualizarEd) atualizarEd.addEventListener('click', function () {
+      confirmar({ titulo: 'Atualizar plano pelo edital?', mensagem: 'Seu progresso é mantido. Tópicos novos do edital entram no plano e os removidos ficam marcados. Depois, recalcule o plano para encaixar tudo no cronograma.', confirmar: 'Atualizar', icone: '📣' }).then(function (ok) {
+        if (ok) atualizarPlanoAtivoDoEdital();
+      });
     });
     const recalcular = raiz.querySelector('#pl-recalcular');
     if (recalcular) recalcular.addEventListener('click', function () {
