@@ -59,9 +59,10 @@
 
 | Campo | Valor atual | Status | Fonte / correção |
 |---|---|---|---|
-| nota_corte_sugerida_pct | **57** | ⚠️ | "Rankei etapa 82, lista extraoficial" — corte oficial por polo foi maior (Ipojuca 73, Sudeste 72, Sul 72) |
-| janela_prova | **2024-03** | ❓ | prova já ocorreu — confirmar data |
+| nota_corte_sugerida_pct | **57** | ⚠️ | "Rankei etapa 82, lista extraoficial" — cortes oficiais por polo foram maiores (Ipojuca 73, Sudeste/Sul 72). **Decisão pendente do usuário.** |
+| janela_prova | **2024-03** | ✅ | confirmado: prova PSP RH 2023.2 (Nível Técnico) aplicada em **24/03/2024** |
 | lista_corte | ampla | ❓ | definir polo de referência |
+| Física (estrutura) | separada | ✅ | **Feito:** "Estática, cinemática e dinâmica" virou 3 tópicos (Cinemática / Dinâmica / Estática); "Leis de Newton" fundido em Dinâmica. Física 13→14 tópicos; edital 54→55 |
 
 ## 5. TRT3 MG — Técnico Judiciário Área Administrativa (Edital 2022)
 `data/edital-trt3-tecnico-administrativo-2022.json` · FUMARC · 8 disc · 52 tóp

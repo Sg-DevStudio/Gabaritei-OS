@@ -357,31 +357,31 @@
       "topicos": [
         {
           "id": "FIS-01",
-          "nome": "Leis de Newton",
-          "incidencia_pct": 9,
+          "nome": "Cinemática escalar e vetorial (MU, MUV, lançamentos e movimento circular)",
+          "incidencia_pct": 8,
           "prioridade": 1,
-          "horas_estimadas": 6,
+          "horas_estimadas": 7,
           "semana_sugerida": 1
         },
         {
           "id": "FIS-02",
-          "nome": "Estática, cinemática e dinâmica",
-          "incidencia_pct": 12,
+          "nome": "Dinâmica: Leis de Newton, atrito, plano inclinado e força centrípeta",
+          "incidencia_pct": 9,
           "prioridade": 1,
-          "horas_estimadas": 9,
+          "horas_estimadas": 8,
           "semana_sugerida": 2
         },
         {
           "id": "FIS-03",
-          "nome": "Conservacao de energia mecânica",
-          "incidencia_pct": 8,
-          "prioridade": 1,
-          "horas_estimadas": 6,
+          "nome": "Estática e equilíbrio de corpos",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 4,
           "semana_sugerida": 3
         },
         {
           "id": "FIS-04",
-          "nome": "Hidrostática",
+          "nome": "Conservação de energia mecânica",
           "incidencia_pct": 8,
           "prioridade": 1,
           "horas_estimadas": 6,
@@ -389,31 +389,31 @@
         },
         {
           "id": "FIS-05",
-          "nome": "Termodinâmica básica",
-          "incidencia_pct": 11,
+          "nome": "Hidrostática",
+          "incidencia_pct": 8,
           "prioridade": 1,
-          "horas_estimadas": 8,
+          "horas_estimadas": 6,
           "semana_sugerida": 5
         },
         {
           "id": "FIS-06",
-          "nome": "Máquinas termicas e processos naturais",
-          "incidencia_pct": 8,
-          "prioridade": 2,
-          "horas_estimadas": 6,
+          "nome": "Termodinâmica básica",
+          "incidencia_pct": 11,
+          "prioridade": 1,
+          "horas_estimadas": 8,
           "semana_sugerida": 6
         },
         {
           "id": "FIS-07",
-          "nome": "Eletrostática",
-          "incidencia_pct": 7,
+          "nome": "Máquinas térmicas e processos naturais",
+          "incidencia_pct": 8,
           "prioridade": 2,
-          "horas_estimadas": 5,
+          "horas_estimadas": 6,
           "semana_sugerida": 7
         },
         {
           "id": "FIS-08",
-          "nome": "Cargas em movimento",
+          "nome": "Eletrostática",
           "incidencia_pct": 7,
           "prioridade": 2,
           "horas_estimadas": 5,
@@ -421,43 +421,51 @@
         },
         {
           "id": "FIS-09",
-          "nome": "Eletromagnetismo",
-          "incidencia_pct": 8,
-          "prioridade": 1,
-          "horas_estimadas": 7,
+          "nome": "Cargas em movimento",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 5,
           "semana_sugerida": 9
         },
         {
           "id": "FIS-10",
-          "nome": "Radiação eletromagnetica",
-          "incidencia_pct": 5,
-          "prioridade": 3,
-          "horas_estimadas": 4,
+          "nome": "Eletromagnetismo",
+          "incidencia_pct": 8,
+          "prioridade": 1,
+          "horas_estimadas": 7,
           "semana_sugerida": 10
         },
         {
           "id": "FIS-11",
-          "nome": "Noções de eletricidade e eletrônica",
-          "incidencia_pct": 10,
-          "prioridade": 1,
-          "horas_estimadas": 8,
+          "nome": "Radiação eletromagnética",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 4,
           "semana_sugerida": 11
         },
         {
           "id": "FIS-12",
-          "nome": "Noções de instrumentação",
-          "incidencia_pct": 4,
-          "prioridade": 2,
-          "horas_estimadas": 5,
+          "nome": "Noções de eletricidade e eletrônica",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 8,
           "semana_sugerida": 12
         },
         {
           "id": "FIS-13",
+          "nome": "Noções de instrumentação",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 13
+        },
+        {
+          "id": "FIS-14",
           "nome": "Noções de metrologia",
           "incidencia_pct": 3,
           "prioridade": 3,
           "horas_estimadas": 4,
-          "semana_sugerida": 13
+          "semana_sugerida": 14
         }
       ]
     },
