@@ -6462,9 +6462,10 @@
         '<span class="gp-pp-nome">' + esc(nomeDiscCurto(d.nome)) + '</span>' +
         '<span class="gp-pp-resumo" data-pp-resumo></span><span class="gp-pp-caret">⌄</span></button>' +
         '<div class="gp-pp-corpo oculto">' +
-        '<div class="gp-pp-bulk">Marcar todos: ' +
+        '<div class="gp-pp-bulk"><span class="gp-pp-bulk-rotulo">Marcar todos</span>' +
+        '<div class="gp-pp-bulk-btns">' +
         NIVEIS_CONH.map(function (n) { return '<button type="button" class="botao-mini botao-quieto" data-pp-bulk="' + n.id + '">' + n.rotulo + '</button>'; }).join('') +
-        '</div>' + linhas + '</div></div>';
+        '</div></div>' + linhas + '</div></div>';
     }).join('');
     const ppNivel = (state.plano && state.plano.pontoPartida && state.plano.pontoPartida.nivel) || 'zero';
 

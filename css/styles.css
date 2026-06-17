@@ -1919,7 +1919,11 @@ td.num, th.num { text-align: right; }
 .gp-pp-caret { transition: transform .15s; color: var(--tinta-fraca, #9A9DA3); }
 .gp-pp-disc.aberta .gp-pp-caret { transform: rotate(180deg); }
 .gp-pp-corpo { padding: 0.2rem 0.7rem 0.6rem; border-top: 1px solid var(--linha); }
-.gp-pp-bulk { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; font-size: 0.8rem; color: var(--tinta-fraca, #9A9DA3); margin: 0.5rem 0; }
+/* "Marcar todos" com rótulo em cima e os 3 botões inline (uma linha) abaixo */
+.gp-pp-bulk { display: flex; flex-direction: column; gap: 0.3rem; margin: 0.5rem 0; }
+.gp-pp-bulk-rotulo { font-size: 0.8rem; color: var(--tinta-fraca, #9A9DA3); }
+.gp-pp-bulk-btns { display: flex; gap: 0.35rem; }
+.gp-pp-bulk-btns .botao-mini { flex: 1 1 0; min-width: 0; white-space: nowrap; padding: 0.4rem 0.3rem; }
 /* nome do tópico em cima (linha inteira) e o select embaixo (linha inteira):
    no mobile o layout lado a lado espremia o nome numa coluna e quebrava letra a letra. */
 .gp-pp-top { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.45rem 0; border-top: 1px dashed var(--linha); }
@@ -2556,6 +2560,10 @@ html[data-tema="escuro"] .mes-evento {
 .toggle-ordem-opt input[type="radio"] {
   width: 16px; height: 16px; flex: 0 0 16px; margin: 2px 0 0; accent-color: var(--caneta); cursor: pointer;
 }
+/* tira o retângulo de foco feio na bolinha ao clicar; o destaque de seleção já é
+   o card. Para teclado, o anel de foco aparece no card inteiro (acessível). */
+.toggle-ordem-opt input[type="radio"]:focus { outline: none; }
+.toggle-ordem-opt:has(input:focus-visible) { outline: 2px solid var(--caneta); outline-offset: 2px; }
 @media (max-width: 480px) {
   .toggle-ordem-opt { padding: 0.6rem 0.7rem; }
   .toggle-ordem-opt input[type="radio"] { width: 14px; height: 14px; flex-basis: 14px; }
