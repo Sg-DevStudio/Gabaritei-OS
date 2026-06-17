@@ -1703,6 +1703,14 @@ html[data-tema="escuro"] .constancia-folga::before { background: #697180; }
   box-shadow: none;
   transform: none;
 }
+.assunto-opcao.assunto-criar { color: #16A34A; font-weight: 600; }
+/* etiqueta verde "novo" ao lado de assuntos adicionados pelo próprio usuário */
+.badge-novo {
+  display: inline-block; vertical-align: middle;
+  margin-left: 0.4rem; padding: 0.05rem 0.4rem;
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+  color: #fff; background: #16A34A; border-radius: 999px;
+}
 
 /* ============================================================
    Tabelas (cockpit denso no desktop)
