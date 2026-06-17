@@ -167,6 +167,21 @@ Campos que o app **autopreenche** no cadastro a partir do JSON: `titulo`, `banca
 `indigenas` — a QUAL lista a nota sugerida se refere) e `janela_prova`
 (`inicio`/`fim` em `AAAA-MM`).
 Preencha todos os que tiver — o que faltar, pergunte ao usuário (regra de ouro).
+
+> ### ⚠️ `janela_prova`: só preencha em DOIS cenários — senão deixe VAZIO
+> A `janela_prova` vira referência de **cronograma e revisões** do aluno (data
+> futura para se preparar). Por isso só faz sentido quando aponta para o **futuro**.
+> Preencha apenas se:
+> 1. **Edital vigente / recém-publicado** — a janela é a **data futura real** da prova.
+> 2. **Pré-edital** — a janela é uma **previsão futura** explícita (use `radar` com
+>    `confianca` baixa para sinalizar que é estimativa).
+>
+> **NUNCA preencha `janela_prova` com data de concurso já ENCERRADO** (prova já
+> ocorreu) — mesmo quando o edital antigo é usado só como **base de conteúdo**.
+> Nesse caso deixe **vazio**: `"janela_prova": { "inicio": "", "fim": "" }` (o app
+> mostra "a definir" e não polui cronograma/revisões com data passada). A data da
+> prova que já aconteceu, se relevante, vai só em `observacoes`/`fonte` — nunca em
+> `janela_prova`. Isso evita que o usuário tenha de apagar a data manualmente.
 `notas_corte_ultimo_nomeado` e `fonte` ficam para o usuário auditar a meta. IDs:
 disciplina = sigla de 3–4 letras maiúsculas; tópico = `SIGLA-NN` sequencial.
 Entregue como **arquivo .json para download** (UTF-8, parseável, sem comentários) —

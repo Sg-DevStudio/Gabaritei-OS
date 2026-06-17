@@ -39,7 +39,10 @@ O prompt instrui a IA a:
 - listar **disciplinas e tópicos**, quebrando leis grandes em blocos de 2–9h;
 - estimar **incidência (%)** por tópico (0 quando não houver base);
 - definir **prioridade (1–3)** do tópico e **peso (1–3)** da disciplina;
-- sugerir **nota de corte estimada (%)** e **janela provável da prova (mês/ano)**;
+- sugerir **nota de corte estimada (%)**;
+- **janela da prova (mês/ano)**: preencher SÓ se for futura — edital vigente (data
+  real) ou pré-edital (previsão). Concurso já encerrado usado como base → **janela
+  vazia** (a data passada vai em observações, não na janela);
 - responder **apenas com o JSON**, sem comentários.
 
 ### 2. Importar e conferir

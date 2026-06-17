@@ -19,6 +19,11 @@ semana, peso, cor`.
 - `incidencia_pct`: número 0–100; a soma POR DISCIPLINA deve dar ~100.
 - `prioridade`: 1 (núcleo da banca) a 3 (periférico).
 - `horas_estimadas`: 2–9h por tópico (quebrar tópicos maiores que isso).
+- `janela_prova`: só preencha quando apontar para o **futuro** — (1) edital vigente
+  com data real da prova, ou (2) pré-edital como previsão (com `radar.confianca`
+  baixa). **Concurso já encerrado usado só como base → deixe vazio**
+  (`{ "inicio": "", "fim": "" }`); a data passada vai em `observacoes`/`fonte`, não
+  aqui. Datas passadas poluiriam o cronograma e as revisões do aluno.
 - `semana_sugerida`: ordem pedagógica relativa (1 = começo). O app reescala para
   o prazo escolhido pelo usuário — importa a ORDEM, não o número absoluto.
 - `notas_corte_ultimo_nomeado`: uma entrada por unidade de classificação, sempre
