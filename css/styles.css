@@ -2612,16 +2612,6 @@ canvas.grafico {
   padding-block: 0.35rem;
 }
 
-.stats-graficos-linha {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.1fr);
-  gap: 1rem;
-  align-items: stretch;
-}
-.stats-graficos-linha .card {
-  min-width: 0;
-}
-
 .ferramenta-card {
   color: var(--tinta);
   text-decoration: none;
@@ -2784,9 +2774,6 @@ canvas.grafico {
     min-width: 0;
     min-height: 34px;
     font-size: 0.8rem;
-  }
-  .stats-graficos-linha {
-    display: block;
   }
   /* fila "O que estudar hoje": o corpo (texto + rodapé) ocupa toda a largura
      ao lado do check; tags e ações já vão no rodapé pelo .fila-rodape. */

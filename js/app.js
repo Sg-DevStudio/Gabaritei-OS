@@ -3230,10 +3230,8 @@
     const hDisc = statsMobile ? 340 : Math.max(260, Math.min(560, horasDisc.length * 44 + 78));
     const hTop = statsMobile ? 360 : Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
-    html += '<div class="stats-graficos-linha">' +
-      '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>' +
-      '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>' +
-      '</div>';
+    html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+    html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
         ? controlesTopicosDesempenhoHtml() + '<div id="stats-topicos-corpo">' + (statsMobile

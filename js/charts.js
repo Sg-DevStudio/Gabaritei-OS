@@ -149,42 +149,6 @@
       if (d.pct >= 50) return VERDE_MEDIO;
       return VERMELHO;
     });
-    if (!graficoMobile()) {
-      instancias[canvas.id] = new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-          labels: dados.map(function (d) { return d.sigla; }),
-          datasets: [{
-            label: '% de acerto acumulado',
-            data: dados.map(function (d) { return d.pct === null ? 0 : d.pct; }),
-            backgroundColor: cores,
-            borderColor: P.card,
-            borderWidth: 3,
-            hoverOffset: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '56%',
-          plugins: Object.assign(basePlugins(P), {
-            legend: {
-              position: 'right',
-              labels: { color: P.texto, font: { family: FONTE_UI, size: 12 }, boxWidth: 12, padding: 12 }
-            },
-            tooltip: {
-              callbacks: {
-                label: function (ctx) {
-                  const pct = dados[ctx.dataIndex].pct;
-                  return pct === null ? 'Sem questões registradas' : ctx.label + ': ' + pct + '% de acerto';
-                }
-              }
-            }
-          })
-        }
-      });
-      return true;
-    }
     instancias[canvas.id] = new Chart(canvas, {
       type: 'bar',
       data: {
