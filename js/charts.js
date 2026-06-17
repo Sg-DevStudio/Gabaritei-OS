@@ -187,39 +187,27 @@
       return true;
     }
     instancias[canvas.id] = new Chart(canvas, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: dados.map(function (d) { return d.sigla; }),
-        datasets: [
-          {
-            type: 'bar',
-            label: '% de acerto acumulado',
-            data: dados.map(function (d) { return d.pct; }),
-            backgroundColor: cores,
-            borderRadius: 5,
-            barPercentage: 0.58,
-            categoryPercentage: 0.7
-          },
-          {
-            type: 'line',
-            label: 'Tendência',
-            data: dados.map(function (d) { return d.pct; }),
-            borderColor: AZUL,
-            pointBackgroundColor: cores,
-            pointBorderColor: P.card,
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 6,
-            borderWidth: 2,
-            tension: 0.22,
-            fill: false
-          }
-        ]
+        datasets: [{
+          label: '% de acerto acumulado',
+          data: dados.map(function (d) { return d.pct; }),
+          borderColor: AZUL,
+          backgroundColor: cores,
+          pointBackgroundColor: cores,
+          pointBorderColor: P.card,
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          tension: 0.22,
+          fill: false
+        }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: Object.assign(basePlugins(P), {
-          legend: { display: false },
           tooltip: {
             callbacks: {
               label: function (ctx) {
