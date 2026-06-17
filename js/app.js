@@ -6052,6 +6052,26 @@
     return n ? n.rotulo : 'Normal';
   }
 
+  // Ponto de partida (Fase 1): o quanto o aluno já sabe de CADA tópico. A verdade
+  // mora no tópico, não na disciplina (cada concurso recorta tópicos diferentes).
+  // Default conservador "novo" para nunca superestimar.
+  const NIVEIS_CONH = [
+    { id: 'novo', rotulo: 'Nunca vi' },
+    { id: 'estudei', rotulo: 'Já estudei' },
+    { id: 'domino', rotulo: 'Já domino' }
+  ];
+  function nivelConhDoStatus(s) {
+    if (s === 'dominado') return 'domino';
+    if (s === 'teoria_concluida') return 'estudei';
+    return 'novo';
+  }
+  function statusDoNivelConh(n, statusAtual) {
+    if (n === 'domino') return 'dominado';
+    if (n === 'estudei') return 'teoria_concluida';
+    // "novo": só rebaixa quem estava concluído; não mexe em em_curso/pendente
+    return (statusAtual === 'teoria_concluida' || statusAtual === 'dominado') ? 'pendente' : (statusAtual || 'pendente');
+  }
+
   function semanasPorMeses(meses) {
     if (meses === 3) return 13;
     if (meses === 6) return 26;
@@ -6220,9 +6240,18 @@
     const hSemana = Math.max(4, Math.round(horasSemana || horasIdeaisSemanaPlano(entrada, meses) || 20));
     if (ordemAtaque) entrada.plano.ordemAtaque = ordemAtaque;
     const ordem = entrada.plano.ordemAtaque || 'edital';
+    // tópicos já concluídos/dominados (ex.: vindos do "ponto de partida") saem da
+    // teoria e entram em manutenção já na 1ª geração — não só no recálculo.
+    const concluidos = new Set();
+    entrada.disciplinas.forEach(function (d) {
+      if (d.id === 'ORF') return;
+      (d.topicos || []).forEach(function (t) {
+        if (!t.orfao && (t.status === 'teoria_concluida' || t.status === 'dominado')) concluidos.add(t.id);
+      });
+    });
     entrada.cronogramas = {};
     entrada.plano.ritmos = entrada.plano.ritmos || {};
-    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem });
+    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos });
     entrada.plano.ritmos = {};
     entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
     entrada.plano.ritmoAtivo = chave;
@@ -6429,10 +6458,33 @@
         '</div></div>';
     }).join('');
 
+    // Passo 4 — "O que já sei": diagnóstico por disciplina, detalhável por tópico.
+    // Default conservador (lê do status atual): nada é assumido como sabido.
+    const ppHtml = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
+      const tops = (d.topicos || []).filter(function (t) { return !t.orfao; });
+      const linhas = tops.map(function (t) {
+        const atual = nivelConhDoStatus(t.status);
+        return '<div class="gp-pp-top"><span class="gp-pp-top-nome">' + esc(t.nome) + '</span>' +
+          '<select class="gp-pp-sel" data-pp-top="' + esc(t.id) + '">' +
+          NIVEIS_CONH.map(function (n) { return '<option value="' + n.id + '"' + (atual === n.id ? ' selected' : '') + '>' + n.rotulo + '</option>'; }).join('') +
+          '</select></div>';
+      }).join('');
+      return '<div class="gp-pp-disc" data-pp-disc="' + esc(d.id) + '">' +
+        '<button type="button" class="gp-pp-cab" data-pp-toggle>' +
+        '<span class="tag-disc" style="background:' + esc(d.cor || '#9A9DA3') + '">' + esc(d.id) + '</span>' +
+        '<span class="gp-pp-nome">' + esc(nomeDiscCurto(d.nome)) + '</span>' +
+        '<span class="gp-pp-resumo" data-pp-resumo></span><span class="gp-pp-caret">⌄</span></button>' +
+        '<div class="gp-pp-corpo oculto">' +
+        '<div class="gp-pp-bulk">Marcar todos: ' +
+        NIVEIS_CONH.map(function (n) { return '<button type="button" class="botao-mini botao-quieto" data-pp-bulk="' + n.id + '">' + n.rotulo + '</button>'; }).join('') +
+        '</div>' + linhas + '</div></div>';
+    }).join('');
+    const ppNivel = (state.plano && state.plano.pontoPartida && state.plano.pontoPartida.nivel) || 'zero';
+
     const m = abrirModal(
       '<div class="gp-wizard">' +
       '<div class="gp-passos" id="gp-passos">' +
-      ['Prazo', 'Rotina', 'Dificuldade', 'Estratégia'].map(function (t, i) {
+      ['Prazo', 'Rotina', 'Dificuldade', 'O que já sei', 'Estratégia'].map(function (t, i) {
         return '<span class="gp-passo' + (i === 0 ? ' ativo' : '') + '" data-passo-dot="' + (i + 1) + '"><b>' + (i + 1) + '</b>' + t + '</span>';
       }).join('') +
       '</div>' +
@@ -6463,8 +6515,20 @@
       '<div class="gp-dif-lista">' + (difHtml || '<p class="sub">Nenhuma disciplina para configurar.</p>') + '</div>' +
       '</section>' +
 
-      // ---- Passo 4: estratégia + blocos ----
+      // ---- Passo 4: o que já sei (ponto de partida) ----
       '<section class="gp-step oculto" data-step="4">' +
+      '<h3>O que você já estudou?</h3>' +
+      '<p class="sub">Marque, <strong>por tópico</strong>, o que você já viu. Na dúvida deixe em "Nunca vi" — é melhor rever do que pular. O que você marcar como <strong>já domino</strong> entra direto em revisão/questões, sem repetir a teoria.</p>' +
+      '<div class="gp-pp-nivel" role="radiogroup" aria-label="Seu ponto de partida">' +
+      [['zero', 'Começando do zero'], ['intermediario', 'Intermediário'], ['avancado', 'Avançado']].map(function (o) {
+        return '<button type="button" class="gp-pp-nivel-opt' + (ppNivel === o[0] ? ' ativo' : '') + '" data-pp-nivel="' + o[0] + '">' + o[1] + '</button>';
+      }).join('') +
+      '</div>' +
+      '<div class="gp-pp-lista">' + (ppHtml || '<p class="sub">Nenhuma disciplina para configurar.</p>') + '</div>' +
+      '</section>' +
+
+      // ---- Passo 5: estratégia + blocos ----
+      '<section class="gp-step oculto" data-step="5">' +
       '<label>Como voce quer organizar o plano?</label>' +
       '<div class="toggle-ordem" role="radiogroup" aria-label="Tipo de planejamento">' +
       '<label class="toggle-ordem-opt"><input type="radio" name="gp-modo" value="cronograma"' + (((state.plano && state.plano.modoPlanejamento) || 'cronograma') !== 'ciclo' ? ' checked' : '') + '>' +
@@ -6517,7 +6581,7 @@
 
     // navegação do assistente
     let passo = 1;
-    const TOTAL_PASSOS = 4;
+    const TOTAL_PASSOS = 5;
     function mostrarPasso(n) {
       passo = Math.max(1, Math.min(TOTAL_PASSOS, n));
       m.querySelectorAll('.gp-step').forEach(function (s) {
@@ -6618,6 +6682,44 @@
       });
     });
 
+    // Passo 4 — "O que já sei": expandir disciplina, atalho "marcar todos" e resumo.
+    function ppResumoDisc(disc) {
+      const sels = disc.querySelectorAll('.gp-pp-sel');
+      let dom = 0, est = 0;
+      sels.forEach(function (s) { if (s.value === 'domino') dom++; else if (s.value === 'estudei') est++; });
+      const partes = [];
+      if (dom) partes.push(dom + ' já domino');
+      if (est) partes.push(est + ' já estudei');
+      const el = disc.querySelector('[data-pp-resumo]');
+      if (el) el.textContent = partes.length ? partes.join(' · ') : 'tudo novo';
+    }
+    m.querySelectorAll('.gp-pp-disc').forEach(function (disc) {
+      const cab = disc.querySelector('[data-pp-toggle]');
+      const corpo = disc.querySelector('.gp-pp-corpo');
+      if (cab) cab.addEventListener('click', function () { corpo.classList.toggle('oculto'); disc.classList.toggle('aberta', !corpo.classList.contains('oculto')); });
+      disc.querySelectorAll('[data-pp-bulk]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          const v = b.getAttribute('data-pp-bulk');
+          disc.querySelectorAll('.gp-pp-sel').forEach(function (s) { s.value = v; });
+          ppResumoDisc(disc);
+        });
+      });
+      disc.querySelectorAll('.gp-pp-sel').forEach(function (s) { s.addEventListener('change', function () { ppResumoDisc(disc); }); });
+      ppResumoDisc(disc);
+    });
+    let ppNivelSel = ppNivel;
+    m.querySelectorAll('[data-pp-nivel]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        ppNivelSel = b.getAttribute('data-pp-nivel');
+        m.querySelectorAll('[data-pp-nivel]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+        // nível geral só ajusta o DEFAULT da estratégia (não marca tópicos):
+        // do zero → ordem do edital; intermediário/avançado → incidência (80/20).
+        const ordemAlvo = ppNivelSel === 'zero' ? 'edital' : 'incidencia';
+        const r = m.querySelector('input[name="gp-ordem"][value="' + ordemAlvo + '"]');
+        if (r) r.checked = true;
+      });
+    });
+
     // navegação
     m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#gp-voltar').addEventListener('click', function () { mostrarPasso(passo - 1); });
@@ -6653,6 +6755,16 @@
         const disc = state.disciplinas.find(function (x) { return x.id === id; });
         if (disc && sel) disc.dificuldade = sel.getAttribute('data-dif');
       });
+      // Ponto de partida: semeia o status de cada tópico a partir do que o aluno
+      // já sabe. "Já estudei"/"já domino" também agendam o ciclo de revisões.
+      m.querySelectorAll('.gp-pp-sel').forEach(function (sel) {
+        const t = D.topicoPorId(state, sel.getAttribute('data-pp-top'));
+        if (!t) return;
+        const novoStatus = statusDoNivelConh(sel.value, t.status);
+        t.status = novoStatus;
+        if (novoStatus === 'teoria_concluida' || novoStatus === 'dominado') agendarRevisoesSeNecessario(t.id);
+      });
+      state.plano.pontoPartida = { nivel: ppNivelSel, definidoEm: D.hojeISO() };
       state.config.rotinaEstudos = rotinaNova;
       const cardAtivo = m.querySelector('.gp-prazo-card.ativo');
       const nomeRitmo = cardAtivo ? cardAtivo.getAttribute('data-gp-ritmo') : nomeRitmoPorMeses(entrada, meses);
