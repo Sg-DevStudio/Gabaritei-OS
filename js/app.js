@@ -61,6 +61,22 @@
     c.id = c.id || ((origem === 'global' ? 'global-' : 'edt-') + slugCatalogo(c.titulo));
     c.disciplinas = Array.isArray(c.disciplinas) ? c.disciplinas : [];
     c.arquivado = !!c.arquivado;
+    // Editais empacotados em data/ vêm no formato "esquematizado" da skill
+    // (nota_corte_sugerida_pct, janela_prova, escolaridade...). Quando faltam os
+    // campos internos (notaCorte, janelaProva, cortes), converte aqui — assim o
+    // card mostra corte/data/comparação corretos mesmo quando o app cai no
+    // fallback de data/ (catálogo global vazio/indisponível).
+    if (c.notaCorte == null || c.cortes == null || c.janelaProva == null) {
+      const meta = metadadosEditalDeJson(e);
+      if (c.notaCorte == null && meta.notaCorte != null) c.notaCorte = meta.notaCorte;
+      if (c.cortes == null && meta.cortes) c.cortes = meta.cortes;
+      if (!c.tipoCorte && meta.tipoCorte) c.tipoCorte = meta.tipoCorte;
+      if (c.janelaProva == null && meta.janelaProva && (meta.janelaProva.inicio || meta.janelaProva.fim)) {
+        c.janelaProva = meta.janelaProva;
+      }
+      if (c.emAlta == null) c.emAlta = !!meta.emAlta;
+    }
+    if (!c.foto) c.foto = c.fotoUrl || c.imagem || '';
     c._global = origem === 'global';
     return c;
   }
@@ -149,6 +165,15 @@
     opcoes = opcoes || {};
     if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
     const editais = (state.editais || []).filter(function (e) { return !e.arquivado; }).map(limparEditalParaCatalogo);
+    // PROTEÇÃO CRÍTICA: nunca sobrescrever o catálogo global com uma lista vazia.
+    // Era isso que zerava o catálogo de todos — no login/modo exemplo o state era
+    // resetado para vazio e um publish automático gravava editais:[] por cima.
+    // Só permite publicar vazio quando explicitamente pedido (opcoes.permitirVazio),
+    // que é o caso de o admin excluir o último edital de propósito.
+    if (editais.length === 0 && !opcoes.permitirVazio) {
+      if (opcoes.toast) toast('Nenhum edital para publicar — catálogo global mantido como está.', 'erro');
+      return Promise.resolve();
+    }
     return window.FirebaseSync.publicarCatalogoGlobal(editais).then(function () {
       catalogoGlobalEditais = normalizarCatalogoGlobal(editais);
       catalogoGlobalTentado = false;
@@ -3937,7 +3962,7 @@
         confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
           if (!ok) return;
           state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
-          salvar(); publicarCatalogoAdmin({ toast: true }).finally(render);
+          salvar(); publicarCatalogoAdmin({ toast: true, permitirVazio: true }).finally(render);
           toast('Edital excluído');
         });
       });
@@ -8205,10 +8230,12 @@
         if (novoStatus && novoStatus.usuario) prepararEstadoParaUsuario(novoStatus.usuario);
         firebaseStatus = novoStatus;
         atualizarSyncUi();
+        // NÃO publicar o catálogo automaticamente no login: o state ainda pode
+        // estar vazio (sessão restaurando / saída do modo exemplo) e isso zerava
+        // o catálogo global. A publicação agora é só ação explícita do admin
+        // (salvar/excluir edital). Aqui apenas (re)carregamos o catálogo.
         if (novoStatus && novoStatus.usuario) {
-          carregarCatalogoGlobalFirebase().then(function () {
-            if (usuarioAdmin()) publicarCatalogoAdmin({ toast: false });
-          });
+          carregarCatalogoGlobalFirebase();
         }
         if (usuarioAntes !== usuarioDepois || !usuarioLogado()) render();
       }
