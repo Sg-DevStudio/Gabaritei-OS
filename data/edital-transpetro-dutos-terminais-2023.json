@@ -1,0 +1,646 @@
+{
+  "tipo": "edital_esquematizado",
+  "versao": 1,
+  "gerado_em": "2026-06-16",
+  "titulo": "Transpetro — Profissional Transpetro de Nível Médio — Júnior — Ênfase 2: Dutos e Terminais (Edital 01/2023)",
+  "banca": "Cesgranrio",
+  "orgao": "Petrobras Transporte S.A. - Transpetro",
+  "cargo": "Profissional Transpetro de Nível Médio — Júnior — Ênfase 2: Dutos e Terminais",
+  "area": "Operação",
+  "estado": "BR",
+  "nivel": "medio",
+  "escolaridade": "medio",
+  "nota_corte_sugerida_pct": 72.5,
+  "lista_corte": "ampla",
+  "janela_prova": {
+    "inicio": "",
+    "fim": ""
+  },
+  "em_alta": false,
+  "salario": "",
+  "beneficios": "",
+  "vagas": "",
+  "fonte": "Edital nº 01 — TRANSPETRO/PSP/TERRA/NÍVEL MÉDIO-2023.1; prova objetiva Cesgranrio 2023 de Dutos e Terminais; resultado final homologado no DOU em 05/03/2024; estatísticas públicas de Qconcursos, TEC Concursos e sites de concursos, sem links dessas plataformas no arquivo.",
+  "metodologia_incidencia": "Incidências estimadas com base na prova Cesgranrio 2023 de Dutos e Terminais, na distribuição pública de questões por disciplina e assunto em bancos de questões e no conteúdo programático oficial. As incidências de cada disciplina somam 100% e foram quebradas em tópicos estudáveis, evitando blocos genéricos como 'classes de palavras'.",
+  "observacoes": [
+    "Estrutura (Cesgranrio 2023): 60 questões — 20 Conhecimentos Básicos (10 Português + 10 Matemática) + 40 Conhecimentos Específicos.",
+    "A CLASSIFICAÇÃO usa SOMENTE os 40 pontos de Conhecimentos Específicos (Química, Física, Metrologia/Instrumentação/Controle/Fluidos, Resistência dos Materiais e Equipamentos/Operações/Refino/SMS). Português e Matemática são apenas ELIMINATÓRIOS.",
+    "Eliminação: aproveitamento <50% em Básicos, <50% em Específicos, ou nota zero em Português ou Matemática.",
+    "Pesos reescalados para a escala do app (1–5), priorizando as disciplinas que classificam (Específicas); Português/Matemática recebem peso menor por serem só eliminatórias.",
+    "Nota de corte por POLO (último classificado no resultado homologado): MG 70% · PA 60% · RJ 72,5% · RS 67,5% · SP 62,5%. Sugerido 72,5% (pior caso, RJ); ajuste ao seu polo. É o último classificado — não necessariamente o último nomeado.",
+    "janela_prova vazia: concurso de 2023 já encerrado (homologado em 05/03/2024), usado como base."
+  ],
+  "estrutura_prova": {
+    "total_questoes": 60,
+    "conhecimentos_basicos": {
+      "questoes": 20,
+      "lingua_portuguesa": 10,
+      "matematica": 10
+    },
+    "conhecimentos_especificos": {
+      "questoes": 40
+    },
+    "criterio_classificacao": "Classificação por polo de trabalho em função apenas do total de pontos obtidos na prova objetiva de Conhecimentos Específicos.",
+    "criterio_eliminacao": "Eliminação por aproveitamento inferior a 50% em Conhecimentos Básicos, inferior a 50% em Conhecimentos Específicos ou nota zero em Língua Portuguesa ou Matemática."
+  },
+  "notas_corte_ultimo_nomeado": {
+    "escala": "Pontuação classificatória = pontos obtidos em Conhecimentos Específicos, com máximo de 40 pontos. Percentual = pontuação/40.",
+    "observacao": "Não foi possível fechar, com segurança, o último nomeado/admitido por polo e modalidade a partir das fontes abertas consultáveis nesta sessão. Os números abaixo são uma aproximação declarada pelo último classificado constante no resultado final homologado para Dutos e Terminais. Para uso conservador no app, foi sugerido o maior percentual entre os últimos classificados de ampla concorrência: 72,5%.",
+    "Minas Gerais": {
+      "ampla": 28,
+      "ampla_pct": 70.0,
+      "negros": 27,
+      "negros_pct": 67.5,
+      "pcd": null,
+      "pcd_pct": null,
+      "referencia": "resultado final homologado; último AC publicado: classificação AC 7; último CN publicado: classificação CN 1"
+    },
+    "Pará": {
+      "ampla": 24,
+      "ampla_pct": 60.0,
+      "negros": 25,
+      "negros_pct": 62.5,
+      "pcd": null,
+      "pcd_pct": null,
+      "referencia": "resultado final homologado; último AC publicado: classificação AC 8; último CN publicado: classificação CN 2"
+    },
+    "Rio de Janeiro": {
+      "ampla": 29,
+      "ampla_pct": 72.5,
+      "negros": 29,
+      "negros_pct": 72.5,
+      "pcd": 33,
+      "pcd_pct": 82.5,
+      "referencia": "resultado final homologado; último AC publicado: classificação AC 16; último CN publicado: classificação CN 4; PCD publicado: classificação PCD 1"
+    },
+    "Rio Grande do Sul": {
+      "ampla": 27,
+      "ampla_pct": 67.5,
+      "negros": null,
+      "negros_pct": null,
+      "pcd": 26,
+      "pcd_pct": 65.0,
+      "referencia": "resultado final homologado; último AC publicado: classificação AC 7; PCD publicado: classificação PCD 1"
+    },
+    "São Paulo": {
+      "ampla": 25,
+      "ampla_pct": 62.5,
+      "negros": 26,
+      "negros_pct": 65.0,
+      "pcd": 22,
+      "pcd_pct": 55.0,
+      "referencia": "resultado final homologado; último AC publicado: classificação AC 38; último CN publicado: classificação CN 8; último PCD publicado: classificação PCD 2"
+    }
+  },
+  "disciplinas": [
+    {
+      "id": "POR",
+      "nome": "Língua Portuguesa",
+      "cor": "#1E7D46",
+      "peso": 2,
+      "base_teorica": "edital oficial + prova Cesgranrio 2023 + bancos de questões",
+      "topicos": [
+        {
+          "id": "POR-01",
+          "nome": "Compreensão e interpretação de textos de gêneros variados",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "POR-02",
+          "nome": "Coesão textual, coerência, referenciação e conectores no texto",
+          "incidencia_pct": 15,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "POR-03",
+          "nome": "Significação das palavras e expressões no contexto",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "POR-04",
+          "nome": "Ortografia oficial, acentuação gráfica e uso do hífen",
+          "incidencia_pct": 5,
+          "prioridade": 3,
+          "horas_estimadas": 3,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "POR-05",
+          "nome": "Substantivo, adjetivo, artigo e numeral",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "POR-06",
+          "nome": "Verbo e advérbio",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "POR-07",
+          "nome": "Pronome e colocação pronominal",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "POR-08",
+          "nome": "Preposição e conjunção",
+          "incidencia_pct": 7,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "POR-09",
+          "nome": "Concordância nominal e verbal",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-10",
+          "nome": "Emprego do sinal indicativo de crase",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "POR-11",
+          "nome": "Sinais de pontuação e efeitos de sentido",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 5
+        }
+      ],
+      "carater": "eliminatoria",
+      "nota_minima_pct": null
+    },
+    {
+      "id": "MAT",
+      "nome": "Matemática",
+      "cor": "#2B6CB0",
+      "peso": 2,
+      "base_teorica": "edital oficial + prova Cesgranrio 2023 + bancos de questões",
+      "topicos": [
+        {
+          "id": "MAT-01",
+          "nome": "Conjuntos numéricos: naturais, inteiros, racionais e reais; ordem, operações e propriedades",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "MAT-02",
+          "nome": "Razão, proporção, regra de três simples e composta, e porcentagem",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "MAT-03",
+          "nome": "Relações e funções: funções polinomiais, exponenciais, logarítmicas e trigonométricas",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "MAT-04",
+          "nome": "Equações do 1º grau, 2º grau, exponenciais e logarítmicas",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "MAT-05",
+          "nome": "Análise combinatória: princípio fundamental da contagem, permutação, arranjo e combinação",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "MAT-06",
+          "nome": "Probabilidade básica em espaços equiprováveis",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "MAT-07",
+          "nome": "Estatística básica: tabelas, gráficos, média, mediana, moda, amplitude, variância e desvio padrão",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "MAT-08",
+          "nome": "Matemática financeira: juros simples, juros compostos, montante, tempo, taxa e juro",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "MAT-09",
+          "nome": "Geometria plana: triângulo retângulo, relações métricas, perímetros e áreas",
+          "incidencia_pct": 10,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "MAT-10",
+          "nome": "Geometria espacial: áreas e volumes",
+          "incidencia_pct": 4,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 9
+        }
+      ],
+      "carater": "eliminatoria",
+      "nota_minima_pct": null
+    },
+    {
+      "id": "QUI",
+      "nome": "Química Geral, Inorgânica e Orgânica",
+      "cor": "#805AD5",
+      "peso": 5,
+      "base_teorica": "edital oficial + prova Cesgranrio 2023 + bancos de questões",
+      "topicos": [
+        {
+          "id": "QUI-01",
+          "nome": "Modelos atômicos e classificação periódica dos elementos químicos",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "QUI-02",
+          "nome": "Ligações químicas e propriedades das substâncias",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "QUI-03",
+          "nome": "Cálculo estequiométrico, balanceamento e relações quantitativas em reações",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "QUI-04",
+          "nome": "Estudo dos gases",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "QUI-05",
+          "nome": "Reações de oxidação-redução e natureza elétrica da matéria",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "QUI-06",
+          "nome": "Química inorgânica: ácidos, bases, sais, óxidos e soluções aquosas",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "QUI-07",
+          "nome": "Química orgânica: hidrocarbonetos e polímeros",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "QUI-08",
+          "nome": "Unidades de concentração em massa, volume e quantidade de matéria",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "QUI-09",
+          "nome": "Transformações químicas, equilíbrio químico e termoquímica",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "QUI-10",
+          "nome": "Dispersões",
+          "incidencia_pct": 2,
+          "prioridade": 3,
+          "horas_estimadas": 3,
+          "semana_sugerida": 10
+        }
+      ],
+      "carater": "eliminatoria_classificatoria",
+      "nota_minima_pct": null
+    },
+    {
+      "id": "FIS",
+      "nome": "Física Aplicada, Termodinâmica e Eletricidade",
+      "cor": "#DD6B20",
+      "peso": 5,
+      "base_teorica": "edital oficial + prova Cesgranrio 2023 + bancos de questões",
+      "topicos": [
+        {
+          "id": "FIS-01",
+          "nome": "Mecânica geral: estática, cinemática e dinâmica",
+          "incidencia_pct": 18,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "FIS-02",
+          "nome": "Conservação da energia mecânica",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "FIS-03",
+          "nome": "Transmissão de calor: condução, convecção e radiação",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "FIS-04",
+          "nome": "Máquinas térmicas e Termodinâmica básica: propriedades termodinâmicas, primeira lei e segunda lei",
+          "incidencia_pct": 14,
+          "prioridade": 1,
+          "horas_estimadas": 8,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "FIS-05",
+          "nome": "Eletrostática e cargas elétricas",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "FIS-06",
+          "nome": "Cargas em movimento e noções de eletricidade",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "FIS-07",
+          "nome": "Eletromagnetismo",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "FIS-08",
+          "nome": "Radiações eletromagnéticas",
+          "incidencia_pct": 6,
+          "prioridade": 3,
+          "horas_estimadas": 4,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "FIS-09",
+          "nome": "Eletrônica básica aplicada a instrumentos e sistemas industriais",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 9
+        }
+      ],
+      "carater": "eliminatoria_classificatoria",
+      "nota_minima_pct": null
+    },
+    {
+      "id": "MEC",
+      "nome": "Metrologia, Instrumentação, Controle e Mecânica dos Fluidos",
+      "cor": "#319795",
+      "peso": 4,
+      "base_teorica": "edital oficial + prova Cesgranrio 2023 + bancos de questões",
+      "topicos": [
+        {
+          "id": "MEC-01",
+          "nome": "Sistema Internacional de Unidades e conversões de unidades",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "MEC-02",
+          "nome": "Noções de metrologia: erro, precisão, resolução, repetibilidade e leitura de instrumentos",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "MEC-03",
+          "nome": "Noções de medição: pressão, temperatura, nível, vazão, massa e densidade",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "MEC-04",
+          "nome": "Instrumentos de medição de pressão, nível, temperatura e vazão",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 7,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "MEC-05",
+          "nome": "Transmissão e transmissores pneumáticos, eletrônicos analógicos, digitais e inteligentes",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "MEC-06",
+          "nome": "Noções de instrumentação: tipos de instrumentos, terminologia e simbologia",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "MEC-07",
+          "nome": "Controle de processos: sistemas de malha aberta e sistemas de malha fechada",
+          "incidencia_pct": 10,
+          "prioridade": 1,
+          "horas_estimadas": 6,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "MEC-08",
+          "nome": "Elementos finais de controle: válvulas pneumáticas, hidráulicas e motorizadas",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "MEC-09",
+          "nome": "Noções de sistemas instrumentados de segurança",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "MEC-10",
+          "nome": "Mecânica dos fluidos e dutos: propriedades dos fluidos, hidrostática, escoamento e perda de carga",
+          "incidencia_pct": 12,
+          "prioridade": 1,
+          "horas_estimadas": 9,
+          "semana_sugerida": 10
+        }
+      ],
+      "carater": "eliminatoria_classificatoria",
+      "nota_minima_pct": null
+    },
+    {
+      "id": "RES",
+      "nome": "Resistência dos Materiais",
+      "cor": "#718096",
+      "peso": 2,
+      "base_teorica": "edital oficial + prova Cesgranrio 2023 + bancos de questões",
+      "topicos": [
+        {
+          "id": "RES-01",
+          "nome": "Resistência dos materiais: conceitos fundamentais, tensão e deformação",
+          "incidencia_pct": 35,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "RES-02",
+          "nome": "Solicitações axiais: tração e compressão",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "RES-03",
+          "nome": "Flexão em elementos estruturais",
+          "incidencia_pct": 25,
+          "prioridade": 1,
+          "horas_estimadas": 5,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "RES-04",
+          "nome": "Torção em eixos, tubulações e elementos mecânicos",
+          "incidencia_pct": 15,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4
+        }
+      ],
+      "carater": "eliminatoria_classificatoria",
+      "nota_minima_pct": null
+    },
+    {
+      "id": "OPE",
+      "nome": "Equipamentos de Processo, Operações, Refino e SMS",
+      "cor": "#C53030",
+      "peso": 1,
+      "base_teorica": "edital oficial + prova Cesgranrio 2023 + bancos de questões",
+      "topicos": [
+        {
+          "id": "OPE-01",
+          "nome": "Equipamentos de processo: bombas centrífugas e alternativas",
+          "incidencia_pct": 25,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "OPE-02",
+          "nome": "Compressores e permutadores casco/tubo",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "OPE-03",
+          "nome": "Operações unitárias",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "OPE-04",
+          "nome": "Noções de processos de refino",
+          "incidencia_pct": 20,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "OPE-05",
+          "nome": "Segurança do trabalho, meio ambiente e saúde",
+          "incidencia_pct": 15,
+          "prioridade": 3,
+          "horas_estimadas": 5,
+          "semana_sugerida": 5
+        }
+      ],
+      "carater": "eliminatoria_classificatoria",
+      "nota_minima_pct": null
+    }
+  ]
+}
