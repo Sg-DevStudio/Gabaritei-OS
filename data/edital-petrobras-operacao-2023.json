@@ -17,12 +17,16 @@
     "fim": "2024-03"
   },
   "em_alta": true,
+  "salario": "R$ 5.878,82 (remuneração mínima garantida)",
+  "beneficios": "Garantia de remuneração mínima, adicional de turno/sobreaviso e benefícios Petrobras",
+  "vagas": "228 imediatas + cadastro reserva",
   "fonte": "Edital n. 1 - Petrobras/PSP RH 2023.2; Cebraspe PETROBRAS_23_NTJ; Edital n. 11 - resultado final; Edital n. 19 - inclusões/retificação da Ênfase 8; Rankei Petrobras PSP 2023.2, etapa 82, consulta em 2026-06-15.",
   "observacoes": [
     "Prova objetiva Cebraspe: 100 itens de certo/errado, sendo 40 de conhecimentos básicos e 60 de conhecimentos específicos.",
     "Minimos eliminatorios do edital: 8 pontos em P1, 18 pontos em P2 e 30 pontos no conjunto das provas objetivas.",
     "As incidências abaixo organizam o estudo a partir do edital e da estrutura da prova; devem ser recalibradas quando houver estatistica consolidada por questão da prova de Operação.",
-    "Meta sugerida de 72% adotada a partir do corte oficial de ampla concorrência dos polos Sudeste e Sul no resultado final do Cebraspe (Ipojuca ficou em 73%). A lista extraoficial Rankei de convocação aponta referência atual aproximada de 57%, registrada abaixo apenas como contexto."
+    "Meta sugerida de 72% adotada a partir do corte oficial de ampla concorrência dos polos Sudeste e Sul no resultado final do Cebraspe (Ipojuca ficou em 73%). A lista extraoficial Rankei de convocação aponta referência atual aproximada de 57%, registrada abaixo apenas como contexto.",
+    "Salário, benefícios e vagas referem-se ao PSP 2023.2, Ênfase Operação; confirme os números no edital oficial Cebraspe/Petrobras antes de divulgar — fontes públicas divergem. Caráter por disciplina = classificatória; a eliminação é por bloco (P1 básicos / P2 específicos), conforme os mínimos acima."
   ],
   "notas_corte_ultimo_nomeado": {
     "escala": "nota final objetiva de 0 a 100; a meta sugerida (72) usa o corte oficial de ampla concorrência dos polos Sudeste e Sul no resultado final do Cebraspe; a convocação extraoficial Rankei (~57) fica abaixo apenas como referência atual aproximada.",
@@ -136,7 +140,8 @@
           "horas_estimadas": 5,
           "semana_sugerida": 9
         }
-      ]
+      ],
+      "carater": "classificatoria"
     },
     {
       "id": "MAT",
@@ -233,7 +238,8 @@
           "horas_estimadas": 6,
           "semana_sugerida": 11
         }
-      ]
+      ],
+      "carater": "classificatoria"
     },
     {
       "id": "QUI",
@@ -346,7 +352,8 @@
           "horas_estimadas": 3,
           "semana_sugerida": 13
         }
-      ]
+      ],
+      "carater": "classificatoria"
     },
     {
       "id": "FIS",
@@ -467,7 +474,8 @@
           "horas_estimadas": 4,
           "semana_sugerida": 14
         }
-      ]
+      ],
+      "carater": "classificatoria"
     },
     {
       "id": "OPE",
@@ -540,7 +548,8 @@
           "horas_estimadas": 6,
           "semana_sugerida": 8
         }
-      ]
+      ],
+      "carater": "classificatoria"
     }
   ]
 }
