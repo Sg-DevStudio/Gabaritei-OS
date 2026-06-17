@@ -2457,6 +2457,19 @@ html[data-tema="escuro"] .mes-evento {
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.3);
 }
 .modal.modal-amplo { max-width: 980px; }
+/* Mobile: aproveita a largura — menos margem/padding em telas estreitas, para os
+   modais (registro, comparação, detalhes, editor, assistente) não ficarem
+   espremidos e os textos longos respirarem. */
+@media (max-width: 480px) {
+  .modal-fundo { padding: 0.55rem; }
+  .modal { padding: 1rem 1rem 1.2rem; max-height: 92vh; }
+  .modal-acoes { gap: 0.45rem; }
+  .modal-acoes .botao, .modal-acoes button { flex: 1 1 auto; }
+  /* editor de edital: tabela de tópicos compacta para caber 5 colunas */
+  .editor-topicos { font-size: 0.78rem; }
+  .editor-topicos th, .editor-topicos td { padding: 0.25rem 0.22rem; }
+  .editor-topicos td:nth-child(2) input, .editor-topicos td:nth-child(3) input, .editor-topicos td:nth-child(4) input { width: 46px; }
+}
 
 .modal h3 { font-size: 1.1rem; }
 .modal-acoes { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.25rem; flex-wrap: wrap; }
