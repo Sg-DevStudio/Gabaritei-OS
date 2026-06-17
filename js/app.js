@@ -4681,6 +4681,10 @@
         '<select class="ed-d-dif" data-di="' + di + '">' +
         ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
         '</select>' +
+        '<select class="ed-d-carater" data-di="' + di + '" title="Caráter da disciplina">' +
+        [['', '— caráter'], ['classificatoria', 'Classificatória'], ['eliminatoria', 'Eliminatória'], ['eliminatoria_classificatoria', 'Elim. + Class.']].map(function (o) { return '<option value="' + o[0] + '"' + (((d.carater || '') === o[0]) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') +
+        '</select>' +
+        '<label class="mini-rot">nota mín.%<input class="ed-d-notamin" data-di="' + di + '" type="number" min="0" max="100" value="' + (d.nota_minima_pct != null && d.nota_minima_pct !== '' ? d.nota_minima_pct : '') + '" placeholder="—"></label>' +
         '<button class="botao-mini botao-quieto" data-rem-disc="' + di + '">remover</button></div>' +
         '<table class="editor-topicos"><thead><tr><th>Tópico</th><th>Incid.%</th><th>Prior.</th><th>Horas</th><th></th></tr></thead><tbody>';
       d.topicos.forEach(function (t, ti) {
@@ -4726,6 +4730,8 @@
     body.querySelectorAll('.ed-d-cor').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].cor = inp.value; });
     body.querySelectorAll('.ed-d-peso').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].peso = Math.max(1, parseInt(inp.value, 10) || 1); });
     body.querySelectorAll('.ed-d-dif').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].dificuldade = inp.value; });
+    body.querySelectorAll('.ed-d-carater').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].carater = inp.value; });
+    body.querySelectorAll('.ed-d-notamin').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) { const v = inp.value.trim(); e.disciplinas[di].nota_minima_pct = v === '' ? null : Math.max(0, Math.min(100, parseInt(v, 10) || 0)); } });
     body.querySelectorAll('.ed-t-nome').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].nome = inp.value; });
     body.querySelectorAll('.ed-t-inc').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].incidencia_pct = Math.max(0, Math.min(100, parseInt(inp.value, 10) || 0)); });
     body.querySelectorAll('.ed-t-pri').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].prioridade = Math.max(1, Math.min(3, parseInt(inp.value, 10) || 2)); });
