@@ -23,7 +23,8 @@
     "Estrutura oficial 2022: 60 questões objetivas, sendo 15 de Língua Portuguesa, 5 de Noções de Informática, 5 de Legislação, 5 de Noções de Direito e 30 de Conhecimentos Específicos, além de redação.",
     "A calibragem de incidência usa o edital oficial para delimitar conteúdo e o Qconcursos como referência de recorrencia da prova. No Qconcursos, as mais cobradas foram Direito do Trabalho 20/60, Portugues 15/60 e Direito Processual do Trabalho 10/60.",
     "A prova objetiva exigiu mínimo de 60% do total de pontos e nota diferente de zero em todas as disciplinas. A redação foi avaliada de 0 a 50, com mínimo de 60%.",
-    "A nota de corte sugerida é aproximada para uso na plataforma. Quando houver levantamento oficial por lista/modalidade, recalibrar ampla, negros e PCD."
+    "A nota de corte sugerida é aproximada para uso na plataforma. Quando houver levantamento oficial por lista/modalidade, recalibrar ampla, negros e PCD.",
+    "Limpeza híbrida: Lei 8.112 e o TRT-específico (regimento/ética) ficam em Legislação (LEG); improbidade e licitações ficam só em Direito Administrativo (DAD), que trata agentes públicos pela doutrina (sem duplicar a 8.112). Português: \"Interpretação\" e \"Noções de compreensão\" unificados, e \"Ortografia/acentuação/crase\" separados em três. Disciplinas mantidas (base pré-edital)."
   ],
   "notas_corte_ultimo_nomeado": {
     "escala": "60 questões objetivas + redação de 0 a 50 no edital FUMARC 2022",
@@ -46,19 +47,11 @@
       "topicos": [
         {
           "id": "POR-01",
-          "nome": "Interpretação de textos",
-          "incidencia_pct": 24,
+          "nome": "Compreensão e interpretação de textos",
+          "incidencia_pct": 30,
           "prioridade": 1,
-          "horas_estimadas": 8,
+          "horas_estimadas": 9,
           "semana_sugerida": 1
-        },
-        {
-          "id": "POR-02",
-          "nome": "Noções gerais de compreensão e interpretação",
-          "incidencia_pct": 12,
-          "prioridade": 1,
-          "horas_estimadas": 5,
-          "semana_sugerida": 2
         },
         {
           "id": "POR-03",
@@ -110,11 +103,27 @@
         },
         {
           "id": "POR-09",
-          "nome": "Ortografia, acentuação e crase",
-          "incidencia_pct": 7,
+          "nome": "Ortografia",
+          "incidencia_pct": 3,
           "prioridade": 2,
-          "horas_estimadas": 5,
+          "horas_estimadas": 2,
           "semana_sugerida": 9
+        },
+        {
+          "id": "POR-10",
+          "nome": "Acentuação gráfica",
+          "incidencia_pct": 2,
+          "prioridade": 2,
+          "horas_estimadas": 2,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "POR-11",
+          "nome": "Crase",
+          "incidencia_pct": 3,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 11
         }
       ]
     },
@@ -185,7 +194,7 @@
         {
           "id": "LEG-01",
           "nome": "Lei 8.112/1990: provimento, vacância e direitos",
-          "incidencia_pct": 24,
+          "incidencia_pct": 35,
           "prioridade": 1,
           "horas_estimadas": 6,
           "semana_sugerida": 1
@@ -193,31 +202,15 @@
         {
           "id": "LEG-02",
           "nome": "Lei 8.112/1990: deveres, proibições, responsabilidades e penalidades",
-          "incidencia_pct": 24,
+          "incidencia_pct": 35,
           "prioridade": 1,
           "horas_estimadas": 7,
           "semana_sugerida": 2
         },
         {
-          "id": "LEG-03",
-          "nome": "Improbidade administrativa: Lei 8.429/1992 e Lei 14.230/2021",
-          "incidencia_pct": 18,
-          "prioridade": 1,
-          "horas_estimadas": 6,
-          "semana_sugerida": 3
-        },
-        {
-          "id": "LEG-04",
-          "nome": "Licitações e contratos",
-          "incidencia_pct": 14,
-          "prioridade": 1,
-          "horas_estimadas": 6,
-          "semana_sugerida": 4
-        },
-        {
           "id": "LEG-05",
           "nome": "Regimento interno e organização do TRT3",
-          "incidencia_pct": 14,
+          "incidencia_pct": 20,
           "prioridade": 1,
           "horas_estimadas": 5,
           "semana_sugerida": 5
@@ -225,7 +218,7 @@
         {
           "id": "LEG-06",
           "nome": "Código de Ética do TRT3 e normativos correlatos",
-          "incidencia_pct": 6,
+          "incidencia_pct": 10,
           "prioridade": 2,
           "horas_estimadas": 3,
           "semana_sugerida": 6
@@ -290,7 +283,7 @@
       "topicos": [
         {
           "id": "DAD-01",
-          "nome": "Agentes públicos e Lei 8.112/1990",
+          "nome": "Agentes públicos: classificação, cargos e provimento (doutrina)",
           "incidencia_pct": 28,
           "prioridade": 1,
           "horas_estimadas": 7,
