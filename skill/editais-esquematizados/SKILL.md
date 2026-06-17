@@ -145,11 +145,18 @@ Siga `references/contrato-edital.md`. Resumo do schema:
     "Unidade X": { "ampla": 16.80, "ampla_pct": 84.0, "negros": 15.60, "negros_pct": 78.0, "pcd": 15.32 }
   },
   "disciplinas": [ { "id": "ADM", "nome": "...", "cor": "#1E7D46", "peso": 2,
+    "carater": "eliminatoria_classificatoria", "nota_minima_pct": 50,
     "base_teorica": "pdf", "topicos": [ { "id": "ADM-01", "nome": "...",
     "incidencia_pct": 15, "prioridade": 1, "horas_estimadas": 6,
     "semana_sugerida": 2 } ] } ]
 }
 ```
+
+Campos **opcionais** por disciplina, usados na "visão geral" do modal de detalhes:
+- `carater`: `eliminatoria` | `classificatoria` | `eliminatoria_classificatoria`
+  (se a disciplina elimina por nota mínima, classifica por pontos, ou ambos).
+- `nota_minima_pct`: nota mínima exigida na disciplina, em % (ex.: `50`). Omita se
+  não houver mínimo por disciplina. Quando ausentes, o app mostra "—".
 
 Campos que o app **autopreenche** no cadastro a partir do JSON: `titulo`, `banca`,
 `orgao`, `cargo`, `area`, `estado` (UF, 2 letras), `nivel` (`facil`|`medio`|

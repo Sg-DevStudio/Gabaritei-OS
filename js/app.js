@@ -4366,6 +4366,13 @@
   function abrirDetalhesEdital(id) {
     const e = editalPorId(id);
     if (!e) return;
+    function caraterLabel(c) {
+      if (c === 'eliminatoria') return 'Eliminatória';
+      if (c === 'classificatoria') return 'Classificatória';
+      if (c === 'eliminatoria_classificatoria' || c === 'ambas') return 'Elim. + Class.';
+      return '—';
+    }
+    // Nível 2 — detalhamento por disciplina (tópicos · incidência · horas)
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
       const linhas = tops.map(function (t) {
@@ -4377,19 +4384,47 @@
         '<span class="sub">peso ' + (d.peso || 1) + ' · ' + (d.topicos || []).length + ' tópicos</span></div>' +
         '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">Incid.</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
     }).join('');
+    // Nível 1 — visão geral: disciplinas, peso, caráter e nota mínima
+    const visaoLinhas = (e.disciplinas || []).map(function (d) {
+      const cor = /^#/.test(d.cor || '') ? d.cor : '#6B7180';
+      const min = (d.nota_minima_pct != null && d.nota_minima_pct !== '') ? d.nota_minima_pct + '%' : '—';
+      return '<tr>' +
+        '<td><span class="tag-disc" style="background:' + esc(cor) + '22;color:' + esc(cor) + '">' + esc(d.nome) + '</span></td>' +
+        '<td class="num">' + (d.peso || 1) + '</td>' +
+        '<td>' + esc(caraterLabel(d.carater)) + '</td>' +
+        '<td class="num">' + min + '</td></tr>';
+    }).join('');
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
-    const m = abrirModal('<h3>' + esc(e.titulo) + '</h3>' +
+    const m = abrirModal('<h3 class="detalhe-titulo">' + esc(e.titulo) + '</h3>' +
       '<p class="sub">' + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
       '<div class="catalogo-metricas" style="margin:0.5rem 0">' +
+      (e.area ? metrica('Área', esc(e.area)) : '') +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Prova', esc(janelaProvaTexto(e))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
       '</div>' +
-      '<div class="detalhe-discs">' + discHtml + '</div>' +
+      // Nível 1: visão geral (abre primeiro)
+      '<div id="det-visao">' +
+      '<p class="sub" style="margin:0.2rem 0 0.4rem">Visão geral das disciplinas. Toque em "Ver tópicos" para o detalhamento.</p>' +
+      '<table class="tabela-topicos"><thead><tr><th>Disciplina</th><th class="num">Peso</th><th>Caráter</th><th class="num">Nota mín.</th></tr></thead><tbody>' + visaoLinhas + '</tbody></table>' +
+      '<div class="compact-actions" style="margin-top:0.7rem"><button class="botao-mini botao-secundario" id="det-ver-topicos">Ver tópicos e detalhes →</button></div>' +
+      '</div>' +
+      // Nível 2: detalhamento (oculto até o usuário avançar)
+      '<div id="det-detalhes" class="detalhe-discs oculto">' +
+      '<div class="compact-actions" style="margin-bottom:0.6rem"><button class="botao-mini botao-quieto" id="det-voltar-visao">← Visão geral</button></div>' +
+      discHtml + '</div>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
       '<button id="det-iniciar">Iniciar plano</button></div>');
     m.classList.add('modal-amplo');
+    const visao = m.querySelector('#det-visao');
+    const detalhes = m.querySelector('#det-detalhes');
+    m.querySelector('#det-ver-topicos').addEventListener('click', function () {
+      visao.classList.add('oculto'); detalhes.classList.remove('oculto');
+    });
+    m.querySelector('#det-voltar-visao').addEventListener('click', function () {
+      detalhes.classList.add('oculto'); visao.classList.remove('oculto');
+    });
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
   }
