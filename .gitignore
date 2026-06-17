@@ -1,5 +1,6 @@
 data/sync/
 node_modules/
-_repro*.js
-_t.js
-_verify*.js
+# scripts de teste/rascunho — nunca versionar
+_*.js
+_*.cjs
+*.test.cjs
