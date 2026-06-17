@@ -3176,7 +3176,7 @@
     let periodos = Array.from(periodosSet).sort();
     if (!porAno && periodos.length > 8) periodos = periodos.slice(-8);
     const periodoIndex = new Map(periodos.map(function (p, i) { return [p, i]; }));
-    const largura = 320, altura = 150, esquerda = 34, direita = 10, topo = 10, base = 108;
+    const largura = 320, altura = 150, esquerda = 40, direita = 10, topo = 10, base = 108;
     const passo = periodos.length > 1 ? (largura - esquerda - direita) / (periodos.length - 1) : 0;
     const porTopico = {};
     Object.keys(porTopicoPeriodo).forEach(function (k) {
@@ -3204,16 +3204,22 @@
         return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4.2" fill="' + cor(s.item) + '"></circle>';
       }).join('');
     }).join('');
+    const MESES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const rotulosX = periodos.map(function (p, i) {
       const x = periodos.length > 1 ? esquerda + i * passo : esquerda + (largura - esquerda - direita) / 2;
-      const rot = porAno ? p : p.slice(5, 7) + '/' + p.slice(2, 4);
+      // eixo X muda sozinho com a filtragem: anos (2024, 2025) quando o histórico
+      // passa de 2 anos; senão, nome do mês (jan, fev, out...).
+      const rot = porAno ? p : (MESES_ABREV[(+p.slice(5, 7)) - 1] || p.slice(5, 7));
       return '<text class="stats-topicos-x" x="' + x + '" y="138" text-anchor="middle">' + rot + '</text>';
     }).join('');
+    // grade do eixo Y em 0 / 25 / 50 / 75 / 100% (os pontos acompanham a %).
+    const grade = [100, 75, 50, 25, 0].map(function (n) {
+      const y = topo + ((100 - n) / 100) * (base - topo);
+      return '<line x1="' + esquerda + '" y1="' + y + '" x2="' + (largura - direita) + '" y2="' + y + '"></line>' +
+        '<text class="stats-topicos-y" x="' + (esquerda - 5) + '" y="' + (y + 3) + '" text-anchor="end">' + n + '%</text>';
+    }).join('');
     const spark = '<div class="stats-topicos-spark" aria-hidden="true"><svg viewBox="0 0 ' + largura + ' ' + altura + '" focusable="false">' +
-      '<text x="0" y="14">100%</text><text x="7" y="63">50%</text><text x="14" y="112">0%</text>' +
-      '<line x1="' + esquerda + '" y1="' + topo + '" x2="' + (largura - direita) + '" y2="' + topo + '"></line>' +
-      '<line x1="' + esquerda + '" y1="' + ((topo + base) / 2) + '" x2="' + (largura - direita) + '" y2="' + ((topo + base) / 2) + '"></line>' +
-      '<line x1="' + esquerda + '" y1="' + base + '" x2="' + (largura - direita) + '" y2="' + base + '"></line>' +
+      grade +
       '<line class="stats-topicos-eixo" x1="' + esquerda + '" y1="' + base + '" x2="' + (largura - direita) + '" y2="' + base + '"></line>' +
       linhas + pontos + rotulosX +
       '</svg></div>';
@@ -3263,12 +3269,17 @@
     const hDisc = statsMobile ? 340 : 380;
     const hTop = statsMobile ? 360 : Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
-    // No desktop os dois primeiros gráficos ficam lado a lado (pizza + evolução);
-    // no mobile a grade vira uma coluna só (ver .stats-linha-graficos no CSS).
-    html += '<div class="stats-linha-graficos">' +
-      '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>' +
-      '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>' +
-      '</div>';
+    // Desktop: pizza + evolução semanal lado a lado. Mobile: só a pizza (a
+    // "Evolução semanal" sai no celular — pedido do usuário) e o gráfico de
+    // tópicos vira o de pontos por período (ver topicosDesempenhoMobileHtml).
+    if (statsMobile) {
+      html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+    } else {
+      html += '<div class="stats-linha-graficos">' +
+        '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>' +
+        '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>' +
+        '</div>';
+    }
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
         ? controlesTopicosDesempenhoHtml() + '<div id="stats-topicos-corpo">' + (statsMobile

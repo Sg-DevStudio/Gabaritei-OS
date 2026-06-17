@@ -2718,6 +2718,10 @@ canvas.grafico {
   .stats-topicos-spark .stats-topicos-x {
     font-size: 0.55rem;
   }
+  .stats-topicos-spark .stats-topicos-y {
+    font-size: 0.52rem;
+    opacity: 0.85;
+  }
   .stats-topicos-resumo {
     display: flex;
     align-items: center;
