@@ -2589,6 +2589,21 @@ body.arrastando-toque .agenda-dia.drop-alvo { outline: 2px dashed var(--caneta);
   min-width: 0;
   position: relative;
 }
+/* Desempenho por disciplina (pizza) + Evolução semanal lado a lado no desktop */
+.stats-linha-graficos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+.stats-linha-graficos > .card {
+  margin-bottom: 0;
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .stats-linha-graficos { grid-template-columns: 1fr; }
+}
 .grafico-scroll {
   overflow: hidden;
 }

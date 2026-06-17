@@ -3260,11 +3260,15 @@
 
     const horasDisc = dadosHorasPorDisciplina();
     const topicosDesempenho = dadosTopicosDesempenho(statsTopicosFiltro);
-    const hDisc = statsMobile ? 340 : Math.max(260, Math.min(560, horasDisc.length * 44 + 78));
+    const hDisc = statsMobile ? 340 : 380;
     const hTop = statsMobile ? 360 : Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
-    html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
-    html += '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>';
+    // No desktop os dois primeiros gráficos ficam lado a lado (pizza + evolução);
+    // no mobile a grade vira uma coluna só (ver .stats-linha-graficos no CSS).
+    html += '<div class="stats-linha-graficos">' +
+      '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>' +
+      '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>' +
+      '</div>';
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
         ? controlesTopicosDesempenhoHtml() + '<div id="stats-topicos-corpo">' + (statsMobile
@@ -3290,7 +3294,7 @@
     const c2 = raiz.querySelector('#graf-meta');
     if (c2 && state.disciplinas.length > 0) {
       const dados = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
-        return { sigla: d.id, pct: D.desempenhoDisciplina(state, d) };
+        return { sigla: d.id, pct: D.desempenhoDisciplina(state, d), cor: d.cor };
       });
       window.Graficos.desempenhoPorDisciplina(c2, dados);
     }

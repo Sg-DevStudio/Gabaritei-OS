@@ -30,6 +30,9 @@
   const VERDE_MEDIO = '#6FAE8F';
   const VERMELHO = '#B83A2E';
   const NEUTRO = '#E3E7F0';
+  // Mesma paleta usada para colorir disciplinas no plano (abrirNovaDisciplina),
+  // usada como fallback quando uma disciplina ainda não tem cor própria.
+  const PALETA_DISC = ['#2454D6', '#1F7A4D', '#B8762B', '#8E44AD', '#C0392B', '#0E7490', '#5B6B2F', '#99357F'];
 
   // Cores que acompanham o tema (claro/escuro): lidas dos tokens CSS no momento
   // em que o gráfico é criado, para os rótulos/grades não sumirem no modo escuro.
@@ -139,46 +142,41 @@
     return true;
   }
 
+  // Pizza de desempenho por disciplina, com as MESMAS cores das disciplinas no
+  // plano (campo d.cor). Cada fatia é o % de acerto acumulado da disciplina.
   function desempenhoPorDisciplina(canvas, dados) {
     if (!disponivel()) return false;
     destruir(canvas.id);
     const P = paleta();
-    const cores = dados.map(function (d) {
-      if (d.pct === null) return NEUTRO;
-      if (d.pct >= 70) return VERDE_OS;
-      if (d.pct >= 50) return VERDE_MEDIO;
-      return VERMELHO;
-    });
+    // só entram na pizza as disciplinas que já têm questões registradas
+    const comDados = dados.filter(function (d) { return d.pct !== null; });
+    const base = comDados.length ? comDados : dados;
+    const cores = base.map(function (d, i) { return d.cor || PALETA_DISC[i % PALETA_DISC.length]; });
     instancias[canvas.id] = new Chart(canvas, {
-      type: 'bar',
+      type: 'pie',
       data: {
-        labels: dados.map(function (d) { return d.sigla; }),
+        labels: base.map(function (d) { return d.sigla; }),
         datasets: [{
           label: '% de acerto acumulado',
-          data: dados.map(function (d) { return d.pct; }),
-          backgroundColor: cores, borderRadius: 4
+          data: base.map(function (d) { return d.pct === null ? 0 : d.pct; }),
+          backgroundColor: cores,
+          borderColor: P.card,
+          borderWidth: 2
         }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: Object.assign(basePlugins(P), {
+          legend: { position: 'right', labels: { color: P.texto, font: { family: FONTE_UI, size: 12 }, boxWidth: 12 } },
           tooltip: {
             callbacks: {
               label: function (ctx) {
-                const pct = dados[ctx.dataIndex].pct;
-                return pct === null ? 'Sem questões registradas' : pct + '% de acerto acumulado';
+                const d = base[ctx.dataIndex];
+                return d.sigla + ': ' + (d.pct === null ? 'sem questões' : d.pct + '% de acerto');
               }
             }
           }
-        }),
-        scales: {
-          y: {
-            beginAtZero: true, max: 100,
-            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + '%'; } },
-            grid: { color: P.grade }
-          },
-          x: { ticks: { color: P.sub, font: { family: FONTE_MONO } }, grid: { color: P.grade } }
-        }
+        })
       }
     });
     return true;
@@ -189,6 +187,7 @@
     destruir(canvas.id);
     const P = paleta();
     const mobile = graficoMobile();
+    // Barras verticais (em pé): o rótulo de horas fica acima de cada barra.
     const labelsPlugin = {
       id: 'labelsHoras',
       afterDatasetsDraw: function (chart) {
@@ -196,18 +195,13 @@
         const dataset = chart.data.datasets[0];
         const meta = chart.getDatasetMeta(0);
         ctx.save();
-        ctx.font = '600 12px ' + FONTE_UI;
-        ctx.textBaseline = 'middle';
+        ctx.font = '600 11px ' + FONTE_UI;
+        ctx.fillStyle = P.texto;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
         meta.data.forEach(function (bar, i) {
-          const valor = dataset.data[i];
-          if (!valor) return;
-          const texto = dados[i].rotulo;
-          const x = bar.x - 10;
-          const dentro = bar.width > 76;
-          // dentro da barra azul: branco; fora: cor de texto do tema (some no escuro se for fixo)
-          ctx.fillStyle = dentro ? '#FFFFFF' : P.texto;
-          ctx.textAlign = dentro ? 'right' : 'left';
-          ctx.fillText(texto, dentro ? x : bar.x + 8, bar.y);
+          if (!dataset.data[i]) return;
+          ctx.fillText(dados[i].rotulo, bar.x, bar.y - 4);
         });
         ctx.restore();
       }
@@ -215,47 +209,37 @@
     instancias[canvas.id] = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: dados.map(function (d) { return mobile ? curto(d.nome, 16) : d.nome; }),
+        labels: dados.map(function (d) { return curto(d.nome, 16); }),
         datasets: [{
           label: 'Horas de estudo',
           data: dados.map(function (d) { return Math.round((d.minutos / 60) * 100) / 100; }),
           backgroundColor: AZUL_CLARO,
-          borderRadius: 0,
+          borderRadius: 4,
           barPercentage: 0.72,
           categoryPercentage: 0.82
         }]
       },
       options: {
-        indexAxis: mobile ? 'x' : 'y',
+        indexAxis: 'x',
         responsive: true,
         maintainAspectRatio: false,
         plugins: Object.assign(basePlugins(P), {
           legend: { display: false },
           tooltip: {
             callbacks: {
+              title: function (items) { return items.length ? dados[items[0].dataIndex].nome : ''; },
               label: function (ctx) { return 'Horas de estudo: ' + dados[ctx.dataIndex].rotulo; }
             }
           }
         }),
-        scales: mobile ? {
+        scales: {
           y: {
             beginAtZero: true,
             ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
             grid: { color: P.grade }
           },
           x: {
-            ticks: { color: P.texto, font: { family: FONTE_UI, size: 10 }, maxRotation: 55, minRotation: 35 },
-            grid: { color: P.grade }
-          }
-        } : {
-          x: {
-            beginAtZero: true,
-            position: 'top',
-            ticks: { color: P.sub, font: { family: FONTE_MONO }, callback: function (v) { return v + 'h'; } },
-            grid: { color: P.grade }
-          },
-          y: {
-            ticks: { color: P.texto, font: { family: FONTE_UI, size: 12 } },
+            ticks: { color: P.texto, font: { family: FONTE_UI, size: mobile ? 10 : 11 }, maxRotation: 55, minRotation: 35 },
             grid: { color: P.grade }
           }
         }
