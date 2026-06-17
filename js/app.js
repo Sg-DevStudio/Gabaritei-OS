@@ -107,6 +107,20 @@
     return Array.from(mapa.values());
   }
 
+  // Lista para o PAINEL DO ADMIN (Configurações): mostra só o catálogo real
+  // (global do Firebase + editais do perfil), NUNCA os exemplos embutidos em
+  // data/. Evita a "piscada" de editais-exemplo que aparecem e somem quando o
+  // catálogo real chega, e impede botões de excluir em editais não gerenciáveis.
+  function editaisDoCatalogoAdmin() {
+    const mapa = new Map();
+    catalogoGlobalEditais.forEach(function (e) {
+      const n = normalizarEditalCatalogo(e, 'global');
+      mapa.set(n.id, n);
+    });
+    (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
+    return Array.from(mapa.values());
+  }
+
   function editalPorId(id) {
     return editaisDoCatalogo().find(function (e) { return e.id === id; }) || null;
   }
@@ -3745,7 +3759,7 @@
       return [e.titulo, e.banca, e.orgao, e.cargo, e.estado].filter(Boolean)
         .join(' ').toLowerCase().indexOf(termo) >= 0;
     };
-    const listaCatalogo = editaisDoCatalogo();
+    const listaCatalogo = editaisDoCatalogoAdmin();
     const ativos = listaCatalogo.filter(function (e) { return !e.arquivado && correspondeBusca(e); });
     const arquivados = listaCatalogo.filter(function (e) { return e.arquivado && correspondeBusca(e); });
 
