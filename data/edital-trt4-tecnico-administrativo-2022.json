@@ -23,7 +23,8 @@
     "Estrutura oficial do edital 2022: provas objetivas de Conhecimentos Básicos e Conhecimentos Específicos, além de Redação. A prova foi aplicada em 10/07/2022 pela FCC.",
     "A calibragem de incidência usa o edital oficial para delimitar conteúdo e o Qconcursos/TEC como referência de recorrencia da prova. No Qconcursos, as disciplinas mais cobradas na prova foram Portugues, Direito do Trabalho e Direito Processual do Trabalho.",
     "A nota de corte sugerida é apenas aproximacao para a plataforma, pois a FCC usa nota padronizada. Levantamento público aponta primeiro convocado em 333,09 e último convocado em 260,69 para Técnico Judiciário - Área Administrativa.",
-    "Se o novo edital trocar banca ou atualizar a matriz nacional dos TRTs, recomenda-se recalibrar principalmente Informática, LGPD, Acessibilidade e Administração Pública."
+    "Se o novo edital trocar banca ou atualizar a matriz nacional dos TRTs, recomenda-se recalibrar principalmente Informática, LGPD, Acessibilidade e Administração Pública.",
+    "Arquivo HÍBRIDO (pré-edital): base no edital FCC 2022 com antecipações da matriz nacional 2026 (LGPD/Acessibilidade, Adm. Pública, AFO). A janela_prova 2026/2027 é ESTIMATIVA para o próximo concurso; ao sair o edital real, atualizar disciplinas, datas e nota de corte. Lei 8.112/1990 fica concentrada na disciplina Legislação (LEG); o tópico de Direito Administrativo passou a tratar agentes públicos pela doutrina, sem duplicar a lei seca."
   ],
   "notas_corte_ultimo_nomeado": {
     "escala": "nota final padronizada FCC, não percentual bruto de acertos",
@@ -63,11 +64,19 @@
         },
         {
           "id": "POR-03",
-          "nome": "Ortografia oficial e acentuação gráfica",
-          "incidencia_pct": 8,
+          "nome": "Ortografia oficial",
+          "incidencia_pct": 4,
           "prioridade": 2,
-          "horas_estimadas": 4,
+          "horas_estimadas": 3,
           "semana_sugerida": 3
+        },
+        {
+          "id": "POR-11",
+          "nome": "Acentuação gráfica",
+          "incidencia_pct": 4,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 11
         },
         {
           "id": "POR-04",
@@ -315,7 +324,7 @@
         },
         {
           "id": "DAD-02",
-          "nome": "Agentes públicos e Lei 8.112/1990",
+          "nome": "Agentes públicos: classificação, cargos, empregos e funções (doutrina)",
           "incidencia_pct": 28,
           "prioridade": 1,
           "horas_estimadas": 8,
