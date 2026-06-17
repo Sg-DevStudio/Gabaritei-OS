@@ -4559,6 +4559,7 @@
       '<div class="conciliar-grid">' +
       item('Disciplinas em comum', d.nDisciplinasComuns) +
       item('Tópicos em comum', d.topicosComuns + ' (' + d.overlapPct + '%)') +
+      item('Economia de estudo', '~' + d.economiaH + 'h') +
       item('Exclusivos de cada', d.exclusivosA + ' / ' + d.exclusivosB) +
       item('Carga semanal exigida', '~' + d.exigidaSemana + 'h') +
       item('Você tem por semana', '~' + d.horasSemana + 'h') +
