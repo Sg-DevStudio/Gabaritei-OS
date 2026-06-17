@@ -2788,12 +2788,6 @@ canvas.grafico {
   .stats-graficos-linha {
     display: block;
   }
-  .stats-evolucao-card {
-    display: none;
-  }
-  #graf-meta {
-    min-height: 230px;
-  }
   /* fila "O que estudar hoje": o corpo (texto + rodapé) ocupa toda a largura
      ao lado do check; tags e ações já vão no rodapé pelo .fila-rodape. */
   .check-estudo { margin-top: 0.1rem; }
