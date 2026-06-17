@@ -11,6 +11,20 @@
   const ADMIN_EMAIL = 'casar70@gmail.com';
   const CHAVE_ULTIMO_USUARIO = 'estudos.firebase.ultimoUsuario';
   let state = window.Store.carregar();
+  // Varre planos-rascunho: criados ao clicar "Iniciar" mas nunca confirmados no
+  // assistente (sessão fechada/recarregada sem passar pelo descarte). Evita o
+  // "plano fantasma" sem nada preenchido no catálogo.
+  function limparPlanosRascunho() {
+    if (!state || !Array.isArray(state.planos)) return;
+    const rascunhos = state.planos.filter(function (p) { return p && p.plano && p.plano.rascunho; });
+    if (!rascunhos.length) return;
+    rascunhos.forEach(function (p) {
+      if (typeof limparDadosVinculados === 'function') limparDadosVinculados(p.id);
+      window.Store.removerPlano(state, p.id);
+    });
+    window.Store.salvar(state, { marcarAlterado: false });
+  }
+  limparPlanosRascunho();
   // Modo exemplo: deixa visitantes sem login explorarem com um plano de demonstração.
   // Tudo fica só em memória — nada é persistido nem sincronizado.
   let modoDemo = false;
@@ -4027,6 +4041,10 @@
     // o plano recém-criado é removido (não fica um plano "fantasma" no catálogo).
     const planoAnteriorId = state.planoAtivoId;
     const entrada = adicionarPlano(json);
+    // Marca como RASCUNHO: se o assistente for fechado por qualquer caminho que
+    // escape do descarte (back do celular, app fechado, recarregar), este plano
+    // é varrido na próxima carga (limparPlanosRascunho). Limpo ao gerar o plano.
+    if (entrada && entrada.plano) entrada.plano.rascunho = true;
     aplicarPlanosDuracaoAoAtivo(true);
     // pushState não dispara hashchange (que fecharia o modal de rotina abaixo)
     if (location.hash !== '#planejamento') history.pushState(null, '', '#planejamento');
@@ -6780,6 +6798,7 @@
         if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo)) return;
       }
       planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
+      if (state.plano) delete state.plano.rascunho; // confirmado: não é mais rascunho
       fecharModal();
       const cron = D.cronogramaAtivo(state);
       agendaRef = modoPlano === 'ciclo' ? D.segundaDaSemana(D.hojeISO()) : (cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO()));
@@ -8447,6 +8466,12 @@
     fecharModal();
     window.scrollTo(0, 0);
     render();
+  });
+  // Botão/gesto "Voltar" do celular: pode disparar popstate sem hashchange (quando
+  // o hash não muda). Garante que o modal aberto feche pelo caminho normal (que
+  // descarta o plano-rascunho do assistente).
+  window.addEventListener('popstate', function () {
+    if (document.getElementById('modal-raiz') && document.getElementById('modal-raiz').innerHTML) fecharModal();
   });
 
   // Re-renderiza ao cruzar o breakpoint mobile/desktop (ex.: limite do painel
