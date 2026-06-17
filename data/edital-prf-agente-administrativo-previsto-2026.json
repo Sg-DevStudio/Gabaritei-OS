@@ -22,7 +22,8 @@
     "Arquivo de pre-edital: não há edital novo publicado em 2026 até a data de geração. O conteúdo usa o último edital oficial de Agente Administrativo da PRF como base.",
     "Ultimo edital: prova objetiva de 60 questões de múltipla escolha, 5 alternativas, nota máxima 90 pontos. Língua Portuguesa teve 12 questões com peso 2; Ética e Raciocínio Lógico tiveram 6 questões com peso 1; conhecimentos específicos tiveram 6 questões por disciplina com peso 1,5.",
     "Nota de corte sugerida de 76% usa o pior caso divulgado para 2014: Ceará com 68 pontos em 90, aproximadamente 75,6%. Para outros estados, as notas foram menores.",
-    "Incidencias por tópico sao estimativas para organizar estudo a partir do edital anterior e devem ser recalibradas com TEC/Qconcursos quando houver prova/banca do novo concurso."
+    "Incidencias por tópico sao estimativas para organizar estudo a partir do edital anterior e devem ser recalibradas com TEC/Qconcursos quando houver prova/banca do novo concurso.",
+    "Ajustes de revisão: ADM-10 (que juntava 8.112 + 8.666 + 9.784) foi quebrado e modernizado — licitações agora pela Lei 14.133/2021 (a 8.666 está revogada e um concurso 2026/2027 deve cobrar a 14.133), e o processo administrativo (9.784) virou tópico próprio; a 8.112 saiu daqui por já estar em ETI-07 e ADM-04. Peso de Português elevado (maior disciplina). Atenção: a Lei 8.429 (improbidade) aparece em ETI-08 e ADM-08 — possível redundância a revisar quando sair o edital real."
   ],
   "notas_corte_ultimo_nomeado": {
     "escala": "nota final objetiva de 0 a 90 no edital de 2014; percentual = nota/90. Dados disponíveis por levantamento jornalistico de nota de corte/classificação, não por lista completa de último efetivamente nomeado por cota.",
@@ -47,7 +48,7 @@
       "id": "POR",
       "nome": "Língua Portuguesa",
       "cor": "#2563EB",
-      "peso": 2,
+      "peso": 3,
       "base_teorica": "pdf",
       "topicos": [
         {
@@ -448,11 +449,19 @@
         },
         {
           "id": "ADM-10",
-          "nome": "Lei 8.112/1990, Lei 8.666/1993 e Lei 9.784/1999",
-          "incidencia_pct": 11,
+          "nome": "Lei 14.133/2021: licitações e contratos administrativos",
+          "incidencia_pct": 6,
           "prioridade": 1,
-          "horas_estimadas": 9,
+          "horas_estimadas": 7,
           "semana_sugerida": 10
+        },
+        {
+          "id": "ADM-11",
+          "nome": "Lei 9.784/1999: processo administrativo federal",
+          "incidencia_pct": 5,
+          "prioridade": 1,
+          "horas_estimadas": 4,
+          "semana_sugerida": 11
         }
       ]
     },
