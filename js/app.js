@@ -1913,26 +1913,63 @@
   }
 
   // ---------------- TELA: Timer ----------------
+  // Adiciona um tópico criado pelo próprio usuário a uma disciplina do SEU plano
+  // ativo (não mexe no catálogo/edital de ninguém). Peso baixo por padrão para não
+  // bagunçar o cronograma; fica disponível para estudar, desempenho e revisões.
+  function adicionarTopicoUsuario(disciplinaId, nome) {
+    nome = (nome || '').trim();
+    if (!nome) return null;
+    const d = D.disciplinaPorId(state, disciplinaId);
+    if (!d) return null;
+    // já existe um tópico com esse nome? reaproveita (evita duplicar)
+    const existente = d.topicos.find(function (t) { return normalizarBusca(t.nome) === normalizarBusca(nome); });
+    if (existente) return existente.id;
+    const base = d.id + '-U';
+    let n = 1; while (d.topicos.some(function (t) { return t.id === base + n; })) n++;
+    const novo = {
+      id: base + n, nome: nome, incidencia_pct: 0, prioridade: 3, horas_estimadas: 2,
+      semana_sugerida: null, status: 'pendente', reaberto: false, orfao: false,
+      adicionadoPeloUsuario: true, criadoEm: D.hojeISO()
+    };
+    d.topicos.push(novo);
+    salvar();
+    return novo.id;
+  }
+
   function abrirModalAssuntosTimer(disciplinaId, selecionadoId, aoEscolher) {
     const d = D.disciplinaPorId(state, disciplinaId);
     if (!d) return;
-    const topicos = d.topicos.filter(function (t) { return !t.orfao; });
     const m = abrirModal(
       '<div class="assuntos-modal-cab"><h3>Assuntos</h3><button type="button" class="modal-x" id="ass-fechar" aria-label="Fechar">×</button></div>' +
-      '<input id="ass-busca" type="search" placeholder="Digite um assunto">' +
+      '<input id="ass-busca" type="search" placeholder="Buscar ou criar um assunto">' +
       '<div class="assuntos-lista" id="ass-lista"></div>'
     );
+    const tagNovo = '<span class="badge-novo">novo</span>';
+    function escolher(id) { aoEscolher(id); fecharModal(); }
     function desenhar() {
-      const q = normalizarBusca(m.querySelector('#ass-busca').value);
+      const bruto = m.querySelector('#ass-busca').value.trim();
+      const q = normalizarBusca(bruto);
+      // relê os tópicos a cada desenho (pode ter acabado de criar um)
+      const topicos = (D.disciplinaPorId(state, disciplinaId).topicos || []).filter(function (t) { return !t.orfao; });
       const lista = topicos.filter(function (t) { return !q || normalizarBusca(t.nome).indexOf(q) >= 0; });
-      m.querySelector('#ass-lista').innerHTML = lista.map(function (t) {
-        return '<button type="button" class="assunto-opcao' + (t.id === selecionadoId ? ' selecionado' : '') + '" data-assunto="' + esc(t.id) + '">' + esc(t.nome) + '</button>';
-      }).join('') || '<div class="estado-vazio" style="padding:1rem">Nenhum assunto encontrado.</div>';
+      const existeIgual = topicos.some(function (t) { return normalizarBusca(t.nome) === q; });
+      let html = lista.map(function (t) {
+        return '<button type="button" class="assunto-opcao' + (t.id === selecionadoId ? ' selecionado' : '') + '" data-assunto="' + esc(t.id) + '">' +
+          esc(t.nome) + (t.adicionadoPeloUsuario ? ' ' + tagNovo : '') + '</button>';
+      }).join('');
+      // se digitou algo que não existe, oferece criar como tópico novo
+      if (bruto && !existeIgual) {
+        html += '<button type="button" class="assunto-opcao assunto-criar" id="ass-criar">+ Adicionar “' + esc(bruto) + '” ' + tagNovo + '</button>';
+      }
+      if (!html) html = '<div class="estado-vazio" style="padding:1rem">Digite para buscar ou criar um assunto.</div>';
+      m.querySelector('#ass-lista').innerHTML = html;
       m.querySelectorAll('[data-assunto]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          aoEscolher(b.getAttribute('data-assunto'));
-          fecharModal();
-        });
+        b.addEventListener('click', function () { escolher(b.getAttribute('data-assunto')); });
+      });
+      const criar = m.querySelector('#ass-criar');
+      if (criar) criar.addEventListener('click', function () {
+        const id = adicionarTopicoUsuario(disciplinaId, bruto);
+        if (id) { toast('Assunto “' + bruto + '” adicionado à disciplina.', 'sucesso'); escolher(id); }
       });
     }
     m.querySelector('#ass-fechar').addEventListener('click', fecharModal);
@@ -2015,7 +2052,7 @@
       const atualizarAssunto = function () {
         const t = selTop && selTop.value ? D.topicoPorId(state, selTop.value) : null;
         // o nome do assunto escolhido fica DENTRO da própria caixa, não embaixo
-        if (assuntoBtn) assuntoBtn.innerHTML = (t ? esc(t.nome) : 'Adicionar assunto') +
+        if (assuntoBtn) assuntoBtn.innerHTML = (t ? esc(t.nome) + (t.adicionadoPeloUsuario ? ' <span class="badge-novo">novo</span>' : '') : 'Adicionar assunto') +
           ' <span class="timer-assunto-caret" aria-hidden="true">⌄</span>';
         if (assuntoBtn) assuntoBtn.classList.toggle('tem-assunto', !!t);
         if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
