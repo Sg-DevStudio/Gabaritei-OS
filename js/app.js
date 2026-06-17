@@ -8393,7 +8393,7 @@
 
   const recuperado = window.Timer.recuperar();
   if (recuperado) {
-    toast('Timer recuperado — sua sessão de ' + window.Timer.formatar(recuperado.decorridoMs) + ' continua valendo.', 'sucesso');
+    toast('Timer recuperado em ' + window.Timer.formatar(recuperado.decorridoMs) + ' (pausado) — toque em retomar para continuar.', 'sucesso');
     if (!location.hash || location.hash === '#hoje') location.hash = '#timer';
   }
   const estadoInicialTimer = window.Timer.estado();

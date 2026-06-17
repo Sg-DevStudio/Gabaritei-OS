@@ -72,6 +72,9 @@
   function ligarRelogio() {
     if (intervalo) clearInterval(intervalo);
     intervalo = setInterval(function () {
+      // marca o último instante "vivo": se a luz/internet cair, sabemos até quando
+      // o tempo realmente correu (a recuperação não conta o período offline).
+      if (interno && interno.rodando) interno.ultimoTickEm = Date.now();
       persistir();
       if (aoTick) aoTick(estado());
     }, 1000);
@@ -84,6 +87,7 @@
       topicoId: topicoId || null,
       modo: modo || 'cronometro',
       inicioEm: Date.now(),
+      ultimoTickEm: Date.now(),
       acumuladoMs: 0,
       rodando: true,
       pomoFase: 'foco',
@@ -108,6 +112,7 @@
   function retomar() {
     if (!interno || interno.rodando) return estado();
     interno.inicioEm = Date.now();
+    interno.ultimoTickEm = Date.now();
     interno.rodando = true;
     persistir();
     ligarRelogio();
@@ -134,7 +139,16 @@
       const bruto = localStorage.getItem(CHAVE);
       if (!bruto) return null;
       interno = JSON.parse(bruto);
-      if (interno.rodando) ligarRelogio();
+      // Se estava rodando ao fechar/cair (luz, internet, navegador), NÃO conta o
+      // tempo offline: volta PAUSADO no tempo do último tick conhecido, para a
+      // pessoa retomar exatamente de onde parou.
+      if (interno.rodando) {
+        const ate = interno.ultimoTickEm || interno.inicioEm || Date.now();
+        interno.acumuladoMs = (interno.acumuladoMs || 0) + Math.max(0, ate - (interno.inicioEm || ate));
+        interno.rodando = false;
+        interno.inicioEm = null;
+        persistir();
+      }
       return estado();
     } catch (e) {
       localStorage.removeItem(CHAVE);
