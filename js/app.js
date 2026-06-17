@@ -1663,7 +1663,6 @@
           sub = 'bloco da semana ' + item.semana;
           acoes = item.feito ? '' :
             '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
-            '<button class="botao-mini botao-quieto" data-acao="vincular-bloco" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '" data-inicio="' + esc(sem && sem.inicio ? sem.inicio : hoje) + '">Já estudei</button>' +
             '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '">Registrar</button>';
         } else {
           etiqueta = '<span class="etiqueta etiqueta-reaberto">Reaberto</span>';
@@ -7921,9 +7920,9 @@
   // ---------------- TELA: Mais (atalhos no celular) ----------------
   function telaMais() {
     const itens = [
-      ['#timer', 'Timer'],
       ['#stats', 'Desempenho'],
       ['#simulados', 'Simulados'],
+      ['#timer', 'Timer'],
       ['#ajustes', 'Configurações']
     ];
     return '<div class="card card-quieto mais-menu mais-menu-anima">' +
