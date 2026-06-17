@@ -4662,7 +4662,12 @@
       '</div></div>' +
       '<div class="grade-2">' +
       '<div><label>Janela da prova — início</label><input id="ee-janela-ini" type="month" value="' + esc(e.janelaProva.inicio) + '"></div>' +
-      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>';
+      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>' +
+      '<div class="grade-3">' +
+      '<div><label>Salário</label><input id="ee-salario" type="text" value="' + esc(e.salario || '') + '" placeholder="Ex.: R$ 5.878,82"></div>' +
+      '<div><label>Vagas</label><input id="ee-vagas" type="text" value="' + esc(e.vagas || '') + '" placeholder="Ex.: 228 + CR"></div>' +
+      '<div><label>Benefícios</label><input id="ee-beneficios" type="text" value="' + esc(e.beneficios || '') + '" placeholder="Ex.: VR, plano de saúde"></div>' +
+      '</div>';
 
     h += '<div class="ee-foto-campo"><label>Foto / capa do plano (aparece na aba Planos)</label>' +
       '<div class="ee-foto-linha">' +
@@ -4720,6 +4725,9 @@
     e.tipoCorte = 'ampla';
     e.janelaProva.inicio = val('#ee-janela-ini');
     e.janelaProva.fim = val('#ee-janela-fim');
+    e.salario = val('#ee-salario').trim();
+    e.vagas = val('#ee-vagas').trim();
+    e.beneficios = val('#ee-beneficios').trim();
     const chk = body.querySelector('#ee-emalta');
     e.emAlta = !!(chk && chk.checked);
     body.querySelectorAll('.ed-d-nome').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].nome = inp.value; });
