@@ -2659,6 +2659,17 @@ body.arrastando-toque .agenda-dia.drop-alvo { outline: 2px dashed var(--caneta);
 @media (max-width: 720px) {
   .stats-linha-graficos { grid-template-columns: 1fr; }
 }
+/* Tablets em retrato (ex.: iPad Air 820px, iPad Pro 11" 834px): largura acima do
+   breakpoint mobile (760px), mas estreita demais para o layout desktop de várias
+   colunas. Empilha planejamento, calendário semanal e gráficos — como no mobile.
+   Laptops e tablet em paisagem (>900px) seguem com o layout de colunas. */
+@media (max-width: 900px) {
+  .planejamento-layout, .planejamento-config-panel { grid-template-columns: 1fr; }
+  .agenda-grid { grid-template-columns: 1fr; }
+  .agenda-dia { min-height: 0; }
+  .agenda-dia:empty { display: none; }
+  .stats-linha-graficos { grid-template-columns: 1fr; }
+}
 .grafico-scroll {
   overflow: hidden;
 }
