@@ -164,7 +164,15 @@
   function publicarCatalogoAdmin(opcoes) {
     opcoes = opcoes || {};
     if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
-    const editais = (state.editais || []).filter(function (e) { return !e.arquivado; }).map(limparEditalParaCatalogo);
+    // Publica a UNIÃO do catálogo global atual com os editais do perfil (por id),
+    // com o perfil tendo prioridade. Sem isso, salvar/editar UM edital republicava
+    // só o state.editais e APAGAVA os demais que existiam apenas no catálogo global.
+    // opcoes.removerId permite excluir um edital específico da publicação.
+    const porId = new Map();
+    (catalogoGlobalEditais || []).forEach(function (e) { if (!e.arquivado) porId.set(e.id, limparEditalParaCatalogo(e)); });
+    (state.editais || []).forEach(function (e) { if (!e.arquivado) porId.set(e.id, limparEditalParaCatalogo(e)); });
+    if (opcoes.removerId) porId.delete(opcoes.removerId);
+    const editais = Array.from(porId.values());
     // PROTEÇÃO CRÍTICA: nunca sobrescrever o catálogo global com uma lista vazia.
     // Era isso que zerava o catálogo de todos — no login/modo exemplo o state era
     // resetado para vazio e um publish automático gravava editais:[] por cima.
@@ -3636,7 +3644,7 @@
       '<div class="compact-actions">' +
       '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
       '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">' + (global ? 'Personalizar' : 'Editar') + '</button>' +
-      (global ? '' : '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button>') + '</div></div>';
+      '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button>' + '</div></div>';
   }
 
   function pedidosEditalHtml() {
@@ -3972,12 +3980,18 @@
     });
     raiz.querySelectorAll('[data-ed-excluir]').forEach(function (b) {
       b.addEventListener('click', function () {
-        const e = state.editais.find(function (x) { return x.id === b.getAttribute('data-ed-excluir'); });
+        const id = b.getAttribute('data-ed-excluir');
+        // o edital pode estar só no catálogo global (não no perfil) — procura nos dois
+        const e = (state.editais || []).find(function (x) { return x.id === id; }) ||
+          (catalogoGlobalEditais || []).find(function (x) { return x.id === id; });
         if (!e) return;
-        confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
+        confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido do catálogo global. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
           if (!ok) return;
-          state.editais = state.editais.filter(function (x) { return x.id !== e.id; });
-          salvar(); publicarCatalogoAdmin({ toast: true, permitirVazio: true }).finally(render);
+          // remove do perfil e do catálogo global em memória; publicarCatalogoAdmin
+          // republica a união já sem ele (removerId garante a exclusão).
+          state.editais = (state.editais || []).filter(function (x) { return x.id !== id; });
+          catalogoGlobalEditais = (catalogoGlobalEditais || []).filter(function (x) { return x.id !== id; });
+          salvar(); publicarCatalogoAdmin({ toast: true, permitirVazio: true, removerId: id }).finally(render);
           toast('Edital excluído');
         });
       });
