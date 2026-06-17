@@ -1920,9 +1920,11 @@ td.num, th.num { text-align: right; }
 .gp-pp-disc.aberta .gp-pp-caret { transform: rotate(180deg); }
 .gp-pp-corpo { padding: 0.2rem 0.7rem 0.6rem; border-top: 1px solid var(--linha); }
 .gp-pp-bulk { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; font-size: 0.8rem; color: var(--tinta-fraca, #9A9DA3); margin: 0.5rem 0; }
-.gp-pp-top { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; }
-.gp-pp-top-nome { flex: 1; min-width: 0; font-size: 0.9rem; }
-.gp-pp-sel { flex: 0 0 auto; }
+/* nome do tópico em cima (linha inteira) e o select embaixo (linha inteira):
+   no mobile o layout lado a lado espremia o nome numa coluna e quebrava letra a letra. */
+.gp-pp-top { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.45rem 0; border-top: 1px dashed var(--linha); }
+.gp-pp-top-nome { font-size: 0.88rem; line-height: 1.3; color: var(--tinta); overflow-wrap: anywhere; }
+.gp-pp-sel { width: 100%; max-width: 100%; box-sizing: border-box; }
 
 .gp-nav { justify-content: space-between; align-items: center; }
 .gp-nav #gp-cancelar { margin-right: auto; }
