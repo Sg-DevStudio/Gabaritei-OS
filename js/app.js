@@ -1663,7 +1663,6 @@
           sub = 'bloco da semana ' + item.semana;
           acoes = item.feito ? '' :
             '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
-            '<button class="botao-mini botao-quieto" data-acao="vincular-bloco" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '" data-inicio="' + esc(sem && sem.inicio ? sem.inicio : hoje) + '">Já estudei</button>' +
             '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '">Registrar</button>';
         } else {
           etiqueta = '<span class="etiqueta etiqueta-reaberto">Reaberto</span>';
@@ -3855,7 +3854,10 @@
       notaCorte: amplaFinal != null ? amplaFinal : (corte != null ? Math.max(0, Math.min(100, parseInt(corte, 10) || 0)) : null),
       tipoCorte: 'ampla',
       janelaProva: { inicio: (jp.inicio || '').toString(), fim: (jp.fim || '').toString() },
-      emAlta: !!(json.em_alta || json.emAlta)
+      emAlta: !!(json.em_alta || json.emAlta),
+      salario: (json.salario || json.remuneracao || '').toString().trim(),
+      beneficios: (json.beneficios || '').toString().trim(),
+      vagas: (json.vagas != null ? json.vagas : (json.vagas_ultimo_edital != null ? json.vagas_ultimo_edital : '')).toString().trim()
     };
   }
 
@@ -3907,7 +3909,9 @@
       titulo: titulo, banca: banca, orgao: orgao, cargo: cargo, area: meta.area || '',
       estado: estado, nivel: meta.nivel || '', notaCorte: corte, tipoCorte: meta.tipoCorte || 'ampla',
       cortes: meta.cortes || { ampla: corte, negros: null, pcd: null },
-      janelaProva: meta.janelaProva, emAlta: meta.emAlta, disciplinas: disciplinas
+      janelaProva: meta.janelaProva, emAlta: meta.emAlta,
+      salario: meta.salario || '', beneficios: meta.beneficios || '', vagas: meta.vagas || '',
+      disciplinas: disciplinas
     });
   }
 
@@ -4040,7 +4044,7 @@
       '<div class="catalogo-metricas">' +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Prova', esc(janelaProvaTexto(e))) +
+      metrica('Data estimada', esc(janelaProvaTexto(e))) +
       metrica('Tempo médio', '~' + tempoMedioMesesEdital(e) + ' meses') +
       '</div>' +
       '<div class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</div>' +
@@ -4068,7 +4072,7 @@
       '<div class="catalogo-metricas">' +
       metrica('Corte', esc(rotuloCorteEdital(e))) +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Prova', esc(janelaProvaTexto(e))) +
+      metrica('Data estimada', esc(janelaProvaTexto(e))) +
       '</div>' +
       '<div class="catalogo-acoes">' +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e incidências">Detalhes</button>' +
@@ -4367,6 +4371,13 @@
   function abrirDetalhesEdital(id) {
     const e = editalPorId(id);
     if (!e) return;
+    function caraterLabel(c) {
+      if (c === 'eliminatoria') return 'Eliminatória';
+      if (c === 'classificatoria') return 'Classificatória';
+      if (c === 'eliminatoria_classificatoria' || c === 'ambas') return 'Elim. + Class.';
+      return '—';
+    }
+    // Nível 2 — detalhamento por disciplina (tópicos · incidência · horas)
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
       const linhas = tops.map(function (t) {
@@ -4378,19 +4389,50 @@
         '<span class="sub">peso ' + (d.peso || 1) + ' · ' + (d.topicos || []).length + ' tópicos</span></div>' +
         '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">Incid.</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
     }).join('');
+    // Nível 1 — visão geral: disciplinas, peso, caráter e nota mínima
+    const visaoLinhas = (e.disciplinas || []).map(function (d) {
+      const cor = /^#/.test(d.cor || '') ? d.cor : '#6B7180';
+      const min = (d.nota_minima_pct != null && d.nota_minima_pct !== '') ? d.nota_minima_pct + '%' : '—';
+      return '<tr>' +
+        '<td><span class="tag-disc" style="background:' + esc(cor) + '22;color:' + esc(cor) + '">' + esc(d.nome) + '</span></td>' +
+        '<td class="num">' + (d.peso || 1) + '</td>' +
+        '<td>' + esc(caraterLabel(d.carater)) + '</td>' +
+        '<td class="num">' + min + '</td></tr>';
+    }).join('');
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
-    const m = abrirModal('<h3>' + esc(e.titulo) + '</h3>' +
+    const m = abrirModal('<h3 class="detalhe-titulo">' + esc(e.titulo) + '</h3>' +
       '<p class="sub">' + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
       '<div class="catalogo-metricas" style="margin:0.5rem 0">' +
+      (e.area ? metrica('Área', esc(e.area)) : '') +
       metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Prova', esc(janelaProvaTexto(e))) +
+      metrica('Data estimada', esc(janelaProvaTexto(e))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
+      (e.salario ? metrica('Salário', esc(e.salario)) : '') +
+      (e.vagas != null && e.vagas !== '' ? metrica('Vagas', esc(e.vagas)) : '') +
       '</div>' +
-      '<div class="detalhe-discs">' + discHtml + '</div>' +
+      // Nível 1: visão geral (abre primeiro)
+      '<div id="det-visao">' +
+      (e.beneficios ? '<p class="sub" style="margin:0.1rem 0 0.5rem"><strong>Benefícios:</strong> ' + esc(e.beneficios) + '</p>' : '') +
+      '<p class="sub" style="margin:0.2rem 0 0.4rem">Visão geral das disciplinas. Toque em "Ver tópicos" para o detalhamento.</p>' +
+      '<table class="tabela-topicos"><thead><tr><th>Disciplina</th><th class="num">Peso</th><th>Caráter</th><th class="num">Nota mín.</th></tr></thead><tbody>' + visaoLinhas + '</tbody></table>' +
+      '<div class="compact-actions" style="margin-top:0.7rem"><button class="botao-mini botao-secundario" id="det-ver-topicos">Ver tópicos e detalhes →</button></div>' +
+      '</div>' +
+      // Nível 2: detalhamento (oculto até o usuário avançar)
+      '<div id="det-detalhes" class="detalhe-discs oculto">' +
+      '<div class="compact-actions" style="margin-bottom:0.6rem"><button class="botao-mini botao-quieto" id="det-voltar-visao">← Visão geral</button></div>' +
+      discHtml + '</div>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
       '<button id="det-iniciar">Iniciar plano</button></div>');
     m.classList.add('modal-amplo');
+    const visao = m.querySelector('#det-visao');
+    const detalhes = m.querySelector('#det-detalhes');
+    m.querySelector('#det-ver-topicos').addEventListener('click', function () {
+      visao.classList.add('oculto'); detalhes.classList.remove('oculto');
+    });
+    m.querySelector('#det-voltar-visao').addEventListener('click', function () {
+      detalhes.classList.add('oculto'); visao.classList.remove('oculto');
+    });
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
   }
@@ -4495,7 +4537,7 @@
     return { id: '', nome: '', cor: '#3B82F6', peso: 1, dificuldade: 'media', base_teorica: 'pdf', topicos: [topicoEmBranco()] };
   }
   function editalEmBranco() {
-    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', cortes: { ampla: 70, negros: null, pcd: null }, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, disciplinas: [] };
+    return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', cortes: { ampla: 70, negros: null, pcd: null }, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, salario: '', beneficios: '', vagas: '', disciplinas: [] };
   }
 
   const LISTAS_CORTE = { ampla: 'Ampla concorrência', negros: 'Cota negros', pcd: 'Cota PcD', indigenas: 'Cota indígenas' };
@@ -4550,6 +4592,9 @@
       return {
         id: d.id || '', nome: d.nome || '', cor: d.cor || '#3B82F6', peso: d.peso || 1,
         dificuldade: d.dificuldade || 'media', base_teorica: d.base_teorica || 'pdf',
+        // visão geral do edital: caráter e nota mínima por disciplina (opcionais)
+        carater: d.carater || '',
+        nota_minima_pct: (d.nota_minima_pct != null && d.nota_minima_pct !== '') ? d.nota_minima_pct : null,
         topicos: (d.topicos || []).map(function (t) {
           return {
             id: t.id || '', nome: t.nome || '', incidencia_pct: t.incidencia_pct || 0,
@@ -4761,6 +4806,7 @@
         cortes: dadosImport.cortes || { ampla: dadosImport.notaCorte, negros: null, pcd: null },
         janelaProva: dadosImport.janelaProva || { inicio: '', fim: '' },
         emAlta: !!dadosImport.emAlta,
+        salario: dadosImport.salario || '', beneficios: dadosImport.beneficios || '', vagas: dadosImport.vagas || '',
         disciplinas: dadosImport.disciplinas
       });
     } else if (editalId) {
@@ -4802,6 +4848,7 @@
       estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte),
       cortes: e.cortes || { ampla: e.notaCorte, negros: null, pcd: null }, emAlta: e.emAlta,
       foto: e.foto || '',
+      salario: e.salario || '', beneficios: e.beneficios || '', vagas: e.vagas || '',
       arquivado: !!e.arquivado, janelaProva: { inicio: e.janelaProva.inicio || '', fim: e.janelaProva.fim || '' },
       disciplinas: disciplinas
     };
@@ -7921,9 +7968,9 @@
   // ---------------- TELA: Mais (atalhos no celular) ----------------
   function telaMais() {
     const itens = [
-      ['#timer', 'Timer'],
       ['#stats', 'Desempenho'],
       ['#simulados', 'Simulados'],
+      ['#timer', 'Timer'],
       ['#ajustes', 'Configurações']
     ];
     return '<div class="card card-quieto mais-menu mais-menu-anima">' +
