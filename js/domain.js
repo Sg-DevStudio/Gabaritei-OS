@@ -737,7 +737,17 @@
          .replace(/ matematica /g, ' raciocinio logico ')
          .replace(/ rlm /g, ' raciocinio logico ')
          .replace(/ informatica /g, ' informatica ')
-         .replace(/ rh /g, ' recursos humanos ');
+         .replace(/ rh /g, ' recursos humanos ')
+         // Sinônimos jurídicos/temáticos comuns: a mesma matéria aparece com
+         // nomes/siglas diferentes entre bancas. Canoniza para o mesmo termo para
+         // que tópicos equivalentes casem (Jaccard) mesmo redigidos de outro jeito.
+         .replace(/ (cf|cf88|crfb|constituicao da republica|constituicao federal) /g, ' constituicao federal ')
+         .replace(/ (rju|regime juridico unico) /g, ' regime juridico servidores ')
+         .replace(/ cpc /g, ' codigo processo civil ')
+         .replace(/ cpp /g, ' codigo processo penal ')
+         .replace(/ clt /g, ' consolidacao leis trabalho ')
+         .replace(/ lgpd /g, ' protecao dados pessoais ')
+         .replace(/ improbidade /g, ' improbidade administrativa ');
     const set = {};
     n.trim().split(' ').forEach(function (w) { if (w && w.length > 1 && !stop[w]) set[w] = true; });
     // Tópicos curtos (ex.: "LGPD", "Lei 8.112") podem ficar sem tokens após a
@@ -869,12 +879,17 @@
       });
 
       // Mesmo quando os tópicos são redigidos de forma diferente, compartilhar a
-      // disciplina já transfere boa parte do estudo. Por isso aplicamos um piso:
-      // o conteúdo em comum nunca fica abaixo de 50% da menor carga da disciplina.
+      // disciplina já transfere boa parte do estudo. Por isso aplicamos um piso de
+      // conteúdo em comum proporcional à FORÇA do casamento da disciplina:
+      //  • casamento forte (mesma matéria, sim ≥ 0.8) → piso 70%;
+      //  • casamento normal (sim ≥ 0.5) → piso 50%.
+      // Assim editais da mesma área (ex.: dois "Téc. Judiciário Adm.") deixam de ser
+      // subestimados só porque as bancas redigem os tópicos com palavras diferentes.
+      const piso = melhorSim >= 0.8 ? 0.7 : 0.5;
       const menorHorasDisc = Math.min(dA.horas, dB.horas);
       const alinhamento = menorHorasDisc > 0 ? horasParesT / menorHorasDisc : 0;
-      horasComuns += menorHorasDisc * Math.max(alinhamento, 0.5);
-      topicosComuns += Math.max(paresT, Math.round(Math.min(dA.topicos.length, dB.topicos.length) * 0.5));
+      horasComuns += menorHorasDisc * Math.max(alinhamento, piso);
+      topicosComuns += Math.max(paresT, Math.round(Math.min(dA.topicos.length, dB.topicos.length) * piso));
     });
 
     horasComuns = Math.round(horasComuns);
