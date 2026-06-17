@@ -10,7 +10,7 @@
   "estado": "BR",
   "nivel": "tecnico",
   "escolaridade": "tecnico",
-  "nota_corte_sugerida_pct": 57,
+  "nota_corte_sugerida_pct": 72,
   "lista_corte": "ampla",
   "janela_prova": {
     "inicio": "2024-03",
@@ -22,10 +22,10 @@
     "Prova objetiva Cebraspe: 100 itens de certo/errado, sendo 40 de conhecimentos básicos e 60 de conhecimentos específicos.",
     "Minimos eliminatorios do edital: 8 pontos em P1, 18 pontos em P2 e 30 pontos no conjunto das provas objetivas.",
     "As incidências abaixo organizam o estudo a partir do edital e da estrutura da prova; devem ser recalibradas quando houver estatistica consolidada por questão da prova de Operação.",
-    "Meta sugerida de 57% registrada a partir da informação atual trazida pelo usuário e da lista extraoficial Rankei de convocacoes; o resultado final original dentro das vagas ficou acima disso."
+    "Meta sugerida de 72% adotada a partir do corte oficial de ampla concorrência dos polos Sudeste e Sul no resultado final do Cebraspe (Ipojuca ficou em 73%). A lista extraoficial Rankei de convocação aponta referência atual aproximada de 57%, registrada abaixo apenas como contexto."
   ],
   "notas_corte_ultimo_nomeado": {
-    "escala": "nota final objetiva de 0 a 100; a meta sugerida de 57 pontos representa referência atual aproximada de convocação para Operação informada pelo usuário/Rankei; os cortes por polo abaixo usam a classificação do resultado final publicado pelo Cebraspe para contextualizacao.",
+    "escala": "nota final objetiva de 0 a 100; a meta sugerida (72) usa o corte oficial de ampla concorrência dos polos Sudeste e Sul no resultado final do Cebraspe; a convocação extraoficial Rankei (~57) fica abaixo apenas como referência atual aproximada.",
     "convocacao_atual_operacao": {
       "geral_aproximada": 57,
       "geral_pct": 57,
