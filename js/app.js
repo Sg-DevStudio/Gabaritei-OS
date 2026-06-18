@@ -5690,8 +5690,11 @@
   // Controle do modo aprofundamento no card do plano. NÃO há ativação manual: o
   // modo é proposto automaticamente quando o aluno conclui todo o cronograma
   // (ver talvezConvidarAprofundamento). Aqui só mostramos o estado ativo + sair.
+  // A reta final SOBREPÕE o aprofundamento (foco oposto): nas últimas semanas o
+  // aprofundamento fica dormente e nem aparece aqui — quem manda é a reta final.
   function modoAprofundamentoControleHtml() {
     if (!(state.plano && state.plano.modoAprofundamento)) return '';
+    if (D.retaFinalInfo(state, D.hojeISO()).ativa) return '';
     return '<div class="modo-controle modo-controle-aprof-ativo">' +
       '<span class="modo-controle-txt">🎓 <strong>Modo aprofundamento ativo</strong> — foco em reter e aprofundar o que mais cai.</span>' +
       '<button type="button" class="botao-mini botao-quieto" id="pl-aprof-desativar">Desativar</button></div>';
