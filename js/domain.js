@@ -844,10 +844,12 @@
     // Casa cada disciplina de A com a melhor de B (similaridade de tokens), sem
     // reutilizar disciplinas. Disciplinas equivalentes contam como "em comum"
     // mesmo escritas de formas diferentes entre as bancas.
+    // (1) Disciplinas em comum (para exibir), casadas por similaridade de nome,
+    // sem reutilizar. Guarda também um PISO de reuso por disciplina: a MESMA
+    // matéria redigida de formas diferentes já transfere boa parte do estudo.
     const usadasB = {};
     const disciplinasComuns = [];
-    let topicosComuns = 0, horasComuns = 0;
-
+    let pisoTopicos = 0, pisoHoras = 0;
     discsA.forEach(function (dA) {
       let melhor = -1, melhorSim = SIM_DISC;
       discsB.forEach(function (dB, j) {
@@ -859,36 +861,37 @@
       usadasB[melhor] = true;
       const dB = discsB[melhor];
       disciplinasComuns.push(dA.nome);
+      //  • casamento forte (mesma matéria, sim ≥ 0.8) → piso 70%;
+      //  • casamento normal (sim ≥ 0.5) → piso 50%.
+      const piso = melhorSim >= 0.8 ? 0.7 : 0.5;
+      pisoTopicos += Math.round(Math.min(dA.topicos.length, dB.topicos.length) * piso);
+      pisoHoras += Math.min(dA.horas, dB.horas) * piso;
+    });
 
-      // Dentro de uma disciplina compartilhada, casa tópicos por similaridade.
-      const usadosT = {};
-      let paresT = 0, horasParesT = 0;
+    // (2) Tópicos em comum medidos GLOBALMENTE — compara os tópicos dos DOIS
+    // editais inteiros, não só dentro das disciplinas de mesmo nome. Conteúdo
+    // igual em disciplinas com títulos diferentes também conta (faz muita
+    // diferença). Casa cada tópico de A com o melhor tópico ainda livre de B.
+    const topicosB = [];
+    discsB.forEach(function (dB) { (dB.topicos || []).forEach(function (tB) { topicosB.push(tB); }); });
+    const usadosTB = {};
+    let paresGlobais = 0, horasGlobais = 0;
+    discsA.forEach(function (dA) {
       dA.topicos.forEach(function (tA) {
         let achou = -1, simT = SIM_TOP;
-        dB.topicos.forEach(function (tB, k) {
-          if (usadosT[k]) return;
+        topicosB.forEach(function (tB, k) {
+          if (usadosTB[k]) return;
           const s = similaridadeTokens(tA.tokens, tB.tokens);
           if (s >= simT) { simT = s; achou = k; }
         });
-        if (achou >= 0) { usadosT[achou] = true; paresT++; horasParesT += Math.min(tA.horas, dB.topicos[achou].horas); }
+        if (achou >= 0) { usadosTB[achou] = true; paresGlobais++; horasGlobais += Math.min(tA.horas, topicosB[achou].horas); }
       });
-
-      // Mesmo quando os tópicos são redigidos de forma diferente, compartilhar a
-      // disciplina já transfere boa parte do estudo. Por isso aplicamos um piso de
-      // conteúdo em comum proporcional à FORÇA do casamento da disciplina:
-      //  • casamento forte (mesma matéria, sim ≥ 0.8) → piso 70%;
-      //  • casamento normal (sim ≥ 0.5) → piso 50%.
-      // Assim editais da mesma área (ex.: dois "Téc. Judiciário Adm.") deixam de ser
-      // subestimados só porque as bancas redigem os tópicos com palavras diferentes.
-      const piso = melhorSim >= 0.8 ? 0.7 : 0.5;
-      const menorHorasDisc = Math.min(dA.horas, dB.horas);
-      const alinhamento = menorHorasDisc > 0 ? horasParesT / menorHorasDisc : 0;
-      horasComuns += menorHorasDisc * Math.max(alinhamento, piso);
-      topicosComuns += Math.max(paresT, Math.round(Math.min(dA.topicos.length, dB.topicos.length) * piso));
     });
 
-    horasComuns = Math.round(horasComuns);
-    topicosComuns = Math.min(topicosComuns, Math.min(totalA, totalB));
+    // (3) Conteúdo em comum = o MAIOR entre a medição global de tópicos e o piso
+    // por disciplina. Evita duplo-contar e não subestima nenhum dos dois sinais.
+    let topicosComuns = Math.min(Math.min(totalA, totalB), Math.max(paresGlobais, pisoTopicos));
+    let horasComuns = Math.round(Math.max(horasGlobais, pisoHoras));
     const exclusivosA = Math.max(0, totalA - topicosComuns);
     const exclusivosB = Math.max(0, totalB - topicosComuns);
 
