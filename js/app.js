@@ -4542,7 +4542,7 @@
 
   function vereditoConciliacaoHtml(res) {
     const cores = { alta: 'verde', moderada: 'amarelo', baixa: 'alerta', nao_recomendado: 'vermelho' };
-    const rotulos = { alta: 'Compatibilidade alta', moderada: 'Compatibilidade moderada', baixa: 'Compatibilidade baixa', nao_recomendado: 'Não recomendado' };
+    const rotulos = { alta: '✅ Compatibilidade alta', moderada: '🟡 Compatibilidade moderada', baixa: '🟠 Compatibilidade baixa', nao_recomendado: '⛔ Não recomendado' };
     const d = res.detalhes;
     function item(rot, val) { return '<div><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></div>'; }
     const comuns = (d.disciplinasComuns || []).map(function (x) {
