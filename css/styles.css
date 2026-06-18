@@ -779,6 +779,35 @@ input, select, textarea {
 
 input[type="number"] { font-family: var(--fonte-mono); }
 input[type="color"] { padding: 0.2rem; min-height: 44px; cursor: pointer; }
+
+/* Caixas de data/mês: o input nativo parece "velho". Aqui alinhamos ao tema —
+   ícone do calendário recolorido/realçado no hover, cursor de clique e accent. */
+input[type="date"], input[type="month"] {
+  font-family: var(--fonte-ui);
+  cursor: pointer;
+  accent-color: var(--caneta);
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0.2rem;
+  margin-left: 0.25rem;
+  border-radius: 6px;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+input[type="date"]:hover::-webkit-calendar-picker-indicator,
+input[type="month"]:hover::-webkit-calendar-picker-indicator,
+input[type="date"]:focus::-webkit-calendar-picker-indicator,
+input[type="month"]:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  background: var(--caneta-suave);
+}
+/* No tema escuro o ícone nativo é escuro e some no fundo — inverte para claro. */
+[data-tema="escuro"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-tema="escuro"] input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.6);
+}
 textarea { min-height: 70px; resize: vertical; }
 input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline: none; box-shadow: 0 0 0 3px var(--caneta-suave); }
 
