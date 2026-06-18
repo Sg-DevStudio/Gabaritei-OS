@@ -1083,6 +1083,20 @@
     return { prazo: prazo, totalTopicos: totalTopicos, prontos: prontos, emRisco: emRisco, revisoesForaDoPrazo: revisoesForaDoPrazo, pct: pct };
   }
 
+  // ---------- Modo reta final ----------
+  // Nas últimas semanas antes da prova, o foco deixa de ser "ver matéria nova" e
+  // passa a ser consolidar: questões, simulados e revisão do que mais cai.
+  const SEMANAS_RETA_FINAL = 6;
+  function retaFinalInfo(state, hoje) {
+    const prazo = prazoProva(state);
+    if (!prazo) return { ativa: false, semanas: null, prazo: null };
+    hoje = hoje || hojeISO();
+    const dias = diffDias(hoje, prazo);
+    if (dias <= 0) return { ativa: false, passou: true, semanas: 0, dias: dias, prazo: prazo };
+    const semanas = Math.ceil(dias / 7);
+    return { ativa: semanas <= SEMANAS_RETA_FINAL, passou: false, semanas: semanas, dias: dias, prazo: prazo };
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -1286,7 +1300,7 @@
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
-    reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, streak, semaforo,
+    reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,

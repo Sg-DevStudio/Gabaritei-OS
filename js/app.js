@@ -1519,6 +1519,38 @@
       '</div>';
   }
 
+  // Banner do modo reta final: aparece nas últimas semanas antes da prova com
+  // foco em consolidar (questões, simulados, revisão do que mais cai e dos pontos
+  // fracos). Vazio quando não há prova marcada ou ainda está longe.
+  function retaFinalBannerHtml(hoje) {
+    if (!state.plano) return '';
+    const rf = D.retaFinalInfo(state, hoje);
+    if (!rf.ativa) return '';
+    const pr = D.prontidaoProva(state, hoje);
+    const fracos = D.pioresTopicos(state, 3);
+    const semTxt = rf.semanas <= 1 ? 'menos de 1 semana' : 'cerca de ' + rf.semanas + ' semanas';
+    let foco = '';
+    if (fracos.length) {
+      foco = '<div class="reta-final-fracos"><span class="reta-final-foco-rotulo">Treine questões dos seus pontos fracos:</span>' +
+        fracos.map(function (f) {
+          return '<button type="button" class="botao-mini reta-final-chip" data-acao="registrar" data-id="' + esc(f.topico.id) + '" data-tipo="questoes" title="Registrar questões de ' + esc(f.topico.nome) + '">' +
+            esc(nomeDiscCurto(f.disciplina.nome)) + ' · ' + esc(f.topico.nome) + ' (' + f.pct + '%)</button>';
+        }).join('') + '</div>';
+    } else {
+      foco = '<p class="reta-final-foco-rotulo">Priorize <strong>questões dos tópicos de maior incidência</strong> e simulados — é o que mais rende agora.</p>';
+    }
+    return '<div class="card reta-final-card">' +
+      '<div class="reta-final-cab"><span class="reta-final-emoji" aria-hidden="true">🏁</span>' +
+      '<div><h3>Reta final — falta ' + esc(semTxt) + '</h3>' +
+      '<p class="sub">Hora de <strong>consolidar</strong>: menos teoria nova, mais questões, simulados e revisão do que mais cai.' +
+      (pr ? ' Você está com <strong>' + pr.pct + '%</strong> dos tópicos revisados a tempo.' : '') + '</p></div></div>' +
+      foco +
+      '<div class="reta-final-acoes">' +
+      '<a class="botao-mini" href="#simulados">Fazer um simulado</a>' +
+      '<a class="botao-mini botao-quieto" href="#revisoes">Revisar o que vence</a></div>' +
+      '</div>';
+  }
+
   function telaHoje() {
     const hoje = D.hojeISO();
     const hora = new Date().getHours();
@@ -1627,6 +1659,9 @@
       '</div>';
 
     html += linksApoioHojeHtml();
+
+    // Modo reta final: nas últimas semanas, banner de foco em consolidação.
+    html += retaFinalBannerHtml(hoje);
 
     // versão mobile do card de data provável (acima do mapa de constância)
     if (provaCard) html += '<div class="prova-card-mobile">' + provaCard + '</div>';

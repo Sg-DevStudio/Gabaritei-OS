@@ -1090,6 +1090,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .etiqueta-rev-antecipada { background: var(--alerta-suave); color: var(--alerta); }
 .etiqueta-rev-espacada { background: var(--correto-suave); color: var(--correto); }
 
+/* Modo reta final (Hoje) */
+.reta-final-card { border: 1.5px solid var(--alerta, #B8860B); background: color-mix(in srgb, var(--alerta-suave, #FFF6E0) 70%, var(--papel-card)); }
+.reta-final-cab { display: flex; align-items: flex-start; gap: 0.7rem; }
+.reta-final-cab h3 { margin: 0 0 0.15rem; }
+.reta-final-emoji { font-size: 1.6rem; line-height: 1; }
+.reta-final-fracos { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.4rem 0.5rem; align-items: center; }
+.reta-final-foco-rotulo { font-weight: 700; font-size: 0.85rem; color: var(--grafite); margin: 0.8rem 0 0.2rem; display: block; width: 100%; }
+.reta-final-chip { background: var(--papel-elevado); }
+.reta-final-acoes { margin-top: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
 /* Aviso de rotina sem dias ativos (Planejamento) */
 .aviso-rotina {
   display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
