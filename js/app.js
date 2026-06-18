@@ -5505,6 +5505,7 @@
       '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
       avisoAtualizacao +
       '<div class="compact-actions plano-acoes-card">' +
+      '<button class="botao-mini" id="pl-acao-editar">Editar plano</button>' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
@@ -7190,6 +7191,12 @@
     if (ajustarPerfil) ajustarPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
 
     // ações do card "Plano atual": Edital · Perfil · Excluir
+    const acaoEditar = raiz.querySelector('#pl-acao-editar');
+    if (acaoEditar) acaoEditar.addEventListener('click', function () {
+      // reabre o assistente já preenchido com as escolhas atuais (sem novoPlanoId,
+      // então cancelar/fechar NÃO apaga o plano existente).
+      abrirGerarPlanoComRotina();
+    });
     const acaoEdital = raiz.querySelector('#pl-acao-edital');
     if (acaoEdital) acaoEdital.addEventListener('click', function () {
       if (location.hash !== '#edital') location.hash = '#edital'; else render();
