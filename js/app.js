@@ -6533,13 +6533,6 @@
         '<input data-rot-horas="' + d.id + '" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="' + formatarHorasDia(cfg.minutos || d.minutos) + '" aria-label="Horas de estudo em ' + d.label + ' (formato HH:MM)">' +
         '</label>';
     }).join('');
-    // Passo 1 — Ritmo: cartões qualitativos com o prazo ESTIMADO pelo tamanho do edital.
-    const prazoCards = ritmosCalc.map(function (p) {
-      return '<button type="button" class="gp-prazo-card' + (!temJanela && p === ritmoSel ? ' ativo' : '') + '" data-gp-meses="' + Math.max(1, Math.round(p.meses)) + '" data-gp-ritmo="' + esc(p.nome) + '">' +
-        '<span class="gp-prazo-ritmo">' + esc(p.nome) + '</span>' +
-        '<span class="gp-prazo-unid">estimativa ' + formatarEstimativaPrazo(p.semanas) + '</span>' +
-        '<span class="gp-prazo-nome">' + esc(p.dica) + '</span></button>';
-    }).join('');
 
     // Passo 3 — Dificuldade por disciplina (alimenta o algoritmo de distribuição de horas).
     const difHtml = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
@@ -6591,13 +6584,13 @@
       '<h3>Quais dias e quantas horas você estuda?</h3>' +
       '<p class="sub">Marque os dias e ajuste as horas. O total aparece em tempo real.</p>' +
       '<div class="rotina-dias">' + diasHtml + '</div>' +
-      '<div class="rotina-totais"><div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + formatarHorasSemana(totalAtual / 60) + '</div></div>' +
-      '<div><label>Total ideal</label><div class="rotina-total rotina-total-ideal" id="gp-total-ideal">' + formatarHorasSemana(idealAtual) + '</div></div></div>' +
-      '<p class="rotina-feedback" id="gp-feedback"></p>' +
-      '<label>Quanto tempo em cada disciplina por bloco? (mínimo e máximo)</label>' +
+      '<div class="rotina-totais"><div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + formatarHorasSemana(totalAtual / 60) + '</div></div></div>' +
+      '<label>Quanto tempo em cada disciplina por bloco?</label>' +
       '<p class="sub">Quanto tempo seguido você fica em uma mesma disciplina antes de trocar.</p>' +
-      '<div class="grade-2"><div><select id="gp-min-bloco">' + optsMin + '</select></div>' +
-      '<div><select id="gp-max-bloco">' + optsMax + '</select></div></div>' +
+      '<div class="gp-bloco-grade">' +
+      '<div class="gp-bloco-campo"><select id="gp-min-bloco">' + optsMin + '</select><span class="gp-bloco-rotulo">Mínimo</span></div>' +
+      '<div class="gp-bloco-campo"><select id="gp-max-bloco">' + optsMax + '</select><span class="gp-bloco-rotulo">Máximo</span></div>' +
+      '</div>' +
       '</section>' +
 
       // ---- Passo 2: dificuldade por disciplina ----
@@ -6619,7 +6612,7 @@
       '<div class="gp-pp-lista">' + (ppHtml || '<p class="sub">Nenhuma disciplina para configurar.</p>') + '</div>' +
       '</section>' +
 
-      // ---- Passo 4: prazo (data da prova / ritmo estimado) ----
+      // ---- Passo 4: prazo (projeção dinâmica: rotina + bagagem + data) ----
       '<section class="gp-step oculto" data-step="4">' +
       '<h3>Para quando é o seu objetivo?</h3>' +
       (temJanela
@@ -6627,11 +6620,10 @@
           'O plano vai se organizar para te deixar pronto até lá — teoria, revisões e questões no tempo certo. Tem informação mais precisa? Ajuste a data abaixo.</div>' +
           '<label for="gp-data-alvo">Data-alvo da prova</label>' +
           '<input id="gp-data-alvo" type="month" value="' + esc(janelaFim) + '">'
-        : '<div class="aviso aviso-info">Este concurso ainda não tem data definida. Você pode mirar em uma data específica ou seguir uma estimativa pelo seu ritmo — ideal para quem estuda no longo prazo.</div>' +
+        : '<div class="aviso aviso-info">Este concurso ainda não tem data definida. Se quiser, mire numa data; senão, seguimos no seu ritmo, focando em cobrir e reter o conteúdo.</div>' +
           '<label for="gp-data-alvo">Tem uma data em mente? (opcional)</label>' +
           '<input id="gp-data-alvo" type="month" value="">') +
-      '<label class="gp-prazo-ou">Ou siga um ritmo estimado pelo tamanho do edital:</label>' +
-      '<div class="gp-prazo-cards">' + prazoCards + '</div>' +
+      '<div class="gp-prazo-proj" id="gp-prazo-proj"></div>' +
       '<input type="hidden" id="gp-meses" value="' + mesesInicial + '">' +
       '</section>' +
 
@@ -6700,6 +6692,7 @@
       m.querySelector('#gp-voltar').classList.toggle('oculto', passo === 1);
       m.querySelector('#gp-proximo').classList.toggle('oculto', passo === TOTAL_PASSOS);
       m.querySelector('#gp-gerar').classList.toggle('oculto', passo !== TOTAL_PASSOS);
+      if (passo === 4) atualizarPrazoProjecao();
       if (passo === TOTAL_PASSOS) atualizarResumo();
     }
 
@@ -6769,35 +6762,71 @@
       });
     });
 
-    // Passo 4 — Prazo: cartões de ritmo OU data-alvo (um desativa o outro).
-    m.querySelectorAll('[data-gp-meses]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
-        m.querySelector('#gp-meses').value = b.getAttribute('data-gp-meses');
-        const dataAlvoEl = m.querySelector('#gp-data-alvo');
-        if (dataAlvoEl) dataAlvoEl.value = ''; // escolheu ritmo → abandona a data fixa
-        atualizarTotal();
+    // Passo 4 — Prazo: projeção dinâmica (rotina + bagagem + data).
+    // Esforço restante = horas dos tópicos AINDA não dominados (lê os selects do
+    // passo "O que já sei"), com folga de 1.8 para revisão/questões.
+    function esforcoRestanteHoras() {
+      const nivelPorTop = {};
+      m.querySelectorAll('.gp-pp-sel').forEach(function (s) { nivelPorTop[s.getAttribute('data-pp-top')] = s.value; });
+      let h = 0;
+      state.disciplinas.forEach(function (d) {
+        if (d.id === 'ORF') return;
+        (d.topicos || []).forEach(function (t) {
+          if (t.orfao) return;
+          const base = t.horas_estimadas || 2;
+          const nivel = nivelPorTop[t.id] || nivelConhDoStatus(t.status);
+          const fator = nivel === 'domino' ? 0.15 : nivel === 'estudei' ? 0.5 : 1;
+          h += base * fator;
+        });
       });
-    });
+      return h * 1.8;
+    }
+    function atualizarPrazoProjecao() {
+      const box = m.querySelector('#gp-prazo-proj');
+      if (!box) return;
+      const horasSem = totalMinutosRotina(rotinaDoModal()) / 60;
+      const esforco = esforcoRestanteHoras();
+      const dataAlvo = m.querySelector('#gp-data-alvo').value;
+      if (horasSem < 1 || esforco <= 0) {
+        box.className = 'gp-prazo-proj aviso aviso-alerta';
+        box.innerHTML = 'Marque pelo menos um dia de estudo na Rotina para eu calcular o prazo.';
+        return;
+      }
+      const semanas = esforco / horasSem;
+      const nMeses = Math.max(1, Math.round(semanas / 4.345));
+      // o plano segue a data da prova quando há; senão, o ritmo natural do aluno
+      m.querySelector('#gp-meses').value = dataAlvo ? mesesAteMes(dataAlvo) : nMeses;
+      const cabe = formatarHorasSemana(horasSem).replace(' na semana', 'h/sem').replace('h/semh/sem', 'h/sem');
+      const horasTxt = '<strong>' + (Math.round(horasSem * 10) / 10).toString().replace('.', ',') + 'h/sem</strong>';
+      let html = 'No seu ritmo de ' + horasTxt + ' e com o que você já marcou que sabe, você cobre todo o edital em <strong>~' + nMeses + (nMeses === 1 ? ' mês' : ' meses') + '</strong>.';
+      let classe = 'aviso-info';
+      if (dataAlvo) {
+        const ateProva = mesesAteMes(dataAlvo);
+        const folga = ateProva - nMeses;
+        if (folga >= 2) {
+          classe = 'aviso-ok';
+          html += '<br>✅ Isso fecha cerca de <strong>' + folga + ' meses antes</strong> de ' + esc(D.formatarMesBR(dataAlvo)) + ' — sobra tempo para revisar e fazer muitas questões. Dá até para aprofundar.';
+        } else if (folga >= 0) {
+          classe = 'aviso-info';
+          html += '<br>🟡 Dá para fechar <strong>em cima da prova</strong> (' + esc(D.formatarMesBR(dataAlvo)) + '). Toda semana conta — segure a constância.';
+        } else {
+          classe = 'aviso-alerta';
+          const horasNec = Math.ceil(esforco / Math.max(1, ateProva * 4.345));
+          html += '<br>🟠 No seu ritmo, o edital fecharia <strong>depois</strong> da prova. ' +
+            (horasNec <= 60
+              ? 'Para cobrir tudo até ' + esc(D.formatarMesBR(dataAlvo)) + ', estude <strong>~' + horasNec + 'h/sem</strong> (hoje são ' + Math.round(horasSem) + 'h) <strong>ou</strong> ataque primeiro a alta incidência (80/20) na próxima tela.'
+              : 'Não dá para cobrir <strong>todo</strong> o conteúdo a tempo — foque no <strong>essencial: ataque a alta incidência (80/20)</strong> na próxima tela e priorize o que mais cai.');
+        }
+      } else {
+        html += '<br>Sem data definida: seguimos no seu ritmo, focando em <strong>cobrir e reter</strong> o conteúdo. Quando a data sair, é só ajustar aqui.';
+      }
+      box.className = 'gp-prazo-proj aviso ' + classe;
+      box.innerHTML = html;
+    }
     const dataAlvoEl = m.querySelector('#gp-data-alvo');
     if (dataAlvoEl) {
-      function aplicarDataAlvo() {
-        if (dataAlvoEl.value) {
-          m.querySelector('#gp-meses').value = mesesAteMes(dataAlvoEl.value);
-          m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.remove('ativo'); });
-        } else {
-          // voltou a vazio → reativa o ritmo estimado padrão
-          const card = m.querySelector('[data-gp-meses="' + mesesAtual + '"]') || m.querySelector('[data-gp-meses]');
-          if (card) {
-            m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.toggle('ativo', x === card); });
-            m.querySelector('#gp-meses').value = card.getAttribute('data-gp-meses');
-          }
-        }
-        atualizarTotal();
-      }
-      dataAlvoEl.addEventListener('change', aplicarDataAlvo);
-      dataAlvoEl.addEventListener('input', aplicarDataAlvo);
-      if (temJanela && dataAlvoEl.value) m.querySelector('#gp-meses').value = mesesAteMes(dataAlvoEl.value);
+      dataAlvoEl.addEventListener('change', atualizarPrazoProjecao);
+      dataAlvoEl.addEventListener('input', atualizarPrazoProjecao);
     }
 
     // Passo 2 — botões de dificuldade por disciplina
@@ -6900,8 +6929,7 @@
         state.plano.radar = Object.assign({}, radarP, { janela_prova: [iniP, dataAlvo], confianca: 'manual' });
       }
       state.config.rotinaEstudos = rotinaNova;
-      const cardAtivo = m.querySelector('.gp-prazo-card.ativo');
-      const nomeRitmo = cardAtivo ? cardAtivo.getAttribute('data-gp-ritmo') : nomeRitmoPorMeses(entrada, meses);
+      const nomeRitmo = nomeRitmoPorMeses(entrada, meses);
       if (modoPlano === 'ciclo') {
         state.plano.ordemAtaque = ordemAtaque;
         state.plano.modoPlanejamento = 'ciclo';
