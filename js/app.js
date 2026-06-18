@@ -5392,18 +5392,14 @@
   }
 
   function blocoAgendaConcluido(bloco) {
+    // Cada bloco é concluído pela SUA própria marca (b.feito, posta no registro
+    // pela fila do Hoje ou pelo calendário) ou pelo tópico já estar concluído.
+    // NÃO usamos "existe sessão do tópico no dia": quando o cronograma divide o
+    // mesmo tópico em 2 blocos no mesmo dia (ex.: 1h15 + 45min), uma única sessão
+    // riscaria os dois de uma vez — o que confundia (1 check riscava 2 blocos).
     if (bloco.feito) return true;
     const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
-    if (t && (t.status === 'teoria_concluida' || t.status === 'dominado')) return true;
-    // Qualquer sessão registrada do mesmo tópico/tipo NO DIA do bloco também o
-    // conclui — assim registrar pela fila de Hoje risca o bloco no calendário.
-    if (bloco.topicoId) {
-      const tipo = bloco.obs === 'questoes' ? 'questoes' : bloco.obs === 'revisao' ? 'revisao' : 'teoria';
-      return D.sessoesDoPlano(state).some(function (s) {
-        return s.topicoId === bloco.topicoId && s.data === bloco.data && s.tipo === tipo;
-      });
-    }
-    return false;
+    return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
   }
 
   // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
