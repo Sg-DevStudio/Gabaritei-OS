@@ -1107,6 +1107,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .modo-controle .botao-mini { flex-shrink: 0; }
 .modo-lista { margin: 0.3rem 0 0.6rem; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.9rem; }
 .modo-lista li { line-height: 1.35; }
+.modo-controle-aprof-ativo .modo-controle-txt { color: var(--caneta-forte); }
+
+/* Banner do modo aprofundamento (Hoje) — reaproveita a estrutura do reta-final */
+.aprof-card { border: 1.5px solid var(--caneta, #2454D6); background: color-mix(in srgb, var(--caneta-suave, #E8EEFF) 60%, var(--papel-card)); }
 
 /* Aviso de rotina sem dias ativos (Planejamento) */
 .aviso-rotina {

@@ -1559,6 +1559,37 @@
       '</div>';
   }
 
+  // Banner do modo aprofundamento (Hoje). Aparece quando o aluno ativou o modo e
+  // a prova NÃO está na reta final (a reta final tem prioridade e foco oposto).
+  function aprofundamentoBannerHtml(hoje) {
+    if (!state.plano || !state.plano.modoAprofundamento) return '';
+    if (D.retaFinalInfo(state, hoje).ativa) return ''; // reta final assume
+    const prog = D.progressoEdital(state);
+    // tópicos de maior incidência ainda não dominados → onde aprofundar
+    const alvos = [];
+    state.disciplinas.forEach(function (d) {
+      if (d.id === 'ORF') return;
+      (d.topicos || []).forEach(function (t) {
+        if (t.orfao || t.status === 'dominado') return;
+        alvos.push({ t: t, d: d, inc: t.incidencia_pct || 0 });
+      });
+    });
+    alvos.sort(function (a, b) { return b.inc - a.inc; });
+    const chips = alvos.slice(0, 3).filter(function (x) { return x.inc > 0; }).map(function (x) {
+      return '<button type="button" class="botao-mini reta-final-chip" data-acao="registrar" data-id="' + esc(x.t.id) + '" data-tipo="questoes" title="Aprofundar ' + esc(x.t.nome) + ' com questões">' +
+        esc(nomeDiscCurto(x.d.nome)) + ' · ' + esc(x.t.nome) + (x.inc ? ' (' + x.inc + '%)' : '') + '</button>';
+    }).join('');
+    return '<div class="card aprof-card">' +
+      '<div class="reta-final-cab"><span class="reta-final-emoji" aria-hidden="true">🎓</span>' +
+      '<div><h3>Modo aprofundamento</h3>' +
+      '<p class="sub">Sem pressa de relógio: foque em <strong>cobrir o edital</strong> e <strong>reter</strong>. Já são <strong>' + prog.pct + '%</strong> de cobertura — depois de cobrir, aprofunde o que mais cai.</p></div></div>' +
+      (chips ? '<span class="reta-final-foco-rotulo">Aprofunde a alta incidência com questões:</span><div class="reta-final-fracos">' + chips + '</div>' : '') +
+      '<div class="reta-final-acoes">' +
+      '<a class="botao-mini" href="#revisoes">Revisar e fixar</a>' +
+      '<a class="botao-mini botao-quieto" href="#simulados">Treinar com simulado</a></div>' +
+      '</div>';
+  }
+
   function telaHoje() {
     const hoje = D.hojeISO();
     const hora = new Date().getHours();
@@ -1670,6 +1701,8 @@
 
     // Modo reta final: nas últimas semanas, banner de foco em consolidação.
     html += retaFinalBannerHtml(hoje);
+    // Modo aprofundamento (manual): foco em cobertura + retenção quando há tempo.
+    html += aprofundamentoBannerHtml(hoje);
 
     // versão mobile do card de data provável (acima do mapa de constância)
     if (provaCard) html += '<div class="prova-card-mobile">' + provaCard + '</div>';
@@ -5648,7 +5681,49 @@
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
       modoRetaFinalControleHtml() +
+      modoAprofundamentoControleHtml() +
       '</div>';
+  }
+
+  // Controle do modo aprofundamento dentro do card do plano (Planejamento).
+  // Reta final e aprofundamento são opostos: este só se oferece quando a reta
+  // final NÃO está ativa.
+  function modoAprofundamentoControleHtml() {
+    const ativo = !!(state.plano && state.plano.modoAprofundamento);
+    if (ativo) {
+      return '<div class="modo-controle modo-controle-aprof-ativo">' +
+        '<span class="modo-controle-txt">🎓 <strong>Modo aprofundamento ativo</strong> — foco em cobrir tudo, reter e aprofundar.</span>' +
+        '<button type="button" class="botao-mini botao-quieto" id="pl-aprof-desativar">Desativar</button></div>';
+    }
+    if (D.retaFinalInfo(state, D.hojeISO()).ativa) return ''; // reta final no comando
+    return '<div class="modo-controle">' +
+      '<span class="modo-controle-txt">🎓 Tem bastante tempo até a prova? O <strong>modo aprofundamento</strong> troca a corrida contra o relógio por cobertura, retenção e aprofundamento.</span>' +
+      '<button type="button" class="botao-mini botao-secundario" id="pl-aprof-ativar">Ativar modo aprofundamento</button></div>';
+  }
+
+  // Modal explicativo do modo aprofundamento (com confirmação).
+  function abrirModoAprofundamento() {
+    if (!state.plano) { toast('Crie ou ative um plano primeiro.', 'erro'); return; }
+    const m = abrirModal(
+      '<h3>🎓 Modo aprofundamento</h3>' +
+      '<p class="sub">Para quem tem <strong>bastante tempo até a prova</strong> (ou ainda sem data). Em vez de correr contra o relógio, o foco passa a ser:</p>' +
+      '<ul class="modo-lista">' +
+      '<li>📚 <strong>Cobrir todo o edital</strong> com calma, sem contagem regressiva pressionando.</li>' +
+      '<li>🔁 <strong>Reter de verdade</strong>: revisões espaçadas e questões nos pontos que mais caem.</li>' +
+      '<li>🎯 <strong>Aprofundar a alta incidência</strong>: depois de cobrir a base, dedicar tempo extra ao que mais aparece nas provas.</li>' +
+      '</ul>' +
+      '<p class="sub">No Hoje aparece um painel guiando esse foco em cobertura e retenção. Quando a prova se aproximar, é só desativar (ou o modo reta final assume). Quer continuar?</p>' +
+      '<div class="modal-acoes">' +
+      '<button type="button" class="botao-quieto" id="aprof-cancelar">Agora não</button>' +
+      '<button type="button" id="aprof-confirmar">Ativar modo aprofundamento</button></div>'
+    );
+    m.querySelector('#aprof-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#aprof-confirmar').addEventListener('click', function () {
+      state.plano.modoAprofundamento = true;
+      delete state.plano.modoRetaFinal; // modos opostos: um desliga o outro
+      salvar(); fecharModal(); render();
+      toast('Modo aprofundamento ativado 🎓', 'sucesso');
+    });
   }
 
   // Controle do modo reta final dentro do card do plano (Planejamento).
@@ -5687,6 +5762,7 @@
     m.querySelector('#reta-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#reta-confirmar').addEventListener('click', function () {
       state.plano.modoRetaFinal = true;
+      delete state.plano.modoAprofundamento; // modos opostos: um desliga o outro
       salvar(); fecharModal(); render();
       toast('Modo reta final ativado 🏁', 'sucesso');
     });
@@ -7474,6 +7550,12 @@
     const retaDesativar = raiz.querySelector('#pl-reta-desativar');
     if (retaDesativar) retaDesativar.addEventListener('click', function () {
       if (state.plano) { delete state.plano.modoRetaFinal; salvar(); render(); toast('Modo reta final desativado', 'sucesso'); }
+    });
+    const aprofAtivar = raiz.querySelector('#pl-aprof-ativar');
+    if (aprofAtivar) aprofAtivar.addEventListener('click', abrirModoAprofundamento);
+    const aprofDesativar = raiz.querySelector('#pl-aprof-desativar');
+    if (aprofDesativar) aprofDesativar.addEventListener('click', function () {
+      if (state.plano) { delete state.plano.modoAprofundamento; salvar(); render(); toast('Modo aprofundamento desativado', 'sucesso'); }
     });
     const atualizarEd = raiz.querySelector('#pl-atualizar-edital');
     if (atualizarEd) atualizarEd.addEventListener('click', function () {
