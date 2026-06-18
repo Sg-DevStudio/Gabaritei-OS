@@ -25,6 +25,21 @@
     window.Store.salvar(state, { marcarAlterado: false });
   }
   limparPlanosRascunho();
+  // Migração: planos combinados criados ANTES de ocultoNoCatalogo deixaram o
+  // edital-combinado visível na vitrine da aba Planos. Marca-os retroativamente
+  // (o edital de origem de um plano `combinado` é um artefato do plano, não do
+  // catálogo). Roda só uma vez — depois é no-op.
+  function marcarCombinadosOcultos() {
+    if (!state || !Array.isArray(state.planos) || !Array.isArray(state.editais)) return;
+    let mudou = false;
+    state.planos.forEach(function (p) {
+      if (!p || !p.plano || !p.plano.combinado || !p.plano.origemEditalId) return;
+      const ed = state.editais.find(function (e) { return e && e.id === p.plano.origemEditalId; });
+      if (ed && !ed.ocultoNoCatalogo) { ed.ocultoNoCatalogo = true; mudou = true; }
+    });
+    if (mudou) window.Store.salvar(state, { marcarAlterado: false });
+  }
+  marcarCombinadosOcultos();
   // Modo exemplo: deixa visitantes sem login explorarem com um plano de demonstração.
   // Tudo fica só em memória — nada é persistido nem sincronizado.
   let modoDemo = false;
