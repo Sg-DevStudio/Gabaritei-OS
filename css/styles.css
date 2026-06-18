@@ -1854,6 +1854,12 @@ td.num, th.num { text-align: right; }
 .gp-step h3 { margin: 0 0 0.3rem; }
 .gp-step > .sub { margin-top: 0; }
 
+/* Tempo por bloco: as duas caixas (mín/máx) ficam SEMPRE lado a lado, inclusive
+   no celular, com um rótulo em negrito abaixo de cada uma. */
+.gp-bloco-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-top: 0.4rem; }
+.gp-bloco-campo { display: flex; flex-direction: column; }
+.gp-bloco-rotulo { display: block; text-align: center; font-weight: 700; color: var(--grafite); margin-top: 0.35rem; font-size: 0.85rem; }
+
 .gp-prazo-ou { display: block; margin-top: 1.1rem; font-weight: 700; color: var(--grafite); }
 .gp-prazo-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-top: 0.6rem; }
 @media (max-width: 560px) { .gp-prazo-cards { grid-template-columns: 1fr; } }
@@ -2525,6 +2531,9 @@ html[data-tema="escuro"] .mes-evento {
 .aviso-alerta { background: var(--alerta-suave); color: var(--alerta); border-color: rgba(138, 101, 0, 0.18); }
 .aviso-erro { background: var(--errado-suave); color: var(--errado); border-color: rgba(184, 58, 46, 0.16); }
 .aviso-info { background: var(--caneta-suave); color: var(--caneta-forte); border-color: rgba(36, 84, 214, 0.14); }
+.aviso-ok { background: color-mix(in srgb, var(--verde, #1F7A4D) 12%, var(--vidro)); color: var(--verde, #1F7A4D); border-color: color-mix(in srgb, var(--verde, #1F7A4D) 22%, transparent); }
+.gp-prazo-proj { margin-top: 1rem; }
+.gp-prazo-proj strong { font-weight: 800; }
 
 .grade-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
 @media (max-width: 480px) { .grade-2 { grid-template-columns: 1fr; } }
