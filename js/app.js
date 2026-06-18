@@ -831,9 +831,13 @@
     const totalDias = Math.max(0, Math.round((parseFloat(semanasDecimais) || 0) * 7));
     const semanas = Math.floor(totalDias / 7);
     const dias = totalDias - semanas * 7;
-    if (semanas === 0) return plural(dias, 'dia', 'dias');
-    if (dias === 0) return plural(semanas, 'semana', 'semanas');
-    return plural(semanas, 'semana', 'semanas') + ' e ' + plural(dias, 'dia', 'dias');
+    // espaço inquebrável entre número e unidade: no mobile "2 dias" não se separa
+    // (a palavra "dias" não fica sozinha na linha de baixo).
+    const ESP = String.fromCharCode(160);
+    const nb = function (n, s, p) { return n + ESP + (n === 1 ? s : p); };
+    if (semanas === 0) return nb(dias, 'dia', 'dias');
+    if (dias === 0) return nb(semanas, 'semana', 'semanas');
+    return nb(semanas, 'semana', 'semanas') + ' e ' + nb(dias, 'dia', 'dias');
   }
 
   // Quebra um total de dias em meses, semanas e dias (aproximação de mês = 30 dias)
@@ -1528,7 +1532,11 @@
     if (!rf.ativa) return '';
     const pr = D.prontidaoProva(state, hoje);
     const fracos = D.pioresTopicos(state, 3);
-    const semTxt = rf.semanas <= 1 ? 'menos de 1 semana' : 'cerca de ' + rf.semanas + ' semanas';
+    // título: o countdown só aparece quando a prova está perto de verdade (porData);
+    // se foi ligado manualmente (data longe ou sem data), foco direto, sem contagem.
+    const titulo = rf.porData
+      ? 'Reta final — falta ' + (rf.semanas <= 1 ? 'menos de 1 semana' : 'cerca de ' + rf.semanas + ' semanas')
+      : 'Reta final — foco total em consolidar';
     let foco = '';
     if (fracos.length) {
       foco = '<div class="reta-final-fracos"><span class="reta-final-foco-rotulo">Treine questões dos seus pontos fracos:</span>' +
@@ -1541,7 +1549,7 @@
     }
     return '<div class="card reta-final-card">' +
       '<div class="reta-final-cab"><span class="reta-final-emoji" aria-hidden="true">🏁</span>' +
-      '<div><h3>Reta final — falta ' + esc(semTxt) + '</h3>' +
+      '<div><h3>' + esc(titulo) + '</h3>' +
       '<p class="sub">Hora de <strong>consolidar</strong>: menos teoria nova, mais questões, simulados e revisão do que mais cai.' +
       (pr ? ' Você está com <strong>' + pr.pct + '%</strong> dos tópicos revisados a tempo.' : '') + '</p></div></div>' +
       foco +
@@ -5639,7 +5647,49 @@
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
+      modoRetaFinalControleHtml() +
       '</div>';
+  }
+
+  // Controle do modo reta final dentro do card do plano (Planejamento).
+  function modoRetaFinalControleHtml() {
+    const rf = D.retaFinalInfo(state, D.hojeISO());
+    if (rf.ativa) {
+      const motivo = rf.manual
+        ? 'ativado por você'
+        : 'ligado automaticamente — falta ' + (rf.semanas <= 1 ? 'menos de 1 semana' : 'cerca de ' + rf.semanas + ' semanas');
+      return '<div class="modo-controle modo-controle-ativo">' +
+        '<span class="modo-controle-txt">🏁 <strong>Modo reta final ativo</strong> — ' + motivo + '.</span>' +
+        (rf.manual ? '<button type="button" class="botao-mini botao-quieto" id="pl-reta-desativar">Desativar</button>' : '') +
+        '</div>';
+    }
+    return '<div class="modo-controle">' +
+      '<span class="modo-controle-txt">🏁 Prova chegando? O <strong>modo reta final</strong> foca tudo em questões, simulados e revisão do que mais cai.</span>' +
+      '<button type="button" class="botao-mini botao-secundario" id="pl-reta-ativar">Ativar modo reta final</button></div>';
+  }
+
+  // Modal explicativo do modo reta final (com confirmação).
+  function abrirModoRetaFinal() {
+    if (!state.plano) { toast('Crie ou ative um plano primeiro.', 'erro'); return; }
+    const m = abrirModal(
+      '<h3>🏁 Modo reta final</h3>' +
+      '<p class="sub">Ative quando a prova está chegando. O foco deixa de ser ver matéria nova e passa a ser <strong>consolidar</strong>:</p>' +
+      '<ul class="modo-lista">' +
+      '<li>📝 <strong>Mais questões e simulados</strong> — treinar do jeito da prova.</li>' +
+      '<li>🔁 <strong>Revisão intensiva</strong> dos tópicos que mais caem e dos seus pontos fracos.</li>' +
+      '<li>🎯 <strong>Menos teoria nova</strong>: a prioridade é fixar o que você já viu.</li>' +
+      '</ul>' +
+      '<p class="sub">Um painel no Hoje passa a guiar esse foco. Se a prova já tem data marcada, o modo liga sozinho nas últimas 6 semanas — aqui você pode ligar antes. Quer continuar?</p>' +
+      '<div class="modal-acoes">' +
+      '<button type="button" class="botao-quieto" id="reta-cancelar">Agora não</button>' +
+      '<button type="button" id="reta-confirmar">Ativar modo reta final</button></div>'
+    );
+    m.querySelector('#reta-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#reta-confirmar').addEventListener('click', function () {
+      state.plano.modoRetaFinal = true;
+      salvar(); fecharModal(); render();
+      toast('Modo reta final ativado 🏁', 'sucesso');
+    });
   }
 
   // Card próprio para ritmo ativo + geração do plano (logo abaixo do plano atual)
@@ -7418,6 +7468,12 @@
     const acaoExcluir = raiz.querySelector('#pl-acao-excluir');
     if (acaoExcluir) acaoExcluir.addEventListener('click', async function () {
       if (state.planoAtivoId) await excluirPlano(state.planoAtivoId, true);
+    });
+    const retaAtivar = raiz.querySelector('#pl-reta-ativar');
+    if (retaAtivar) retaAtivar.addEventListener('click', abrirModoRetaFinal);
+    const retaDesativar = raiz.querySelector('#pl-reta-desativar');
+    if (retaDesativar) retaDesativar.addEventListener('click', function () {
+      if (state.plano) { delete state.plano.modoRetaFinal; salvar(); render(); toast('Modo reta final desativado', 'sucesso'); }
     });
     const atualizarEd = raiz.querySelector('#pl-atualizar-edital');
     if (atualizarEd) atualizarEd.addEventListener('click', function () {

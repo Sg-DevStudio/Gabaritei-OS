@@ -1085,16 +1085,20 @@
 
   // ---------- Modo reta final ----------
   // Nas últimas semanas antes da prova, o foco deixa de ser "ver matéria nova" e
-  // passa a ser consolidar: questões, simulados e revisão do que mais cai.
+  // passa a ser consolidar: questões, simulados e revisão do que mais cai. Liga
+  // sozinho quando a prova está a <= 6 semanas (porData) e pode ser ligado
+  // manualmente pelo aluno (manual) — útil quando não há data marcada.
   const SEMANAS_RETA_FINAL = 6;
   function retaFinalInfo(state, hoje) {
+    const manual = !!(state && state.plano && state.plano.modoRetaFinal);
     const prazo = prazoProva(state);
-    if (!prazo) return { ativa: false, semanas: null, prazo: null };
     hoje = hoje || hojeISO();
+    if (!prazo) return { ativa: manual, manual: manual, porData: false, semanas: null, dias: null, prazo: null };
     const dias = diffDias(hoje, prazo);
-    if (dias <= 0) return { ativa: false, passou: true, semanas: 0, dias: dias, prazo: prazo };
+    if (dias <= 0) return { ativa: manual, manual: manual, porData: false, passou: true, semanas: 0, dias: dias, prazo: prazo };
     const semanas = Math.ceil(dias / 7);
-    return { ativa: semanas <= SEMANAS_RETA_FINAL, passou: false, semanas: semanas, dias: dias, prazo: prazo };
+    const porData = semanas <= SEMANAS_RETA_FINAL;
+    return { ativa: manual || porData, manual: manual, porData: porData, passou: false, semanas: semanas, dias: dias, prazo: prazo };
   }
 
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------

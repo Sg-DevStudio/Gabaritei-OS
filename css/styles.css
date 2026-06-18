@@ -1100,6 +1100,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .reta-final-chip { background: var(--papel-elevado); }
 .reta-final-acoes { margin-top: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
+/* Controle de modo (reta final) dentro do card do plano */
+.modo-controle { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--linha); display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.7rem; }
+.modo-controle-txt { flex: 1; min-width: 180px; font-size: 0.82rem; color: var(--grafite); }
+.modo-controle-ativo .modo-controle-txt { color: var(--alerta, #8A6500); }
+.modo-controle .botao-mini { flex-shrink: 0; }
+.modo-lista { margin: 0.3rem 0 0.6rem; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.9rem; }
+.modo-lista li { line-height: 1.35; }
+
 /* Aviso de rotina sem dias ativos (Planejamento) */
 .aviso-rotina {
   display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
