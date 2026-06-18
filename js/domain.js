@@ -224,10 +224,20 @@
     return (state.plano && state.plano.modoPlanejamento === 'ciclo') ? state.plano.ciclo : null;
   }
 
-  // Bloco atual = primeiro ainda não concluído; null quando a volta fechou.
+  // Disciplinas já "ativas" no ciclo: o ciclo introduz as matérias de forma
+  // gradual (voltaInicio), então na volta atual só entram as que já liberaram.
+  // Blocos sem voltaInicio (ciclos antigos / adicionados à mão) contam como
+  // ativos desde a volta 1 — compatível com o que já existia.
+  function blocosAtivosCiclo(ciclo) {
+    if (!ciclo || !Array.isArray(ciclo.blocos)) return [];
+    const volta = ciclo.volta || 1;
+    return ciclo.blocos.filter(function (b) { return (b.voltaInicio || 1) <= volta; });
+  }
+
+  // Bloco atual = primeiro ATIVO ainda não concluído; null quando a volta fechou.
   function blocoCicloAtual(ciclo) {
-    if (!ciclo || !Array.isArray(ciclo.blocos)) return null;
-    for (const b of ciclo.blocos) {
+    const ativos = blocosAtivosCiclo(ciclo);
+    for (const b of ativos) {
       if ((b.feitoMin || 0) < (b.metaMin || 0)) return b;
     }
     return null;
@@ -282,12 +292,19 @@
     });
     const somaPesos = pesos.reduce(function (s, p) { return s + p.peso; }, 0) || 1;
 
-    return pesos.map(function (p) {
+    // Ordena por peso (mais importante primeiro) e introduz as disciplinas de
+    // forma GRADUAL: poucas na volta 1, o resto entra nas voltas seguintes (rampa)
+    // — o aluno não começa esmagado por todas as matérias de uma vez. Com até 4
+    // disciplinas não vale escalonar.
+    const ordenados = pesos.slice().sort(function (a, b) { return b.peso - a.peso; });
+    const total = ordenados.length;
+    return ordenados.map(function (p, rank) {
       const bruto = (p.peso / somaPesos) * minutosSemana;
       // múltiplos de 30, entre 30min e 2h (blocos digeríveis; o resto vira mais voltas)
       const metaMin = Math.min(maxBloco, Math.max(minBloco, Math.round(bruto / 5) * 5));
       const topico = topicoSugerido(p.disc);
-      return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: topico ? topico.id : null, metaMin: metaMin, feitoMin: 0 };
+      const voltaInicio = total <= 4 ? 1 : (rank < 3 ? 1 : 1 + Math.ceil((rank - 2) / 2));
+      return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: topico ? topico.id : null, metaMin: metaMin, feitoMin: 0, voltaInicio: voltaInicio };
     });
   }
 
@@ -1329,7 +1346,7 @@
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
-    cicloAtivo, blocoCicloAtual, sugerirCiclo, avancarCiclo,
+    cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,

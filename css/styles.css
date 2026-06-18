@@ -3622,6 +3622,11 @@ canvas.grafico {
   background: var(--caneta); color: #fff; padding: 0.05rem 0.4rem; border-radius: 99px; vertical-align: middle;
 }
 .ciclo-badge-ok { color: var(--correto); }
+.ciclo-badge-volta {
+  font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  background: var(--alerta-suave); color: var(--alerta, #8A6500); padding: 0.05rem 0.4rem; border-radius: 99px; vertical-align: middle;
+}
+.ciclo-bloco-bloqueado { opacity: 0.6; }
 .ciclo-barra { display: block; background: var(--barra-fundo); border-radius: 99px; height: 6px; overflow: hidden; margin-top: 0.35rem; }
 .ciclo-barra > span { display: block; height: 100%; border-radius: 99px; transition: width 0.4s ease; }
 .ciclo-bloco-acoes { display: flex; align-items: center; gap: 0.15rem; flex-shrink: 0; }

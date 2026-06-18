@@ -1647,7 +1647,9 @@
     // + próximos), logo após as revisões vencidas.
     if (ciclo) {
       for (let k = fila.length - 1; k >= 0; k--) { if (fila[k].categoria === 'bloco') fila.splice(k, 1); }
-      const blocos = ciclo.blocos || [];
+      // Só as disciplinas já ATIVAS (introdução gradual): o que entra em voltas
+      // futuras não aparece na fila do dia.
+      const blocos = D.blocosAtivosCiclo(ciclo);
       const idxAtual = blocos.findIndex(function (b) { return (b.feitoMin || 0) < (b.metaMin || 0); });
       const cicloItens = [];
       if (idxAtual >= 0) {
@@ -7446,8 +7448,11 @@
     }
 
     const atual = D.blocoCicloAtual(ciclo);
-    const totalMeta = blocos.reduce(function (n, b) { return n + (b.metaMin || 0); }, 0);
-    const totalFeito = blocos.reduce(function (n, b) { return n + Math.min(b.feitoMin || 0, b.metaMin || 0); }, 0);
+    const volta = ciclo.volta || 1;
+    // O progresso da volta considera só as disciplinas já ativas (rampa gradual).
+    const ativos = D.blocosAtivosCiclo(ciclo);
+    const totalMeta = ativos.reduce(function (n, b) { return n + (b.metaMin || 0); }, 0);
+    const totalFeito = ativos.reduce(function (n, b) { return n + Math.min(b.feitoMin || 0, b.metaMin || 0); }, 0);
     const pctVolta = totalMeta > 0 ? Math.round((totalFeito / totalMeta) * 100) : 0;
 
     let html = '<div class="card ciclo-card">' +
@@ -7463,14 +7468,16 @@
       const feito = Math.min(b.feitoMin || 0, b.metaMin || 0);
       const completo = feito >= (b.metaMin || 0);
       const ehAtual = atual && atual.id === b.id;
+      const bloqueado = (b.voltaInicio || 1) > volta; // entra numa volta futura (rampa)
       const pct = b.metaMin > 0 ? Math.round((feito / b.metaMin) * 100) : 0;
       const cor = d ? d.cor : '#9A9DA3';
-      html += '<div class="ciclo-bloco' + (completo ? ' completo' : '') + (ehAtual ? ' atual' : '') +
+      html += '<div class="ciclo-bloco' + (completo ? ' completo' : '') + (ehAtual ? ' atual' : '') + (bloqueado ? ' ciclo-bloco-bloqueado' : '') +
         '" draggable="true" data-ciclo-bloco="' + esc(b.id) + '" style="border-left-color:' + esc(cor) + '">' +
         '<span class="ciclo-bloco-arrasto" aria-hidden="true">⠿</span>' +
         '<div class="ciclo-bloco-info">' +
         '<div class="ciclo-bloco-topo"><span class="ciclo-bloco-nome">' + esc(d ? d.nome : b.disciplinaId) +
         (ehAtual ? ' <span class="ciclo-badge-agora">agora</span>' : '') +
+        (bloqueado ? ' <span class="ciclo-badge-volta">entra na volta ' + (b.voltaInicio || 1) + '</span>' : '') +
         (completo ? ' <span class="ciclo-badge-ok">✓</span>' : '') + '</span>' +
         '<span class="ciclo-bloco-min">' + D.formatarMin(feito) + ' / ' + D.formatarMin(b.metaMin || 0) + '</span></div>' +
         (t ? '<span class="ciclo-bloco-topico">🎯 ' + esc(t.nome) + '</span>' : '') +
