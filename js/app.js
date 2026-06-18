@@ -6429,7 +6429,23 @@
       ritmosCalc.forEach(function (r) { const d = Math.abs(r.meses - atual.meses); if (d < melhor) { melhor = d; ritmoSel = r; } });
     }
     const mesesAtual = ritmoSel ? Math.max(1, Math.round(ritmoSel.meses)) : 6;
-    const idealAtual = horasIdeaisSemanaPlano(entrada, mesesAtual);
+    // Janela da prova (se existir) → o passo Prazo segue essa data como base.
+    const radarPlano = (state.plano && state.plano.radar) || {};
+    const janelaPlano = radarPlano.janela_prova || null;
+    const temJanela = !!(janelaPlano && janelaPlano[0]);
+    const janelaFim = temJanela ? (janelaPlano[1] || janelaPlano[0]) : '';
+    const janelaTexto = temJanela
+      ? (D.formatarMesBR(janelaPlano[0]) + (janelaPlano[1] && janelaPlano[1] !== janelaPlano[0] ? ' – ' + D.formatarMesBR(janelaPlano[1]) : ''))
+      : '';
+    // Quantos meses faltam até um mês AAAA-MM (mínimo 1).
+    function mesesAteMes(mes) {
+      if (!mes) return mesesAtual;
+      const partesH = hojeMesISO().split('-').map(Number);
+      const partesA = mes.split('-').map(Number);
+      return Math.max(1, (partesA[0] - partesH[0]) * 12 + (partesA[1] - partesH[1]));
+    }
+    const mesesInicial = temJanela ? mesesAteMes(janelaFim) : mesesAtual;
+    const idealAtual = horasIdeaisSemanaPlano(entrada, mesesInicial);
     const optsMin = TEMPOS_BLOCO.map(function (v) {
       return '<option value="' + v + '"' + (v === rotina.minBloco ? ' selected' : '') + '>' + rotuloBloco(v) + '</option>';
     }).join('');
@@ -6446,7 +6462,7 @@
     }).join('');
     // Passo 1 — Ritmo: cartões qualitativos com o prazo ESTIMADO pelo tamanho do edital.
     const prazoCards = ritmosCalc.map(function (p) {
-      return '<button type="button" class="gp-prazo-card' + (p === ritmoSel ? ' ativo' : '') + '" data-gp-meses="' + Math.max(1, Math.round(p.meses)) + '" data-gp-ritmo="' + esc(p.nome) + '">' +
+      return '<button type="button" class="gp-prazo-card' + (!temJanela && p === ritmoSel ? ' ativo' : '') + '" data-gp-meses="' + Math.max(1, Math.round(p.meses)) + '" data-gp-ritmo="' + esc(p.nome) + '">' +
         '<span class="gp-prazo-ritmo">' + esc(p.nome) + '</span>' +
         '<span class="gp-prazo-unid">estimativa ' + formatarEstimativaPrazo(p.semanas) + '</span>' +
         '<span class="gp-prazo-nome">' + esc(p.dica) + '</span></button>';
@@ -6491,39 +6507,35 @@
     const m = abrirModal(
       '<div class="gp-wizard">' +
       '<div class="gp-passos" id="gp-passos">' +
-      ['Prazo', 'Rotina', 'Dificuldade', 'O que já sei', 'Estratégia'].map(function (t, i) {
+      ['Rotina', 'Dificuldade', 'O que já sei', 'Prazo', 'Estratégia'].map(function (t, i) {
         return '<span class="gp-passo' + (i === 0 ? ' ativo' : '') + '" data-passo-dot="' + (i + 1) + '"><b>' + (i + 1) + '</b>' + t + '</span>';
       }).join('') +
       '</div>' +
       '<form id="form-gerar-plano-rotina">' +
 
-      // ---- Passo 1: prazo ----
+      // ---- Passo 1: rotina (dias, horas e tempo por bloco) ----
       '<section class="gp-step" data-step="1">' +
-      '<h3>Qual ritmo você quer seguir?</h3>' +
-      '<p class="sub">Escolha o ritmo do plano. O prazo é só uma estimativa e se ajusta à sua realidade — nas próximas telas o sistema confere se a sua rotina acompanha.</p>' +
-      '<input type="hidden" id="gp-meses" value="' + mesesAtual + '">' +
-      '<div class="gp-prazo-cards">' + prazoCards + '</div>' +
-      '</section>' +
-
-      // ---- Passo 2: rotina (dias e horas) ----
-      '<section class="gp-step oculto" data-step="2">' +
       '<h3>Quais dias e quantas horas você estuda?</h3>' +
       '<p class="sub">Marque os dias e ajuste as horas. O total aparece em tempo real.</p>' +
       '<div class="rotina-dias">' + diasHtml + '</div>' +
       '<div class="rotina-totais"><div><label>Total planejado</label><div class="rotina-total" id="gp-total">' + formatarHorasSemana(totalAtual / 60) + '</div></div>' +
       '<div><label>Total ideal</label><div class="rotina-total rotina-total-ideal" id="gp-total-ideal">' + formatarHorasSemana(idealAtual) + '</div></div></div>' +
       '<p class="rotina-feedback" id="gp-feedback"></p>' +
+      '<label>Quanto tempo em cada disciplina por bloco? (mínimo e máximo)</label>' +
+      '<p class="sub">Quanto tempo seguido você fica em uma mesma disciplina antes de trocar.</p>' +
+      '<div class="grade-2"><div><select id="gp-min-bloco">' + optsMin + '</select></div>' +
+      '<div><select id="gp-max-bloco">' + optsMax + '</select></div></div>' +
       '</section>' +
 
-      // ---- Passo 3: dificuldade por disciplina ----
-      '<section class="gp-step oculto" data-step="3">' +
+      // ---- Passo 2: dificuldade por disciplina ----
+      '<section class="gp-step oculto" data-step="2">' +
       '<h3>Como você se sente em cada disciplina?</h3>' +
       '<p class="sub">Isso ajuda o sistema a reservar mais tempo para o que é mais difícil para você e menos para o que você já domina.</p>' +
       '<div class="gp-dif-lista">' + (difHtml || '<p class="sub">Nenhuma disciplina para configurar.</p>') + '</div>' +
       '</section>' +
 
-      // ---- Passo 4: o que já sei (ponto de partida) ----
-      '<section class="gp-step oculto" data-step="4">' +
+      // ---- Passo 3: o que já sei (ponto de partida) ----
+      '<section class="gp-step oculto" data-step="3">' +
       '<h3>O que você já estudou?</h3>' +
       '<p class="sub">Marque, <strong>por tópico</strong>, o que você já viu. Na dúvida deixe em "Nunca vi" — é melhor rever do que pular. O que você marcar como <strong>já domino</strong> entra direto em revisão/questões, sem repetir a teoria.</p>' +
       '<div class="gp-pp-nivel" role="radiogroup" aria-label="Seu ponto de partida">' +
@@ -6534,7 +6546,23 @@
       '<div class="gp-pp-lista">' + (ppHtml || '<p class="sub">Nenhuma disciplina para configurar.</p>') + '</div>' +
       '</section>' +
 
-      // ---- Passo 5: estratégia + blocos ----
+      // ---- Passo 4: prazo (data da prova / ritmo estimado) ----
+      '<section class="gp-step oculto" data-step="4">' +
+      '<h3>Para quando é o seu objetivo?</h3>' +
+      (temJanela
+        ? '<div class="aviso aviso-info"><strong>📅 ' + esc(nomeCurtoConcurso()) + ' tem data prevista: ' + esc(janelaTexto) + '.</strong><br>' +
+          'O plano vai se organizar para te deixar pronto até lá — teoria, revisões e questões no tempo certo. Tem informação mais precisa? Ajuste a data abaixo.</div>' +
+          '<label for="gp-data-alvo">Data-alvo da prova</label>' +
+          '<input id="gp-data-alvo" type="month" value="' + esc(janelaFim) + '">'
+        : '<div class="aviso aviso-info">Este concurso ainda não tem data definida. Você pode mirar em uma data específica ou seguir uma estimativa pelo seu ritmo — ideal para quem estuda no longo prazo.</div>' +
+          '<label for="gp-data-alvo">Tem uma data em mente? (opcional)</label>' +
+          '<input id="gp-data-alvo" type="month" value="">') +
+      '<label class="gp-prazo-ou">Ou siga um ritmo estimado pelo tamanho do edital:</label>' +
+      '<div class="gp-prazo-cards">' + prazoCards + '</div>' +
+      '<input type="hidden" id="gp-meses" value="' + mesesInicial + '">' +
+      '</section>' +
+
+      // ---- Passo 5: estratégia ----
       '<section class="gp-step oculto" data-step="5">' +
       '<label>Como voce quer organizar o plano?</label>' +
       '<div class="toggle-ordem" role="radiogroup" aria-label="Tipo de planejamento">' +
@@ -6551,9 +6579,6 @@
       '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="incidencia"' + (ordemAtual === 'incidencia' ? ' checked' : '') + '>' +
       '<span><strong>Ordem de incidência (80/20)</strong><small>Ataca primeiro os tópicos mais cobrados nas provas.</small></span></label>' +
       '</div>' +
-      '<label>Quanto tempo em cada disciplina por bloco? (mínimo e máximo)</label>' +
-      '<div class="grade-2"><div><select id="gp-min-bloco">' + optsMin + '</select></div>' +
-      '<div><select id="gp-max-bloco">' + optsMax + '</select></div></div>' +
       '<p class="rotina-feedback" id="gp-resumo"></p>' +
       '</section>' +
 
@@ -6638,7 +6663,7 @@
           : 'Sua rotina está abaixo do ritmo ' + macroNome + ' — você ainda avança, só mais devagar. Aumente as horas ou escolha um ritmo mais tranquilo.';
       }
     }
-    // resumo final do assistente (passo 4)
+    // resumo final do assistente (passo 5 — Estratégia)
     function atualizarResumo() {
       const resumo = m.querySelector('#gp-resumo');
       if (!resumo) return;
@@ -6671,16 +6696,38 @@
       });
     });
 
-    // Passo 1 — escolha do prazo por cartões
+    // Passo 4 — Prazo: cartões de ritmo OU data-alvo (um desativa o outro).
     m.querySelectorAll('[data-gp-meses]').forEach(function (b) {
       b.addEventListener('click', function () {
         m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
         m.querySelector('#gp-meses').value = b.getAttribute('data-gp-meses');
+        const dataAlvoEl = m.querySelector('#gp-data-alvo');
+        if (dataAlvoEl) dataAlvoEl.value = ''; // escolheu ritmo → abandona a data fixa
         atualizarTotal();
       });
     });
+    const dataAlvoEl = m.querySelector('#gp-data-alvo');
+    if (dataAlvoEl) {
+      function aplicarDataAlvo() {
+        if (dataAlvoEl.value) {
+          m.querySelector('#gp-meses').value = mesesAteMes(dataAlvoEl.value);
+          m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.remove('ativo'); });
+        } else {
+          // voltou a vazio → reativa o ritmo estimado padrão
+          const card = m.querySelector('[data-gp-meses="' + mesesAtual + '"]') || m.querySelector('[data-gp-meses]');
+          if (card) {
+            m.querySelectorAll('[data-gp-meses]').forEach(function (x) { x.classList.toggle('ativo', x === card); });
+            m.querySelector('#gp-meses').value = card.getAttribute('data-gp-meses');
+          }
+        }
+        atualizarTotal();
+      }
+      dataAlvoEl.addEventListener('change', aplicarDataAlvo);
+      dataAlvoEl.addEventListener('input', aplicarDataAlvo);
+      if (temJanela && dataAlvoEl.value) m.querySelector('#gp-meses').value = mesesAteMes(dataAlvoEl.value);
+    }
 
-    // Passo 3 — botões de dificuldade por disciplina
+    // Passo 2 — botões de dificuldade por disciplina
     m.querySelectorAll('.gp-dif-row').forEach(function (row) {
       row.querySelectorAll('[data-dif]').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -6689,7 +6736,7 @@
       });
     });
 
-    // Passo 4 — "O que já sei": expandir disciplina, atalho "marcar todos" e resumo.
+    // Passo 3 — "O que já sei": expandir disciplina, atalho "marcar todos" e resumo.
     function ppResumoDisc(disc) {
       const sels = disc.querySelectorAll('.gp-pp-sel');
       let dom = 0, est = 0;
@@ -6731,7 +6778,7 @@
     m.querySelector('#gp-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#gp-voltar').addEventListener('click', function () { mostrarPasso(passo - 1); });
     m.querySelector('#gp-proximo').addEventListener('click', function () {
-      if (passo === 2 && totalMinutosRotina(rotinaDoModal()) < 1) {
+      if (passo === 1 && totalMinutosRotina(rotinaDoModal()) < 1) {
         toast('Marque pelo menos um dia com tempo de estudo.', 'erro');
         return;
       }
@@ -6746,10 +6793,11 @@
 
     m.querySelector('#form-gerar-plano-rotina').addEventListener('submit', function (e) {
       e.preventDefault();
-      const meses = parseInt(m.querySelector('#gp-meses').value, 10);
+      const dataAlvo = m.querySelector('#gp-data-alvo') ? m.querySelector('#gp-data-alvo').value : '';
+      const meses = dataAlvo ? mesesAteMes(dataAlvo) : parseInt(m.querySelector('#gp-meses').value, 10);
       const rotinaNova = rotinaDoModal();
       const totalMinutos = totalMinutosRotina(rotinaNova);
-      if (totalMinutos < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); mostrarPasso(2); return; }
+      if (totalMinutos < 1) { toast('Marque pelo menos um dia com tempo de estudo.', 'erro'); mostrarPasso(1); return; }
       const horas = Math.max(1, Math.round(totalMinutos / 60));
       const ordemEl = m.querySelector('input[name="gp-ordem"]:checked');
       const ordemAtaque = ordemEl ? ordemEl.value : 'edital';
@@ -6772,6 +6820,12 @@
         if (novoStatus === 'teoria_concluida' || novoStatus === 'dominado') agendarRevisoesSeNecessario(t.id);
       });
       state.plano.pontoPartida = { nivel: ppNivelSel, definidoEm: D.hojeISO() };
+      // Data-alvo definida no passo Prazo → vira a janela da prova do plano.
+      if (dataAlvo) {
+        const radarP = state.plano.radar || {};
+        const iniP = (radarP.janela_prova && radarP.janela_prova[0] && radarP.janela_prova[0] <= dataAlvo) ? radarP.janela_prova[0] : dataAlvo;
+        state.plano.radar = Object.assign({}, radarP, { janela_prova: [iniP, dataAlvo], confianca: 'manual' });
+      }
       state.config.rotinaEstudos = rotinaNova;
       const cardAtivo = m.querySelector('.gp-prazo-card.ativo');
       const nomeRitmo = cardAtivo ? cardAtivo.getAttribute('data-gp-ritmo') : nomeRitmoPorMeses(entrada, meses);

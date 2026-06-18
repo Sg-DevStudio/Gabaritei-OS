@@ -1854,6 +1854,7 @@ td.num, th.num { text-align: right; }
 .gp-step h3 { margin: 0 0 0.3rem; }
 .gp-step > .sub { margin-top: 0; }
 
+.gp-prazo-ou { display: block; margin-top: 1.1rem; font-weight: 700; color: var(--grafite); }
 .gp-prazo-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-top: 0.6rem; }
 @media (max-width: 560px) { .gp-prazo-cards { grid-template-columns: 1fr; } }
 .gp-prazo-card {
