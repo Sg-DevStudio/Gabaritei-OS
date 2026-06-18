@@ -952,12 +952,12 @@
       const disc = D.disciplinaPorId(state, b.disciplinaId);
       const topId = b.topicoId || (disc && disc.topicos[0] ? disc.topicos[0].id : null);
       const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
-      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila' }) : null;
+      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, semRender: true }) : null;
       if (sessao) b.registroRapidoId = sessao.id;
       b.feito = true;
       salvar();
     } else { // registrar (bloco da semana / reaberto)
-      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila' });
+      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', semRender: true });
     }
     setTimeout(render, 420); // deixa a animação do check rodar antes de redesenhar
   }
@@ -1191,21 +1191,25 @@
       if (!dur || dur < 1) { erroEl.textContent = 'Informe a duração em minutos (mínimo 1).'; erroEl.classList.remove('oculto'); return; }
       if (certas > feitas) { erroEl.textContent = 'Acertos (' + certas + ') não podem superar as questões feitas (' + feitas + ').'; erroEl.classList.remove('oculto'); return; }
 
+      // A sessão é registrada na DATA do bloco (quando veio da agenda/calendário),
+      // não sempre em "hoje" — registrar o bloco de sábado deve cair no sábado.
+      const dataReg = opcoes.data || D.hojeISO();
       const dados = {
         topicoId: selTop.value,
         tipo: m.querySelector('#reg-tipo').value,
         duracaoMin: dur, qFeitas: feitas, qCertas: certas,
         obs: m.querySelector('#reg-obs').value.trim(),
-        teoriaOk: m.querySelector('#reg-teoria-ok').checked
+        teoriaOk: m.querySelector('#reg-teoria-ok').checked,
+        data: dataReg
       };
 
       // caminho infeliz F1: registro duplicado no mesmo dia/tópico/tipo → confirmar
-      const hoje = D.hojeISO();
       const duplicada = state.sessoes.some(function (s) {
-        return s.data === hoje && s.topicoId === dados.topicoId && s.tipo === dados.tipo;
+        return s.data === dataReg && s.topicoId === dados.topicoId && s.tipo === dados.tipo;
       });
       if (duplicada && !opcoes.confirmouDuplicada) {
-        erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico hoje. Clique em "Registrar sessão" de novo para confirmar como sessão adicional.';
+        const quando = dataReg === D.hojeISO() ? 'hoje' : 'em ' + D.formatarDataBR(dataReg);
+        erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico ' + quando + '. Clique em "Registrar sessão" de novo para confirmar como sessão adicional.';
         erroEl.classList.remove('oculto');
         opcoes.confirmouDuplicada = true;
         return;
@@ -1219,11 +1223,12 @@
 
   function concluirRegistro(dados) {
     const hoje = D.hojeISO();
+    const data = dados.data || hoje; // data real do estudo (pode ser de outro dia)
     const metaAntes = D.metaSemanal(state, hoje);
     const streakAntes = D.streak(D.sessoesDoPlano(state), hoje);
 
     const sessao = {
-      id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: hoje,
+      id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: data,
       topicoId: dados.topicoId, tipo: dados.tipo,
       duracaoMin: dados.duracaoMin, qFeitas: dados.qFeitas, qCertas: dados.qCertas,
       obs: dados.obs || '',
@@ -1316,7 +1321,9 @@
       confete();
       toast('Meta semanal de horas batida! 🎯', 'sucesso');
     }
-    render();
+    // O registro rápido (bolinha) controla o próprio render para a animação do
+    // check verde aparecer; nesse caso não redesenhamos aqui por cima dela.
+    if (!dados.semRender) render();
     return sessao;
   }
 
@@ -1505,8 +1512,9 @@
     const hora = new Date().getHours();
     const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
     const frase = window.Frases.fraseDoDia();
-    // garante que a agenda do dia esteja preenchida a partir do cronograma
-    if (state.plano) { if (sincronizarAgendaComCronograma() > 0) salvar(); }
+    // garante que a agenda do dia esteja preenchida a partir do cronograma —
+    // só PREENCHE semanas vazias (soVazias) para não apagar o progresso já marcado
+    if (state.plano) { if (sincronizarAgendaComCronograma(true) > 0) salvar(); }
     const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
@@ -5285,7 +5293,16 @@
   function blocoAgendaConcluido(bloco) {
     if (bloco.feito) return true;
     const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
-    return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
+    if (t && (t.status === 'teoria_concluida' || t.status === 'dominado')) return true;
+    // Qualquer sessão registrada do mesmo tópico/tipo NO DIA do bloco também o
+    // conclui — assim registrar pela fila de Hoje risca o bloco no calendário.
+    if (bloco.topicoId) {
+      const tipo = bloco.obs === 'questoes' ? 'questoes' : bloco.obs === 'revisao' ? 'revisao' : 'teoria';
+      return D.sessoesDoPlano(state).some(function (s) {
+        return s.topicoId === bloco.topicoId && s.data === bloco.data && s.tipo === tipo;
+      });
+    }
+    return false;
   }
 
   // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
@@ -5334,7 +5351,8 @@
     abrirRegistro({
       topicoId: topId,
       duracaoMin: blocoAg.duracaoMin || 30,
-      tipo: 'teoria',
+      tipo: blocoAg.obs === 'questoes' ? 'questoes' : blocoAg.obs === 'revisao' ? 'revisao' : 'teoria',
+      data: blocoAg.data,
       aoSalvar: function () {
         const b = state.agenda.find(function (x) { return x.id === blocoAg.id; });
         if (b) { b.feito = true; salvar(); }
@@ -8237,11 +8255,22 @@
   // preenche o calendário inteiro (todas as semanas do cronograma ativo) — usado
   // logo após importar um plano ou gerar o cronograma, para a aba Planejamento
   // já aparecer com os tópicos no calendário semanal e mensal
-  function sincronizarAgendaComCronograma() {
+  // soVazias=true: só PREENCHE semanas que ainda não têm blocos gerados, sem
+  // regenerar (e apagar) as que já existem. Isso é essencial no render do "Hoje",
+  // que chama esta função a cada desenho: sem o guard, marcar um bloco como feito
+  // seria desfeito no render seguinte (a agenda da semana era recriada do zero).
+  function sincronizarAgendaComCronograma(soVazias) {
     const cron = D.cronogramaAtivo(state);
     if (!cron || cron.length === 0) return 0;
     let semanas = 0;
     cron.forEach(function (sem) {
+      if (soVazias) {
+        const fim = D.addDias(sem.inicio, 7);
+        const jaTem = state.agenda.some(function (a) {
+          return a.gerado && a.data >= sem.inicio && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId);
+        });
+        if (jaTem) return; // semana já preenchida → preserva o progresso
+      }
       if (gerarBlocosSemanaAgenda(sem.inicio)) semanas++;
     });
     return semanas;
