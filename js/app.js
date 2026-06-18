@@ -6428,8 +6428,17 @@
       }).map(function (t, ordem) {
         const sugerida = t.semana_sugerida ? Math.max(1, Math.min(semanas, Math.round((t.semana_sugerida / 28) * semanas))) : ordem + 1;
         return { topico: t, ordem, sugerida };
-      }).sort(function (a, b) {
-        if (porIncidencia) {
+      });
+      // Disciplina que o aluno NUNCA VIU (todos os tópicos a estudar ainda
+      // "pendente", sem reabertura) segue a ORDEM DO EDITAL mesmo com 80/20
+      // selecionado: começar a base por incidência embaralha o que precisa ser
+      // visto em sequência. O 80/20 só vale onde já há contato prévio.
+      const disciplinaNuncaVista = topicos.length > 0 && topicos.every(function (x) {
+        return x.topico.status === 'pendente' && !x.topico.reaberto;
+      });
+      const usarIncidencia = porIncidencia && !disciplinaNuncaVista;
+      topicos.sort(function (a, b) {
+        if (usarIncidencia) {
           // ataca primeiro os tópicos mais cobrados nas provas (regra 80/20)
           return (b.topico.incidencia_pct || 0) - (a.topico.incidencia_pct || 0) ||
             (a.topico.prioridade || 2) - (b.topico.prioridade || 2) || a.sugerida - b.sugerida || a.ordem - b.ordem;

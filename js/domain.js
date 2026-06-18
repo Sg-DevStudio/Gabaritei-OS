@@ -250,6 +250,10 @@
         return t && !t.orfao && t.status !== 'dominado';
       });
       if (topicos.length === 0) return null;
+      // Disciplina nunca vista (tudo "pendente", sem reabertura) segue a ordem do
+      // edital mesmo com 80/20: a base precisa ser vista em sequência.
+      const nuncaVista = topicos.every(function (t) { return t.status === 'pendente' && !t.reaberto; });
+      const usarIncidencia = ordemAtaque === 'incidencia' && !nuncaVista;
       topicos.sort(function (a, b) {
         const aConcl = a.status === 'teoria_concluida' ? 1 : 0;
         const bConcl = b.status === 'teoria_concluida' ? 1 : 0;
@@ -259,7 +263,7 @@
         const pctA = da.pct === null ? 101 : da.pct;
         const pctB = db.pct === null ? 101 : db.pct;
         if (pctA !== pctB && (da.feitas >= 3 || db.feitas >= 3)) return pctA - pctB;
-        if (ordemAtaque === 'incidencia') return (b.incidencia_pct || 0) - (a.incidencia_pct || 0);
+        if (usarIncidencia) return (b.incidencia_pct || 0) - (a.incidencia_pct || 0);
         return (a.semana_sugerida || 9999) - (b.semana_sugerida || 9999);
       });
       return topicos[0] || null;
