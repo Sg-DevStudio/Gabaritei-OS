@@ -1512,8 +1512,9 @@
     const hora = new Date().getHours();
     const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
     const frase = window.Frases.fraseDoDia();
-    // garante que a agenda do dia esteja preenchida a partir do cronograma
-    if (state.plano) { if (sincronizarAgendaComCronograma() > 0) salvar(); }
+    // garante que a agenda do dia esteja preenchida a partir do cronograma —
+    // só PREENCHE semanas vazias (soVazias) para não apagar o progresso já marcado
+    if (state.plano) { if (sincronizarAgendaComCronograma(true) > 0) salvar(); }
     const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
@@ -8254,11 +8255,22 @@
   // preenche o calendário inteiro (todas as semanas do cronograma ativo) — usado
   // logo após importar um plano ou gerar o cronograma, para a aba Planejamento
   // já aparecer com os tópicos no calendário semanal e mensal
-  function sincronizarAgendaComCronograma() {
+  // soVazias=true: só PREENCHE semanas que ainda não têm blocos gerados, sem
+  // regenerar (e apagar) as que já existem. Isso é essencial no render do "Hoje",
+  // que chama esta função a cada desenho: sem o guard, marcar um bloco como feito
+  // seria desfeito no render seguinte (a agenda da semana era recriada do zero).
+  function sincronizarAgendaComCronograma(soVazias) {
     const cron = D.cronogramaAtivo(state);
     if (!cron || cron.length === 0) return 0;
     let semanas = 0;
     cron.forEach(function (sem) {
+      if (soVazias) {
+        const fim = D.addDias(sem.inicio, 7);
+        const jaTem = state.agenda.some(function (a) {
+          return a.gerado && a.data >= sem.inicio && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId);
+        });
+        if (jaTem) return; // semana já preenchida → preserva o progresso
+      }
       if (gerarBlocosSemanaAgenda(sem.inicio)) semanas++;
     });
     return semanas;
