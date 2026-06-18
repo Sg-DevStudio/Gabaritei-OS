@@ -141,6 +141,13 @@
     return c;
   }
 
+  // Plano combinado é artefato do plano do aluno, NÃO um edital do catálogo. Detecta
+  // tanto os marcados (ocultoNoCatalogo) quanto os já publicados antes da flag (pelo
+  // título "… (combinado)"). Usado para nunca publicar nem listar combinados.
+  function ehEditalCombinado(e) {
+    return !!(e && (e.ocultoNoCatalogo || /\(combinado\)\s*$/i.test(e.titulo || '')));
+  }
+
   function carregarCatalogoGlobalFirebase() {
     if (catalogoGlobalPromise) return catalogoGlobalPromise;
     if (catalogoGlobalTentado) return Promise.resolve(catalogoGlobalEditais);
@@ -174,8 +181,10 @@
     // só o state.editais e APAGAVA os demais que existiam apenas no catálogo global.
     // opcoes.removerId permite excluir um edital específico da publicação.
     const porId = new Map();
-    (catalogoGlobalEditais || []).forEach(function (e) { if (!e.arquivado) porId.set(e.id, limparEditalParaCatalogo(e)); });
-    (state.editais || []).forEach(function (e) { if (!e.arquivado) porId.set(e.id, limparEditalParaCatalogo(e)); });
+    // Nunca publica planos combinados (nem os já publicados antes da flag: a
+    // próxima publicação do admin os remove do catálogo global de todos).
+    (catalogoGlobalEditais || []).forEach(function (e) { if (!e.arquivado && !ehEditalCombinado(e)) porId.set(e.id, limparEditalParaCatalogo(e)); });
+    (state.editais || []).forEach(function (e) { if (!e.arquivado && !ehEditalCombinado(e)) porId.set(e.id, limparEditalParaCatalogo(e)); });
     if (opcoes.removerId) porId.delete(opcoes.removerId);
     const editais = Array.from(porId.values());
     // PROTEÇÃO CRÍTICA: nunca sobrescrever o catálogo global com uma lista vazia.
@@ -216,7 +225,7 @@
 
   function publicarCatalogoAdminAntigo() {
     if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
-    const editais = (state.editais || []).filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; }).map(limparEditalParaCatalogo);
+    const editais = (state.editais || []).filter(function (e) { return !e.arquivado && !ehEditalCombinado(e); }).map(limparEditalParaCatalogo);
     return window.FirebaseSync.publicarCatalogoGlobal(editais).then(function () {
       catalogoGlobalEditais = normalizarCatalogoGlobal(editais);
     }).catch(function (e) {
@@ -4374,7 +4383,7 @@
 
   function telaPlanos() {
     garantirEditaisMock();
-    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; })
+    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !ehEditalCombinado(e); })
       .slice().sort(function (a, b) { return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a); });
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo</span><h1>Planos disponíveis</h1></div></div>' +
       '<p class="sub" style="margin-bottom:1rem">Escolha um concurso para gerar seu plano de estudos. Use <strong>Comparar</strong> para saber se dá para conciliar dois editais.</p>';
@@ -4391,7 +4400,7 @@
   function telaPlanosNova() {
     garantirEditaisMock();
     const lista = editaisDoCatalogo().filter(function (e) {
-      return !e.arquivado && !e.ocultoNoCatalogo && editalCorrespondeFiltro(e, catalogoFiltro);
+      return !e.arquivado && !ehEditalCombinado(e) && editalCorrespondeFiltro(e, catalogoFiltro);
     }).slice().sort(function (a, b) {
       return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a);
     });
@@ -4459,7 +4468,7 @@
   }
 
   function editaisComparaveis() {
-    return editaisDoCatalogo().filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; });
+    return editaisDoCatalogo().filter(function (e) { return !e.arquivado && !ehEditalCombinado(e); });
   }
 
   function cardAvisoCompararHtml() {
@@ -4731,7 +4740,7 @@
   }
 
   function abrirCompararPlanos(idA) {
-    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; });
+    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !ehEditalCombinado(e); });
     const edA = lista.find(function (x) { return x.id === idA; }) || lista[0];
     if (!edA || lista.length < 2) { toast('Cadastre pelo menos dois editais para comparar.', 'erro'); return; }
     const outros = lista.filter(function (x) { return x.id !== edA.id; });
@@ -4780,6 +4789,7 @@
       comb
     );
     state.editais.push(reg);
+    comparacaoIds = []; // some o estado "✓ Comparando" dos editais selecionados
     salvar();
     fecharModal();
     criarPlanoDeEdital(reg.id); // valida, cria o plano, ativa e abre o ajuste de rotina
