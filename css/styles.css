@@ -1090,6 +1090,24 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .etiqueta-rev-antecipada { background: var(--alerta-suave); color: var(--alerta); }
 .etiqueta-rev-espacada { background: var(--correto-suave); color: var(--correto); }
 
+/* Modo reta final (Hoje) */
+.reta-final-card { border: 1.5px solid var(--alerta, #B8860B); background: color-mix(in srgb, var(--alerta-suave, #FFF6E0) 70%, var(--papel-card)); }
+.reta-final-cab { display: flex; align-items: flex-start; gap: 0.7rem; }
+.reta-final-cab h3 { margin: 0 0 0.15rem; }
+.reta-final-emoji { font-size: 1.6rem; line-height: 1; }
+.reta-final-fracos { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.4rem 0.5rem; align-items: center; }
+.reta-final-foco-rotulo { font-weight: 700; font-size: 0.85rem; color: var(--grafite); margin: 0.8rem 0 0.2rem; display: block; width: 100%; }
+.reta-final-chip { background: var(--papel-elevado); }
+.reta-final-acoes { margin-top: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* Controle de modo (reta final) dentro do card do plano */
+.modo-controle { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--linha); display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.7rem; }
+.modo-controle-txt { flex: 1; min-width: 180px; font-size: 0.82rem; color: var(--grafite); }
+.modo-controle-ativo .modo-controle-txt { color: var(--alerta, #8A6500); }
+.modo-controle .botao-mini { flex-shrink: 0; }
+.modo-lista { margin: 0.3rem 0 0.6rem; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.9rem; }
+.modo-lista li { line-height: 1.35; }
+
 /* Aviso de rotina sem dias ativos (Planejamento) */
 .aviso-rotina {
   display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
