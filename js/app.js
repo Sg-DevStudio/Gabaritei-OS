@@ -1421,6 +1421,39 @@
   const PAINEL_DISC_LIMITE_MOBILE = 4;
   const PAINEL_DISC_LIMITE_DESKTOP = 7;
   let painelDiscExpandido = false;
+  let hojeMetaConcluida = false; // calculado em telaHoje; usado pelo modal de parabéns
+
+  // Traz a próxima matéria agendada (de um dia futuro) para HOJE, para quem quer
+  // adiantar num dia livre. Move o item da agenda para a data de hoje.
+  function adiantarProximaMateria() {
+    const hoje = D.hojeISO();
+    const futuras = doAtivo(state.agenda)
+      .filter(function (a) { return a.data > hoje && !a.feito; })
+      .sort(function (a, b) { return a.data.localeCompare(b.data) || compararAgenda(a, b); });
+    if (!futuras.length) { toast('Não há próxima matéria agendada para adiantar.', 'erro'); return; }
+    futuras[0].data = hoje;
+    salvar(); render();
+    toast('Próxima matéria trazida para hoje 👊', 'sucesso');
+  }
+
+  // Modal central de parabéns quando a meta do dia é concluída (1x por dia).
+  function talvezComemorarDia() {
+    if (!hojeMetaConcluida) return;
+    const hoje = D.hojeISO();
+    if (state.config && state.config.metaDiaEm === hoje) return; // já comemorou hoje
+    state.config.metaDiaEm = hoje;
+    salvar();
+    if (typeof confete === 'function') confete();
+    const m = abrirModal(
+      '<div class="meta-dia-modal" style="text-align:center">' +
+      '<div style="font-size:2.6rem;line-height:1">🎉</div>' +
+      '<h3 style="margin:0.4rem 0">Meta do dia concluída!</h3>' +
+      '<p class="sub">Você fechou tudo que estava planejado para hoje. É essa constância que te leva preparado até a prova — descansa que amanhã tem mais. 💪</p>' +
+      '<div class="modal-acoes" style="justify-content:center"><button id="meta-dia-ok">Boa! 🙌</button></div></div>'
+    );
+    m.querySelector('#meta-dia-ok').addEventListener('click', fecharModal);
+  }
+
   function painelDiscLimite() {
     return (window.matchMedia && window.matchMedia('(max-width: 760px)').matches)
       ? PAINEL_DISC_LIMITE_MOBILE : PAINEL_DISC_LIMITE_DESKTOP;
@@ -1472,6 +1505,8 @@
     const hora = new Date().getHours();
     const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
     const frase = window.Frases.fraseDoDia();
+    // garante que a agenda do dia esteja preenchida a partir do cronograma
+    if (state.plano) { if (sincronizarAgendaComCronograma() > 0) salvar(); }
     const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
@@ -1497,6 +1532,10 @@
     let posInsercao = 0;
     while (posInsercao < fila.length && fila[posInsercao].categoria === 'revisao') posInsercao++;
     fila.splice.apply(fila, [posInsercao, 0].concat(itensAgenda));
+
+    // Hoje foca no DIA: o conteúdo do cronograma para hoje vem da AGENDA (que é
+    // preenchida por dia); os blocos da semana inteira saem da fila do Hoje.
+    for (let k = fila.length - 1; k >= 0; k--) { if (fila[k].categoria === 'bloco') fila.splice(k, 1); }
 
     // Modo ciclo: troca os blocos do cronograma pela fila do ciclo (bloco atual
     // + próximos), logo após as revisões vencidas.
@@ -1542,6 +1581,10 @@
     const nCiclo = fila.filter(function (i) { return i.categoria === 'ciclo'; }).length;
     const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !i.agenda.feito); }).length + nCiclo;
     const pendentes = nRev + nBlocos + fila.filter(function (i) { return i.categoria === 'reaberto'; }).length;
+    // "Meta do dia" concluída: tinha o que estudar hoje (agenda do dia) e está tudo
+    // feito, sem revisões vencidas. Usado para o modal de parabéns (1x/dia).
+    hojeMetaConcluida = !!(state.plano && agendaHoje.length > 0 &&
+      agendaHoje.every(function (a) { return a.feito; }) && nRev === 0);
     const resumoDia = pendentes === 0 ? 'Tudo em dia por hoje.' :
       nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
 
@@ -1614,9 +1657,17 @@
     }
 
     if (fila.length === 0) {
+      // Dia sem nada agendado: oferece adiantar a próxima matéria e ver a semana.
+      const temCronograma = !!(state.plano && !ciclo && sem && !sem.futura && !sem.encerrado);
+      const temFuturo = doAtivo(state.agenda).some(function (a) { return a.data > hoje && !a.feito; });
       html += '<div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Nada pendente</strong>Sem revisões vencidas nem blocos para hoje. Planeje a semana ou adiante um tópico pelo Edital.' +
-        '<p style="margin-top:1rem"><a class="botao botao-secundario" href="#planejamento">Abrir planejamento</a></p></div>';
+        '<strong>Dia livre 🎉</strong>Você está em dia — nada agendado para hoje.' +
+        (temCronograma
+          ? '<div class="compact-actions" style="margin-top:1rem;justify-content:center">' +
+            (temFuturo ? '<button class="botao-mini" id="hoje-adiantar">Adiantar próxima matéria</button>' : '') +
+            '<a class="botao-mini botao-quieto" href="#planejamento">Ver a semana toda</a></div>'
+          : '<p style="margin-top:1rem"><a class="botao botao-secundario" href="#planejamento">Abrir planejamento</a></p>') +
+        '</div>';
     } else {
       for (let i = 0; i < fila.length; i++) {
         const item = fila[i];
@@ -1843,7 +1894,10 @@
 
   function ligarHoje(raiz) {
     celebrarConquistasNovas();
+    talvezComemorarDia(); // modal de parabéns se a meta do dia foi concluída
     raiz.querySelectorAll('.prova-editar').forEach(function (b) { b.addEventListener('click', abrirEditarProva); });
+    const adiantar = raiz.querySelector('#hoje-adiantar');
+    if (adiantar) adiantar.addEventListener('click', adiantarProximaMateria);
     const novaFase = raiz.querySelector('#hoje-nova-fase');
     if (novaFase) novaFase.addEventListener('click', function () { abrirGerarPlanoComRotina(); });
     raiz.querySelectorAll('[data-conquista]').forEach(function (el) {
