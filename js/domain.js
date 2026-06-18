@@ -757,7 +757,23 @@
     return set;
   }
 
-  function tokensDisc(nome) { return tokensSignificativos(nome, STOP_DISC); }
+  // Matérias de assunto ÚNICO: o nome da matéria já a identifica, independentemente
+  // do escopo descrito. Sem isso, "Química Geral, Inorgânica e Orgânica" e
+  // "Química e Fundamentos da Matéria" não casam na comparação (só compartilham o
+  // token "quimica"). Não inclui áreas que se subdividem em disciplinas distintas
+  // de concurso (Direito, Contabilidade, etc.).
+  const ANCORAS_DISC = {
+    quimica: 1, fisica: 1, biologia: 1, geografia: 1, historia: 1,
+    filosofia: 1, sociologia: 1, redacao: 1, atualidades: 1, ingles: 1, espanhol: 1
+  };
+  function tokensDisc(nome) {
+    const set = tokensSignificativos(nome, STOP_DISC);
+    // Com exatamente UM anchor, colapsa para ele (variações de escopo casam).
+    // Com 0 ou 2+ anchors (ex.: "Física e Química"), mantém os tokens completos.
+    const anchors = Object.keys(set).filter(function (k) { return ANCORAS_DISC[k]; });
+    if (anchors.length === 1) { const o = {}; o[anchors[0]] = true; return o; }
+    return set;
+  }
   function tokensTop(nome) { return tokensSignificativos(nome, STOP_TOP); }
 
   // Similaridade de Jaccard entre dois conjuntos de tokens (0..1). Prefixos
