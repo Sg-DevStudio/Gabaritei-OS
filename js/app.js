@@ -1267,8 +1267,20 @@
       }
     }
 
+    // Revisão adaptativa: as questões do estudo do dia a dia também reescalam as
+    // próximas revisões pendentes do tópico (vai bem → espaça; vai mal → aproxima).
+    let reagDiario = { ajustadas: 0, fator: 1 };
+    if (dados.qFeitas > 0 && topico) {
+      reagDiario = D.reagendarRevisoesAdaptativo(state.revisoes, dados.topicoId, hoje, D.sessoesDoPlano(state));
+    }
+
     salvar();
     toast('Sessão registrada', 'sucesso');
+    if (reagDiario.ajustadas > 0 && reagDiario.fator < 0.95) {
+      toast('Desempenho abaixo em ' + nomeTopicoCompleto(dados.topicoId) + ' — aproximei as próximas revisões deste tópico.', 'erro');
+    } else if (reagDiario.ajustadas > 0 && reagDiario.fator > 1.05) {
+      toast('Indo bem em ' + nomeTopicoCompleto(dados.topicoId) + ' — espacei as próximas revisões.', 'sucesso');
+    }
 
     // Teoria concluída tira o tópico da fila de teoria e replaneja o restante
     // (caso do aluno avançado que já dominou parte do edital).
@@ -1726,7 +1738,7 @@
         let etiqueta, sub, acoes;
         if (item.categoria === 'revisao') {
           const atraso = D.diffDias(item.revisao.dataAgendada, hoje);
-          etiqueta = '<span class="etiqueta etiqueta-revisao">Revisão ' + esc(item.revisao.tipo) + '</span>';
+          etiqueta = '<span class="etiqueta etiqueta-revisao">Revisão ' + esc(item.revisao.tipo) + '</span>' + badgeAdaptacaoRevisao(item.revisao);
           sub = atraso > 0 ? 'vencida há ' + atraso + (atraso === 1 ? ' dia' : ' dias') : 'vence hoje';
           acoes = '<button class="botao-mini" data-acao="concluir-revisao" data-id="' + esc(item.revisao.id) + '">Concluir</button>';
         } else if (item.categoria === 'bloco') {
@@ -2443,7 +2455,7 @@
       }
       // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
       // ou encurta (indo mal) as próximas revisões pendentes.
-      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida);
+      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state));
       if (aj.reabrir) {
         toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.revisaoExtraDias != null) {
@@ -2471,6 +2483,16 @@
       const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
     }
     return a;
+  }
+
+  // Etiqueta que explica POR QUE uma revisão mudou de data (transparência da
+  // adaptação por desempenho). Vazia quando a revisão está no ritmo normal.
+  function badgeAdaptacaoRevisao(rev) {
+    const est = D.estadoAdaptacaoRevisao(rev);
+    if (est === 'reforco') return '<span class="etiqueta etiqueta-rev-antecipada" title="Revisão extra de reforço, criada porque o desempenho ficou baixo.">＋ reforço</span>';
+    if (est === 'antecipada') return '<span class="etiqueta etiqueta-rev-antecipada" title="Antecipada: seu desempenho neste tópico ficou abaixo do esperado.">⏩ antecipada</span>';
+    if (est === 'espacada') return '<span class="etiqueta etiqueta-rev-espacada" title="Espaçada: você vem indo bem neste tópico, então pode revisar com menos frequência.">🌱 espaçada</span>';
+    return '';
   }
 
   function revisoesAgendadasHtml() {
@@ -2527,6 +2549,7 @@
           '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(t.nome) + '</div>' +
           '<div class="fila-sub">agendada para ' + D.formatarDataBR(r.dataAgendada) + '</div></div>' +
           (aposProva ? '<span class="etiqueta etiqueta-alerta" title="Esta revisão cai depois do início da janela da prova">⚠ depois da prova</span>' : '') +
+          badgeAdaptacaoRevisao(r) +
           '<span class="etiqueta ' + g.classe + '">' + esc(r.tipo) + '</span>' +
           (podeConcluir ? '<button class="botao-mini" data-rev="' + esc(r.id) + '">Concluir</button>' : '') +
           '</div>';
