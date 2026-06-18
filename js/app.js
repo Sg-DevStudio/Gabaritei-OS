@@ -952,12 +952,12 @@
       const disc = D.disciplinaPorId(state, b.disciplinaId);
       const topId = b.topicoId || (disc && disc.topicos[0] ? disc.topicos[0].id : null);
       const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
-      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila' }) : null;
+      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, semRender: true }) : null;
       if (sessao) b.registroRapidoId = sessao.id;
       b.feito = true;
       salvar();
     } else { // registrar (bloco da semana / reaberto)
-      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila' });
+      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', semRender: true });
     }
     setTimeout(render, 420); // deixa a animação do check rodar antes de redesenhar
   }
@@ -1191,21 +1191,25 @@
       if (!dur || dur < 1) { erroEl.textContent = 'Informe a duração em minutos (mínimo 1).'; erroEl.classList.remove('oculto'); return; }
       if (certas > feitas) { erroEl.textContent = 'Acertos (' + certas + ') não podem superar as questões feitas (' + feitas + ').'; erroEl.classList.remove('oculto'); return; }
 
+      // A sessão é registrada na DATA do bloco (quando veio da agenda/calendário),
+      // não sempre em "hoje" — registrar o bloco de sábado deve cair no sábado.
+      const dataReg = opcoes.data || D.hojeISO();
       const dados = {
         topicoId: selTop.value,
         tipo: m.querySelector('#reg-tipo').value,
         duracaoMin: dur, qFeitas: feitas, qCertas: certas,
         obs: m.querySelector('#reg-obs').value.trim(),
-        teoriaOk: m.querySelector('#reg-teoria-ok').checked
+        teoriaOk: m.querySelector('#reg-teoria-ok').checked,
+        data: dataReg
       };
 
       // caminho infeliz F1: registro duplicado no mesmo dia/tópico/tipo → confirmar
-      const hoje = D.hojeISO();
       const duplicada = state.sessoes.some(function (s) {
-        return s.data === hoje && s.topicoId === dados.topicoId && s.tipo === dados.tipo;
+        return s.data === dataReg && s.topicoId === dados.topicoId && s.tipo === dados.tipo;
       });
       if (duplicada && !opcoes.confirmouDuplicada) {
-        erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico hoje. Clique em "Registrar sessão" de novo para confirmar como sessão adicional.';
+        const quando = dataReg === D.hojeISO() ? 'hoje' : 'em ' + D.formatarDataBR(dataReg);
+        erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico ' + quando + '. Clique em "Registrar sessão" de novo para confirmar como sessão adicional.';
         erroEl.classList.remove('oculto');
         opcoes.confirmouDuplicada = true;
         return;
@@ -1219,11 +1223,12 @@
 
   function concluirRegistro(dados) {
     const hoje = D.hojeISO();
+    const data = dados.data || hoje; // data real do estudo (pode ser de outro dia)
     const metaAntes = D.metaSemanal(state, hoje);
     const streakAntes = D.streak(D.sessoesDoPlano(state), hoje);
 
     const sessao = {
-      id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: hoje,
+      id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: data,
       topicoId: dados.topicoId, tipo: dados.tipo,
       duracaoMin: dados.duracaoMin, qFeitas: dados.qFeitas, qCertas: dados.qCertas,
       obs: dados.obs || '',
@@ -1316,7 +1321,9 @@
       confete();
       toast('Meta semanal de horas batida! 🎯', 'sucesso');
     }
-    render();
+    // O registro rápido (bolinha) controla o próprio render para a animação do
+    // check verde aparecer; nesse caso não redesenhamos aqui por cima dela.
+    if (!dados.semRender) render();
     return sessao;
   }
 
@@ -5285,7 +5292,16 @@
   function blocoAgendaConcluido(bloco) {
     if (bloco.feito) return true;
     const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
-    return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
+    if (t && (t.status === 'teoria_concluida' || t.status === 'dominado')) return true;
+    // Qualquer sessão registrada do mesmo tópico/tipo NO DIA do bloco também o
+    // conclui — assim registrar pela fila de Hoje risca o bloco no calendário.
+    if (bloco.topicoId) {
+      const tipo = bloco.obs === 'questoes' ? 'questoes' : bloco.obs === 'revisao' ? 'revisao' : 'teoria';
+      return D.sessoesDoPlano(state).some(function (s) {
+        return s.topicoId === bloco.topicoId && s.data === bloco.data && s.tipo === tipo;
+      });
+    }
+    return false;
   }
 
   // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
@@ -5334,7 +5350,8 @@
     abrirRegistro({
       topicoId: topId,
       duracaoMin: blocoAg.duracaoMin || 30,
-      tipo: 'teoria',
+      tipo: blocoAg.obs === 'questoes' ? 'questoes' : blocoAg.obs === 'revisao' ? 'revisao' : 'teoria',
+      data: blocoAg.data,
       aoSalvar: function () {
         const b = state.agenda.find(function (x) { return x.id === blocoAg.id; });
         if (b) { b.feito = true; salvar(); }
