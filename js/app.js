@@ -834,6 +834,51 @@
     return hoje.slice(0, 7);
   }
 
+  // Seletor de MÊS (mês/ano) com dois dropdowns no tema do app — substitui o
+  // input[type=month] nativo (cujo popup não dá para estilizar). Mantém um input
+  // hidden#id com o valor "AAAA-MM" para o código existente continuar lendo .value.
+  const MESES_PT_CURTO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  function seletorMesHtml(id, valor, opcoes) {
+    opcoes = opcoes || {};
+    valor = /^\d{4}-\d{2}/.test(valor || '') ? valor.slice(0, 7) : '';
+    const mm = valor ? valor.slice(5, 7) : '';
+    const aa = valor ? valor.slice(0, 4) : '';
+    const anoBase = new Date().getFullYear();
+    let aMin = anoBase - 1, aMax = anoBase + 8;
+    if (aa) { aMin = Math.min(aMin, +aa); aMax = Math.max(aMax, +aa); }
+    const optVazio = opcoes.opcional ? '<option value="">—</option>' : '';
+    let optsMes = optVazio;
+    MESES_PT_CURTO.forEach(function (nm, i) {
+      const v = String(i + 1).padStart(2, '0');
+      optsMes += '<option value="' + v + '"' + (v === mm ? ' selected' : '') + '>' + nm + '</option>';
+    });
+    let optsAno = optVazio;
+    for (let y = aMax; y >= aMin; y--) {
+      optsAno += '<option value="' + y + '"' + (String(y) === aa ? ' selected' : '') + '>' + y + '</option>';
+    }
+    return '<div class="seletor-mes" data-seletor-mes>' +
+      '<select class="sm-mes" aria-label="Mês">' + optsMes + '</select>' +
+      '<select class="sm-ano" aria-label="Ano">' + optsAno + '</select>' +
+      '<input type="hidden" id="' + esc(id) + '" value="' + esc(valor) + '"></div>';
+  }
+  // Liga os seletores de mês de um container: compõe AAAA-MM no hidden e dispara
+  // 'change' (para os handlers existentes que escutam o input continuarem valendo).
+  function ligarSeletoresMes(raiz) {
+    (raiz || document).querySelectorAll('[data-seletor-mes]').forEach(function (wrap) {
+      if (wrap.dataset.ligado) return;
+      wrap.dataset.ligado = '1';
+      const mes = wrap.querySelector('.sm-mes');
+      const ano = wrap.querySelector('.sm-ano');
+      const hid = wrap.querySelector('input[type="hidden"]');
+      function sync() {
+        hid.value = (mes.value && ano.value) ? ano.value + '-' + mes.value : '';
+        hid.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      mes.addEventListener('change', sync);
+      ano.addEventListener('change', sync);
+    });
+  }
+
   function ultimoDiaMesISO(aaaaMM) {
     if (!aaaaMM || !/^\d{4}-\d{2}$/.test(aaaaMM)) return null;
     const partes = aaaaMM.split('-').map(Number);
@@ -1072,13 +1117,14 @@
       '<label for="pv-nome">Nome da prova</label>' +
       '<input id="pv-nome" type="text" maxlength="80" value="' + esc(state.plano.concurso || '') + '" placeholder="Ex.: TRF3 — Técnico Judiciário">' +
       '<div class="grade-2">' +
-      '<div><label for="pv-inicio">Início do período</label><input id="pv-inicio" type="month" value="' + esc(janela[0] || hojeMesISO()) + '" required></div>' +
-      '<div><label for="pv-fim">Fim do período</label><input id="pv-fim" type="month" value="' + esc(janela[1] || janela[0] || hojeMesISO()) + '" required></div></div>' +
+      '<div><label for="pv-inicio">Início do período</label>' + seletorMesHtml('pv-inicio', janela[0] || hojeMesISO()) + '</div>' +
+      '<div><label for="pv-fim">Fim do período</label>' + seletorMesHtml('pv-fim', janela[1] || janela[0] || hojeMesISO()) + '</div></div>' +
       '<label for="pv-reav">Reavaliar em</label><input id="pv-reav" type="date" value="' + esc(radar.reavaliar_em || '') + '">' +
       '<div class="msg-erro oculto" id="pv-erro"></div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="pv-cancelar">Cancelar</button>' +
       '<button type="submit">Salvar</button></div></form>'
     );
+    ligarSeletoresMes(m);
     m.querySelector('#pv-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#form-prova').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -4948,8 +4994,8 @@
       '<div><label>Cota PcD</label><input id="ee-corte-pcd" type="number" min="0" max="100" value="' + cPcd + '" placeholder="—"></div>' +
       '</div></div>' +
       '<div class="grade-2">' +
-      '<div><label>Janela da prova — início</label><input id="ee-janela-ini" type="month" value="' + esc(e.janelaProva.inicio) + '"></div>' +
-      '<div><label>Janela da prova — fim</label><input id="ee-janela-fim" type="month" value="' + esc(e.janelaProva.fim) + '"></div></div>' +
+      '<div><label>Janela da prova — início</label>' + seletorMesHtml('ee-janela-ini', e.janelaProva.inicio, { opcional: true }) + '</div>' +
+      '<div><label>Janela da prova — fim</label>' + seletorMesHtml('ee-janela-fim', e.janelaProva.fim, { opcional: true }) + '</div></div>' +
       '<div class="grade-3">' +
       '<div><label>Salário</label><input id="ee-salario" type="text" value="' + esc(e.salario || '') + '" placeholder="Ex.: R$ 5.878,82"></div>' +
       '<div><label>Vagas</label><input id="ee-vagas" type="text" value="' + esc(e.vagas || '') + '" placeholder="Ex.: 228 + CR"></div>' +
@@ -5033,6 +5079,7 @@
   }
   function ligarEditorBody(m) {
     const body = m.querySelector('#editor-body');
+    ligarSeletoresMes(body);
     const fotoInput = body.querySelector('#ee-foto');
     if (fotoInput) fotoInput.addEventListener('change', function () {
       const f = fotoInput.files && fotoInput.files[0];
@@ -6856,10 +6903,10 @@
         ? '<div class="aviso aviso-info"><strong>📅 ' + esc(nomeCurtoConcurso()) + ' tem data prevista: ' + esc(janelaTexto) + '.</strong><br>' +
           'O plano vai se organizar para te deixar pronto até lá — teoria, revisões e questões no tempo certo. Tem informação mais precisa? Ajuste a data abaixo.</div>' +
           '<label for="gp-data-alvo">Data-alvo da prova</label>' +
-          '<input id="gp-data-alvo" type="month" value="' + esc(janelaFim) + '">'
+          seletorMesHtml('gp-data-alvo', janelaFim, { opcional: true })
         : '<div class="aviso aviso-info">Este concurso ainda não tem data definida. Se quiser, mire numa data; senão, seguimos no seu ritmo, focando em cobrir e reter o conteúdo.</div>' +
           '<label for="gp-data-alvo">Tem uma data em mente? (opcional)</label>' +
-          '<input id="gp-data-alvo" type="month" value="">') +
+          seletorMesHtml('gp-data-alvo', '', { opcional: true })) +
       '<div class="gp-prazo-proj" id="gp-prazo-proj"></div>' +
       '<input type="hidden" id="gp-meses" value="' + mesesInicial + '">' +
       '</section>' +
@@ -6892,6 +6939,7 @@
       '</div></form></div>'
     );
     m.classList.add('modal-amplo');
+    ligarSeletoresMes(m);
 
     // Se o assistente foi aberto logo após criar um plano (fluxo "Iniciar plano")
     // e o usuário sair sem gerar, descartamos o plano recém-criado para não

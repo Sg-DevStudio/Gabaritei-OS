@@ -809,6 +809,11 @@ input[type="month"]:focus::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(1.6);
 }
 textarea { min-height: 70px; resize: vertical; }
+
+/* Seletor de mês/ano: dois dropdowns no tema do app, no lugar do input[type=month]
+   nativo (cujo popup do calendário não dá para estilizar). */
+.seletor-mes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.seletor-mes .sm-mes { text-transform: capitalize; }
 input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline: none; box-shadow: 0 0 0 3px var(--caneta-suave); }
 
 .campo-erro { border-color: var(--errado) !important; }
