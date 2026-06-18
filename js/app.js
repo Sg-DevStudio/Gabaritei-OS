@@ -1990,7 +1990,9 @@
 
   function ligarHoje(raiz) {
     celebrarConquistasNovas();
-    talvezComemorarDia(); // modal de parabéns se a meta do dia foi concluída
+    // Convite ao aprofundamento (plano concluído) tem prioridade sobre o modal de
+    // "meta do dia" para não abrirem dois modais no mesmo render.
+    if (!talvezConvidarAprofundamento()) talvezComemorarDia();
     raiz.querySelectorAll('.prova-editar').forEach(function (b) { b.addEventListener('click', abrirEditarProva); });
     const adiantar = raiz.querySelector('#hoje-adiantar');
     if (adiantar) adiantar.addEventListener('click', adiantarProximaMateria);
@@ -5685,45 +5687,68 @@
       '</div>';
   }
 
-  // Controle do modo aprofundamento dentro do card do plano (Planejamento).
-  // Reta final e aprofundamento são opostos: este só se oferece quando a reta
-  // final NÃO está ativa.
+  // Controle do modo aprofundamento no card do plano. NÃO há ativação manual: o
+  // modo é proposto automaticamente quando o aluno conclui todo o cronograma
+  // (ver talvezConvidarAprofundamento). Aqui só mostramos o estado ativo + sair.
   function modoAprofundamentoControleHtml() {
-    const ativo = !!(state.plano && state.plano.modoAprofundamento);
-    if (ativo) {
-      return '<div class="modo-controle modo-controle-aprof-ativo">' +
-        '<span class="modo-controle-txt">🎓 <strong>Modo aprofundamento ativo</strong> — foco em cobrir tudo, reter e aprofundar.</span>' +
-        '<button type="button" class="botao-mini botao-quieto" id="pl-aprof-desativar">Desativar</button></div>';
-    }
-    if (D.retaFinalInfo(state, D.hojeISO()).ativa) return ''; // reta final no comando
-    return '<div class="modo-controle">' +
-      '<span class="modo-controle-txt">🎓 Tem bastante tempo até a prova? O <strong>modo aprofundamento</strong> troca a corrida contra o relógio por cobertura, retenção e aprofundamento.</span>' +
-      '<button type="button" class="botao-mini botao-secundario" id="pl-aprof-ativar">Ativar modo aprofundamento</button></div>';
+    if (!(state.plano && state.plano.modoAprofundamento)) return '';
+    return '<div class="modo-controle modo-controle-aprof-ativo">' +
+      '<span class="modo-controle-txt">🎓 <strong>Modo aprofundamento ativo</strong> — foco em reter e aprofundar o que mais cai.</span>' +
+      '<button type="button" class="botao-mini botao-quieto" id="pl-aprof-desativar">Desativar</button></div>';
   }
 
-  // Modal explicativo do modo aprofundamento (com confirmação).
-  function abrirModoAprofundamento() {
-    if (!state.plano) { toast('Crie ou ative um plano primeiro.', 'erro'); return; }
+  // Convite automático ao aprofundamento: ao concluir todo o cronograma (ou 100%
+  // do edital) e ainda havendo tempo até a prova, parabeniza e oferece aprofundar.
+  // Ao aceitar, subentende "já estudei" para TODOS os tópicos do plano e ativa o
+  // modo. Aparece uma única vez por plano (flag aprofundamentoConvidado).
+  function talvezConvidarAprofundamento() {
+    if (!state.plano || state.plano.modoAprofundamento || state.plano.aprofundamentoConvidado) return false;
+    const hoje = D.hojeISO();
+    const sem = D.semanaCorrente(state, hoje);
+    const prog = D.progressoEdital(state);
+    const concluiu = (sem && sem.encerrado) || (prog.total > 0 && prog.pct === 100);
+    if (!concluiu) return false;
+    // precisa ainda haver tempo até a prova (sem data = há tempo) e não estar na reta final
+    const prazo = D.prazoProva(state);
+    if (prazo && prazo <= hoje) return false;
+    if (D.retaFinalInfo(state, hoje).ativa) return false;
+
+    state.plano.aprofundamentoConvidado = true;
+    salvar();
+    if (typeof confete === 'function') confete();
+    const nome = nomeCurtoConcurso();
+    let tempoTxt = 'ainda há tempo até a prova';
+    if (prazo) {
+      const semanas = Math.max(1, D.diffDias(hoje, prazo) / 7);
+      tempoTxt = 'ainda falta ' + formatarEstimativaPrazo(semanas) + ' para a prova';
+    }
     const m = abrirModal(
-      '<h3>🎓 Modo aprofundamento</h3>' +
-      '<p class="sub">Para quem tem <strong>bastante tempo até a prova</strong> (ou ainda sem data). Em vez de correr contra o relógio, o foco passa a ser:</p>' +
-      '<ul class="modo-lista">' +
-      '<li>📚 <strong>Cobrir todo o edital</strong> com calma, sem contagem regressiva pressionando.</li>' +
-      '<li>🔁 <strong>Reter de verdade</strong>: revisões espaçadas e questões nos pontos que mais caem.</li>' +
-      '<li>🎯 <strong>Aprofundar a alta incidência</strong>: depois de cobrir a base, dedicar tempo extra ao que mais aparece nas provas.</li>' +
-      '</ul>' +
-      '<p class="sub">No Hoje aparece um painel guiando esse foco em cobertura e retenção. Quando a prova se aproximar, é só desativar (ou o modo reta final assume). Quer continuar?</p>' +
-      '<div class="modal-acoes">' +
-      '<button type="button" class="botao-quieto" id="aprof-cancelar">Agora não</button>' +
-      '<button type="button" id="aprof-confirmar">Ativar modo aprofundamento</button></div>'
+      '<div style="text-align:center">' +
+      '<div style="font-size:2.6rem;line-height:1">🎉</div>' +
+      '<h3 style="margin:0.4rem 0">Você concluiu o plano de ' + esc(nome) + '!</h3>' +
+      '<p class="sub">Percorreu todo o cronograma — que jornada! Como <strong>' + esc(tempoTxt) + '</strong>, dá para transformar esse tempo extra em vantagem.</p>' +
+      '<p class="sub">Que tal entrar no <strong>modo aprofundamento</strong>? Vou considerar todo o conteúdo como <strong>já estudado</strong> e focar em revisão espaçada, questões e nos tópicos que mais caem.</p>' +
+      '<div class="modal-acoes" style="justify-content:center">' +
+      '<button type="button" class="botao-quieto" id="aprof-depois">Agora não</button>' +
+      '<button type="button" id="aprof-sim">Aprofundar conhecimentos 🎓</button></div></div>'
     );
-    m.querySelector('#aprof-cancelar').addEventListener('click', fecharModal);
-    m.querySelector('#aprof-confirmar').addEventListener('click', function () {
+    m.querySelector('#aprof-depois').addEventListener('click', fecharModal);
+    m.querySelector('#aprof-sim').addEventListener('click', function () {
       state.plano.modoAprofundamento = true;
-      delete state.plano.modoRetaFinal; // modos opostos: um desliga o outro
+      delete state.plano.modoRetaFinal; // modos opostos
+      // subentende "já estudei" para todos os tópicos do plano e agenda revisões
+      state.disciplinas.forEach(function (d) {
+        if (d.id === 'ORF') return;
+        (d.topicos || []).forEach(function (t) {
+          if (t.orfao) return;
+          if (t.status !== 'dominado') t.status = 'teoria_concluida';
+          agendarRevisoesSeNecessario(t.id);
+        });
+      });
       salvar(); fecharModal(); render();
-      toast('Modo aprofundamento ativado 🎓', 'sucesso');
+      toast('Modo aprofundamento ativado 🎓 — bora reter e aprofundar!', 'sucesso');
     });
+    return true;
   }
 
   // Controle do modo reta final dentro do card do plano (Planejamento).
@@ -7551,8 +7576,6 @@
     if (retaDesativar) retaDesativar.addEventListener('click', function () {
       if (state.plano) { delete state.plano.modoRetaFinal; salvar(); render(); toast('Modo reta final desativado', 'sucesso'); }
     });
-    const aprofAtivar = raiz.querySelector('#pl-aprof-ativar');
-    if (aprofAtivar) aprofAtivar.addEventListener('click', abrirModoAprofundamento);
     const aprofDesativar = raiz.querySelector('#pl-aprof-desativar');
     if (aprofDesativar) aprofDesativar.addEventListener('click', function () {
       if (state.plano) { delete state.plano.modoAprofundamento; salvar(); render(); toast('Modo aprofundamento desativado', 'sucesso'); }
