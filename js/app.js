@@ -216,7 +216,7 @@
 
   function publicarCatalogoAdminAntigo() {
     if (!usuarioAdmin() || !window.FirebaseSync || !window.FirebaseSync.publicarCatalogoGlobal) return Promise.resolve();
-    const editais = (state.editais || []).filter(function (e) { return !e.arquivado; }).map(limparEditalParaCatalogo);
+    const editais = (state.editais || []).filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; }).map(limparEditalParaCatalogo);
     return window.FirebaseSync.publicarCatalogoGlobal(editais).then(function () {
       catalogoGlobalEditais = normalizarCatalogoGlobal(editais);
     }).catch(function (e) {
@@ -4374,7 +4374,7 @@
 
   function telaPlanos() {
     garantirEditaisMock();
-    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado; })
+    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; })
       .slice().sort(function (a, b) { return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a); });
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo</span><h1>Planos disponíveis</h1></div></div>' +
       '<p class="sub" style="margin-bottom:1rem">Escolha um concurso para gerar seu plano de estudos. Use <strong>Comparar</strong> para saber se dá para conciliar dois editais.</p>';
@@ -4391,7 +4391,7 @@
   function telaPlanosNova() {
     garantirEditaisMock();
     const lista = editaisDoCatalogo().filter(function (e) {
-      return !e.arquivado && editalCorrespondeFiltro(e, catalogoFiltro);
+      return !e.arquivado && !e.ocultoNoCatalogo && editalCorrespondeFiltro(e, catalogoFiltro);
     }).slice().sort(function (a, b) {
       return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a);
     });
@@ -4459,7 +4459,7 @@
   }
 
   function editaisComparaveis() {
-    return editaisDoCatalogo().filter(function (e) { return !e.arquivado; });
+    return editaisDoCatalogo().filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; });
   }
 
   function cardAvisoCompararHtml() {
@@ -4731,7 +4731,7 @@
   }
 
   function abrirCompararPlanos(idA) {
-    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado; });
+    const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !e.ocultoNoCatalogo; });
     const edA = lista.find(function (x) { return x.id === idA; }) || lista[0];
     if (!edA || lista.length < 2) { toast('Cadastre pelo menos dois editais para comparar.', 'erro'); return; }
     const outros = lista.filter(function (x) { return x.id !== edA.id; });
@@ -4773,7 +4773,10 @@
     const comb = D.combinarEditais(edA, edB);
     gerarIdsEdital(comb.disciplinas);
     const reg = Object.assign(
-      { id: window.Store.novoId('edt'), criadoEm: D.hojeISO(), orgao: '', cargo: '', area: '', estado: '', emAlta: false, arquivado: false },
+      // ocultoNoCatalogo: o edital combinado é um artefato do plano do aluno, não
+      // um edital do catálogo — fica disponível por id (p/ criar/atualizar o
+      // plano), mas NÃO aparece na vitrine da aba Planos.
+      { id: window.Store.novoId('edt'), criadoEm: D.hojeISO(), orgao: '', cargo: '', area: '', estado: '', emAlta: false, arquivado: false, ocultoNoCatalogo: true },
       comb
     );
     state.editais.push(reg);
