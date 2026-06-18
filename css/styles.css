@@ -1086,6 +1086,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .etiqueta-reaberto { background: var(--alerta-suave); color: var(--alerta); }
 .etiqueta-feito { background: var(--correto-suave); color: var(--correto); }
 .etiqueta-agenda { background: var(--caneta-suave); color: var(--caneta); }
+/* Revisão adaptativa: antecipada (alerta) / espaçada (verde) */
+.etiqueta-rev-antecipada { background: var(--alerta-suave); color: var(--alerta); }
+.etiqueta-rev-espacada { background: var(--correto-suave); color: var(--correto); }
 
 /* Aviso de rotina sem dias ativos (Planejamento) */
 .aviso-rotina {

@@ -970,31 +970,48 @@
   // mesmo princípio do SM-2 dos flashcards, aplicado às revisões do tópico.
   const TIPOS_CICLO_REV = { '24h': 1, '3d': 1, '7d': 1, '14d': 1, '30d': 1 };
 
+  // Multiplicador do espaçamento para uma faixa de desempenho (%).
+  function multiplicadorEspacamento(p) {
+    if (p >= 85) return 1.25;        // dominando: espaça mais
+    if (p >= 70) return 1.1;         // indo bem: espaça um pouco
+    if (p >= 50) return 0.85;        // vacilando: aproxima
+    return 0.6;                      // não fixou: aproxima bastante
+  }
+
   // Fator multiplicativo do espaçamento (1 = neutro). Acumula o efeito de cada
   // revisão já feita: acerto alto estica, acerto baixo encurta. Como os multipli-
   // cadores recentes compõem sobre os antigos, a TENDÊNCIA recente domina.
-  function fatorEspacamentoRevisao(revisoes, topicoId) {
+  // `sessoes` (opcional): as questões do estudo do dia a dia também realimentam o
+  // espaçamento — o desempenho recente (últimas 3 sessões de QUESTÕES, fora as de
+  // revisão, que já entram acima) entra como um multiplicador adicional. Assim a
+  // maior parte das questões do aluno passa a influenciar o timing das revisões.
+  function fatorEspacamentoRevisao(revisoes, topicoId, sessoes) {
     const feitas = (revisoes || [])
       .filter(function (r) {
         return r.topicoId === topicoId && TIPOS_CICLO_REV[r.tipo] && r.dataConcluida && r.resultadoPct != null;
       })
       .sort(function (a, b) { return String(a.dataConcluida).localeCompare(String(b.dataConcluida)); });
     let f = 1;
-    feitas.forEach(function (r) {
-      const p = r.resultadoPct;
-      if (p >= 85) f *= 1.25;        // dominando: espaça mais
-      else if (p >= 70) f *= 1.1;    // indo bem: espaça um pouco
-      else if (p >= 50) f *= 0.85;   // vacilando: aproxima
-      else f *= 0.6;                 // não fixou: aproxima bastante
-    });
+    feitas.forEach(function (r) { f *= multiplicadorEspacamento(r.resultadoPct); });
+    if (sessoes && sessoes.length) {
+      const recentes = sessoes
+        .filter(function (s) { return s.topicoId === topicoId && s.tipo !== 'revisao' && s.qFeitas > 0; })
+        .sort(function (a, b) { return String(a.data || '').localeCompare(String(b.data || '')); })
+        .slice(-3);
+      if (recentes.length) {
+        let fe = 0, ce = 0;
+        recentes.forEach(function (s) { fe += s.qFeitas; ce += s.qCertas; });
+        if (fe > 0) f *= multiplicadorEspacamento(Math.round((ce / fe) * 100));
+      }
+    }
     return Math.max(0.4, Math.min(2.2, Math.round(f * 100) / 100));
   }
 
   // Reescala as revisões do ciclo ainda PENDENTES (futuras) do tópico pelo fator
   // de espaçamento. Não mexe em revisões já feitas nem nas vencidas/de hoje.
-  function reagendarRevisoesAdaptativo(revisoes, topicoId, hoje) {
+  function reagendarRevisoesAdaptativo(revisoes, topicoId, hoje, sessoes) {
     hoje = hoje || hojeISO();
-    const f = fatorEspacamentoRevisao(revisoes, topicoId);
+    const f = fatorEspacamentoRevisao(revisoes, topicoId, sessoes);
     let ajustadas = 0;
     (revisoes || []).forEach(function (r) {
       if (r.topicoId !== topicoId || !TIPOS_CICLO_REV[r.tipo] || r.dataConcluida) return;
@@ -1005,6 +1022,26 @@
       if (novaData !== r.dataAgendada) { r.dataAgendada = novaData; ajustadas++; }
     });
     return { fator: f, ajustadas: ajustadas };
+  }
+
+  // Estado adaptativo de uma revisão PENDENTE, para a UI mostrar o porquê do
+  // timing. A data-base original está no fim do id (rev-<top>-<tipo>-AAAA-MM-DD);
+  // comparamos a data agendada atual com a data "nominal" do ciclo:
+  //   antecipada → veio para mais cedo (desempenho abaixo do esperado)
+  //   espacada   → foi empurrada (o aluno vem indo bem)
+  //   reforco    → revisão extra criada por desempenho baixo
+  const DIAS_CICLO_REV = { '24h': 1, '3d': 3, '7d': 7, '14d': 14, '30d': 30 };
+  function estadoAdaptacaoRevisao(rev) {
+    if (!rev || rev.dataConcluida) return null;
+    if (rev.tipo === 'reforço') return 'reforco';
+    const dias = DIAS_CICLO_REV[rev.tipo];
+    if (!dias) return null;
+    const m = String(rev.id || '').match(/(\d{4}-\d{2}-\d{2})$/);
+    if (!m) return null;
+    const nominal = addDias(m[1], dias);
+    if (rev.dataAgendada < nominal) return 'antecipada';
+    if (rev.dataAgendada > nominal) return 'espacada';
+    return 'normal';
   }
 
   // ---------- Prontidão para a prova: as revisões cabem antes da prova? ----------
@@ -1249,7 +1286,7 @@
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
-    reagendarRevisoesAdaptativo, prazoProva, prontidaoProva, streak, semaforo,
+    reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
