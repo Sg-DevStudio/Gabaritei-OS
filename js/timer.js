@@ -31,6 +31,7 @@
     const ms = decorridoMs();
     const e = {
       topicoId: interno.topicoId,
+      blocoId: interno.blocoId || null,
       modo: interno.modo,
       rodando: interno.rodando,
       decorridoMs: ms,
@@ -85,6 +86,7 @@
     const limiteMin = parseInt(opcoes.limiteMin, 10);
     interno = {
       topicoId: topicoId || null,
+      blocoId: opcoes.blocoId || null,
       modo: modo || 'cronometro',
       inicioEm: Date.now(),
       ultimoTickEm: Date.now(),

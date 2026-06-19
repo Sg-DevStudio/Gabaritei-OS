@@ -1232,6 +1232,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .etiqueta-reaberto { background: var(--alerta-suave); color: var(--alerta); }
 .etiqueta-feito { background: var(--correto-suave); color: var(--correto); }
 .etiqueta-agenda { background: var(--caneta-suave); color: var(--caneta); }
+.etiqueta-parcial { background: var(--alerta-suave); color: var(--alerta); }
 /* Revisão adaptativa: antecipada (alerta) / espaçada (verde) */
 .etiqueta-rev-antecipada { background: var(--alerta-suave); color: var(--alerta); }
 .etiqueta-rev-espacada { background: var(--correto-suave); color: var(--correto); }
@@ -2438,6 +2439,10 @@ td.num, th.num { text-align: right; }
 /* indicador de inserção ao reordenar (soltar antes deste bloco) */
 .agenda-bloco.drop-antes { box-shadow: inset 0 3px 0 var(--caneta); }
 .agenda-bloco.feito { opacity: 0.55; }
+.agenda-bloco.parcial { border-left-style: dashed; }
+/* barrinha de progresso do bloco (tempo já estudado / planejado) */
+.agenda-bloco-prog { display: block; height: 4px; border-radius: 3px; background: var(--linha); margin-top: 0.3rem; overflow: hidden; }
+.agenda-bloco-prog > span { display: block; height: 100%; background: var(--caneta); border-radius: 3px; }
 
 /* Em monitores menores (mas ainda desktop), a semana cabe melhor mostrando
    só o nome da disciplina. O detalhe (horário, tópico) sai da grade e fica

@@ -270,6 +270,11 @@
     if (!state.revisoes) state.revisoes = [];
     if (!state.simulados) state.simulados = [];
     if (!state.agenda) state.agenda = [];
+    // Progresso parcial dos blocos: minutos já estudados (acumulados pelo timer/
+    // registro). Blocos antigos marcados como feitos contam o tempo planejado.
+    state.agenda.forEach(function (a) {
+      if (a && typeof a.feitoMin !== 'number') a.feitoMin = a.feito ? (a.duracaoMin || 0) : 0;
+    });
     if (!Array.isArray(state.editais)) state.editais = [];
     if (!Array.isArray(state.flashcards)) state.flashcards = [];
 
