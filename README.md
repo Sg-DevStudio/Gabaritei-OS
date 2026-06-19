@@ -1,145 +1,155 @@
-# Estudos — Plataforma de Gestão de Estudos para Concursos
+# Gabaritei OS — Gestão de Estudos para Concursos
 
-Sistema pessoal (PWA) que gera planos de estudos personalizados a partir de editais
-esquematizados (produzidos pela skill `editais-esquematizados`): cronograma e
-calendário automáticos, registro de sessões com timer, revisões automáticas
-24h/7d/30d, simulados comparados com a nota de corte e estatísticas de constância.
+App **PWA estático** (HTML/CSS/JS puro, **sem build**) que transforma um edital em
+um plano de estudos vivo: **cronograma ou ciclo** personalizado, **timer/pomodoro**,
+registro de sessões, **revisões espaçadas adaptativas**, **flashcards (SM-2)**,
+**simulados** comparados com a nota de corte e estatísticas de constância — tudo
+offline-first e sincronizado entre aparelhos.
 
-> Posicionamento: o Estudei organiza o SEU esforço; este sistema organiza o seu
-> esforço **contra o concurso real** — o que cai, quanto precisa acertar e até quando.
+> **Posicionamento:** outras ferramentas organizam o *seu esforço*; o Gabaritei OS
+> organiza o seu esforço **contra o concurso real** — o que cai, quanto precisa
+> acertar e até quando.
+
+O sistema personaliza por três eixos: **nível** (sua bagagem), **horizonte**
+(tempo até a prova) e **desempenho** (o que você acerta e erra). A especificação
+funcional completa fica em [`ROADMAP.md`](ROADMAP.md); as convenções de código,
+em [`CLAUDE.md`](CLAUDE.md).
+
+## O que ele faz
+
+- **Planejamento em dois modos** — *cronograma* semanal (grade arrastável, visão
+  mensal, exportação `.ics`) ou *ciclo de estudos* (fila ponderada por peso ×
+  incidência, com reforço para matérias fracas). Gerado a partir da sua **rotina**
+  (dias e horas) e da data-alvo da prova; a vazão de teoria acompanha as horas e o
+  app **avisa** quando o edital não cabe no prazo.
+- **Tela Hoje** — a fila do dia vem pronta: revisões vencidas → blocos da semana →
+  tópicos reabertos. Heatmap de constância, KPIs do dia e conquistas.
+- **Timer** — cronômetro livre ou **pomodoro 25/5**, com recuperação de sessão e
+  registro em ≤3 toques (tempo + questões feitas/certas).
+- **Revisões espaçadas** — curva **1 · 3 · 7 · 14 · 30 dias** que se **adapta ao
+  desempenho** (vai bem → espaça; vai mal → aproxima e cria reforço).
+- **Flashcards** — decks com repetição espaçada **SM-2** e geração assistida por IA.
+- **Simulados** — registro por disciplina, semáforo contra a nota de corte e
+  envio dos piores tópicos direto para a fila.
+- **Desempenho** — gráficos (evolução semanal, acerto por disciplina/tópico),
+  heatmap, burndown do edital e projeção dinâmica de término.
+- **Edital verticalizado** — status e incidência por tópico, progresso por
+  disciplina, **conciliação de dois concursos** e geração de **plano combinado**.
+- **Reta final & prontidão** — nas últimas semanas o foco vira consolidação;
+  o app mede se as revisões cabem antes da prova.
+- **PWA** — instalável, abre offline, sincroniza PC/celular via Firebase.
 
 ## Como usar
 
 1. **Abrir o app**
-   - Local: `powershell -ExecutionPolicy Bypass -File tools/servidor.ps1` e acesse
-     `http://localhost:8123/` (ou publique a pasta no GitHub Pages).
-   - No celular, abra o app publicado no GitHub Pages e entre com Google em
-     *Plano e backup* para sincronizar PC/celular pela nuvem do Firebase.
-   - Em desenvolvimento local, também dá para abrir o endereço de rede mostrado pelo
-     servidor (algo como `http://192.168.x.x:8123/`) enquanto estiver no mesmo Wi-Fi.
-     Nesse modo, PC e celular usam `/api/sync` como alternativa local.
-   - No celular, use "Adicionar à tela inicial" (PWA instalável, abre offline).
-2. **Importar o plano** (tela *Plano e backup*): cole ou envie o JSON gerado pela
-   skill — peça no Claude: *"exporta meu plano TRF3 em JSON para o app"*.
-   O arquivo [data/exemplo-trf3.json](data/exemplo-trf3.json) (TRF3 Técnico, FCC,
-   10 disciplinas, 288 tópicos) já está pronto para testar.
-3. **Operar o dia** (tela *Hoje*): a fila vem pronta — revisões vencidas → blocos da
-   semana → tópicos reabertos. Toque em **Timer** para cronometrar (cronômetro ou
-   pomodoro 25/5) ou em **Registrar** para lançar direto (≤3 toques).
-4. **Backup semanal**: o Firebase mantém os aparelhos alinhados quando você está logado,
-   mas o backup continua sendo a cópia de segurança. O app avisa quando o backup passa
-   de 7 dias — exporte o `.json` em *Plano e backup*.
-5. **Ferramentas de apoio**: em *Plano e backup*, abra Notion para organizar notas e
-   NotebookLM para conversar com PDFs, aulas, questões e resumos do curso.
+   - **Publicado:** abra a URL do GitHub Pages e, no celular, use *Adicionar à tela
+     inicial* (PWA instalável, abre offline).
+   - **Local:** sirva a pasta com qualquer servidor estático, por exemplo
+     `python3 -m http.server 8123`, e acesse `http://localhost:8123/`.
+   - Faça login com Google em **Configurações** para sincronizar os aparelhos
+     pela nuvem do Firebase.
+2. **Começar um plano** (tela *Planos*): escolha um edital do catálogo e clique em
+   *Criar plano*, ou monte um plano manual. Os editais de exemplo em
+   [`data/*.json`](data/) servem de fallback e teste.
+3. **Definir a rotina** (assistente *Gerar plano com rotina*): marque os dias e as
+   horas, diga o que já sabe, informe a data da prova e escolha *cronograma* ou
+   *ciclo*. O sistema dimensiona o ritmo sozinho.
+4. **Operar o dia** (tela *Hoje*): siga a fila, use o **Timer** e **Registre** a
+   sessão. As revisões e o cronograma se reajustam ao seu progresso real.
+5. **Acompanhar**: confira *Desempenho* e *Revisões*; registre *Simulados* para
+   medir-se contra a nota de corte.
+6. **Backup**: o Firebase mantém os aparelhos alinhados, mas o `.json` exportado em
+   *Configurações* continua sendo a cópia de segurança.
 
-## Regras de negócio implementadas (domain.js)
+## Regras de negócio e técnicas de estudo (`js/domain.js`)
+
+Toda a lógica é **pura e testável** (sem DOM), em `window.Dominio`.
 
 | RN | Regra |
 |----|-------|
-| RN01 | Teoria concluída agenda revisões em +1d, +7d e +30d |
-| RN02 | Desempenho = acertos ÷ feitas acumulado; disciplina pondera pela incidência |
-| RN03 | Revisão de 30d com <70% reabre o tópico e o devolve à fila |
-| RN04 | Streak: dia conta com ≥1 sessão; atual + recorde (heatmap de bolhas) |
+| RN01 | Teoria concluída agenda revisões espaçadas em **+1 · +3 · +7 · +14 · +30 dias** |
+| RN02 | Desempenho = acertos ÷ feitas (acumulado); disciplina pondera pela incidência |
+| RN03 | Pós-revisão por desempenho: **<50%** reabre + reforço em 2d; **<70%** sobe prioridade + reforço em 3d (reabre na de 30d); **≥85%** na de 30d marca como *dominado* |
+| RN04 | Streak: o dia conta com ≥1 sessão; mostra atual + recorde (heatmap) |
 | RN05 | Semáforo: verde ≥ meta · amarelo ≥ meta−10pp · vermelho abaixo |
-| RN06 | Fila do dia ordena: revisões vencidas → blocos da semana → reabertos |
-| RN07 | Sessão com >50% de erro sugere reestudo (o usuário decide) |
-| RN08 | Reimportar plano preserva todo o histórico; tópico removido vira órfão |
+| RN06 | Fila do dia: revisões vencidas → blocos da semana → tópicos reabertos |
+| RN07 | Sessão com >50% de erro sugere reestudo (o aluno decide) |
+| RN08 | Reimportar plano preserva todo o histórico; tópico removido vira **órfão** |
+| RN09 | **Burndown** do edital: esforço = horas de teoria × 1.8 (teoria + questões + revisões); carga ideal/semana e projeção dinâmica de término |
+| RN10 | **Check-in semanal**: planejado × realizado da semana fechada + prévia da corrente |
 
-## Firebase
-
-Para a sincronização em nuvem funcionar no GitHub Pages:
-
-1. Em **Authentication > Sign-in method**, habilite **Google**.
-2. Em **Authentication > Settings > Authorized domains**, confirme `localhost` e adicione
-   `samuelgomes01.github.io`.
-3. Em **Firestore Database**, crie o banco em modo produção.
-4. Em **Rules**, publique as regras do arquivo `firestore.rules`. Elas mantem cada conta presa ao proprio perfil, liberam leitura do catalogo global para usuarios logados e permitem que apenas `casar70@gmail.com` publique o catalogo:
-
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      return signedIn() && request.auth.token.email == "casar70@gmail.com";
-    }
-
-    match /users/{userId}/state/current {
-      allow read, write: if signedIn() && request.auth.uid == userId;
-    }
-
-    match /users/{userId}/push/{docId} {
-      allow read, write: if signedIn() && request.auth.uid == userId;
-    }
-
-    match /public/catalogo {
-      allow read: if signedIn();
-      allow write: if isAdmin();
-    }
-
-    match /pedidosEdital/{pedidoId} {
-      allow create: if signedIn()
-        && request.resource.data.status == "novo"
-        && request.resource.data.usuario.uid == request.auth.uid;
-      allow read, update, delete: if isAdmin();
-    }
-  }
-}
-```
-
-## Lembretes de estudo (push)
-
-Notificações motivacionais quando o aluno fica um dia sem estudar. Ficam
-**desligadas** até você configurar a chave VAPID — o app funciona normalmente
-sem elas. Para ativar:
-
-1. **Plano Blaze** habilitado (igual ao da função de flashcards) e a API
-   **Cloud Scheduler** ativada no projeto.
-2. Em **Firebase Console → Cloud Messaging → Web Push certificates**, gere o
-   par de chaves e copie a **chave pública (VAPID)**.
-3. Cole a chave em `js/firebase-sync.js`, na constante `VAPID_KEY`.
-4. Publique as regras (`firestore.rules`) — já incluem `users/{uid}/push`.
-5. Deploy das funções: `firebase deploy --only functions`. Isso sobe a função
-   agendada `lembreteEstudo` (roda todo dia 09:00, fuso de Brasília) que avisa
-   quem não registrou sessão no dia. As mensagens ficam em `functions/index.js`
-   (`MENSAGENS_LEMBRETE`) — edite à vontade.
-
-O dispositivo registra o token de push após o login (e ao conceder a permissão
-de notificação). Cada conta só recebe se tiver concedido a permissão.
-
-> Se você já tinha um envio de notificações por fora, desative-o para não
-> duplicar os lembretes.
+Técnicas complementares: **espaçamento adaptativo** das revisões (fator por
+desempenho, no espírito do SM-2), **ciclo de estudos** ponderado, **flashcards
+SM-2**, **conciliação/combinação** de editais, **reta final** automática
+(≤6 semanas até a prova) e **prontidão para a prova**.
 
 ## Estrutura
 
 ```
-index.html          shell único (SPA por hash)
-manifest.json, sw.js, icons/   PWA
-css/styles.css      tokens do brief (papel/tinta/caneta, IBM Plex, bolhas ○◐●)
-js/store.js         localStorage: schema, migrations, export/import
-js/sync.js          sincroniza PC/celular via /api/sync do servidor local
-js/firebase-sync.js sincroniza PC/celular via Firebase Auth + Firestore
-js/domain.js        RN01–RN08 puras (testáveis sem DOM)
-js/app.js           roteamento + telas
-js/timer.js         cronômetro/pomodoro com recuperação, limite e alerta
-js/charts.js        2 gráficos (Chart.js via CDN)
-js/frases.js        frase do dia (determinística por data)
-data/exemplo-trf3.json   plano real TRF3 no contrato JSON v1
-tools/              gerador do JSON de exemplo + servidor local de desenvolvimento
+index.html            shell único (SPA por hash)
+manifest.json, sw.js, icons/   PWA (instalável, offline)
+firebase-messaging-sw.js       service worker de push
+css/styles.css        tokens visuais (papel/tinta/caneta, IBM Plex)
+js/domain.js          regras de negócio puras (window.Dominio) — testáveis sem DOM
+js/app.js             roteamento + telas + interações
+js/store.js           localStorage: schema, migrations, export/import
+js/sync.js            sync PC/celular via /api/sync (servidor local)
+js/firebase-sync.js   sync PC/celular via Firebase Auth + Firestore
+js/timer.js           cronômetro/pomodoro com recuperação e alerta de limite
+js/charts.js          gráficos (Chart.js via CDN)
+js/frases.js          frase do dia (determinística por data)
+data/*.json           editais de exemplo/fallback (contrato JSON v1)
+functions/            Cloud Functions (IA de flashcards, push de lembretes)
+firestore.rules       regras de acesso do Firestore
+skill/editais-esquematizados/   skill que gera os editais esquematizados
 ```
 
 ## Contrato JSON (v1)
 
-Editais esquematizados seguem `references/contrato-edital.md` e planos completos
-seguem `references/contrato-json.md` da skill `editais-esquematizados`
-(`versao: 1`). Atualizações usam os mesmos IDs de tópico — é assim que o
-histórico sobrevive à reimportação.
+Editais e planos seguem o contrato `versao: 1` da skill
+`editais-esquematizados`. Atualizações usam os **mesmos IDs de tópico** — é assim
+que o histórico sobrevive à reimportação (RN08). Sobre datas de prova: preencha
+`janela_prova` **apenas quando apontar para o futuro** (edital vigente ou previsão
+de pré-edital); concurso encerrado usado só como base de conteúdo fica com a
+janela **vazia** (ver `CLAUDE.md`).
 
-## Fora do escopo da v1
+## Firebase (sync em nuvem)
 
-Sincronização colaborativa entre usuários, flashcards completos (Anki cobre),
-geração de questões, notificações push, features sociais.
-Plano completo do projeto: [plano-projeto-plataforma-estudos.md](plano-projeto-plataforma-estudos.md).
+Para a sincronização funcionar no GitHub Pages:
+
+1. **Authentication → Sign-in method**: habilite **Google**.
+2. **Authentication → Settings → Authorized domains**: confirme `localhost` e
+   adicione o domínio do GitHub Pages.
+3. **Firestore Database**: crie o banco em modo produção.
+4. **Rules**: publique [`firestore.rules`](firestore.rules). Elas prendem cada
+   conta ao próprio perfil, liberam a leitura do catálogo global para usuários
+   logados e permitem que **apenas o admin** publique o catálogo e gerencie os
+   pedidos de edital.
+
+## Lembretes de estudo (push)
+
+Notificações motivacionais quando o aluno fica um dia sem estudar. Ficam
+**desligadas** até a chave VAPID ser configurada — o app funciona normalmente sem
+elas. Para ativar:
+
+1. Plano **Blaze** habilitado e a API **Cloud Scheduler** ativada no projeto.
+2. Em **Firebase Console → Cloud Messaging → Web Push certificates**, gere o par de
+   chaves e copie a **chave pública (VAPID)**.
+3. Cole-a em `js/firebase-sync.js`, na constante `VAPID_KEY`.
+4. Publique as regras (`firestore.rules`) — já incluem `users/{uid}/push`.
+5. `firebase deploy --only functions` sobe a função agendada `lembreteEstudo`
+   (roda 09:00, fuso de Brasília). As mensagens ficam em `functions/index.js`.
+
+O dispositivo registra o token de push após o login e a concessão da permissão.
+
+## Desenvolvimento
+
+- App estático: edite os arquivos e recarregue — não há passo de build.
+- **Testes rápidos** com jsdom: escreva o script **fora do repo** (ex.: `/tmp`) ou
+  nomeie `_t_*.cjs` e **remova antes de commitar** — nada disso é versionado.
+- Mantenha as regras de negócio em `js/domain.js` (puras) e a UI em `js/app.js`.
+
+## Licença
+
+Ver [`LICENSE`](LICENSE).
+</content>

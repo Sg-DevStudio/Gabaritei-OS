@@ -2590,7 +2590,7 @@
       });
 
       // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
-      const aj = D.ajustePosRevisao(rev, rev.resultadoPct);
+      const aj = D.ajustePosRevisao(rev, rev.resultadoPct, feitas);
       const t = D.topicoPorId(state, rev.topicoId);
       if (t) {
         if (aj.subirPrioridade) t.prioridade = Math.max(1, (t.prioridade || 2) - 1);
@@ -2603,6 +2603,20 @@
           { planoId: state.planoAtivoId }
         ));
       }
+      // Manutenção pós-curva: agenda a próxima revisão de manutenção, mas só se
+      // cabe antes da prova — não polui a prontidão nem cria tarefa pós-prova.
+      let manutencaoAgendada = false;
+      if (aj.manutencaoDias != null) {
+        const prazo = D.prazoProva(state);
+        const dataManut = D.addDias(rev.dataConcluida, aj.manutencaoDias);
+        if (!prazo || dataManut <= prazo) {
+          state.revisoes.push(Object.assign(
+            D.revisaoManutencao(rev.topicoId, rev.dataConcluida, aj.manutencaoDias),
+            { planoId: state.planoAtivoId }
+          ));
+          manutencaoAgendada = true;
+        }
+      }
       // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
       // ou encurta (indo mal) as próximas revisões pendentes.
       const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state));
@@ -2611,7 +2625,9 @@
       } else if (aj.revisaoExtraDias != null) {
         toast('Abaixo de 70% — prioridade elevada e revisão de reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.dominar) {
-        toast('Mandou bem (≥85%) — tópico marcado como dominado ●.', 'sucesso');
+        toast('Mandou bem (≥85%) — tópico marcado como dominado ●' + (manutencaoAgendada ? '. Revisão de manutenção em 30 dias.' : '.'), 'sucesso');
+      } else if (manutencaoAgendada) {
+        toast('Curva concluída — próxima revisão de manutenção em 30 dias.', 'sucesso');
       } else if (reag.ajustadas > 0 && reag.fator > 1) {
         toast('Indo bem neste tópico — espacei as próximas revisões.', 'sucesso');
       } else if (reag.ajustadas > 0 && reag.fator < 1) {
@@ -6549,6 +6565,16 @@
     espalharPorDificuldade(docs).forEach(function (d, idx) {
       d.inicio = idx < 3 ? 1 : Math.min(semanas, 2 + Math.floor((idx - 2) * semanas / Math.max(1, docs.length)));
     });
+    // Vazão de teoria por semana proporcional às HORAS, não só ao nº de disciplinas.
+    // Sem isso, a vazão ficava travada em ~limite tópicos/semana (3–6) mesmo com
+    // muitas horas: planos longos demais ou edital descoberto. Esforço por tópico ≈
+    // horas_estimadas × 1.8 (teoria + questões + revisões), coerente com o cálculo
+    // de esforço/semanas. O nº de disciplinas (limite) segue controlando a LARGURA
+    // (frentes simultâneas); o orçamento controla a PROFUNDIDADE (tópicos/frente).
+    let somaHorasTop = 0, nTop = 0;
+    docs.forEach(function (d) { d.topicos.forEach(function (x) { somaHorasTop += (x.topico.horas_estimadas || 2); nTop++; }); });
+    const avgHorasTop = nTop > 0 ? somaHorasTop / nTop : 2;
+    const orcamentoTopSemana = Math.max(1, Math.min(30, Math.round(horasSemana / (1.8 * Math.max(0.5, avgHorasTop)))));
     const estudadosPorSemana = {};
     for (let s = 1; s <= semanas; s++) {
       let ativos = docs.filter(function (d) { return d.inicio <= s && d.cursor < d.topicos.length; });
@@ -6567,16 +6593,30 @@
       // No início do plano (primeiros ~40%) também alterna a dificuldade percebida,
       // para cada semana misturar matéria difícil com fácil/normal e não desmotivar.
       const inicioPlano = s <= Math.max(2, Math.round(semanas * 0.4));
-      alternarGrupos(ativos, limite, inicioPlano).forEach(function (d) {
-        const item = d.topicos[d.cursor++];
-        if (!item) return;
-        const t = item.topico;
-        teoriaAgendada++;
-        semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'teoria' });
-        semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'questoes' });
-        (estudadosPorSemana[s] = estudadosPorSemana[s] || []).push({ disciplina: d.disciplina.id, topico: t.id });
-        if (d.cursor === d.topicos.length) semanasCron[s - 1].marcos.push(d.disciplina.nome + ': primeira passada concluída');
-      });
+      // Frentes da semana (largura) — depois distribui o orçamento de tópicos
+      // (profundidade) em rodízio entre elas: com poucas horas, ~1 tópico por
+      // frente (comportamento antigo, que vira o piso); com muitas horas, várias
+      // passadas, agendando 2+ tópicos por frente sem alargar demais a semana.
+      const selecionadas = alternarGrupos(ativos, limite, inicioPlano);
+      let restante = Math.max(selecionadas.length, orcamentoTopSemana);
+      let progrediu = true;
+      while (restante > 0 && progrediu) {
+        progrediu = false;
+        for (let di = 0; di < selecionadas.length && restante > 0; di++) {
+          const d = selecionadas[di];
+          const item = d.topicos[d.cursor];
+          if (!item) continue;
+          d.cursor++;
+          restante--;
+          progrediu = true;
+          const t = item.topico;
+          teoriaAgendada++;
+          semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'teoria' });
+          semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'questoes' });
+          (estudadosPorSemana[s] = estudadosPorSemana[s] || []).push({ disciplina: d.disciplina.id, topico: t.id });
+          if (d.cursor === d.topicos.length) semanasCron[s - 1].marcos.push(d.disciplina.nome + ': primeira passada concluída');
+        }
+      }
       if (s > 4 && s % 2 === 0 && estudadosPorSemana[s - 4]) {
         estudadosPorSemana[s - 4].slice(0, 3).forEach(function (b) {
           semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
@@ -6624,7 +6664,8 @@
     });
     entrada.cronogramas = {};
     entrada.plano.ritmos = entrada.plano.ritmos || {};
-    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos });
+    const relCobertura = {};
+    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos, relatorio: relCobertura });
     entrada.plano.ritmos = {};
     entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
     entrada.plano.ritmoAtivo = chave;
@@ -6637,6 +6678,16 @@
     window.Store.hidratar(state);
     sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
     salvar();
+    // Falha A — cobertura: nesse prazo nem toda a teoria do edital coube no
+    // cronograma. Em vez de descartar tópicos em silêncio, avisa quanto cobriu e
+    // como resolver (a ordenação 80/20 garante que o que MAIS cai entra primeiro).
+    // O aviso aparece mesmo em modo silencioso, pois é correção importante.
+    const tt = relCobertura.teoriaTotal || 0;
+    if (tt > 0 && (relCobertura.teoriaAgendada || 0) < tt) {
+      const pct = Math.round((relCobertura.teoriaAgendada / tt) * 100);
+      toast('Nesse prazo cabe ~' + pct + '% do edital — ' +
+        (ordem === 'incidencia' ? 'aumente as horas/semana ou estenda o prazo.' : 'ataque por incidência (80/20) ou aumente as horas/semana.'), 'erro');
+    }
     if (!silencioso) toast('Plano de ' + meses + ' meses gerado e ativado', 'sucesso');
     return true;
   }

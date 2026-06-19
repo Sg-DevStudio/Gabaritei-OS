@@ -96,13 +96,28 @@
     });
   }
 
-  // ---------- RN02 — Desempenho acumulado ----------
+  // ---------- RN02 — Desempenho (janela móvel de recência) ----------
+  // `pct` reflete a JANELA das ~20 questões mais recentes do tópico — quem começou
+  // mal e melhorou não fica preso na média vitalícia (o semáforo passa a verde).
+  // `feitas`/`certas` seguem vitalícios: alimentam a pizza de acertos/erros e os
+  // totais, que devem mostrar tudo o que o aluno já fez.
+  const JANELA_Q_DESEMPENHO = 20;
   function desempenhoTopico(sessoes, topicoId) {
     let feitas = 0, certas = 0;
+    const doTopico = [];
     for (const s of sessoes) {
-      if (s.topicoId === topicoId && s.qFeitas > 0) { feitas += s.qFeitas; certas += s.qCertas; }
+      if (s.topicoId === topicoId && s.qFeitas > 0) { feitas += s.qFeitas; certas += s.qCertas; doTopico.push(s); }
     }
-    return { feitas, certas, pct: feitas > 0 ? Math.round((certas / feitas) * 100) : null };
+    // janela: sessões mais recentes primeiro, acumulando até ~20 questões (sem
+    // partir sessão — a que cruza o limite entra inteira).
+    let jf = 0, jc = 0;
+    doTopico
+      .slice()
+      .sort(function (a, b) { return String(b.data || '').localeCompare(String(a.data || '')); })
+      .some(function (s) { jf += s.qFeitas; jc += s.qCertas; return jf >= JANELA_Q_DESEMPENHO; });
+    const pct = jf > 0 ? Math.round((jc / jf) * 100)
+      : (feitas > 0 ? Math.round((certas / feitas) * 100) : null);
+    return { feitas, certas, pct };
   }
 
   function desempenhoDisciplina(state, disciplina) {
@@ -502,7 +517,10 @@
         ritmos: json.plano.ritmos || null,
         ritmoAtivo: (stateAtual.plano && stateAtual.plano.ritmoAtivo) ||
           (json.plano.ritmos && json.plano.ritmos.ativo) || 'sustentavel',
-        gerado_em: json.gerado_em || null
+        // Normaliza para AAAA-MM-DD: JSONs importados/externos podem trazer um
+        // timestamp completo ("2026-06-19T10:00:00Z") e os helpers de data fazem
+        // .split('-') — com hora junto, addDias/diffDias/segundaDaSemana viram NaN.
+        gerado_em: (typeof json.gerado_em === 'string' ? json.gerado_em.slice(0, 10) : json.gerado_em) || null
       },
       disciplinas,
       cronogramas: {
@@ -648,7 +666,11 @@
   function burndownEdital(state, hoje) {
     const r = ritmoInfoAtivo(state);
     if (!r || !r.semanas) return null;
-    const inicio = (state.plano && state.plano.gerado_em) || segundaDaSemana(hoje);
+    // Âncora sempre na segunda-feira: gerado_em pode chegar como dia "qualquer"
+    // (plano vindo de edital/importação), e a divergência de até 6 dias distorce
+    // semanas decorridas/restantes no burndown. segundaDaSemana é idempotente
+    // para planos internos (já gravados na segunda).
+    const inicio = segundaDaSemana((state.plano && state.plano.gerado_em) || hoje);
     const semanasTotais = r.semanas;
     const meses = r.meses || Math.max(1, Math.round(semanasTotais / 4.345));
     const esforcoTotal = esforcoTotalHoras(state);
@@ -987,13 +1009,28 @@
   // ---------- Curva do esquecimento adaptativa (ajuste por desempenho) ----------
   // Decide o que fazer com o tópico depois de uma revisão, a partir do % de acerto.
   // Regras: <50% reabre + sobe prioridade + reforço em 2d; <70% sobe prioridade +
-  // reforço em 3d (reabre só na de 30d); >=85% na de 30d marca como dominado.
-  function ajustePosRevisao(revisao, resultadoPct) {
-    const r = { reabrir: false, subirPrioridade: false, revisaoExtraDias: null, dominar: false };
+  // reforço em 3d (reabre só na de 30d); >=85% na de 30d (com amostra mínima)
+  // marca como dominado.
+  // `qFeitas` evita "dominar" com amostra ridícula (ex.: 1 questão acertada = 100%):
+  // só consagra o domínio quando há base estatística mínima de questões. Mantido
+  // opcional para retrocompat — sem o argumento, exige só o critério antigo.
+  const MIN_Q_DOMINIO = 5;
+  // Manutenção: depois que a curva 24h→30d fecha, o tópico ainda precisa de revisão
+  // periódica até a prova — senão um tópico fechado no mês 1 de um plano longo é
+  // esquecido. Ao concluir a 30d (ou uma manutenção) com aproveitamento (≥70%),
+  // agenda a próxima manutenção +30 dias; cada manutenção concluída agenda a
+  // seguinte (recorrência sob demanda, sem disparar tudo de uma vez).
+  const DIAS_MANUTENCAO = 30;
+  const TIPOS_PONTA_CURVA = { '30d': true, 'manutenção': true };
+  function ajustePosRevisao(revisao, resultadoPct, qFeitas) {
+    const r = { reabrir: false, subirPrioridade: false, revisaoExtraDias: null, dominar: false, manutencaoDias: null };
     if (resultadoPct == null) return r; // revisão só de leitura, sem questões — neutro
     if (resultadoPct < 50) { r.reabrir = true; r.subirPrioridade = true; r.revisaoExtraDias = 2; }
     else if (resultadoPct < 70) { r.subirPrioridade = true; r.revisaoExtraDias = 3; if (revisao.tipo === '30d') r.reabrir = true; }
-    else if (resultadoPct >= 85 && revisao.tipo === '30d') { r.dominar = true; }
+    else {
+      if (resultadoPct >= 85 && TIPOS_PONTA_CURVA[revisao.tipo] && (qFeitas == null || qFeitas >= MIN_Q_DOMINIO)) r.dominar = true;
+      if (TIPOS_PONTA_CURVA[revisao.tipo]) r.manutencaoDias = DIAS_MANUTENCAO; // ≥70% na ponta da curva → mantém aquecido
+    }
     return r;
   }
 
@@ -1001,6 +1038,13 @@
   function revisaoReforco(topicoId, baseISO, dias) {
     const data = addDias(baseISO, dias);
     return { id: 'rev-' + topicoId + '-reforco-' + data, topicoId: topicoId, tipo: 'reforço', dataAgendada: data, dataConcluida: null, resultadoPct: null };
+  }
+
+  // Revisão de manutenção (após a curva fechar): mantém o tópico aquecido até a
+  // prova. A data entra no id (sufixo AAAA-MM-DD) como nas demais revisões.
+  function revisaoManutencao(topicoId, baseISO, dias) {
+    const data = addDias(baseISO, dias);
+    return { id: 'rev-' + topicoId + '-manut-' + data, topicoId: topicoId, tipo: 'manutenção', dataAgendada: data, dataConcluida: null, resultadoPct: null };
   }
 
   // ---------- Espaçamento adaptativo das revisões (curva por desempenho) ----------
@@ -1350,7 +1394,7 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, combinarEditais, conquistas,
+    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
     revisarFlashcard, flashcardDevido
   };
 })();
