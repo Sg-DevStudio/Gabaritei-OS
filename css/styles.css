@@ -379,9 +379,12 @@ body.login-gate #conteudo > * {
 }
 
 .login-card h1 {
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  max-width: 10ch;
-  margin-bottom: 0.75rem;
+  font-size: clamp(2.1rem, 5vw, 3.3rem);
+  max-width: 16ch;
+  margin-bottom: 0.85rem;
+  line-height: 1.04;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
 }
 
 .login-card p {
@@ -508,8 +511,9 @@ html[data-tema="escuro"] .login-preview-grid span.ativo {
 @media (min-width: 761px) and (max-height: 780px) {
   .login-card { padding: 1.45rem; }
   .login-card h1 {
-    font-size: 2.55rem;
-    margin-bottom: 0.55rem;
+    font-size: 2.5rem;
+    line-height: 1.02;
+    margin-bottom: 0.6rem;
   }
   .login-card p { font-size: 0.94rem; }
   .login-features {
