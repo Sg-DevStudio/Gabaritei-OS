@@ -954,8 +954,8 @@
     const exclusivosA = Math.max(0, totalA - topicosComuns);
     const exclusivosB = Math.max(0, totalB - topicosComuns);
 
-    const cargaUniaoH = Math.round((horasA + horasB - horasComuns) * 1.8);
-    const cargaSomadaH = Math.round((horasA + horasB) * 1.8);
+    const cargaUniaoH = Math.round((horasA + horasB - horasComuns) * FATOR_ESFORCO);
+    const cargaSomadaH = Math.round((horasA + horasB) * FATOR_ESFORCO);
     const economiaH = cargaSomadaH - cargaUniaoH;
 
     const mA = mesesAteMarco(edA.janelaProva && edA.janelaProva.inicio, hoje);

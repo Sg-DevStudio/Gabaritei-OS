@@ -13,12 +13,13 @@
   "nota_corte_sugerida_pct": 57,
   "lista_corte": "ampla",
   "janela_prova": {
-    "inicio": "2024-03",
-    "fim": "2024-03"
+    "inicio": "",
+    "fim": ""
   },
   "em_alta": true,
   "fonte": "Edital n. 1 - Petrobras/PSP RH 2023.2; Cebraspe PETROBRAS_23_NTJ; Edital n. 11 - resultado final; Edital n. 19 - inclusões/retificação da Ênfase 8; Rankei Petrobras PSP 2023.2, etapa 82, consulta em 2026-06-15.",
   "observacoes": [
+    "janela_prova vazia: PSP 2023.2 já encerrado (prova objetiva em 03/2024), usado apenas como base de conteúdo — sem data futura para não poluir cronograma/revisões.",
     "Prova objetiva Cebraspe: 100 itens de certo/errado, sendo 40 de conhecimentos básicos e 60 de conhecimentos específicos.",
     "Minimos eliminatorios do edital: 8 pontos em P1, 18 pontos em P2 e 30 pontos no conjunto das provas objetivas.",
     "As incidências abaixo organizam o estudo a partir do edital e da estrutura da prova; devem ser recalibradas quando houver estatistica consolidada por questão da prova de Operação.",
