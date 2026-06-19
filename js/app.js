@@ -9119,7 +9119,7 @@
   }
   if (fabToggle) fabToggle.addEventListener('click', function (e) { e.stopPropagation(); fabAlternar(); });
   const fabDesempenho = document.getElementById('fab-desempenho');
-  if (fabDesempenho) fabDesempenho.addEventListener('click', function () { fabFechar(); abrirRegistro({ tipo: 'questoes' }); });
+  if (fabDesempenho) fabDesempenho.addEventListener('click', function () { fabFechar(); location.hash = '#stats'; });
   const fabTimer = document.getElementById('fab-timer');
   if (fabTimer) fabTimer.addEventListener('click', function () { fabFechar(); abrirTimerRapido(); });
   // fecha ao tocar fora ou apertar Esc
