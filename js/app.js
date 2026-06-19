@@ -52,6 +52,8 @@
   let autenticacaoExpirou = false; // rede de segurança: se o Firebase nunca responder, libera a tela de login
   let pintarTimerAtual = null;
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
+  let timerBlocoPendente = null; // bloco da agenda a creditar no próximo timer iniciado
+  let timerLimitePendente = null; // tempo restante do bloco, pré-preenchido no timer
   let audioCtx = null;
   let ultimaRotaRender = null;
   let pulaRecalcSemanal = false; // evita recálculo/toast como efeito colateral (ex.: ao excluir um plano)
@@ -1030,8 +1032,12 @@
       const disc = D.disciplinaPorId(state, b.disciplinaId);
       const topId = b.topicoId || (disc && disc.topicos[0] ? disc.topicos[0].id : null);
       const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
-      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: b.duracaoMin || 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, semRender: true }) : null;
+      // Marca o bloco como concluído: registra só o tempo que ainda FALTAVA (não
+      // duplica o que já foi cronometrado em sessões parciais) e fecha o bloco.
+      const restante = blocoRestanteMin(b) || (b.duracaoMin || 30);
+      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: restante, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, blocoId: b.id, semRender: true }) : null;
       if (sessao) b.registroRapidoId = sessao.id;
+      b.feitoMin = b.duracaoMin || 0;
       b.feito = true;
       salvar();
     } else { // registrar (bloco da semana / reaberto)
@@ -1051,6 +1057,7 @@
       const b = state.agenda.find(function (a) { return a.id === id; });
       if (b) {
         b.feito = false;
+        b.feitoMin = 0;
         delete b.registroRapidoId;
       }
     }
@@ -1279,14 +1286,17 @@
         duracaoMin: dur, qFeitas: feitas, qCertas: certas,
         obs: m.querySelector('#reg-obs').value.trim(),
         teoriaOk: m.querySelector('#reg-teoria-ok').checked,
-        data: dataReg
+        data: dataReg,
+        blocoId: opcoes.blocoId || null
       };
 
-      // caminho infeliz F1: registro duplicado no mesmo dia/tópico/tipo → confirmar
+      // caminho infeliz F1: registro duplicado no mesmo dia/tópico/tipo → confirmar.
+      // Sessões que continuam um bloco da agenda (blocoId) são parciais por natureza
+      // — não avisa duplicidade, senão cada parte do mesmo bloco pediria confirmação.
       const duplicada = state.sessoes.some(function (s) {
         return s.data === dataReg && s.topicoId === dados.topicoId && s.tipo === dados.tipo;
       });
-      if (duplicada && !opcoes.confirmouDuplicada) {
+      if (duplicada && !opcoes.confirmouDuplicada && !opcoes.blocoId) {
         const quando = dataReg === D.hojeISO() ? 'hoje' : 'em ' + D.formatarDataBR(dataReg);
         erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico ' + quando + '. Clique em "Registrar sessão" de novo para confirmar como sessão adicional.';
         erroEl.classList.remove('oculto');
@@ -1329,6 +1339,23 @@
       }
       if (topico.reaberto && dados.qFeitas > 0 && !D.sugerirReestudo(dados.qFeitas, dados.qCertas)) {
         topico.reaberto = false; // desempenho recuperado tira o tópico da fila de reabertos
+      }
+    }
+
+    // Bloco da agenda: credita o tempo no bloco correspondente e fecha-o só quando
+    // o tempo somado alcança o planejado (antes disso o calendário mostra "faltam
+    // X de Y"). Se o registro veio de um bloco específico (timer/registro do bloco)
+    // usa-o; senão procura um bloco aberto do mesmo tópico na data — assim QUALQUER
+    // timer (aba Timer, FAB, fila do Hoje) desconta do bloco do dia.
+    if (!dados.semBloco) {
+      let blocoCred = dados.blocoId;
+      if (!blocoCred) { const bm = acharBlocoParaSessao(dados.topicoId, data); if (bm) blocoCred = bm.id; }
+      if (blocoCred) {
+        const bl = creditarBlocoAgenda(blocoCred, dados.duracaoMin || 0);
+        if (bl && !dados.semRender) {
+          if (bl.feito) toast('Bloco concluído ✓', 'sucesso');
+          else toast('Faltam ' + D.formatarMin(blocoRestanteMin(bl)) + ' para fechar o bloco', 'sucesso');
+        }
       }
     }
 
@@ -1902,6 +1929,7 @@
             (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
               (mostrarFogo && a.id === topUrgenteId ? '<span class="etiqueta etiqueta-alerta" title="Prioridade do dia: mais alta incidência × desempenho abaixo da meta (e/ou prova próxima). Ataque este primeiro.">🔥 prioridade</span>' : '') +
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
+              (blocoParcial(a) ? '<span class="etiqueta etiqueta-parcial" title="Você já estudou parte deste bloco.">faltam ' + D.formatarMin(blocoRestanteMin(a)) + '</span>' : '') +
               '<div class="fila-acoes">' +
               '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
               '<button class="botao-mini" data-acao="concluir-agenda" data-id="' + esc(a.id) + '">Registrar</button></div>') +
@@ -2155,7 +2183,7 @@
           if (!blocoAg) return;
           if (acao === 'timer-agenda') {
             const topId = blocoAg.topicoId || (D.disciplinaPorId(state, blocoAg.disciplinaId) || { topicos: [] }).topicos.map(function (t) { return t.id; })[0];
-            if (topId) { timerPreselecao = topId; location.hash = '#timer'; }
+            if (topId) { iniciarTimerDoBloco(blocoAg, topId); }
             else toast('Crie um tópico para esta disciplina antes de usar o timer.', 'erro');
           } else {
             registrarDeAgenda(blocoAg);
@@ -2256,7 +2284,8 @@
         '<button type="button" data-modo="cronometro" class="ativo">Cronômetro</button>' +
         '<button type="button" data-modo="pomodoro">Pomodoro 25/5</button></span></div>' +
         '<div class="timer-limite" id="timer-limite-wrap"><label for="timer-limite">Tempo máximo (min)</label>' +
-        '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>' +
+        '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"' +
+        (timerLimitePendente ? ' value="' + timerLimitePendente + '"' : '') + '></div>' +
         '<div class="timer-limite-auto oculto" id="timer-limite-auto">⏱️ Limite automático: 25 min de foco por ciclo</div>';
     } else if (ativo.topicoId === ID_SIM_TIMER) {
       selecao = '<div class="timer-disciplina-topo"><h2>📝 Simulado</h2>' +
@@ -2413,8 +2442,10 @@
           }
           prepararAudio();
           pedirPermissaoNotificacao();
-          window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin });
+          window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin, blocoId: timerBlocoPendente });
           timerPreselecao = null;
+          timerBlocoPendente = null;
+          timerLimitePendente = null;
           render();
         });
         if (info) info.textContent = '';
@@ -2442,6 +2473,7 @@
           topicoId: fim.topicoId,
           duracaoMin: Math.max(1, fim.decorridoMin),
           tipo: 'teoria',
+          blocoId: fim.blocoId || null,
           aoSalvar: function () { render(); }
         });
         render();
@@ -2512,7 +2544,7 @@
           const fim = window.Timer.finalizar();
           atualizarTituloTimer(null);
           if (fim.topicoId === ID_SIM_TIMER) { render(); abrirNovoSimulado({ duracaoMin: Math.max(1, fim.decorridoMin) }); return; }
-          abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, fim.decorridoMin), tipo: 'teoria', aoSalvar: function () { render(); } });
+          abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, fim.decorridoMin), tipo: 'teoria', blocoId: fim.blocoId || null, aoSalvar: function () { render(); } });
           render();
         });
         corpo.querySelector('#tr-descartar').addEventListener('click', function () {
@@ -5620,6 +5652,44 @@
     return D.formatarMin(bloco.duracaoMin || 0);
   }
 
+  function blocoFeitoMin(b) { return Math.max(0, Math.round(b.feitoMin || 0)); }
+  function blocoRestanteMin(b) { return Math.max(0, (b.duracaoMin || 0) - blocoFeitoMin(b)); }
+  // Progresso parcial: o bloco tem tempo estudado mas ainda não fechou.
+  function blocoParcial(b) {
+    return !blocoAgendaConcluido(b) && blocoFeitoMin(b) > 0 && (b.duracaoMin || 0) > 0;
+  }
+  // Credita minutos estudados a um bloco da agenda; fecha (feito) ao alcançar o
+  // tempo planejado. Usado pelo timer iniciado no bloco e pelo registro manual.
+  function creditarBlocoAgenda(blocoId, minutos) {
+    const b = state.agenda.find(function (x) { return x.id === blocoId; });
+    if (!b) return null;
+    const plano = b.duracaoMin || 0;
+    b.feitoMin = Math.max(0, (b.feitoMin || 0) + Math.max(0, minutos || 0));
+    if (plano > 0) b.feitoMin = Math.min(b.feitoMin, plano);
+    if (plano > 0 && b.feitoMin >= plano - 0.5) b.feito = true; // margem p/ arredondamento
+    return b;
+  }
+
+  // Acha um bloco da agenda ABERTO que combine com a sessão (mesmo tópico, ou
+  // bloco de "disciplina inteira" da mesma disciplina) na data informada. Permite
+  // que QUALQUER timer/registro (aba Timer, FAB, fila do Hoje) desconte do bloco
+  // do dia sem precisar iniciar pelo próprio bloco. Empate: tópico exato primeiro,
+  // depois o que tem mais tempo restante.
+  function acharBlocoParaSessao(topicoId, dataISO) {
+    if (!topicoId) return null;
+    const disc = D.disciplinaDoTopico(state, topicoId);
+    const candidatos = doAtivo(state.agenda).filter(function (b) {
+      return b.data === dataISO && !blocoAgendaConcluido(b) &&
+        (b.topicoId === topicoId || (!b.topicoId && disc && b.disciplinaId === disc.id));
+    });
+    if (!candidatos.length) return null;
+    candidatos.sort(function (a, b) {
+      const ax = a.topicoId === topicoId ? 0 : 1, bx = b.topicoId === topicoId ? 0 : 1;
+      return ax - bx || blocoRestanteMin(b) - blocoRestanteMin(a);
+    });
+    return candidatos[0];
+  }
+
   function blocoAgendaConcluido(bloco) {
     // Cada bloco é concluído pela SUA própria marca (b.feito, posta no registro
     // pela fila do Hoje ou pelo calendário) ou pelo tópico já estar concluído.
@@ -5670,20 +5740,30 @@
     return true;
   }
 
+  // Abre o timer já apontando para o bloco: o tempo cronometrado será creditado
+  // nele (acumula até fechar) e o limite vem pré-preenchido com o que falta.
+  function iniciarTimerDoBloco(blocoAg, topId) {
+    timerPreselecao = topId;
+    timerBlocoPendente = blocoAg.id;
+    const restante = blocoRestanteMin(blocoAg);
+    timerLimitePendente = restante > 0 ? restante : (blocoAg.duracaoMin || null);
+    location.hash = '#timer';
+  }
+
   function registrarDeAgenda(blocoAg) {
     const disc = D.disciplinaPorId(state, blocoAg.disciplinaId);
     const topId = blocoAg.topicoId || (disc && disc.topicos.length > 0 ? disc.topicos[0].id : null);
     if (!topId) { toast('Esta disciplina não tem tópicos — edite o bloco.', 'erro'); return; }
+    // Pré-preenche com o tempo que ainda FALTA no bloco (progresso parcial); o
+    // crédito e o fechamento do bloco ficam por conta do concluirRegistro (blocoId).
+    const restante = blocoRestanteMin(blocoAg) || (blocoAg.duracaoMin || 30);
     abrirRegistro({
       topicoId: topId,
-      duracaoMin: blocoAg.duracaoMin || 30,
+      duracaoMin: restante,
       tipo: blocoAg.obs === 'questoes' ? 'questoes' : blocoAg.obs === 'revisao' ? 'revisao' : 'teoria',
       data: blocoAg.data,
-      aoSalvar: function () {
-        const b = state.agenda.find(function (x) { return x.id === blocoAg.id; });
-        if (b) { b.feito = true; salvar(); }
-        render();
-      }
+      blocoId: blocoAg.id,
+      aoSalvar: function () { salvar(); render(); }
     });
   }
 
@@ -5747,10 +5827,14 @@
       '<label for="agde-disc">Disciplina</label><select id="agde-disc">' + optsDisc + '</select>' +
       '<label for="agde-topico">Tópico (opcional)</label><select id="agde-topico"></select>' +
       '<label for="agde-obs">Anotação</label><input id="agde-obs" type="text" value="' + esc(a.obs || '') + '">' +
+      (blocoParcial(a)
+        ? '<p class="sub agde-progresso">⏱️ Já estudado: <strong>' + D.formatarMin(blocoFeitoMin(a)) + '</strong> · faltam <strong>' + D.formatarMin(blocoRestanteMin(a)) + '</strong> de ' + D.formatarMin(a.duracaoMin || 0) + '.</p>'
+        : '') +
       '<div class="modal-acoes" style="justify-content:space-between">' +
       '<button type="button" class="botao-perigo botao-mini" id="agde-excluir">Excluir</button>' +
       '<span style="display:flex;gap:0.6rem;flex-wrap:wrap">' +
-      (a.feito ? '' : '<button type="button" class="botao-secundario" id="agde-registrar">Registrar sessão</button>') +
+      (a.feito ? '' : '<button type="button" class="botao-quieto" id="agde-timer">▶ Cronometrar</button>' +
+        '<button type="button" class="botao-secundario" id="agde-registrar">Registrar sessão</button>') +
       '<button type="submit">Salvar</button></span></div></form>'
     );
     const selDisc = m.querySelector('#agde-disc');
@@ -5771,6 +5855,14 @@
     });
     const btnReg = m.querySelector('#agde-registrar');
     if (btnReg) btnReg.addEventListener('click', function () { fecharModal(); registrarDeAgenda(a); });
+    const btnTimer = m.querySelector('#agde-timer');
+    if (btnTimer) btnTimer.addEventListener('click', function () {
+      const topId = a.topicoId || (D.disciplinaPorId(state, a.disciplinaId) || { topicos: [] }).topicos.map(function (t) { return t.id; })[0];
+      if (!topId) { toast('Crie um tópico para esta disciplina antes de usar o timer.', 'erro'); return; }
+      fecharModal();
+      iniciarTimerDoBloco(a, topId);
+      render();
+    });
     m.querySelector('#form-agd-ed').addEventListener('submit', function (e) {
       e.preventDefault();
       a.data = m.querySelector('#agde-data').value;
@@ -7611,15 +7703,21 @@
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
             const concluido = blocoAgendaConcluido(b);
-            const sub = rotuloHorarioAgenda(b) + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '');
+            const parcial = blocoParcial(b);
+            const tempoTxt = parcial
+              ? 'faltam ' + D.formatarMin(blocoRestanteMin(b)) + ' de ' + D.formatarMin(b.duracaoMin || 0)
+              : rotuloHorarioAgenda(b);
+            const sub = tempoTxt + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '');
+            const pct = parcial ? Math.min(100, Math.round((blocoFeitoMin(b) / (b.duracaoMin || 1)) * 100)) : 0;
+            const barra = parcial ? '<span class="agenda-bloco-prog"><span style="width:' + pct + '%"></span></span>' : '';
             // No modo compacto (telas estreitas) só o título aparece; o detalhe
             // completo vai no title do bloco e fica acessível ao clicar/passar
             // o mouse, evitando que a grade da semana fique muito carregada.
-            const dica = (d ? d.nome : b.disciplinaId) + ' · ' + (rotuloHorarioAgenda(b) + (t ? ' · ' + t.nome : '') + (concluido ? ' · feito ✓' : ''));
-            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0" title="' + esc(dica) + '">' +
+            const dica = (d ? d.nome : b.disciplinaId) + ' · ' + (tempoTxt + (t ? ' · ' + t.nome : '') + (concluido ? ' · feito ✓' : ''));
+            return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + (parcial ? ' parcial' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0" title="' + esc(dica) + '">' +
               '<span class="agenda-bloco-arrasto" aria-hidden="true">⠿</span>' +
               '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + sub + '</span></span></div>';
+              '<span class="agenda-bloco-sub">' + sub + '</span>' + barra + '</span></div>';
           }).join('') +
           '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
       }
@@ -7740,10 +7838,13 @@
           const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
           const concluido = blocoAgendaConcluido(b);
           const tipo = b.obs === 'questoes' ? 'Questões' : b.obs === 'revisao' ? 'Revisão' : b.obs === 'teoria' ? 'Teoria' : (b.obs || '');
+          const tempoTxt = blocoParcial(b)
+            ? 'faltam ' + D.formatarMin(blocoRestanteMin(b)) + ' de ' + D.formatarMin(b.duracaoMin || 0)
+            : D.formatarMin(b.duracaoMin || 0);
           return '<button class="dia-detalhe-item' + (concluido ? ' feito' : '') + '" data-dia-bloco="' + esc(b.id) + '" style="--disc-cor:' + esc(d ? d.cor : '#9A9DA3') + '">' +
             '<span class="dia-detalhe-cor" style="background:' + esc(d ? d.cor : '#9A9DA3') + '"></span>' +
             '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + esc(d ? d.nome : b.disciplinaId) + (concluido ? ' ✓' : '') + '</span>' +
-            '<span class="dia-detalhe-sub">' + D.formatarMin(b.duracaoMin || 0) + (tipo ? ' · ' + esc(tipo) : '') + (t ? ' · ' + esc(t.nome) : '') + '</span></span>' +
+            '<span class="dia-detalhe-sub">' + tempoTxt + (tipo ? ' · ' + esc(tipo) : '') + (t ? ' · ' + esc(t.nome) : '') + '</span></span>' +
             '<span class="dia-detalhe-seta">›</span></button>';
         }).join('') + '</div>';
     const m = abrirModal(
@@ -9041,7 +9142,7 @@
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
     const tela = telas[rota];
-    if (rota !== 'timer') pintarTimerAtual = null;
+    if (rota !== 'timer') { pintarTimerAtual = null; timerBlocoPendente = null; timerLimitePendente = null; }
     // À prova de falhas: um erro numa tela não pode mais congelar a navegação
     // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
     try {

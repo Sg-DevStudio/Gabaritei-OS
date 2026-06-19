@@ -1,19 +1,19 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v66-ui-fixes';
+const CACHE = 'estudos-v67-bloco';
 const ESTATICOS = [
   './',
   './index.html',
   './manifest.json',
   './js/frases.js',
-  './css/styles.css?v=20260619z-ui-fixes',
+  './css/styles.css?v=20260619w-bloco',
   './js/domain.js?v=20260619x-login-title',
-  './js/store.js',
+  './js/store.js?v=20260619w-bloco',
   './js/sync.js',
   './js/firebase-sync.js?v=20260619y-sync-fix',
-  './js/timer.js',
+  './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260619z-ui-fixes',
+  './js/app.js?v=20260619w-bloco',
   './icons/icone.svg'
 ];
 
