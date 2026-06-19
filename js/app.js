@@ -1349,7 +1349,7 @@
     // timer (aba Timer, FAB, fila do Hoje) desconta do bloco do dia.
     if (!dados.semBloco) {
       let blocoCred = dados.blocoId;
-      if (!blocoCred) { const bm = acharBlocoParaSessao(dados.topicoId, data); if (bm) blocoCred = bm.id; }
+      if (!blocoCred) { const bm = acharBlocoParaSessao(dados.topicoId, data, dados.tipo); if (bm) blocoCred = bm.id; }
       if (blocoCred) {
         const bl = creditarBlocoAgenda(blocoCred, dados.duracaoMin || 0);
         if (bl && !dados.semRender) {
@@ -5670,22 +5670,33 @@
     return b;
   }
 
+  // Tipo explícito de um bloco (teoria/questoes/revisao) a partir da anotação;
+  // null quando é um bloco genérico (sem tipo marcado).
+  function blocoTipo(b) {
+    return (b.obs === 'questoes' || b.obs === 'revisao' || b.obs === 'teoria') ? b.obs : null;
+  }
   // Acha um bloco da agenda ABERTO que combine com a sessão (mesmo tópico, ou
   // bloco de "disciplina inteira" da mesma disciplina) na data informada. Permite
   // que QUALQUER timer/registro (aba Timer, FAB, fila do Hoje) desconte do bloco
-  // do dia sem precisar iniciar pelo próprio bloco. Empate: tópico exato primeiro,
-  // depois o que tem mais tempo restante.
-  function acharBlocoParaSessao(topicoId, dataISO) {
+  // do dia sem precisar iniciar pelo próprio bloco. Para não fechar um bloco do
+  // tipo errado (ex.: questões abatendo um bloco de TEORIA), só casa blocos
+  // genéricos ou do MESMO tipo da sessão. Empate: tipo igual → tópico exato →
+  // mais tempo restante.
+  function acharBlocoParaSessao(topicoId, dataISO, tipo) {
     if (!topicoId) return null;
     const disc = D.disciplinaDoTopico(state, topicoId);
     const candidatos = doAtivo(state.agenda).filter(function (b) {
-      return b.data === dataISO && !blocoAgendaConcluido(b) &&
-        (b.topicoId === topicoId || (!b.topicoId && disc && b.disciplinaId === disc.id));
+      if (b.data !== dataISO || blocoAgendaConcluido(b)) return false;
+      const mesmoTopico = b.topicoId === topicoId || (!b.topicoId && disc && b.disciplinaId === disc.id);
+      if (!mesmoTopico) return false;
+      const bt = blocoTipo(b);
+      return bt === null || !tipo || bt === tipo; // genérico, ou tipo igual ao da sessão
     });
     if (!candidatos.length) return null;
     candidatos.sort(function (a, b) {
+      const at = blocoTipo(a) === tipo ? 0 : 1, bt = blocoTipo(b) === tipo ? 0 : 1;
       const ax = a.topicoId === topicoId ? 0 : 1, bx = b.topicoId === topicoId ? 0 : 1;
-      return ax - bx || blocoRestanteMin(b) - blocoRestanteMin(a);
+      return at - bt || ax - bx || blocoRestanteMin(b) - blocoRestanteMin(a);
     });
     return candidatos[0];
   }
@@ -6365,6 +6376,17 @@
   }
 
   // RN10 — cartão de check-in semanal + projeção de conclusão (burn-down do edital)
+  // Texto da conclusão estimada. Horizontes longos viram meses/anos (e um teto
+  // qualitativo) em vez de um número gigante e inútil tipo "260 semanas".
+  function prazoConclusaoTxt(burn) {
+    if (burn.situacao === 'concluido' || burn.semanasParaConcluir <= 0) return 'Concluído 🏁';
+    const sem = burn.semanasParaConcluir;
+    if (sem >= 200) return '4+ anos';                        // ritmo muito baixo
+    if (sem >= 78) return '~' + Math.round(sem / 52) + ' anos';
+    if (sem >= 26) return '~' + Math.round(sem / 4.345) + ' meses';
+    return formatarSemanasDias(sem);
+  }
+
   function checkinSemanalHtml() {
     const burn = D.burndownEdital(state, D.hojeISO());
     if (!burn) return '';
@@ -6441,7 +6463,7 @@
       '<div class="checkin-kpi"><span class="checkin-num">' + cargaValor + 'h</span>' +
       '<span class="checkin-rotulo">' + cargaRotulo + '</span></div>' +
       '<div class="checkin-kpi"><span class="checkin-num checkin-num-prazo" title="Projeção pelo seu ritmo real: aumenta se você atrasa, diminui se adianta tópicos.">' +
-      (burn.situacao === 'concluido' || burn.semanasParaConcluir <= 0 ? 'Concluído 🏁' : esc(formatarSemanasDias(burn.semanasParaConcluir))) + '</span>' +
+      esc(prazoConclusaoTxt(burn)) + '</span>' +
       '<span class="checkin-rotulo">Conclusão estimada (ajusta ao seu ritmo)</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
@@ -9297,6 +9319,8 @@
   if (fabToggle) fabToggle.addEventListener('click', function (e) { e.stopPropagation(); fabAlternar(); });
   const fabDesempenho = document.getElementById('fab-desempenho');
   if (fabDesempenho) fabDesempenho.addEventListener('click', function () { fabFechar(); location.hash = '#stats'; });
+  const fabSimulados = document.getElementById('fab-simulados');
+  if (fabSimulados) fabSimulados.addEventListener('click', function () { fabFechar(); location.hash = '#simulados'; });
   const fabTimer = document.getElementById('fab-timer');
   if (fabTimer) fabTimer.addEventListener('click', function () { fabFechar(); abrirTimerRapido(); });
   // fecha ao tocar fora ou apertar Esc

@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v69-checkin-dom';
+const CACHE = 'estudos-v70-a1a2fab';
 const ESTATICOS = [
   './',
   './index.html',
@@ -13,7 +13,7 @@ const ESTATICOS = [
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260619u-checkin-dom',
+  './js/app.js?v=20260619t-a1a2fab',
   './icons/icone.svg'
 ];
 
