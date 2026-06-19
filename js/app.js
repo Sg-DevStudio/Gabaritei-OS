@@ -6352,11 +6352,23 @@
     m.querySelector('#recalc-ok').addEventListener('click', fecharModal);
   }
 
+  // A semana de estudos FECHA no domingo às 21h: a partir daí o check-in e o
+  // recálculo já tratam a semana como encerrada, sem esperar a virada de segunda.
+  // (App estático: reflete quando o aluno abrir o app no domingo 21h ou depois.)
+  const HORA_FECHAMENTO_SEMANA = 21;
+  function hojeRefCheckin() {
+    const agora = new Date();
+    if (agora.getDay() === 0 && agora.getHours() >= HORA_FECHAMENTO_SEMANA) {
+      return D.addDias(D.hojeISO(), 1); // domingo após 21h já conta como a próxima semana
+    }
+    return D.hojeISO();
+  }
+
   // RN10 — cartão de check-in semanal + projeção de conclusão (burn-down do edital)
   function checkinSemanalHtml() {
     const burn = D.burndownEdital(state, D.hojeISO());
     if (!burn) return '';
-    const check = D.checkinSemanal(state, D.hojeISO());
+    const check = D.checkinSemanal(state, hojeRefCheckin());
     const mapaSit = {
       no_prazo: { classe: 'ok', rotulo: 'No prazo', icone: '✅' },
       adiantado: { classe: 'ok', rotulo: 'Adiantado', icone: '🚀' },
@@ -6369,7 +6381,7 @@
     // Números coerentes com o que o aluno vê no calendário:
     // - planejado da semana = horas REALMENTE agendadas nesta semana (não a capacidade bruta);
     // - carga "real" só quando já há estudo registrado, senão mostramos a planejada.
-    const inicioSemana = D.segundaDaSemana(D.hojeISO());
+    const inicioSemana = D.segundaDaSemana(hojeRefCheckin());
     const planSemana = horasAgendadasSemana(inicioSemana);
     const feitoSemana = check.atual ? check.atual.realizado : 0;
     const restanteSemana = Math.round(Math.max(0, planSemana - feitoSemana) * 10) / 10;
@@ -6937,14 +6949,16 @@
   // são preservados. Retorna um resumo do que mudou (ou null se não se aplica).
   // forcar: recalcula mesmo na 1ª semana (ação explícita do usuário, ex.: aluno
   // avançado que marca teoria já concluída e quer o plano refeito na hora).
-  function recalcularPlanoAdaptativo(forcar) {
+  function recalcularPlanoAdaptativo(forcar, hojeRef) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos) return null;
     const chave = entrada.plano.ritmoAtivo;
     const ritmo = chave && entrada.plano.ritmos[chave];
     if (!ritmo || !ritmo.semanas) return null;
 
-    const hoje = D.hojeISO();
+    // hojeRef permite a virada de domingo 21h (semana que fechou já é congelada
+    // como histórico). Sem ela, usa o dia real (recálculos sob demanda).
+    const hoje = hojeRef || D.hojeISO();
     const inicioPlano = D.segundaDaSemana(entrada.plano.gerado_em || hoje);
     const inicioAtual = D.segundaDaSemana(hoje);
     const semanasDecorridas = Math.max(0, Math.round(D.diffDias(inicioPlano, inicioAtual) / 7));
@@ -7000,9 +7014,11 @@
   function verificarRecalculoSemanal() {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos || !entrada.plano.ritmoAtivo) return;
-    const inicioAtual = D.segundaDaSemana(D.hojeISO());
+    // Vira a semana no domingo 21h (não na segunda 00h): o recálculo da semana
+    // que fechou já acontece na noite de domingo, junto com o check-in.
+    const inicioAtual = D.segundaDaSemana(hojeRefCheckin());
     if (entrada.plano.ultimaRecalcSemana === inicioAtual) return; // já recalculado nesta semana
-    const r = recalcularPlanoAdaptativo();
+    const r = recalcularPlanoAdaptativo(false, hojeRefCheckin());
     if (!r) {
       // marca a semana mesmo sem recálculo aplicável, para não reavaliar a cada render
       entrada.plano.ultimaRecalcSemana = inicioAtual;
