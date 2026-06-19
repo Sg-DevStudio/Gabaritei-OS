@@ -2246,7 +2246,7 @@
       const optsDisc = state.disciplinas.map(function (d) {
         return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(nomeDiscCurto(d.nome)) + '</option>';
       }).join('') +
-        '<option value="' + ID_SIM_TIMER + '">📝 Simulado (cronometrado)</option>';
+        '<option value="' + ID_SIM_TIMER + '">📝 Simulado</option>';
       selecao =
         '<div class="timer-disciplina-topo"><select id="timer-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
         '<button type="button" class="timer-assunto-btn" id="timer-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +
@@ -2527,7 +2527,7 @@
         const optsDisc = state.disciplinas.map(function (d) {
           return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(nomeDiscCurto(d.nome)) + '</option>';
         }).join('') +
-          '<option value="' + ID_SIM_TIMER + '">📝 Simulado (cronometrado)</option>';
+          '<option value="' + ID_SIM_TIMER + '">📝 Simulado</option>';
         corpo.innerHTML =
           '<div class="timer-disciplina-topo"><select id="tr-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
           '<button type="button" class="timer-assunto-btn" id="tr-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +

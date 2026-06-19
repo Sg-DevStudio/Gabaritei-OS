@@ -741,7 +741,12 @@ button:disabled { background: var(--grafite-claro); color: var(--grafite); curso
   color: var(--tinta);
   box-shadow: var(--sombra);
   z-index: 90;
+  /* tira o retângulo azul de toque (tap highlight) do mobile, que aparecia
+     em volta do botão e dava aparência amadora; o feedback visual já é o botão. */
+  -webkit-tap-highlight-color: transparent;
 }
+.botao-flutuante:focus { outline: none; }
+.botao-flutuante:focus-visible { outline: 2px solid var(--caneta); outline-offset: 3px; }
 .botao-flutuante:hover { filter: none; background: var(--papel-elevado); }
 .botao-flutuante svg { width: 21px; height: 21px; }
 .botao-timer-rapido {

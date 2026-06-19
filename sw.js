@@ -1,11 +1,11 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v65-sync-fix';
+const CACHE = 'estudos-v66-ui-fixes';
 const ESTATICOS = [
   './',
   './index.html',
   './manifest.json',
   './js/frases.js',
-  './css/styles.css?v=20260619x-login-title',
+  './css/styles.css?v=20260619z-ui-fixes',
   './js/domain.js?v=20260619x-login-title',
   './js/store.js',
   './js/sync.js',
@@ -13,7 +13,7 @@ const ESTATICOS = [
   './js/timer.js',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260619x-login-title',
+  './js/app.js?v=20260619z-ui-fixes',
   './icons/icone.svg'
 ];
 
