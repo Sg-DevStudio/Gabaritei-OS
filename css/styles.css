@@ -305,7 +305,7 @@ body.login-gate {
 body.login-gate #topbar,
 body.login-gate #sidebar,
 body.login-gate #abas,
-body.login-gate #botao-timer-rapido {
+body.login-gate #fab-rapido {
   display: none;
 }
 
