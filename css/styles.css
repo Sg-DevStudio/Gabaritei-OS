@@ -835,6 +835,9 @@ html[data-tema="escuro"] .ic-tema-sol { display: block; }
   .fab-acoes, .fab-toggle .fab-ic { transition: none; }
 }
 
+/* Simulado cronometrado (nota no modal) */
+.sim-cronometrado { font-size: 0.85rem; color: var(--caneta-forte); margin: 0.2rem 0 0.5rem; font-weight: 600; }
+
 /* Análise de erros (Simulados) */
 .tabela-rolavel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .etiqueta-erro {
