@@ -71,6 +71,7 @@
   let catalogoPublicacaoErro = '';
   let catalogoPublicacaoOkEm = '';
   let onboardingNomeAberto = false;
+  let syncInicialFeito = false; // 1ª sincronização com o Firebase concluída (evita pedir o nome antes do estado da nuvem chegar)
   let statsTopicosFiltro = { disciplina: '', ordem: 'piores', limite: '18' };
 
   // ---------------- utilidades de UI ----------------
@@ -480,6 +481,9 @@
 
   function abrirOnboardingNome() {
     if (!usuarioLogado() || !state.config || state.config.onboardingNomeVisto || onboardingNomeAberto) return;
+    // Espera a 1ª sincronização: senão pergunta o nome com base no estado LOCAL
+    // (pré-nuvem) e repete o pedido a cada login, mesmo já tendo respondido antes.
+    if (window.FirebaseSync && !syncInicialFeito && !autenticacaoExpirou) return;
     if (document.getElementById('modal-raiz').children.length) return;
     onboardingNomeAberto = true;
     const sugerido = state.config.nomeUsuario || nomeUsuario();
@@ -2522,7 +2526,8 @@
         const discIni = timerPreselecao ? D.disciplinaDoTopico(state, timerPreselecao) : state.disciplinas[0];
         const optsDisc = state.disciplinas.map(function (d) {
           return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(nomeDiscCurto(d.nome)) + '</option>';
-        }).join('');
+        }).join('') +
+          '<option value="' + ID_SIM_TIMER + '">📝 Simulado (cronometrado)</option>';
         corpo.innerHTML =
           '<div class="timer-disciplina-topo"><select id="tr-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
           '<button type="button" class="timer-assunto-btn" id="tr-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +
@@ -2548,9 +2553,18 @@
           if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
         };
         const preencher = function () {
+          const ehSim = selDisc.value === ID_SIM_TIMER;
+          const btnReg = corpo.querySelector('#tr-registrar');
+          if (assuntoBtn) assuntoBtn.style.display = ehSim ? 'none' : '';
+          if (btnReg) btnReg.style.display = ehSim ? 'none' : ''; // simulado só cronometra
+          if (ehSim) {
+            if (selTop) selTop.value = ID_SIM_TIMER;
+            if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
+            return;
+          }
           const d = D.disciplinaPorId(state, selDisc.value);
           const tops = d ? d.topicos.filter(function (t) { return !t.orfao; }) : [];
-          if (selTop && (!selTop.value || !tops.some(function (t) { return t.id === selTop.value; }))) {
+          if (selTop && (!selTop.value || selTop.value === ID_SIM_TIMER || !tops.some(function (t) { return t.id === selTop.value; }))) {
             selTop.value = timerPreselecao && tops.some(function (t) { return t.id === timerPreselecao; }) ? timerPreselecao : (tops[0] ? tops[0].id : '');
           }
           atualizarAssunto();
@@ -4330,7 +4344,33 @@
   }
 
   // gera um plano de estudos personalizado a partir de um edital cadastrado
-  function criarPlanoDeEdital(editalId) {
+  // Planos "de verdade" (não rascunhos abandonados pelo assistente).
+  function planosReais() {
+    return (state.planos || []).filter(function (p) { return p && p.plano && !p.plano.rascunho; });
+  }
+
+  // Um plano por vez: mantém o foco e evita confusão no calendário. Se já existe
+  // um plano, avisa e oferece excluí-lo para começar outro. Retorna true se a
+  // criação deve PARAR (usuário optou por manter o plano atual).
+  async function limitePlanoBloqueia() {
+    const reais = planosReais();
+    if (reais.length === 0) return false;
+    const atual = reais[0];
+    const nome = (atual.plano && atual.plano.concurso) || 'seu plano atual';
+    const ok = await confirmar({
+      titulo: 'Um plano por vez',
+      mensagem: 'Para manter o foco, o Gabaritei trabalha com UM plano de cada vez — você já tem «' + nome + '». ' +
+        'Para começar outro, é preciso excluir o atual (o histórico dele será apagado). Quer fazer isso agora?',
+      confirmar: 'Excluir «' + nome + '» e começar outro',
+      cancelar: 'Manter «' + nome + '»',
+      perigo: true, icone: '🎯'
+    });
+    if (!ok) return true;           // mantém o plano atual → bloqueia a criação
+    await excluirPlano(atual.id, true);
+    return false;                   // liberado para criar o novo
+  }
+
+  async function criarPlanoDeEdital(editalId) {
     const e = editalPorId(editalId);
     if (!e) return;
     // Semente da "data provável" a partir da janela do edital — assim ela não
@@ -4382,6 +4422,8 @@
       abrirGerarPlanoComRotina(); // sem novoPlanoId → cancelar não apaga o plano existente
       return;
     }
+    // Limite de 1 plano por vez (o refazer acima já tratou o mesmo edital).
+    if (await limitePlanoBloqueia()) return;
     // Guarda o plano ativo anterior: se o usuário sair do assistente sem concluir,
     // o plano recém-criado é removido (não fica um plano "fantasma" no catálogo).
     const planoAnteriorId = state.planoAtivoId;
@@ -4951,7 +4993,7 @@
   }
 
   // Une dois editais conciliáveis num plano único e gera o cronograma adaptativo.
-  function gerarPlanoCombinado(edA, edB) {
+  async function gerarPlanoCombinado(edA, edB) {
     const comb = D.combinarEditais(edA, edB);
     gerarIdsEdital(comb.disciplinas);
     const reg = Object.assign(
@@ -4965,7 +5007,7 @@
     comparacaoIds = []; // some o estado "✓ Comparando" dos editais selecionados
     salvar();
     fecharModal();
-    criarPlanoDeEdital(reg.id); // valida, cria o plano, ativa e abre o ajuste de rotina
+    await criarPlanoDeEdital(reg.id); // valida, cria o plano, ativa e abre o ajuste de rotina
     // marca o plano como combinado (a aba Edital usa isso para mostrar
     // compatibilidade + tags de origem — só quando há de fato 2 concursos)
     if (state.plano) {
@@ -6340,7 +6382,8 @@
     salvar();
   }
 
-  function criarPlanoManualComPrompt() {
+  async function criarPlanoManualComPrompt() {
+    if (await limitePlanoBloqueia()) return;
     pedirTexto({ titulo: 'Novo plano manual', mensagem: 'Dê um nome para o plano.', placeholder: 'Ex.: INSS 2027, Estudos livres', valor: 'Meus estudos', confirmar: 'Criar plano' }).then(function (nome) {
       if (!nome) return;
       criarPlanoManual(nome);
@@ -9226,6 +9269,7 @@
           window.Store.salvar(state, { marcarAlterado: false });
         }
         if (novoStatus && novoStatus.usuario) prepararEstadoParaUsuario(novoStatus.usuario);
+        if (novoStatus && novoStatus.estado === 'sincronizado') syncInicialFeito = true;
         firebaseStatus = novoStatus;
         atualizarSyncUi();
         // NÃO publicar o catálogo automaticamente no login: o state ainda pode
