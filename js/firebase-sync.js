@@ -127,6 +127,13 @@ function aplicarRemoto(remoteState, silencioso) {
 
 async function gravarRemoto(state) {
   if (!refEstado || !usuario || aplicandoRemoto) return;
+  // Salvaguarda contra perda de dados multi-dispositivo: um estado local SEM
+  // dados (recém-carregado/cache limpo tem atualizadoEm = agora, logo "mais
+  // novo" que a nuvem) NÃO pode sobrescrever uma nuvem que tem dados. A única
+  // exceção é uma exclusão explícita do usuário, marcada por config.apagadoEm
+  // — aí o vazio deve mesmo propagar. Sem isso, um aparelho zerado apagava o
+  // plano de todos os outros.
+  if (!temDados(state) && !(state.config && state.config.apagadoEm)) return;
   enviando = true;
   definirStatus('enviando', 'Enviando para a nuvem');
   try {
@@ -201,7 +208,10 @@ function observarMudancas() {
     const localMs = dataMs(atualizadoEm(local));
     const apagouLocal = local.config && local.config.apagadoEm &&
       dataMs(local.config.apagadoEm) > remotoMs + FOLGA_RELOGIO_MS;
-    if (remotoMs > localMs + FOLGA_RELOGIO_MS && !apagouLocal) {
+    // Local sem dados (ex.: recém-aberto, atualizadoEm = agora) não deve "ganhar"
+    // da nuvem por timestamp — adota o remoto que tem dados, como na reconciliação.
+    const localVazioRemotoCheio = !temDados(local) && temDados(remoto.state) && !apagouLocal;
+    if ((remotoMs > localMs + FOLGA_RELOGIO_MS || localVazioRemotoCheio) && !apagouLocal) {
       aplicarRemoto(remoto.state, true);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
     }
