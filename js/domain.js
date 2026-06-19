@@ -375,14 +375,58 @@
     }
 
     const jaListados = new Set(fila.map((i) => i.topicoId + '|' + i.categoria));
+    const reabertos = [];
     for (const d of state.disciplinas) {
       for (const t of d.topicos) {
         if (t.reaberto && !jaListados.has(t.id + '|reaberto')) {
-          fila.push({ categoria: 'reaberto', topicoId: t.id });
+          reabertos.push({ categoria: 'reaberto', topicoId: t.id });
         }
       }
     }
+    // reabertos primeiro pelos mais urgentes (mais cai + pior desempenho + prova perto)
+    reabertos.sort((a, b) => urgenciaTopico(state, b.topicoId, hoje) - urgenciaTopico(state, a.topicoId, hoje));
+    for (const r of reabertos) fila.push(r);
     return fila;
+  }
+
+  // ---------- Urgência do tópico (fila do dia: 80/20 DINÂMICO) ----------
+  // Combina os três sinais que, juntos, dizem o que rende mais HOJE rumo à
+  // aprovação — em vez de atacar só pela ordem do calendário:
+  //   • incidência (80/20): o que mais cai pesa mais;
+  //   • déficit de desempenho: quanto falta para a meta de corte (com amostra);
+  //   • proximidade da prova: na reta final, aperta o que ainda não fixou.
+  // Score multiplicativo (cada fator ~1 = neutro) para a UI ordenar e destacar.
+  // Não persiste nada — é derivado do estado a cada render.
+  function urgenciaTopico(state, topicoId, hoje, metaPct) {
+    const t = topicoPorId(state, topicoId);
+    if (!t) return 0;
+    hoje = hoje || hojeISO();
+    metaPct = metaPct || (state.plano && state.plano.meta && state.plano.meta.corte_pct) || 70;
+
+    // 1) incidência 0..100 → 0.5..1.5 (o que mais cai vale até 3× o que menos cai; nunca zera)
+    const inc = Math.max(0, Math.min(100, t.incidencia_pct || 0));
+    const fInc = 0.5 + inc / 100;
+
+    // 2) déficit de desempenho: com amostra (≥3 questões), quanto falta p/ a meta
+    const dt = desempenhoTopico(sessoesDoPlano(state), topicoId);
+    let fDef;
+    if (dt.pct !== null && dt.feitas >= 3) {
+      fDef = 1 + Math.max(0, metaPct - dt.pct) / 100; // na meta → 1; longe → até ~1.7
+    } else {
+      fDef = 1.1; // sem base ainda: leve urgência (precisa diagnosticar)
+    }
+
+    // 3) proximidade da prova: a reta final prioriza o que ainda não está no ponto
+    const rf = retaFinalInfo(state, hoje);
+    let fProx = 1;
+    if (rf && rf.prazo && !rf.passou && rf.semanas != null) {
+      fProx = rf.semanas <= 2 ? 1.5 : rf.semanas <= 6 ? 1.25 : rf.semanas <= 12 ? 1.1 : 1;
+    }
+
+    // tópico dominado praticamente sai da frente (já fixado)
+    const fStatus = t.status === 'dominado' ? 0.3 : 1;
+
+    return Math.round(fInc * fDef * fProx * fStatus * 1000) / 1000;
   }
 
   // ---------- RN07 — Sugestão de reestudo (>50% de erro) ----------
@@ -1389,7 +1433,7 @@
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
-    cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
+    cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,

@@ -1669,6 +1669,27 @@
     // só PREENCHE semanas vazias (soVazias) para não apagar o progresso já marcado
     if (state.plano) { if (sincronizarAgendaComCronograma(true) > 0) salvar(); }
     const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
+    // Fila por urgência (80/20 dinâmico): hoje ataca primeiro o que mais rende —
+    // incidência × déficit de desempenho × proximidade da prova. Itens já feitos
+    // afundam. Cache local por id (não muta o estado, que seria persistido).
+    const urgCache = {};
+    function urgDe(a) {
+      if (!a || !a.topicoId) return 0;
+      if (urgCache[a.id] == null) urgCache[a.id] = D.urgenciaTopico(state, a.topicoId, hoje);
+      return urgCache[a.id];
+    }
+    agendaHoje.sort(function (a, b) {
+      if (!!a.feito !== !!b.feito) return a.feito ? 1 : -1;
+      return urgDe(b) - urgDe(a);
+    });
+    // Destaca o ÚNICO item mais urgente do dia (se o sinal for relevante).
+    let topUrgenteId = null, topUrgenteScore = 0;
+    agendaHoje.forEach(function (a) {
+      if (a.feito) return;
+      const u = urgDe(a);
+      if (u > topUrgenteScore) { topUrgenteScore = u; topUrgenteId = a.id; }
+    });
+    const mostrarFogo = topUrgenteScore >= 1.2;
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
       return '<div class="cab-pagina"><div><h1>' + saudacaoCompleta(saudacao) + '</h1></div></div>' +
@@ -1874,6 +1895,7 @@
             '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
             '<div class="fila-rodape">' +
             (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
+              (mostrarFogo && a.id === topUrgenteId ? '<span class="etiqueta etiqueta-alerta" title="Prioridade do dia: mais alta incidência × desempenho abaixo da meta (e/ou prova próxima). Ataque este primeiro.">🔥 prioridade</span>' : '') +
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
               '<div class="fila-acoes">' +
               '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
