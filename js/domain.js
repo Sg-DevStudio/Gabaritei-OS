@@ -697,6 +697,17 @@
     return min / 60;
   }
 
+  // Data (AAAA-MM-DD) da primeira sessão do plano a partir de uma âncora; null se
+  // ainda não houve estudo. Base para medir o ritmo real sobre o período ATIVO.
+  function primeiraDataSessaoPlano(state, desdeISO) {
+    let min = null;
+    for (const s of sessoesDoPlano(state)) {
+      if (desdeISO && s.data < desdeISO) continue;
+      if (!min || s.data < min) min = s.data;
+    }
+    return min;
+  }
+
   function ritmoInfoAtivo(state) {
     if (!state.plano || !state.plano.ritmos) return null;
     const chave = state.plano.ritmoAtivo || 'sustentavel';
@@ -724,23 +735,31 @@
     const restante = Math.max(0, esforcoTotal - horasFeitas);
     const cargaIdeal = Math.round((restante / semanasRestantes) * 10) / 10;
     const cargaPlanejada = r.h_semana || cargaIdeal;
-    const ritmoReal = decorridas >= 0.5 ? horasFeitas / decorridas : cargaPlanejada;
-    const semanasProjetadas = ritmoReal > 0.1 ? restante / ritmoReal : Infinity;
+    // Ritmo real medido sobre o período ATIVO (da 1ª sessão até hoje), não desde a
+    // criação do plano: um plano gerado há semanas mas estudado só agora não deve
+    // ter o ritmo diluído por semanas sem estudo (isso estourava a projeção).
+    const primeiraSessao = primeiraDataSessaoPlano(state, inicio);
+    const semanasAtivas = primeiraSessao
+      ? Math.min(semanasTotais, Math.max(0, diffDias(primeiraSessao, hoje) / 7))
+      : 0;
+    const ritmoReal = primeiraSessao ? horasFeitas / Math.max(0.5, semanasAtivas) : cargaPlanejada;
+    // Só projeta pela média REAL quando há amostra representativa (≥ ~2 semanas de
+    // atividade com estudo registrado). Antes disso, 1–2 sessões jogariam a
+    // conclusão para anos à frente; mantém a estimativa PLANEJADA (a meta se você
+    // seguir o plano) — que é o que o aluno via no início.
+    const projecaoReal = !!primeiraSessao && semanasAtivas >= 2 && horasFeitas >= 0.1;
+    const paceProjecao = projecaoReal ? ritmoReal : cargaPlanejada;
+    const semanasProjetadas = paceProjecao > 0.1 ? restante / paceProjecao : Infinity;
     const mesesProjetados = isFinite(semanasProjetadas)
       ? Math.round(((decorridas + semanasProjetadas) / 4.345) * 10) / 10 : Infinity;
     const pctConcluido = esforcoTotal > 0 ? Math.min(100, Math.round((horasFeitas / esforcoTotal) * 100)) : 0;
-    // Conclusão estimada DINÂMICA (semanas a partir de hoje): usa o ritmo real
-    // quando há dados; senão o ritmo planejado (casa com a estimativa inicial).
-    // Estudar menos → ritmo cai → prazo sobe; adiantar tópicos → restante cai → prazo desce.
-    const paceProjecao = (horasFeitas >= 0.1 && decorridas >= 0.5) ? ritmoReal : cargaPlanejada;
+    // Conclusão estimada DINÂMICA (semanas a partir de hoje).
     const semanasParaConcluir = restante <= 0 ? 0 : Math.min(260, restante / Math.max(0.5, paceProjecao));
-    // "Adiantado"/"Atrasado" só fazem sentido com estudo REAL registrado e tempo
-    // suficiente decorrido. Sem horas feitas, o plano é "no prazo" (neutro) no
-    // começo e "parado" se já passou ~1 semana — nunca "adiantado" com 0h.
+    // "Adiantado"/"Atrasado" só com amostra real representativa; antes disso o
+    // plano é "no prazo" (neutro) e "parado" se já passou ~1 semana sem estudo.
     let situacao = 'no_prazo';
     if (restante <= 0) situacao = 'concluido';
-    else if (horasFeitas < 0.1) situacao = decorridas >= 1 ? 'parado' : 'no_prazo';
-    else if (decorridas < 0.5) situacao = 'no_prazo'; // cedo demais para projetar
+    else if (!projecaoReal) situacao = (horasFeitas < 0.1 && decorridas >= 1) ? 'parado' : 'no_prazo';
     else if (!isFinite(mesesProjetados)) situacao = 'parado';
     else if (mesesProjetados > meses + 0.5) situacao = 'atrasado';
     else if (mesesProjetados < meses - 0.5) situacao = 'adiantado';
@@ -750,7 +769,7 @@
       semanasRestantes: Math.round(semanasRestantes * 10) / 10, cargaIdeal,
       cargaPlanejada: Math.round(cargaPlanejada * 10) / 10, ritmoReal: Math.round(ritmoReal * 10) / 10,
       semanasParaConcluir: Math.round(semanasParaConcluir * 10) / 10,
-      mesesProjetados, pctConcluido, situacao
+      mesesProjetados, pctConcluido, situacao, projecaoReal
     };
   }
 

@@ -1,12 +1,12 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v67-bloco';
+const CACHE = 'estudos-v68-projecao';
 const ESTATICOS = [
   './',
   './index.html',
   './manifest.json',
   './js/frases.js',
   './css/styles.css?v=20260619w-bloco',
-  './js/domain.js?v=20260619x-login-title',
+  './js/domain.js?v=20260619v-projecao',
   './js/store.js?v=20260619w-bloco',
   './js/sync.js',
   './js/firebase-sync.js?v=20260619y-sync-fix',
