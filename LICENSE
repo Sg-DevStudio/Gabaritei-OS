@@ -1,21 +1,27 @@
-MIT License
+Gabaritei OS — Licença Proprietária
+Copyright (c) 2026 Samuel Gomes. Todos os direitos reservados.
 
-Copyright (c) 2026 Samuel Gomes
+Este software, seu código-fonte e todos os materiais associados — incluindo, sem
+limitação, HTML, CSS, JavaScript, dados de editais, documentação, especificações
+(docs/specs, ROADMAP) e os prompts da skill de editais — são propriedade
+exclusiva do autor e protegidos por direitos autorais.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+PERMITIDO
+- Usar o aplicativo publicado para fins pessoais e não comerciais de estudo.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+PROIBIDO sem autorização prévia e por escrito do autor
+- Copiar, reproduzir, distribuir, sublicenciar ou publicar o código-fonte, no
+  todo ou em parte;
+- Modificar, adaptar, traduzir ou criar obras derivadas;
+- Usar o código, a arquitetura, os algoritmos ou as ideias deste projeto para
+  fins comerciais ou em outro produto;
+- Remover, ocultar ou alterar avisos de direitos autorais ou esta licença.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Nenhuma licença é concedida por implicação ou de qualquer outra forma além das
+permissões expressamente descritas acima.
+
+O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIAS DE QUALQUER TIPO, EXPRESSAS OU
+IMPLÍCITAS. EM NENHUMA HIPÓTESE O AUTOR SERÁ RESPONSÁVEL POR QUAISQUER DANOS
+DECORRENTES DO USO DESTE SOFTWARE.
+
+Para permissões além desta licença, contate o autor.
