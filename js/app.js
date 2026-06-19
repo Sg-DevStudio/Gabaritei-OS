@@ -2590,7 +2590,7 @@
       });
 
       // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
-      const aj = D.ajustePosRevisao(rev, rev.resultadoPct);
+      const aj = D.ajustePosRevisao(rev, rev.resultadoPct, feitas);
       const t = D.topicoPorId(state, rev.topicoId);
       if (t) {
         if (aj.subirPrioridade) t.prioridade = Math.max(1, (t.prioridade || 2) - 1);
@@ -2603,6 +2603,20 @@
           { planoId: state.planoAtivoId }
         ));
       }
+      // Manutenção pós-curva: agenda a próxima revisão de manutenção, mas só se
+      // cabe antes da prova — não polui a prontidão nem cria tarefa pós-prova.
+      let manutencaoAgendada = false;
+      if (aj.manutencaoDias != null) {
+        const prazo = D.prazoProva(state);
+        const dataManut = D.addDias(rev.dataConcluida, aj.manutencaoDias);
+        if (!prazo || dataManut <= prazo) {
+          state.revisoes.push(Object.assign(
+            D.revisaoManutencao(rev.topicoId, rev.dataConcluida, aj.manutencaoDias),
+            { planoId: state.planoAtivoId }
+          ));
+          manutencaoAgendada = true;
+        }
+      }
       // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
       // ou encurta (indo mal) as próximas revisões pendentes.
       const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state));
@@ -2611,7 +2625,9 @@
       } else if (aj.revisaoExtraDias != null) {
         toast('Abaixo de 70% — prioridade elevada e revisão de reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.dominar) {
-        toast('Mandou bem (≥85%) — tópico marcado como dominado ●.', 'sucesso');
+        toast('Mandou bem (≥85%) — tópico marcado como dominado ●' + (manutencaoAgendada ? '. Revisão de manutenção em 30 dias.' : '.'), 'sucesso');
+      } else if (manutencaoAgendada) {
+        toast('Curva concluída — próxima revisão de manutenção em 30 dias.', 'sucesso');
       } else if (reag.ajustadas > 0 && reag.fator > 1) {
         toast('Indo bem neste tópico — espacei as próximas revisões.', 'sucesso');
       } else if (reag.ajustadas > 0 && reag.fator < 1) {
