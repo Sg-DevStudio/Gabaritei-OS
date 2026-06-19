@@ -1035,7 +1035,7 @@
       // Marca o bloco como concluído: registra só o tempo que ainda FALTAVA (não
       // duplica o que já foi cronometrado em sessões parciais) e fecha o bloco.
       const restante = blocoRestanteMin(b) || (b.duracaoMin || 30);
-      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: restante, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, semRender: true }) : null;
+      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: restante, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, blocoId: b.id, semRender: true }) : null;
       if (sessao) b.registroRapidoId = sessao.id;
       b.feitoMin = b.duracaoMin || 0;
       b.feito = true;
@@ -1342,13 +1342,21 @@
       }
     }
 
-    // Bloco da agenda: credita o tempo no bloco de origem (timer/registro do bloco).
-    // Fecha o bloco só quando o tempo somado alcança o planejado — antes disso o
-    // calendário mostra "faltam X de Y".
-    if (dados.blocoId) {
-      const bl = creditarBlocoAgenda(dados.blocoId, dados.duracaoMin || 0);
-      if (bl && bl.feito) toast('Bloco concluído ✓', 'sucesso');
-      else if (bl) toast('Faltam ' + D.formatarMin(blocoRestanteMin(bl)) + ' para fechar o bloco', 'sucesso');
+    // Bloco da agenda: credita o tempo no bloco correspondente e fecha-o só quando
+    // o tempo somado alcança o planejado (antes disso o calendário mostra "faltam
+    // X de Y"). Se o registro veio de um bloco específico (timer/registro do bloco)
+    // usa-o; senão procura um bloco aberto do mesmo tópico na data — assim QUALQUER
+    // timer (aba Timer, FAB, fila do Hoje) desconta do bloco do dia.
+    if (!dados.semBloco) {
+      let blocoCred = dados.blocoId;
+      if (!blocoCred) { const bm = acharBlocoParaSessao(dados.topicoId, data); if (bm) blocoCred = bm.id; }
+      if (blocoCred) {
+        const bl = creditarBlocoAgenda(blocoCred, dados.duracaoMin || 0);
+        if (bl && !dados.semRender) {
+          if (bl.feito) toast('Bloco concluído ✓', 'sucesso');
+          else toast('Faltam ' + D.formatarMin(blocoRestanteMin(bl)) + ' para fechar o bloco', 'sucesso');
+        }
+      }
     }
 
     // Ciclo de estudos: credita o tempo da sessão no bloco da matéria e avança a fila.
@@ -2536,7 +2544,7 @@
           const fim = window.Timer.finalizar();
           atualizarTituloTimer(null);
           if (fim.topicoId === ID_SIM_TIMER) { render(); abrirNovoSimulado({ duracaoMin: Math.max(1, fim.decorridoMin) }); return; }
-          abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, fim.decorridoMin), tipo: 'teoria', aoSalvar: function () { render(); } });
+          abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, fim.decorridoMin), tipo: 'teoria', blocoId: fim.blocoId || null, aoSalvar: function () { render(); } });
           render();
         });
         corpo.querySelector('#tr-descartar').addEventListener('click', function () {
@@ -5660,6 +5668,26 @@
     if (plano > 0) b.feitoMin = Math.min(b.feitoMin, plano);
     if (plano > 0 && b.feitoMin >= plano - 0.5) b.feito = true; // margem p/ arredondamento
     return b;
+  }
+
+  // Acha um bloco da agenda ABERTO que combine com a sessão (mesmo tópico, ou
+  // bloco de "disciplina inteira" da mesma disciplina) na data informada. Permite
+  // que QUALQUER timer/registro (aba Timer, FAB, fila do Hoje) desconte do bloco
+  // do dia sem precisar iniciar pelo próprio bloco. Empate: tópico exato primeiro,
+  // depois o que tem mais tempo restante.
+  function acharBlocoParaSessao(topicoId, dataISO) {
+    if (!topicoId) return null;
+    const disc = D.disciplinaDoTopico(state, topicoId);
+    const candidatos = doAtivo(state.agenda).filter(function (b) {
+      return b.data === dataISO && !blocoAgendaConcluido(b) &&
+        (b.topicoId === topicoId || (!b.topicoId && disc && b.disciplinaId === disc.id));
+    });
+    if (!candidatos.length) return null;
+    candidatos.sort(function (a, b) {
+      const ax = a.topicoId === topicoId ? 0 : 1, bx = b.topicoId === topicoId ? 0 : 1;
+      return ax - bx || blocoRestanteMin(b) - blocoRestanteMin(a);
+    });
+    return candidatos[0];
   }
 
   function blocoAgendaConcluido(bloco) {
