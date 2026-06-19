@@ -1427,6 +1427,39 @@
     return { disciplinas: merged, resumo: resumo };
   }
 
+  // ---------- Análise de erros do simulado (remediação focada) ----------
+  // Cada disciplina de um simulado pode marcar o TIPO de erro PREDOMINANTE.
+  // Agregamos PONDERADO pelo nº de erros (total - certas) da disciplina: 10 erros
+  // "conceitual" pesam mais que 2 de "cálculo". Assim um único clique por
+  // disciplina vira uma distribuição real de onde o aluno perde ponto — e a
+  // remediação deixa de ser genérica ("revise a teoria") e passa a ser dirigida.
+  const TIPOS_ERRO = ['conceitual', 'calculo', 'interpretacao', 'atencao'];
+  const REMEDIACAO_ERRO = {
+    conceitual: { rotulo: 'Conceitual', icone: '📖', dica: 'A base teórica está falhando: volte à teoria do tópico ANTES de fazer mais questões.' },
+    calculo: { rotulo: 'Cálculo/aplicação', icone: '🧮', dica: 'Você entende, mas erra na execução: faça baterias de exercícios do mesmo tipo até automatizar.' },
+    interpretacao: { rotulo: 'Interpretação', icone: '🔍', dica: 'O conteúdo você sabe, mas lê errado o enunciado: treine questões comentadas e grife o que se pede.' },
+    atencao: { rotulo: 'Desatenção', icone: '🎯', dica: 'Erros bobos custam aprovação: releia a questão e confira a marcação antes de seguir.' }
+  };
+  function remediacaoErro(tipo) { return REMEDIACAO_ERRO[tipo] || null; }
+
+  function analisarErrosSimulados(simulados) {
+    const porTipo = { conceitual: 0, calculo: 0, interpretacao: 0, atencao: 0 };
+    let totalClassificado = 0, totalErros = 0;
+    (simulados || []).forEach(function (sim) {
+      (sim.acertos || []).forEach(function (a) {
+        const erros = Math.max(0, (a.total || 0) - (a.certas || 0));
+        totalErros += erros;
+        if (erros > 0 && a.tipoErro && porTipo[a.tipoErro] != null) {
+          porTipo[a.tipoErro] += erros;
+          totalClassificado += erros;
+        }
+      });
+    });
+    let dominante = null, max = 0;
+    TIPOS_ERRO.forEach(function (t) { if (porTipo[t] > max) { max = porTipo[t]; dominante = t; } });
+    return { porTipo: porTipo, totalClassificado: totalClassificado, totalErros: totalErros, dominante: dominante };
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -1439,6 +1472,7 @@
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
+    TIPOS_ERRO, remediacaoErro, analisarErrosSimulados,
     revisarFlashcard, flashcardDevido
   };
 })();
