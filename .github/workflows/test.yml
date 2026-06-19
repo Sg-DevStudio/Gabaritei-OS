@@ -14,6 +14,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # Gate de sintaxe: os scripts de navegador (IIFE/window) têm de ser válidos.
+      # firebase-sync.js é ES module (carregado com type="module") e fica de fora.
+      - name: Checar sintaxe (node --check)
+        run: |
+          for f in js/app.js js/domain.js js/store.js js/sync.js js/timer.js js/charts.js js/frases.js sw.js; do
+            node --check "$f"
+          done
       # Sem dependências: a suíte usa só o test runner nativo do Node.
       - name: Rodar testes
         run: npm test
