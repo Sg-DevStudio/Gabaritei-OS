@@ -778,6 +778,11 @@ html[data-tema="escuro"] .ic-tema-sol { display: block; }
 @media (max-width: 760px) {
   .fab-rapido { bottom: calc(var(--abas-alt) + 1rem + env(safe-area-inset-bottom)); }
 }
+/* O FAB de atalhos é exclusivo do mobile: no desktop os mesmos atalhos já
+   vivem na sidebar/topbar, então o botão flutuante fica oculto. */
+@media (min-width: 761px) {
+  .fab-rapido { display: none; }
+}
 /* o toggle deixa de ser fixo (o container já posiciona) */
 .fab-rapido .fab-toggle { position: static; right: auto; bottom: auto; top: auto; }
 .fab-toggle .fab-ic { transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1); }
