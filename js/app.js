@@ -7126,7 +7126,6 @@
       '<label class="toggle-ordem-opt"><input type="radio" name="gp-ordem" value="incidencia"' + (ordemAtual === 'incidencia' ? ' checked' : '') + '>' +
       '<span><strong>Ordem de incidência (80/20)</strong><small>Ataca primeiro os tópicos mais cobrados nas provas.</small></span></label>' +
       '</div>' +
-      '<p class="rotina-feedback" id="gp-resumo"></p>' +
       '</section>' +
 
       '<div class="modal-acoes gp-nav">' +
@@ -7176,7 +7175,6 @@
       m.querySelector('#gp-proximo').classList.toggle('oculto', passo === TOTAL_PASSOS);
       m.querySelector('#gp-gerar').classList.toggle('oculto', passo !== TOTAL_PASSOS);
       if (passo === 4) atualizarPrazoProjecao();
-      if (passo === TOTAL_PASSOS) atualizarResumo();
     }
 
     function rotinaDoModal() {
@@ -7212,21 +7210,6 @@
           : 'Sua rotina está abaixo do ritmo ' + macroNome + ' — você ainda avança, só mais devagar. Aumente as horas ou escolha um ritmo mais tranquilo.';
       }
     }
-    // resumo final do assistente (passo 5 — Estratégia)
-    function atualizarResumo() {
-      const resumo = m.querySelector('#gp-resumo');
-      if (!resumo) return;
-      const meses = parseInt(m.querySelector('#gp-meses').value, 10);
-      const total = totalMinutosRotina(rotinaDoModal()) / 60;
-      const ideal = horasIdeaisSemanaPlano(entrada, meses);
-      const ok = total >= ideal;
-      const macroNome = nomeRitmoPorMeses(entrada, meses);
-      resumo.classList.toggle('alerta', !ok);
-      resumo.classList.toggle('ok', ok);
-      resumo.textContent = 'Resumo: ritmo ' + macroNome + ' (estimativa ~' + meses + ' meses), ' + formatarHorasSemana(total) + '. ' +
-        (ok ? 'Sua rotina acompanha esse ritmo. 👍' : 'Sua rotina está abaixo desse ritmo — você avança mais devagar; reveja os dias/horas ou escolha um ritmo mais tranquilo.');
-    }
-
     atualizarTotal();
     m.querySelectorAll('[data-rot-ativo], #gp-min-bloco, #gp-max-bloco').forEach(function (el) {
       el.addEventListener('change', atualizarTotal);
