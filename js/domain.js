@@ -1442,6 +1442,16 @@
   };
   function remediacaoErro(tipo) { return REMEDIACAO_ERRO[tipo] || null; }
 
+  // Ritmo do simulado cronometrado: minutos por questão. Velocidade é fator de
+  // aprovação tão decisivo quanto o acerto — a prova é contra o relógio.
+  function ritmoSimulado(sim) {
+    if (!sim || !sim.duracaoMin) return null;
+    let totalQ = 0;
+    (sim.acertos || []).forEach(function (a) { totalQ += (a.total || 0); });
+    if (totalQ <= 0) return null;
+    return Math.round((sim.duracaoMin / totalQ) * 10) / 10;
+  }
+
   function analisarErrosSimulados(simulados) {
     const porTipo = { conceitual: 0, calculo: 0, interpretacao: 0, atencao: 0 };
     let totalClassificado = 0, totalErros = 0;
@@ -1472,7 +1482,7 @@
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
-    TIPOS_ERRO, remediacaoErro, analisarErrosSimulados,
+    TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     revisarFlashcard, flashcardDevido
   };
 })();

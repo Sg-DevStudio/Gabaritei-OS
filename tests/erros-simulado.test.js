@@ -46,3 +46,10 @@ test('remediacaoErro: tipos válidos têm rótulo/ícone/dica; inválido → nul
 test('TIPOS_ERRO expõe os quatro tipos', () => {
   assert.deepEqual(D.TIPOS_ERRO, ['conceitual', 'calculo', 'interpretacao', 'atencao']);
 });
+
+test('ritmoSimulado: min/questão quando há duração; null sem duração', () => {
+  const sim = { duracaoMin: 180, acertos: [{ disciplinaId: 'D1', certas: 30, total: 60 }, { disciplinaId: 'D2', certas: 20, total: 30 }] };
+  assert.equal(D.ritmoSimulado(sim), 2); // 180 / 90 questões = 2.0 min/questão
+  assert.equal(D.ritmoSimulado({ acertos: [{ total: 10 }] }), null); // sem duracaoMin
+  assert.equal(D.ritmoSimulado({ duracaoMin: 60, acertos: [] }), null); // sem questões
+});

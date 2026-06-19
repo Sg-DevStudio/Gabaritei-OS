@@ -45,6 +45,7 @@
   let modoDemo = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
+  const ID_SIM_TIMER = '__simulado__'; // "disciplina" sintética do timer p/ cronometrar um simulado
   let editalAbertas = new Set();  // disciplinas expandidas no edital
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
   let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
@@ -2240,7 +2241,8 @@
       const discIni = timerPreselecao ? D.disciplinaDoTopico(state, timerPreselecao) : state.disciplinas[0];
       const optsDisc = state.disciplinas.map(function (d) {
         return '<option value="' + esc(d.id) + '"' + (discIni && d.id === discIni.id ? ' selected' : '') + '>' + esc(nomeDiscCurto(d.nome)) + '</option>';
-      }).join('');
+      }).join('') +
+        '<option value="' + ID_SIM_TIMER + '">📝 Simulado (cronometrado)</option>';
       selecao =
         '<div class="timer-disciplina-topo"><select id="timer-disc" class="timer-disc-select" aria-label="Disciplina">' + optsDisc + '</select>' +
         '<button type="button" class="timer-assunto-btn" id="timer-assunto-btn">Adicionar assunto <span class="timer-assunto-caret" aria-hidden="true">⌄</span></button>' +
@@ -2252,6 +2254,9 @@
         '<div class="timer-limite" id="timer-limite-wrap"><label for="timer-limite">Tempo máximo (min)</label>' +
         '<input id="timer-limite" type="number" min="1" max="720" placeholder="Sem limite"></div>' +
         '<div class="timer-limite-auto oculto" id="timer-limite-auto">⏱️ Limite automático: 25 min de foco por ciclo</div>';
+    } else if (ativo.topicoId === ID_SIM_TIMER) {
+      selecao = '<div class="timer-disciplina-topo"><h2>📝 Simulado</h2>' +
+        '<p class="timer-topico-ativo">cronometrando o simulado — encerre para preencher o gabarito</p></div>';
     } else {
       const discAtiva = D.disciplinaDoTopico(state, ativo.topicoId);
       selecao = '<div class="timer-disciplina-topo"><h2>' + esc(discAtiva ? nomeDiscCurto(discAtiva.nome) : 'Estudo') + '</h2>' +
@@ -2306,9 +2311,17 @@
         if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
       };
       const preencher = function () {
+        // Modo simulado: não há assunto; o tópico é o sentinela e o botão some.
+        if (selDisc.value === ID_SIM_TIMER) {
+          if (selTop) selTop.value = ID_SIM_TIMER;
+          if (assuntoBtn) assuntoBtn.style.display = 'none';
+          if (assuntoEscolhido) { assuntoEscolhido.textContent = ''; assuntoEscolhido.style.display = 'none'; }
+          return;
+        }
+        if (assuntoBtn) assuntoBtn.style.display = '';
         const d = D.disciplinaPorId(state, selDisc.value);
         const tops = d ? d.topicos.filter(function (t) { return !t.orfao; }) : [];
-        if (selTop && (!selTop.value || !tops.some(function (t) { return t.id === selTop.value; }))) {
+        if (selTop && (!selTop.value || selTop.value === ID_SIM_TIMER || !tops.some(function (t) { return t.id === selTop.value; }))) {
           selTop.value = timerPreselecao && tops.some(function (t) { return t.id === timerPreselecao; }) ? timerPreselecao : (tops[0] ? tops[0].id : '');
         }
         atualizarAssunto();
@@ -2416,6 +2429,11 @@
       acoes.querySelector('#t-finalizar').addEventListener('click', function () {
         const fim = window.Timer.finalizar();
         atualizarTituloTimer(null);
+        if (fim.topicoId === ID_SIM_TIMER) {
+          render();
+          abrirNovoSimulado({ duracaoMin: Math.max(1, fim.decorridoMin) });
+          return;
+        }
         abrirRegistro({
           topicoId: fim.topicoId,
           duracaoMin: Math.max(1, fim.decorridoMin),
@@ -2475,7 +2493,7 @@
         corpo.innerHTML =
           '<div class="timer-mini-clock"><div class="timer-display" id="tr-display">00:00</div>' +
           '<div class="timer-modo-info" id="tr-info"></div></div>' +
-          '<p class="tr-topico">' + esc(nomeTopicoCompleto(e.topicoId)) + '</p>' +
+          '<p class="tr-topico">' + (e.topicoId === ID_SIM_TIMER ? '📝 Simulado em andamento' : esc(nomeTopicoCompleto(e.topicoId))) + '</p>' +
           '<div class="modal-acoes tr-acoes">' +
           (e.rodando ? '<button class="botao-quieto" id="tr-pausar">Pausar</button>' : '<button class="botao-quieto" id="tr-retomar">Retomar</button>') +
           '<button id="tr-encerrar">Encerrar</button>' +
@@ -2489,6 +2507,7 @@
         corpo.querySelector('#tr-encerrar').addEventListener('click', function () {
           const fim = window.Timer.finalizar();
           atualizarTituloTimer(null);
+          if (fim.topicoId === ID_SIM_TIMER) { render(); abrirNovoSimulado({ duracaoMin: Math.max(1, fim.decorridoMin) }); return; }
           abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, fim.decorridoMin), tipo: 'teoria', aoSalvar: function () { render(); } });
           render();
         });
@@ -3321,8 +3340,12 @@
       sim.acertos.forEach(function (a) { totalC += a.certas; totalQ += a.total; });
       const pctGeral = totalQ > 0 ? Math.round((totalC / totalQ) * 100) : null;
       const tituloSimulado = sim.tipo === 'total' ? 'Simulado total' : sim.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
+      const ritmo = D.ritmoSimulado(sim);
+      const tempoTxt = sim.duracaoMin
+        ? ' · ⏱️ ' + D.formatarMin(sim.duracaoMin) + (ritmo ? ' (' + ritmo + ' min/questão)' : '')
+        : '';
       html += '<div class="card"><h3>' + tituloSimulado +
-        ' — ' + D.formatarDataBR(sim.data) + ' · geral: ' + semaforoHtml(pctGeral, meta) + '</h3>' +
+        ' — ' + D.formatarDataBR(sim.data) + ' · geral: ' + semaforoHtml(pctGeral, meta) + tempoTxt + '</h3>' +
         '<table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">%</th><th class="num">vs. meta ' + meta + '%</th></tr></thead><tbody>';
       sim.acertos.forEach(function (a) {
         const d = D.disciplinaPorId(state, a.disciplinaId);
@@ -3383,14 +3406,18 @@
     return html;
   }
 
-  function abrirNovoSimulado() {
+  function abrirNovoSimulado(opcoes) {
+    opcoes = opcoes || {};
     const discs = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    const tempoIni = opcoes.duracaoMin ? String(Math.round(opcoes.duracaoMin)) : '';
     const m = abrirModal(
       '<h3>Preencher gabarito</h3>' +
+      (opcoes.duracaoMin ? '<p class="sim-cronometrado">⏱️ Simulado cronometrado: ' + D.formatarMin(Math.round(opcoes.duracaoMin)) + ' registrados.</p>' : '') +
       '<form id="form-sim">' +
       '<div class="grade-2"><div><label for="sim-tipo">Tipo</label><select id="sim-tipo">' +
       '<option value="parcial">Parcial</option><option value="total">Total</option></select></div>' +
       '<div><label for="sim-data">Data</label><input id="sim-data" type="date" value="' + D.hojeISO() + '"></div></div>' +
+      '<div><label for="sim-dur">Tempo total (min) — opcional</label><input id="sim-dur" type="number" min="0" max="600" value="' + tempoIni + '" placeholder="ex.: 180"></div>' +
       '<p style="font-size:0.82rem;color:var(--grafite);margin-top:0.75rem">Preencha só as disciplinas que caíram no simulado. O <strong>tipo de erro</strong> é opcional — classifique para receber remediação focada.</p>' +
       '<div class="tabela-rolavel"><table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">Questões</th><th>Erro predominante</th></tr></thead><tbody>' +
       discs.map(function (d) {
@@ -3434,12 +3461,16 @@
       if (problema) { erroEl.textContent = problema; erroEl.classList.remove('oculto'); return; }
       if (acertos.length === 0) { erroEl.textContent = 'Preencha ao menos uma disciplina.'; erroEl.classList.remove('oculto'); return; }
 
-      state.simulados.push({
+      const durEl = m.querySelector('#sim-dur');
+      const dur = durEl && durEl.value !== '' ? parseInt(durEl.value, 10) : null;
+      const novoSim = {
         id: window.Store.novoId('sim'), planoId: state.planoAtivoId,
         data: m.querySelector('#sim-data').value || D.hojeISO(),
         tipo: m.querySelector('#sim-tipo').value,
         acertos
-      });
+      };
+      if (dur && dur > 0) novoSim.duracaoMin = dur;
+      state.simulados.push(novoSim);
       salvar(); fecharModal(); render();
       toast('Simulado registrado', 'sucesso');
     });
