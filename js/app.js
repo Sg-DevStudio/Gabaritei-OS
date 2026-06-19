@@ -6373,7 +6373,10 @@
     const planSemana = horasAgendadasSemana(inicioSemana);
     const feitoSemana = check.atual ? check.atual.realizado : 0;
     const restanteSemana = Math.round(Math.max(0, planSemana - feitoSemana) * 10) / 10;
-    const temReal = burn.horasFeitas > 0;
+    // Mostra a carga REAL (e projeta por ela) só quando há amostra representativa;
+    // antes disso, exibe a planejada — evita que 1-2 sessões mostrem um ritmo/
+    // conclusão irreais (ex.: "260 semanas" após poucos minutos de estudo).
+    const temReal = burn.projecaoReal;
     const planoNovoEstaSemana = state.plano.gerado_em && state.plano.gerado_em >= inicioSemana;
     const cargaValor = temReal ? burn.ritmoReal : planSemana;
     const cargaRotulo = temReal ? 'Carga horária real / semana' : 'Carga horária planejada / semana';
