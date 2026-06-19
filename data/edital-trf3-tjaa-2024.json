@@ -6,6 +6,10 @@
   "banca": "FCC",
   "cargo": "Técnico Judiciário - Área Administrativa (TJAA)",
   "fonte": "Blueprint_TRF3_2024.docx - Edital n. 01/2024 (DOU 18/04/2024); nomeações publicadas até mai/2026 (@ricardobaronovsky)",
+  "janela_prova": {
+    "inicio": "",
+    "fim": ""
+  },
   "nota_corte_sugerida_pct": 84,
   "notas_corte_ultimo_nomeado": {
     "escala": "nota final de 0 a 20 (média ponderada das objetivas + discursiva); percentual = nota/20",

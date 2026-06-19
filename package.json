@@ -1,0 +1,9 @@
+{
+  "name": "gabaritei-os",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Testes das regras de domínio puras (js/domain.js) do Gabaritei OS.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

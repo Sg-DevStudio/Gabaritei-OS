@@ -763,6 +763,101 @@ html[data-tema="escuro"] .ic-tema-sol { display: block; }
   .botao-timer-rapido { top: auto; bottom: calc(var(--abas-alt) + 1rem + env(safe-area-inset-bottom)); }
 }
 
+/* FAB speed-dial: um botão flutuante que expande para cima revelando os
+   atalhos rápidos (Desempenho / Timer). Reaproveita o visual do timer. */
+.fab-rapido {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.2rem;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+@media (max-width: 760px) {
+  .fab-rapido { bottom: calc(var(--abas-alt) + 1rem + env(safe-area-inset-bottom)); }
+}
+/* o toggle deixa de ser fixo (o container já posiciona) */
+.fab-rapido .fab-toggle { position: static; right: auto; bottom: auto; top: auto; }
+.fab-toggle .fab-ic { transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.fab-rapido[data-aberto="true"] .fab-toggle .fab-ic { transform: rotate(135deg); }
+
+.fab-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px) scale(0.96);
+  transform-origin: bottom right;
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), visibility 0.22s;
+  pointer-events: none;
+}
+.fab-rapido[data-aberto="true"] .fab-acoes {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.fab-acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  padding: 0.4rem 0.5rem 0.4rem 0.95rem;
+  border-radius: 999px;
+  background: var(--papel-elevado);
+  color: var(--tinta);
+  border: 1px solid var(--linha);
+  box-shadow: var(--sombra);
+  font-family: var(--fonte-ui);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.fab-acao:hover { background: var(--vidro); }
+.fab-acao-rotulo { white-space: nowrap; }
+.fab-acao-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--caneta), var(--caneta-forte));
+  color: #fff;
+  flex-shrink: 0;
+}
+.fab-acao-ic svg { width: 17px; height: 17px; }
+@media (prefers-reduced-motion: reduce) {
+  .fab-acoes, .fab-toggle .fab-ic { transition: none; }
+}
+
+/* Análise de erros (Simulados) */
+.tabela-rolavel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.etiqueta-erro {
+  background: var(--ambar-fraco, rgba(217, 119, 6, 0.12));
+  color: var(--ambar-forte, #b45309);
+  border: 1px solid var(--ambar-borda, rgba(217, 119, 6, 0.28));
+}
+.erro-remediacao {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--raio-s);
+  background: var(--papel-elevado);
+  border: 1px solid var(--linha);
+  margin-bottom: 0.75rem;
+}
+.erro-barras { display: flex; flex-direction: column; gap: 0.45rem; }
+.erro-linha { display: flex; align-items: center; gap: 0.6rem; font-size: 0.86rem; }
+.erro-rot { flex: 0 0 9.5rem; max-width: 9.5rem; }
+.erro-linha .barra { flex: 1; }
+.erro-num { flex: 0 0 2.4rem; text-align: right; font-family: var(--fonte-mono); color: var(--grafite); }
+@media (max-width: 480px) {
+  .erro-rot { flex-basis: 7rem; max-width: 7rem; font-size: 0.8rem; }
+}
+
 label { display: block; font-size: 0.82rem; font-weight: 700; margin: 0.75rem 0 0.28rem; color: var(--tinta); }
 
 input, select, textarea {

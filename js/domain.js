@@ -375,14 +375,58 @@
     }
 
     const jaListados = new Set(fila.map((i) => i.topicoId + '|' + i.categoria));
+    const reabertos = [];
     for (const d of state.disciplinas) {
       for (const t of d.topicos) {
         if (t.reaberto && !jaListados.has(t.id + '|reaberto')) {
-          fila.push({ categoria: 'reaberto', topicoId: t.id });
+          reabertos.push({ categoria: 'reaberto', topicoId: t.id });
         }
       }
     }
+    // reabertos primeiro pelos mais urgentes (mais cai + pior desempenho + prova perto)
+    reabertos.sort((a, b) => urgenciaTopico(state, b.topicoId, hoje) - urgenciaTopico(state, a.topicoId, hoje));
+    for (const r of reabertos) fila.push(r);
     return fila;
+  }
+
+  // ---------- Urgência do tópico (fila do dia: 80/20 DINÂMICO) ----------
+  // Combina os três sinais que, juntos, dizem o que rende mais HOJE rumo à
+  // aprovação — em vez de atacar só pela ordem do calendário:
+  //   • incidência (80/20): o que mais cai pesa mais;
+  //   • déficit de desempenho: quanto falta para a meta de corte (com amostra);
+  //   • proximidade da prova: na reta final, aperta o que ainda não fixou.
+  // Score multiplicativo (cada fator ~1 = neutro) para a UI ordenar e destacar.
+  // Não persiste nada — é derivado do estado a cada render.
+  function urgenciaTopico(state, topicoId, hoje, metaPct) {
+    const t = topicoPorId(state, topicoId);
+    if (!t) return 0;
+    hoje = hoje || hojeISO();
+    metaPct = metaPct || (state.plano && state.plano.meta && state.plano.meta.corte_pct) || 70;
+
+    // 1) incidência 0..100 → 0.5..1.5 (o que mais cai vale até 3× o que menos cai; nunca zera)
+    const inc = Math.max(0, Math.min(100, t.incidencia_pct || 0));
+    const fInc = 0.5 + inc / 100;
+
+    // 2) déficit de desempenho: com amostra (≥3 questões), quanto falta p/ a meta
+    const dt = desempenhoTopico(sessoesDoPlano(state), topicoId);
+    let fDef;
+    if (dt.pct !== null && dt.feitas >= 3) {
+      fDef = 1 + Math.max(0, metaPct - dt.pct) / 100; // na meta → 1; longe → até ~1.7
+    } else {
+      fDef = 1.1; // sem base ainda: leve urgência (precisa diagnosticar)
+    }
+
+    // 3) proximidade da prova: a reta final prioriza o que ainda não está no ponto
+    const rf = retaFinalInfo(state, hoje);
+    let fProx = 1;
+    if (rf && rf.prazo && !rf.passou && rf.semanas != null) {
+      fProx = rf.semanas <= 2 ? 1.5 : rf.semanas <= 6 ? 1.25 : rf.semanas <= 12 ? 1.1 : 1;
+    }
+
+    // tópico dominado praticamente sai da frente (já fixado)
+    const fStatus = t.status === 'dominado' ? 0.3 : 1;
+
+    return Math.round(fInc * fDef * fProx * fStatus * 1000) / 1000;
   }
 
   // ---------- RN07 — Sugestão de reestudo (>50% de erro) ----------
@@ -954,8 +998,8 @@
     const exclusivosA = Math.max(0, totalA - topicosComuns);
     const exclusivosB = Math.max(0, totalB - topicosComuns);
 
-    const cargaUniaoH = Math.round((horasA + horasB - horasComuns) * 1.8);
-    const cargaSomadaH = Math.round((horasA + horasB) * 1.8);
+    const cargaUniaoH = Math.round((horasA + horasB - horasComuns) * FATOR_ESFORCO);
+    const cargaSomadaH = Math.round((horasA + horasB) * FATOR_ESFORCO);
     const economiaH = cargaSomadaH - cargaUniaoH;
 
     const mA = mesesAteMarco(edA.janelaProva && edA.janelaProva.inicio, hoje);
@@ -1383,18 +1427,52 @@
     return { disciplinas: merged, resumo: resumo };
   }
 
+  // ---------- Análise de erros do simulado (remediação focada) ----------
+  // Cada disciplina de um simulado pode marcar o TIPO de erro PREDOMINANTE.
+  // Agregamos PONDERADO pelo nº de erros (total - certas) da disciplina: 10 erros
+  // "conceitual" pesam mais que 2 de "cálculo". Assim um único clique por
+  // disciplina vira uma distribuição real de onde o aluno perde ponto — e a
+  // remediação deixa de ser genérica ("revise a teoria") e passa a ser dirigida.
+  const TIPOS_ERRO = ['conceitual', 'calculo', 'interpretacao', 'atencao'];
+  const REMEDIACAO_ERRO = {
+    conceitual: { rotulo: 'Conceitual', icone: '📖', dica: 'A base teórica está falhando: volte à teoria do tópico ANTES de fazer mais questões.' },
+    calculo: { rotulo: 'Cálculo/aplicação', icone: '🧮', dica: 'Você entende, mas erra na execução: faça baterias de exercícios do mesmo tipo até automatizar.' },
+    interpretacao: { rotulo: 'Interpretação', icone: '🔍', dica: 'O conteúdo você sabe, mas lê errado o enunciado: treine questões comentadas e grife o que se pede.' },
+    atencao: { rotulo: 'Desatenção', icone: '🎯', dica: 'Erros bobos custam aprovação: releia a questão e confira a marcação antes de seguir.' }
+  };
+  function remediacaoErro(tipo) { return REMEDIACAO_ERRO[tipo] || null; }
+
+  function analisarErrosSimulados(simulados) {
+    const porTipo = { conceitual: 0, calculo: 0, interpretacao: 0, atencao: 0 };
+    let totalClassificado = 0, totalErros = 0;
+    (simulados || []).forEach(function (sim) {
+      (sim.acertos || []).forEach(function (a) {
+        const erros = Math.max(0, (a.total || 0) - (a.certas || 0));
+        totalErros += erros;
+        if (erros > 0 && a.tipoErro && porTipo[a.tipoErro] != null) {
+          porTipo[a.tipoErro] += erros;
+          totalClassificado += erros;
+        }
+      });
+    });
+    let dominante = null, max = 0;
+    TIPOS_ERRO.forEach(function (t) { if (porTipo[t] > max) { max = porTipo[t]; dominante = t; } });
+    return { porTipo: porTipo, totalClassificado: totalClassificado, totalErros: totalErros, dominante: dominante };
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
-    cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, sugerirReestudo,
+    cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
+    TIPOS_ERRO, remediacaoErro, analisarErrosSimulados,
     revisarFlashcard, flashcardDevido
   };
 })();

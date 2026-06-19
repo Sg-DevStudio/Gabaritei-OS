@@ -1669,6 +1669,27 @@
     // só PREENCHE semanas vazias (soVazias) para não apagar o progresso já marcado
     if (state.plano) { if (sincronizarAgendaComCronograma(true) > 0) salvar(); }
     const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
+    // Fila por urgência (80/20 dinâmico): hoje ataca primeiro o que mais rende —
+    // incidência × déficit de desempenho × proximidade da prova. Itens já feitos
+    // afundam. Cache local por id (não muta o estado, que seria persistido).
+    const urgCache = {};
+    function urgDe(a) {
+      if (!a || !a.topicoId) return 0;
+      if (urgCache[a.id] == null) urgCache[a.id] = D.urgenciaTopico(state, a.topicoId, hoje);
+      return urgCache[a.id];
+    }
+    agendaHoje.sort(function (a, b) {
+      if (!!a.feito !== !!b.feito) return a.feito ? 1 : -1;
+      return urgDe(b) - urgDe(a);
+    });
+    // Destaca o ÚNICO item mais urgente do dia (se o sinal for relevante).
+    let topUrgenteId = null, topUrgenteScore = 0;
+    agendaHoje.forEach(function (a) {
+      if (a.feito) return;
+      const u = urgDe(a);
+      if (u > topUrgenteScore) { topUrgenteScore = u; topUrgenteId = a.id; }
+    });
+    const mostrarFogo = topUrgenteScore >= 1.2;
 
     if (!state.plano && state.disciplinas.length === 0 && agendaHoje.length === 0 && state.sessoes.length === 0) {
       return '<div class="cab-pagina"><div><h1>' + saudacaoCompleta(saudacao) + '</h1></div></div>' +
@@ -1874,6 +1895,7 @@
             '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
             '<div class="fila-rodape">' +
             (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
+              (mostrarFogo && a.id === topUrgenteId ? '<span class="etiqueta etiqueta-alerta" title="Prioridade do dia: mais alta incidência × desempenho abaixo da meta (e/ou prova próxima). Ataque este primeiro.">🔥 prioridade</span>' : '') +
               '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
               '<div class="fila-acoes">' +
               '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
@@ -3305,13 +3327,43 @@
       sim.acertos.forEach(function (a) {
         const d = D.disciplinaPorId(state, a.disciplinaId);
         const pct = a.total > 0 ? Math.round((a.certas / a.total) * 100) : null;
-        html += '<tr><td>' + (d ? tagDisc(d) + ' ' + esc(d.nome) : esc(a.disciplinaId)) + '</td>' +
+        const rem = a.tipoErro ? D.remediacaoErro(a.tipoErro) : null;
+        const tagErro = rem ? ' <span class="etiqueta etiqueta-erro" title="' + esc(rem.dica) + '">' + rem.icone + ' ' + esc(rem.rotulo) + '</span>' : '';
+        html += '<tr><td>' + (d ? tagDisc(d) + ' ' + esc(d.nome) : esc(a.disciplinaId)) + tagErro + '</td>' +
           '<td class="num">' + a.certas + '/' + a.total + '</td>' +
           '<td class="num">' + (pct === null ? '—' : pct + '%') + '</td>' +
           '<td class="num">' + semaforoHtml(pct, meta) + '</td></tr>';
       });
       html += '</tbody></table></div>';
     });
+
+    // Análise de erros: onde o aluno perde ponto + remediação dirigida.
+    const ana = D.analisarErrosSimulados(simuladosAtivos);
+    if (ana.totalClassificado > 0) {
+      const rem = D.remediacaoErro(ana.dominante);
+      html += '<div class="card"><h3>Análise de erros — onde você perde ponto</h3>';
+      if (rem) {
+        html += '<div class="erro-remediacao"><strong>' + rem.icone + ' Predominante: ' + esc(rem.rotulo) + '</strong>' +
+          '<p class="sub" style="margin:0.2rem 0 0">' + esc(rem.dica) + '</p></div>';
+      }
+      html += '<div class="erro-barras">';
+      D.TIPOS_ERRO.forEach(function (t) {
+        const v = ana.porTipo[t];
+        if (!v) return;
+        const pct = Math.round((v / ana.totalClassificado) * 100);
+        const r = D.remediacaoErro(t);
+        html += '<div class="erro-linha"><span class="erro-rot">' + r.icone + ' ' + esc(r.rotulo) + '</span>' +
+          '<div class="barra"><span style="width:' + pct + '%"></span></div>' +
+          '<span class="erro-num">' + pct + '%</span></div>';
+      });
+      html += '</div>';
+      const semClass = ana.totalErros - ana.totalClassificado;
+      if (semClass > 0) {
+        html += '<p class="sub" style="margin-top:0.6rem">' + semClass + (semClass === 1 ? ' erro' : ' erros') +
+          ' sem classificação — marque o tipo no próximo gabarito para afinar a remediação.</p>';
+      }
+      html += '</div>';
+    }
 
     // 3 piores tópicos com dados (para realimentar a fila)
     const piores = D.pioresTopicos(state, 3);
@@ -3339,14 +3391,21 @@
       '<div class="grade-2"><div><label for="sim-tipo">Tipo</label><select id="sim-tipo">' +
       '<option value="parcial">Parcial</option><option value="total">Total</option></select></div>' +
       '<div><label for="sim-data">Data</label><input id="sim-data" type="date" value="' + D.hojeISO() + '"></div></div>' +
-      '<p style="font-size:0.82rem;color:var(--grafite);margin-top:0.75rem">Preencha só as disciplinas que caíram no simulado.</p>' +
-      '<table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">Questões</th></tr></thead><tbody>' +
+      '<p style="font-size:0.82rem;color:var(--grafite);margin-top:0.75rem">Preencha só as disciplinas que caíram no simulado. O <strong>tipo de erro</strong> é opcional — classifique para receber remediação focada.</p>' +
+      '<div class="tabela-rolavel"><table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">Questões</th><th>Erro predominante</th></tr></thead><tbody>' +
       discs.map(function (d) {
         return '<tr><td>' + tagDisc(d) + ' ' + esc(d.nome) + '</td>' +
           '<td class="num"><input type="number" min="0" max="200" data-sim-certas="' + esc(d.id) + '" style="width:70px;min-height:36px;padding:0.2rem 0.4rem"></td>' +
-          '<td class="num"><input type="number" min="0" max="200" data-sim-total="' + esc(d.id) + '" style="width:70px;min-height:36px;padding:0.2rem 0.4rem"></td></tr>';
+          '<td class="num"><input type="number" min="0" max="200" data-sim-total="' + esc(d.id) + '" style="width:70px;min-height:36px;padding:0.2rem 0.4rem"></td>' +
+          '<td><select data-sim-erro="' + esc(d.id) + '" style="min-height:36px;padding:0.2rem 0.3rem;font-size:0.82rem">' +
+          '<option value="">—</option>' +
+          '<option value="conceitual">📖 Conceitual</option>' +
+          '<option value="calculo">🧮 Cálculo</option>' +
+          '<option value="interpretacao">🔍 Interpretação</option>' +
+          '<option value="atencao">🎯 Desatenção</option>' +
+          '</select></td></tr>';
       }).join('') +
-      '</tbody></table>' +
+      '</tbody></table></div>' +
       '<div class="msg-erro oculto" id="sim-erro"></div>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="sim-cancelar">Cancelar</button>' +
       '<button type="submit">Registrar simulado</button></div></form>'
@@ -3366,7 +3425,11 @@
         if (c === null && t === null) return;
         if (c === null || t === null || t === 0) { problema = d.id + ': preencha acertos E total de questões.'; return; }
         if (c > t) { problema = d.id + ': acertos (' + c + ') maiores que o total (' + t + ').'; return; }
-        acertos.push({ disciplinaId: d.id, certas: c, total: t });
+        const entrada = { disciplinaId: d.id, certas: c, total: t };
+        // tipo de erro só faz sentido quando houve erro (c < t)
+        const inErr = m.querySelector('[data-sim-erro="' + d.id + '"]');
+        if (inErr && inErr.value && c < t) entrada.tipoErro = inErr.value;
+        acertos.push(entrada);
       });
       if (problema) { erroEl.textContent = problema; erroEl.classList.remove('oculto'); return; }
       if (acertos.length === 0) { erroEl.textContent = 'Preencha ao menos uma disciplina.'; erroEl.classList.remove('oculto'); return; }
@@ -9040,8 +9103,30 @@
   });
   const botaoPerfil = document.getElementById('botao-perfil');
   if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);
-  const botaoTimerRapido = document.getElementById('botao-timer-rapido');
-  if (botaoTimerRapido) botaoTimerRapido.addEventListener('click', abrirTimerRapido);
+  // FAB speed-dial: toggle expande os atalhos rápidos (Desempenho / Timer).
+  const fabRapido = document.getElementById('fab-rapido');
+  const fabToggle = document.getElementById('fab-toggle');
+  function fabFechar() {
+    if (!fabRapido) return;
+    fabRapido.setAttribute('data-aberto', 'false');
+    if (fabToggle) fabToggle.setAttribute('aria-expanded', 'false');
+  }
+  function fabAlternar() {
+    if (!fabRapido) return;
+    const aberto = fabRapido.getAttribute('data-aberto') === 'true';
+    fabRapido.setAttribute('data-aberto', aberto ? 'false' : 'true');
+    if (fabToggle) fabToggle.setAttribute('aria-expanded', aberto ? 'false' : 'true');
+  }
+  if (fabToggle) fabToggle.addEventListener('click', function (e) { e.stopPropagation(); fabAlternar(); });
+  const fabDesempenho = document.getElementById('fab-desempenho');
+  if (fabDesempenho) fabDesempenho.addEventListener('click', function () { fabFechar(); location.hash = '#stats'; });
+  const fabTimer = document.getElementById('fab-timer');
+  if (fabTimer) fabTimer.addEventListener('click', function () { fabFechar(); abrirTimerRapido(); });
+  // fecha ao tocar fora ou apertar Esc
+  document.addEventListener('click', function (e) {
+    if (fabRapido && fabRapido.getAttribute('data-aberto') === 'true' && !fabRapido.contains(e.target)) fabFechar();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fabFechar(); });
 
   window.Timer.aoAtualizar(tratarTickTimer);
 

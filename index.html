@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20260616v-acentos">
+  <link rel="stylesheet" href="css/styles.css?v=20260619v-erros-fab">
 </head>
 <body>
   <!-- Ícones compartilhados da navegação -->
@@ -81,9 +81,21 @@
     </nav>
   </div>
 
-  <button id="botao-timer-rapido" class="botao-flutuante botao-timer-rapido" aria-label="Abrir timer rápido" title="Timer rápido">
-    <svg><use href="#ic-timer"/></svg>
-  </button>
+  <div id="fab-rapido" class="fab-rapido" data-aberto="false">
+    <div class="fab-acoes" id="fab-acoes">
+      <button type="button" class="fab-acao" id="fab-desempenho">
+        <span class="fab-acao-rotulo">Desempenho</span>
+        <span class="fab-acao-ic"><svg><use href="#ic-stats"/></svg></span>
+      </button>
+      <button type="button" class="fab-acao" id="fab-timer">
+        <span class="fab-acao-rotulo">Timer</span>
+        <span class="fab-acao-ic"><svg><use href="#ic-timer"/></svg></span>
+      </button>
+    </div>
+    <button id="fab-toggle" class="botao-flutuante botao-timer-rapido fab-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Ações rápidas" title="Ações rápidas">
+      <svg class="fab-ic"><use href="#ic-plus"/></svg>
+    </button>
+  </div>
 
   <div id="modal-raiz"></div>
   <div id="toast-raiz" aria-live="polite"></div>
@@ -91,7 +103,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
   <script src="js/frases.js"></script>
-  <script src="js/domain.js"></script>
+  <script src="js/domain.js?v=20260619v-erros-fab"></script>
   <script src="js/store.js?v=20260616v-acentos"></script>
   <script src="js/sync.js"></script>
   <script type="module" src="js/firebase-sync.js"></script>
@@ -99,7 +111,7 @@
   <script src="js/timer.js"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
   <script src="data/catalogo-editais.js?v=20260616v-acentos"></script>
-  <script src="js/app.js?v=20260616v-acentos"></script>
+  <script src="js/app.js?v=20260619v-erros-fab"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
