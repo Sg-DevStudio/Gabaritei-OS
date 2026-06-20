@@ -1114,7 +1114,7 @@
   // Duração estimada por tipo de revisão (min): curta no início da curva, mais
   // longa nas pontas; reforço/manutenção tratados como revisão "cheia". É o que
   // o calendário mostra e o que as revisões descontam do tempo do dia.
-  const DURACAO_REVISAO_MIN = { '24h': 10, '3d': 10, '7d': 15, '14d': 15, '30d': 20, 'manutenção': 20, 'reforço': 20 };
+  const DURACAO_REVISAO_MIN = { '24h': 10, '3d': 15, '7d': 15, '14d': 20, '30d': 20, 'manutenção': 20, 'reforço': 20 };
   function duracaoRevisaoMin(tipo) { return DURACAO_REVISAO_MIN[tipo] || 15; }
 
   // Revisões PENDENTES (não concluídas) agendadas para um dia, com tópico válido.
