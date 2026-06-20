@@ -9355,7 +9355,16 @@
       texto: 'Vou te mostrar em 1 minuto como tudo funciona, usando um plano de exemplo. Nada aqui é salvo na sua conta — é só uma demonstração.' },
     { rota: 'hoje', seletor: '#conteudo .card',
       titulo: '🎯 Aba Hoje',
-      texto: 'É seu ponto de partida diário: o que estudar hoje, sua constância e o progresso do plano. Você abre o app e já sabe o que fazer.' },
+      texto: 'É seu ponto de partida diário: o que estudar hoje e o progresso do plano. Você abre o app e já sabe o que fazer.' },
+    { rota: 'hoje', seletor: '#conteudo .constancia-card',
+      titulo: '🔥 Mapa de constância (heatmap)',
+      texto: 'Cada quadradinho é um dia: quanto mais você estuda, mais forte a cor. Ele te ajuda a manter a sequência de dias estudando, sem furos.' },
+    { rota: 'hoje', seletor: '#conteudo .conquistas-card',
+      titulo: '🏅 Conquistas',
+      texto: 'Medalhas que você desbloqueia conforme avança (constância, simulados, metas…). Toque numa delas para ver como conquistar e a raridade — uma motivação extra.' },
+    { rota: 'hoje', seletor: '#conteudo .painel-disciplinas-card',
+      titulo: '📚 Painel de disciplinas',
+      texto: 'Toque em qualquer disciplina para abrir a tela de detalhes dela: histórico de estudos, desempenho por tópico e o edital verticalizado. É onde você mergulha em cada matéria.' },
     { rota: 'planejamento', seletor: '#conteudo .checkin-card, #conteudo .card',
       titulo: '📅 Planejamento & Agenda',
       texto: 'Aqui fica seu cronograma da semana, o check-in semanal e a projeção de conclusão. Dá para arrastar matérias para os dias.' },
@@ -9426,6 +9435,9 @@
     if (!tourAtivo) return;
     removerOverlayTour();
     const alvo = passo.seletor ? document.querySelector(passo.seletor) : null;
+    // traz o alvo para a viewport (pode estar abaixo da dobra no mobile) antes de
+    // medir — assim o destaque e o balão ficam visíveis.
+    if (alvo && alvo.scrollIntoView) { try { alvo.scrollIntoView({ block: 'center' }); } catch (e) { alvo.scrollIntoView(); } }
     const rect = alvo ? alvo.getBoundingClientRect() : null;
 
     const overlay = document.createElement('div');
