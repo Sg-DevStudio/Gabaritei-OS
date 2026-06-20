@@ -3796,25 +3796,6 @@ canvas.grafico {
 .ciclo-seta[disabled] { opacity: 0.3; cursor: default; }
 .ciclo-rodape { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.75rem; }
 
-/* Donut da composição da volta do ciclo */
-.ciclo-donut-card { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--linha); }
-.ciclo-donut-card h4 { margin: 0 0 0.1rem; font-size: 0.98rem; }
-.ciclo-donut-wrap { display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap; }
-.ciclo-donut { position: relative; width: 188px; height: 188px; flex: 0 0 auto; filter: drop-shadow(0 9px 16px rgba(10, 12, 18, 0.20)); }
-.ciclo-donut svg { width: 100%; height: 100%; display: block; }
-.ciclo-donut-seg { transition: stroke-width 0.15s ease; cursor: pointer; outline: none; }
-.ciclo-donut-seg:hover, .ciclo-donut-seg.ativa, .ciclo-donut-seg:focus-visible { stroke-width: 23; }
-.ciclo-donut-centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; padding: 0 1.4rem; }
-.ciclo-donut-centro strong { font-size: 1.08rem; line-height: 1.1; color: var(--tinta); }
-.ciclo-donut-centro span { font-size: 0.76rem; color: var(--grafite); margin-top: 0.1rem; }
-.ciclo-donut-legenda { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.84rem; flex: 1 1 150px; min-width: 0; }
-.ciclo-donut-chip { display: flex; align-items: center; gap: 0.45rem; }
-.ciclo-donut-cor { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; }
-@media (max-width: 480px) {
-  .ciclo-donut-wrap { justify-content: center; }
-  .ciclo-donut-legenda { flex-basis: 100%; }
-}
-
 /* item do ciclo dentro da fila de Hoje */
 .fila-ciclo-atual { box-shadow: inset 0 0 0 2px var(--caneta-suave); border-radius: 12px; }
 .fila-ciclo-marca { color: var(--caneta); font-size: 0.9rem; width: 1.1rem; text-align: center; flex-shrink: 0; }
