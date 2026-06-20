@@ -1248,6 +1248,129 @@
     return { ativa: manual || porData, manual: manual, porData: porData, passou: false, semanas: semanas, dias: dias, prazo: prazo };
   }
 
+  // ---------- RN12 — Cobertura vs. prova: tópicos que NÃO devem ser alcançados ----------
+  // Confronta o que falta de TEORIA com a data da prova e devolve a lista de
+  // tópicos em risco (com incidência) para o aluno decidir. Dois modos:
+  //  - ciclo: estima as voltas que ainda cabem até a prova. Em cada volta o ciclo
+  //    cobre ~1 tópico pendente por disciplina ativa (o de MAIOR incidência primeiro),
+  //    então os de MENOR incidência além do alcance ficam em risco. Só dispara na
+  //    "reta final" — quando restam ≤ limiarPctVoltas (padrão 20%) das voltas.
+  //  - cronograma: se há teoria agendada para semanas DEPOIS do prazo da prova,
+  //    esses tópicos não serão vistos a tempo (o cronograma estende o prazo em vez
+  //    de respeitar a data). Lista-os para o aluno priorizar.
+  // "Pendente" = ainda precisa de teoria (status != teoria_concluida/dominado).
+  function precisaTeoria(t) {
+    return t && !t.orfao && t.status !== 'teoria_concluida' && t.status !== 'dominado';
+  }
+
+  function alertaCoberturaCiclo(state, hoje, prazo, dias, opcoes) {
+    const ciclo = cicloAtivo(state);
+    if (!ciclo || !Array.isArray(ciclo.blocos) || ciclo.blocos.length === 0) return null;
+    const minSemana = opcoes && opcoes.minutosSemana > 0 ? opcoes.minutosSemana : 0;
+    if (!minSemana) return null; // sem rotina não dá pra estimar voltas
+    const tempoVolta = ciclo.blocos.reduce(function (s, b) { return s + (b.metaMin || 0); }, 0);
+    if (tempoVolta <= 0) return null;
+
+    const voltasRestantes = Math.max(1, Math.floor((dias / 7 * minSemana) / tempoVolta));
+    const voltaAtual = ciclo.volta || 1;
+    const voltasFeitas = voltaAtual - 1;
+    const voltasTotais = voltasFeitas + voltasRestantes;
+    const pctRestante = voltasTotais > 0 ? voltasRestantes / voltasTotais : 1;
+
+    // Menor voltaInicio por disciplina presente no ciclo (a rampa de entrada).
+    const voltaInicioPorDisc = {};
+    ciclo.blocos.forEach(function (b) {
+      const vi = b.voltaInicio || 1;
+      if (voltaInicioPorDisc[b.disciplinaId] == null || vi < voltaInicioPorDisc[b.disciplinaId]) {
+        voltaInicioPorDisc[b.disciplinaId] = vi;
+      }
+    });
+
+    const topicos = [];
+    (state.disciplinas || []).forEach(function (d) {
+      if (!d || d.id === 'ORF') return;
+      const pend = (d.topicos || []).filter(precisaTeoria);
+      if (pend.length === 0) return;
+      pend.sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
+      const vi = voltaInicioPorDisc[d.id];
+      let capacidade;
+      if (vi == null) {
+        capacidade = 0; // disciplina sem bloco no ciclo: nada será coberto
+      } else {
+        const inicioRel = Math.max(0, vi - voltaAtual); // voltas até essa disc entrar
+        capacidade = Math.max(0, voltasRestantes - inicioRel);
+      }
+      pend.slice(capacidade).forEach(function (t) {
+        topicos.push({ id: t.id, nome: t.nome, disciplina: d.nome, disciplinaId: d.id, incidencia: t.incidencia_pct || 0 });
+      });
+    });
+
+    if (topicos.length === 0) return null;
+    const limiar = opcoes && opcoes.limiarPctVoltas > 0 ? opcoes.limiarPctVoltas : 0.2;
+    if (pctRestante > limiar) return null; // só na reta final (em voltas)
+    topicos.sort(function (a, b) { return (b.incidencia || 0) - (a.incidencia || 0); });
+    return {
+      modo: 'ciclo', voltaAtual: voltaAtual, voltasRestantes: voltasRestantes,
+      voltasTotais: voltasTotais, pctRestante: Math.round(pctRestante * 100), topicos: topicos
+    };
+  }
+
+  function alertaCoberturaCronograma(state, hoje, prazo) {
+    const cron = cronogramaAtivo(state);
+    if (!cron || cron.length === 0) return null;
+    const topicos = [];
+    const vistos = {};
+    cron.forEach(function (sem) {
+      if (!sem || !sem.inicio || sem.inicio < prazo) return; // semana dentro do prazo: ok
+      (sem.blocos || []).forEach(function (b) {
+        if (!b || !b.topico || vistos[b.topico]) return;
+        if (b.tipo && b.tipo !== 'teoria') return; // só "ver conteúdo" conta
+        const t = topicoPorId(state, b.topico);
+        if (!precisaTeoria(t)) return;
+        vistos[b.topico] = true;
+        const d = disciplinaDoTopico(state, b.topico);
+        topicos.push({ id: t.id, nome: t.nome, disciplina: d ? d.nome : '', disciplinaId: d ? d.id : null, incidencia: t.incidencia_pct || 0 });
+      });
+    });
+    if (topicos.length === 0) return null;
+    topicos.sort(function (a, b) { return (b.incidencia || 0) - (a.incidencia || 0); });
+    const ultima = cron[cron.length - 1];
+    const fimPlano = ultima ? addDias(ultima.inicio, 7) : prazo;
+    const semanasApos = Math.max(1, Math.ceil(diffDias(prazo, fimPlano) / 7));
+    return { modo: 'cronograma', prazo: prazo, semanasApos: semanasApos, topicos: topicos };
+  }
+
+  // Ponto único: decide o modo pelo plano e devolve o alerta (ou null). hoje e
+  // opcoes.minutosSemana (rotina) vêm da UI.
+  function alertaCobertura(state, hoje, opcoes) {
+    opcoes = opcoes || {};
+    hoje = hoje || hojeISO();
+    const prazo = prazoProva(state);
+    if (!prazo) return null; // sem data de prova não há contra o que comparar
+    const dias = diffDias(hoje, prazo);
+    if (dias <= 0) return null; // prova hoje ou no passado
+    const modo = state.plano && state.plano.modoPlanejamento;
+    return modo === 'ciclo'
+      ? alertaCoberturaCiclo(state, hoje, prazo, dias, opcoes)
+      : alertaCoberturaCronograma(state, hoje, prazo);
+  }
+
+  // Acrescenta blocos ao ciclo para os tópicos dados, entrando na volta atual.
+  // Ignora os que já têm bloco do mesmo tópico. Devolve quantos foram adicionados.
+  function adicionarTopicosAoCiclo(ciclo, itens) {
+    if (!ciclo || !Array.isArray(ciclo.blocos) || !Array.isArray(itens)) return 0;
+    const volta = ciclo.volta || 1;
+    let add = 0;
+    itens.forEach(function (it) {
+      if (!it || !it.disciplinaId || !it.id) return;
+      const existe = ciclo.blocos.some(function (b) { return b.topicoId === it.id && b.disciplinaId === it.disciplinaId; });
+      if (existe) return;
+      ciclo.blocos.push({ id: novoIdBloco(), disciplinaId: it.disciplinaId, topicoId: it.id, metaMin: 30, feitoMin: 0, voltaInicio: volta });
+      add++;
+    });
+    return add;
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -1546,6 +1669,7 @@
     reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
+    alertaCobertura, adicionarTopicosAoCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,

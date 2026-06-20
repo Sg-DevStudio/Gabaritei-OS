@@ -7945,7 +7945,66 @@
     });
   }
 
+  // RN12 — modal de cobertura vs. prova. Aparece no máximo 1x por semana ao abrir
+  // o planejamento, e só quando há tópicos que não devem ser vistos a tempo.
+  function talvezAlertarCobertura() {
+    if (modoDemo || !state.plano) return;
+    const semana = D.segundaDaSemana(D.hojeISO());
+    state.config = state.config || {};
+    if (state.config.alertaCoberturaSemana === semana) return; // já mostrado nesta semana
+    const raizModal = document.getElementById('modal-raiz');
+    if (raizModal && raizModal.children.length) return; // outro modal aberto: tenta na próxima
+    const alerta = D.alertaCobertura(state, D.hojeISO(), { minutosSemana: totalMinutosRotina(rotinaEstudosAtual()) });
+    if (!alerta || !alerta.topicos.length) return;
+    state.config.alertaCoberturaSemana = semana; // trava: no máximo 1x/semana
+    salvar();
+    abrirModalCobertura(alerta);
+  }
+
+  function abrirModalCobertura(alerta) {
+    const top = alerta.topicos;
+    const MAX = 12;
+    const plural = top.length > 1;
+    const linhas = top.slice(0, MAX).map(function (t) {
+      return '<li class="cob-item"><span class="cob-disc">' + esc(t.disciplina) + '</span>' +
+        '<span class="cob-top">' + esc(t.nome) + '</span>' +
+        '<span class="cob-inc" title="Incidência estimada">' + (Math.round((t.incidencia || 0) * 10) / 10) + '%</span></li>';
+    }).join('');
+    const extra = top.length > MAX ? '<p class="sub cob-extra">+ ' + (top.length - MAX) + ' outros tópicos.</p>' : '';
+    let cabecalho, acoes;
+    if (alerta.modo === 'ciclo') {
+      const vr = alerta.voltasRestantes;
+      cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
+        '<h3>Reta final: ' + top.length + ' tópico' + (plural ? 's' : '') + ' pode' + (plural ? 'm' : '') + ' ficar de fora</h3>' +
+        '<p class="sub dialogo-msg">No seu ritmo restam ~' + vr + ' volta' + (vr > 1 ? 's' : '') +
+        ' até a prova. Estes tópicos (de menor incidência) não devem ser alcançados pelo ciclo. ' +
+        'Você decide: adicioná-los agora ou seguir focado no que mais cai.</p>';
+      acoes = '<button type="button" class="botao-quieto" data-cob="fechar">Manter como está</button>' +
+        '<button type="button" data-cob="addciclo">Adicionar ao ciclo</button>';
+    } else {
+      const sa = alerta.semanasApos;
+      cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
+        '<h3>O plano termina ~' + sa + ' semana' + (sa > 1 ? 's' : '') + ' depois da prova</h3>' +
+        '<p class="sub dialogo-msg">No seu ritmo, estes tópicos estão agendados para depois da data da prova e não serão vistos a tempo. ' +
+        'Considere priorizá-los — estão ordenados pela incidência cadastrada.</p>';
+      acoes = '<button type="button" data-cob="fechar">Entendi</button>';
+    }
+    const m = abrirModal('<div class="cobertura-modal">' + cabecalho +
+      '<ul class="cob-lista">' + linhas + '</ul>' + extra +
+      '<div class="modal-acoes">' + acoes + '</div></div>');
+    m.querySelectorAll('[data-cob="fechar"]').forEach(function (b) { b.addEventListener('click', fecharModal); });
+    const add = m.querySelector('[data-cob="addciclo"]');
+    if (add) add.addEventListener('click', function () {
+      const n = D.adicionarTopicosAoCiclo(state.plano.ciclo, alerta.topicos);
+      salvar();
+      fecharModal();
+      toast(n > 0 ? (n + ' tópico' + (n > 1 ? 's' : '') + ' adicionado' + (n > 1 ? 's' : '') + ' ao ciclo.') : 'Nada a adicionar.', n > 0 ? 'sucesso' : 'erro');
+      render();
+    });
+  }
+
   function ligarPlanejamento(raiz) {
+    setTimeout(talvezAlertarCobertura, 0);
     // alternar método (cronograma ↔ ciclo)
     raiz.querySelectorAll('[data-modo-plan]').forEach(function (b) {
       b.addEventListener('click', function () {

@@ -2701,6 +2701,19 @@ html[data-tema="escuro"] .mes-evento {
 .modal h3 { font-size: 1.1rem; }
 .modal-acoes { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.25rem; flex-wrap: wrap; }
 
+/* RN12 — modal de cobertura vs. prova (tópicos em risco de ficar de fora) */
+.cobertura-modal { text-align: center; }
+.cobertura-modal .dialogo-icone { font-size: 1.9rem; line-height: 1; margin-bottom: 0.4rem; }
+.cobertura-modal h3 { margin: 0.2rem 0 0.4rem; }
+.cobertura-modal .dialogo-msg { margin: 0 auto 0.9rem; max-width: 46ch; }
+.cob-lista { list-style: none; margin: 0; padding: 0; text-align: left; max-height: 44vh; overflow-y: auto; border: 1px solid var(--linha); border-radius: 10px; }
+.cob-item { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0.15rem 0.6rem; padding: 0.5rem 0.7rem; }
+.cob-item + .cob-item { border-top: 1px solid var(--linha); }
+.cob-disc { grid-column: 1; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.02em; color: var(--grafite); }
+.cob-top { grid-column: 1; font-size: 0.92rem; color: var(--tinta); }
+.cob-inc { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-weight: 600; font-size: 0.9rem; color: var(--tinta); white-space: nowrap; }
+.cob-extra { margin: 0.5rem 0 0; }
+
 /* Diálogos amigáveis (confirmar / pedirTexto) — empilham acima de outros modais */
 .modal-fundo-dialogo { z-index: 200; }
 .modal-dialogo { max-width: 420px; text-align: center; animation: dialogo-entra 0.18s ease; }
