@@ -7958,11 +7958,21 @@
           if (novo === 'ciclo') {
             limparAgendaGeradaPlano(state.planoAtivoId);
             limparCronogramasPlanoAtivo();
+            state.plano.modoPlanejamento = 'ciclo';
+            salvar(); render();
           } else {
+            // Volta para o cronograma flexível: REGENERA automaticamente (antes
+            // ficava vazio até a pessoa clicar em "Recalcular plano"). Preserva o
+            // ritmo/horas do plano quando houver.
+            const r = state.plano.ritmos && state.plano.ritmoAtivo ? state.plano.ritmos[state.plano.ritmoAtivo] : null;
             state.plano.ciclo = { blocos: [], volta: 1 };
+            const gerou = aplicarPlanoDuracaoAoAtivo(r && r.meses, r && r.h_semana, true);
+            if (!gerou) { state.plano.modoPlanejamento = 'cronograma'; salvar(); }
+            const cron = D.cronogramaAtivo(state);
+            if (cron.length) { agendaRef = cron[0].inicio; agendaModo = 'semana'; }
+            render();
+            toast(gerou ? 'Cronograma flexível gerado' : 'Método alterado — adicione disciplinas para gerar o cronograma', gerou ? 'sucesso' : 'erro');
           }
-          state.plano.modoPlanejamento = novo;
-          salvar(); render();
         });
       });
     });
