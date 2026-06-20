@@ -1125,21 +1125,30 @@
     return 0.6;                      // não fixou: aproxima bastante
   }
 
-  // Fator multiplicativo do espaçamento (1 = neutro). Acumula o efeito de cada
-  // revisão já feita: acerto alto estica, acerto baixo encurta. Como os multipli-
-  // cadores recentes compõem sobre os antigos, a TENDÊNCIA recente domina.
-  // `sessoes` (opcional): as questões do estudo do dia a dia também realimentam o
-  // espaçamento — o desempenho recente (últimas 3 sessões de QUESTÕES, fora as de
-  // revisão, que já entram acima) entra como um multiplicador adicional. Assim a
-  // maior parte das questões do aluno passa a influenciar o timing das revisões.
+  // Fator multiplicativo do espaçamento (1 = neutro), PONDERADO POR RECÊNCIA.
+  // Cada revisão feita estica (acerto alto) ou encurta (acerto baixo) a cadência,
+  // mas a mais recente pesa mais e as antigas desvanecem (peso geométrico 0.6^idade):
+  // assim quem começou mal e MELHOROU não fica preso no piso por erros antigos, e
+  // uma sequência boa recente ainda compõe a favor. Só as últimas
+  // JANELA_REV_ESPACAMENTO revisões entram (o resto já desvaneceu na prática).
+  // `sessoes` (opcional): as questões do dia a dia (últimas 3, fora as de revisão)
+  // realimentam o timing como um multiplicador recente adicional.
+  const JANELA_REV_ESPACAMENTO = 6;
+  const DECAIMENTO_RECENCIA = 0.6;
   function fatorEspacamentoRevisao(revisoes, topicoId, sessoes) {
     const feitas = (revisoes || [])
       .filter(function (r) {
         return r.topicoId === topicoId && TIPOS_CICLO_REV[r.tipo] && r.dataConcluida && r.resultadoPct != null;
       })
-      .sort(function (a, b) { return String(a.dataConcluida).localeCompare(String(b.dataConcluida)); });
+      .sort(function (a, b) { return String(a.dataConcluida).localeCompare(String(b.dataConcluida)); })
+      .slice(-JANELA_REV_ESPACAMENTO);
     let f = 1;
-    feitas.forEach(function (r) { f *= multiplicadorEspacamento(r.resultadoPct); });
+    const n = feitas.length;
+    feitas.forEach(function (r, i) {
+      const idadeRel = (n - 1) - i; // 0 = mais recente
+      const peso = Math.pow(DECAIMENTO_RECENCIA, idadeRel);
+      f *= Math.pow(multiplicadorEspacamento(r.resultadoPct), peso);
+    });
     if (sessoes && sessoes.length) {
       const recentes = sessoes
         .filter(function (s) { return s.topicoId === topicoId && s.tipo !== 'revisao' && s.qFeitas > 0; })

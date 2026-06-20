@@ -6806,6 +6806,18 @@
     for (let i = 0; i < semanas; i++) {
       semanasCron.push({ semana: semanaBase + i + 1, inicio: D.addDias(inicio, i * 7), blocos: [], marcos: [] });
     }
+    // Horizonte do edital = maior semana_sugerida presente (não mais o 28 fixo de
+    // quando os períodos eram padronizados). semana_sugerida é remapeada desse
+    // horizonte para o nº real de semanas do plano, preservando a ordem relativa
+    // mesmo que o autor do edital tenha usado outra escala.
+    let horizonteEdital = 0;
+    disciplinas.forEach(function (d) {
+      if (d.id === 'ORF') return;
+      (d.topicos || []).forEach(function (t) {
+        if (!t.orfao && t.semana_sugerida) horizonteEdital = Math.max(horizonteEdital, t.semana_sugerida);
+      });
+    });
+    if (horizonteEdital <= 0) horizonteEdital = 28; // sem semana_sugerida no edital
     // tópicos já concluídos antes deste cálculo → modo manutenção (Regra 4)
     const manutencao = [];
     let teoriaTotal = 0, teoriaAgendada = 0;
@@ -6819,7 +6831,7 @@
       const topicos = naoOrfaos.filter(function (t) {
         return !(concluidos && concluidos.has(t.id));
       }).map(function (t, ordem) {
-        const sugerida = t.semana_sugerida ? Math.max(1, Math.min(semanas, Math.round((t.semana_sugerida / 28) * semanas))) : ordem + 1;
+        const sugerida = t.semana_sugerida ? Math.max(1, Math.min(semanas, Math.round((t.semana_sugerida / horizonteEdital) * semanas))) : ordem + 1;
         return { topico: t, ordem, sugerida };
       });
       // Disciplina que o aluno NUNCA VIU (todos os tópicos a estudar ainda
