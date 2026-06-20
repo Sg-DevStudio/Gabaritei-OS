@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v80-cronregen';
+const CACHE = 'estudos-v82-tour134';
 const ESTATICOS = [
   './',
   './index.html',
@@ -13,7 +13,7 @@ const ESTATICOS = [
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260620k-cronregen',
+  './js/app.js?v=20260620m-tour134',
   './icons/icone.svg'
 ];
 
