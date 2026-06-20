@@ -9347,7 +9347,11 @@
         carregarCatalogoGlobalFirebase(); // modo exemplo vê o catálogo global real (Firebase)
         if (!opcoes.silencioso && !opcoes.ofertarTour) toast('Modo exemplo ativado — explore à vontade', 'sucesso');
         if (opcoes.aoConcluir) opcoes.aoConcluir();
-        if (opcoes.ofertarTour) ofertarTourDemo();
+        // Adia a oferta: trocar o hash para #hoje dispara um hashchange que chama
+        // fecharModal() — se abríssemos a oferta agora, ela seria fechada logo em
+        // seguida (por isso "só aparecia na 2ª entrada"). 200ms garante que o
+        // hashchange já passou.
+        if (opcoes.ofertarTour) setTimeout(ofertarTourDemo, 200);
       })
       .catch(function () {
         if (btn) btn.disabled = false;
@@ -9383,7 +9387,7 @@
       texto: 'Cronometre o estudo (cronômetro ou pomodoro). O tempo abate automaticamente do bloco do dia e entra nas suas estatísticas.' },
     { rota: 'revisoes', seletor: '#conteudo .card',
       titulo: '🔁 Revisões & Flashcards',
-      texto: 'O app agenda revisões sozinho na curva do esquecimento (24h · 3d · 7d · 14d · 30d) para o conteúdo fixar de verdade. Na aba Flashcards você cria cartas (frente/verso) com repetição espaçada — ótimo para memorizar leis, conceitos e datas.' },
+      texto: 'O app agenda revisões sozinho na curva do esquecimento (24h · 3d · 7d · 14d · 30d) e ainda as ajusta pelo seu DESEMPENHO: foi bem, ele espaça; foi mal, ele aproxima (e pode reabrir o tópico). Na aba Flashcards você cria cartas (frente/verso) com repetição espaçada — ótimo para memorizar leis, conceitos e datas.' },
     { rota: 'simulados', seletor: '#conteudo .card',
       titulo: '📝 Simulados',
       texto: 'Registre o gabarito por disciplina e veja a "Prioridade cirúrgica": o que mais cai × seu pior desempenho, pronto para atacar.' },
