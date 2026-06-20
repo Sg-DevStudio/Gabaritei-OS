@@ -366,14 +366,14 @@
       '<div class="login-card">' +
       '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
       '<h1>Seu plano de aprovação, no piloto automático</h1>' +
-      '<p>O Gabaritei OS transforma editais verticalizados em um plano de estudos semanal, destaca os tópicos mais cobrados, equilibra teoria e questões, agenda revisões e acompanha seu desempenho até o dia da prova.</p>' +
+      '<p>O Gabaritei OS transforma o edital verticalizado em um plano de estudos semanal que se recalcula sozinho conforme você avança — prioriza o que mais cai, equilibra teoria e questões e ajusta as revisões ao seu desempenho até o dia da prova.</p>' +
       '<ul class="login-features">' +
-      '<li><span aria-hidden="true">📌</span> Editais verticalizados com indicação dos tópicos mais cobrados</li>' +
-      '<li><span aria-hidden="true">📅</span> Plano de estudos gerado a partir do edital, no seu ritmo</li>' +
-      '<li><span aria-hidden="true">⚖️</span> Comparação de editais para decidir se dá para conciliar concursos</li>' +
-      '<li><span aria-hidden="true">🔁</span> Revisões espaçadas automáticas (1 · 3 · 7 · 14 · 30 dias)</li>' +
-      '<li><span aria-hidden="true">🃏</span> Flashcards para facilitar a revisão dos pontos difíceis</li>' +
-      '<li><span aria-hidden="true">📊</span> Desempenho, metas semanais e plano que se ajusta a você</li>' +
+      '<li><span aria-hidden="true">📌</span> Editais verticalizados com os tópicos que mais caem (regra 80/20)</li>' +
+      '<li><span aria-hidden="true">📅</span> Plano semanal gerado do edital que se recalcula sozinho no seu ritmo</li>' +
+      '<li><span aria-hidden="true">🔁</span> Revisões espaçadas que se adaptam ao seu desempenho e à incidência do tópico</li>' +
+      '<li><span aria-hidden="true">🎯</span> Fila do dia inteligente: estuda primeiro o que mais rende pontos</li>' +
+      '<li><span aria-hidden="true">⚖️</span> Comparação de editais para conciliar concursos sem perder tempo</li>' +
+      '<li><span aria-hidden="true">🃏</span> Flashcards com IA, desempenho e metas semanais num só lugar</li>' +
       '</ul>' +
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
       '<button id="login-demo" class="login-demo" type="button">Explorar com um plano de exemplo</button>' +
@@ -9414,20 +9414,12 @@
       '<div class="modal-acoes" style="justify-content:flex-start;margin-top:0.75rem">' +
       '<button type="button" class="botao-secundario" id="pf-exportar-cal"' + (temPlano ? '' : ' disabled') + '>Exportar calendário (.ics)</button>' +
       '</div></div>' +
-      '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
-      '<strong style="display:block;font-size:0.95rem">🧭 Tour guiado</strong>' +
-      '<p class="sub" style="margin:0.3rem 0 0">Uma demonstração rápida das principais funções (com um plano de exemplo).</p>' +
-      '<div class="modal-acoes" style="justify-content:flex-start;margin-top:0.75rem">' +
-      '<button type="button" class="botao-secundario" id="pf-tour">Fazer o tour guiado</button>' +
-      '</div></div>' +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
       '<button type="button" id="pf-salvar-nome">Salvar</button></div>'
     );
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
-    const pfTour = m.querySelector('#pf-tour');
-    if (pfTour) pfTour.addEventListener('click', function () { fecharModal(); iniciarTour(); });
     const pfSair = m.querySelector('#pf-sair');
     if (pfSair) pfSair.addEventListener('click', function () {
       if (!window.FirebaseSync) { toast('Sincronização indisponível.', 'erro'); return; }
@@ -9611,6 +9603,13 @@
         // garante o plano ativo mesmo se houver corrida com o status do Firebase
         if (!state.planoAtivoId && state.planos && state.planos.length) {
           window.Store.ativarPlano(state, state.planos[0].id);
+        }
+        // Demo representa um aluno dedicado (~30h/semana): regenera o cronograma
+        // com o gerador real a essa carga, para o calendário e os KPIs ficarem
+        // cheios. Os tópicos já estudados/dominados saem da fila (manutenção).
+        const entradaDemo = entradaPlanoAtivo();
+        if (entradaDemo && entradaDemo.disciplinas.some(function (d) { return d.id !== 'ORF' && (d.topicos || []).length; })) {
+          aplicarPlanoDuracaoAoAtivo(null, 30, true);
         }
         // navega para #hoje e renderiza de forma determinística (não depende só do
         // evento hashchange, que pode não disparar se já estávamos em #hoje).

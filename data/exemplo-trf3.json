@@ -34,7 +34,7 @@
     "ritmos": {
       "ativo": "sustentavel",
       "sustentavel": {
-        "h_semana": 19,
+        "h_semana": 30,
         "semanas": 28
       },
       "hardcore": {
@@ -145,7 +145,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 6
+          "semana_sugerida": 6,
+          "status": "teoria_concluida"
         },
         {
           "id": "POR-12",
@@ -153,7 +154,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 5
+          "semana_sugerida": 5,
+          "status": "teoria_concluida"
         },
         {
           "id": "POR-13",
@@ -169,7 +171,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 7
+          "semana_sugerida": 7,
+          "status": "dominado"
         },
         {
           "id": "POR-15",
@@ -185,7 +188,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 3
+          "semana_sugerida": 3,
+          "status": "teoria_concluida"
         },
         {
           "id": "POR-17",
@@ -209,7 +213,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 9
+          "semana_sugerida": 9,
+          "status": "teoria_concluida"
         },
         {
           "id": "POR-20",
@@ -426,7 +431,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 6
+          "semana_sugerida": 6,
+          "status": "dominado"
         },
         {
           "id": "RLM-15",
@@ -611,7 +617,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 8
+          "semana_sugerida": 8,
+          "status": "teoria_concluida"
         },
         {
           "id": "INF-12",
@@ -643,7 +650,8 @@
           "incidencia_pct": 6,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 3
+          "semana_sugerida": 3,
+          "status": "teoria_concluida"
         },
         {
           "id": "INF-16",
@@ -651,7 +659,8 @@
           "incidencia_pct": 6,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 5
+          "semana_sugerida": 5,
+          "status": "dominado"
         },
         {
           "id": "INF-17",
@@ -832,7 +841,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 6
+          "semana_sugerida": 6,
+          "status": "teoria_concluida"
         },
         {
           "id": "ADM-12",
@@ -848,7 +858,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 3
+          "semana_sugerida": 3,
+          "status": "teoria_concluida"
         },
         {
           "id": "ADM-14",
@@ -856,7 +867,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 5
+          "semana_sugerida": 5,
+          "status": "teoria_concluida"
         },
         {
           "id": "ADM-15",
@@ -880,7 +892,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 9
+          "semana_sugerida": 9,
+          "status": "teoria_concluida"
         },
         {
           "id": "ADM-18",
@@ -912,7 +925,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 10
+          "semana_sugerida": 10,
+          "status": "dominado"
         },
         {
           "id": "ADM-22",
@@ -928,7 +942,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 8
+          "semana_sugerida": 8,
+          "status": "teoria_concluida"
         },
         {
           "id": "ADM-24",
@@ -1073,7 +1088,8 @@
           "incidencia_pct": 10,
           "prioridade": 1,
           "horas_estimadas": 4,
-          "semana_sugerida": 2
+          "semana_sugerida": 2,
+          "status": "teoria_concluida"
         },
         {
           "id": "CON-05",
@@ -1081,7 +1097,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 5
+          "semana_sugerida": 5,
+          "status": "teoria_concluida"
         },
         {
           "id": "CON-06",
@@ -1129,7 +1146,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 9
+          "semana_sugerida": 9,
+          "status": "dominado"
         },
         {
           "id": "CON-12",
@@ -1137,7 +1155,8 @@
           "incidencia_pct": 7,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 4
+          "semana_sugerida": 4,
+          "status": "dominado"
         },
         {
           "id": "CON-13",
@@ -1185,7 +1204,8 @@
           "incidencia_pct": 4,
           "prioridade": 1,
           "horas_estimadas": 1,
-          "semana_sugerida": 8
+          "semana_sugerida": 8,
+          "status": "teoria_concluida"
         },
         {
           "id": "CON-19",
@@ -1201,7 +1221,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 7
+          "semana_sugerida": 7,
+          "status": "teoria_concluida"
         },
         {
           "id": "CON-21",
@@ -1330,7 +1351,8 @@
           "incidencia_pct": 7,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 4
+          "semana_sugerida": 4,
+          "status": "teoria_concluida"
         },
         {
           "id": "LEG-02",
@@ -1338,7 +1360,8 @@
           "incidencia_pct": 6,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 5
+          "semana_sugerida": 5,
+          "status": "teoria_concluida"
         },
         {
           "id": "LEG-03",
@@ -1386,7 +1409,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 7
+          "semana_sugerida": 7,
+          "status": "teoria_concluida"
         },
         {
           "id": "LEG-09",
@@ -1450,7 +1474,8 @@
           "incidencia_pct": 11,
           "prioridade": 1,
           "horas_estimadas": 4,
-          "semana_sugerida": 2
+          "semana_sugerida": 2,
+          "status": "dominado"
         },
         {
           "id": "LEG-17",
@@ -1539,7 +1564,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 10
+          "semana_sugerida": 10,
+          "status": "teoria_concluida"
         },
         {
           "id": "APU-03",
@@ -1563,7 +1589,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 8
+          "semana_sugerida": 8,
+          "status": "teoria_concluida"
         },
         {
           "id": "APU-06",
@@ -1595,7 +1622,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 2
+          "semana_sugerida": 2,
+          "status": "teoria_concluida"
         },
         {
           "id": "APU-10",
@@ -1603,7 +1631,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 7
+          "semana_sugerida": 7,
+          "status": "teoria_concluida"
         },
         {
           "id": "APU-11",
@@ -1627,7 +1656,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 5
+          "semana_sugerida": 5,
+          "status": "teoria_concluida"
         },
         {
           "id": "APU-14",
@@ -1667,7 +1697,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 4
+          "semana_sugerida": 4,
+          "status": "teoria_concluida"
         },
         {
           "id": "APU-19",
@@ -1780,7 +1811,8 @@
           "incidencia_pct": 7,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 2
+          "semana_sugerida": 2,
+          "status": "teoria_concluida"
         },
         {
           "id": "AFO-02",
@@ -1828,7 +1860,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 6
+          "semana_sugerida": 6,
+          "status": "teoria_concluida"
         },
         {
           "id": "AFO-08",
@@ -1844,7 +1877,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 8
+          "semana_sugerida": 8,
+          "status": "teoria_concluida"
         },
         {
           "id": "AFO-10",
@@ -1852,7 +1886,8 @@
           "incidencia_pct": 6,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 4
+          "semana_sugerida": 4,
+          "status": "teoria_concluida"
         },
         {
           "id": "AFO-11",
@@ -1900,7 +1935,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 7
+          "semana_sugerida": 7,
+          "status": "dominado"
         },
         {
           "id": "AFO-17",
@@ -2021,7 +2057,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 9
+          "semana_sugerida": 9,
+          "status": "teoria_concluida"
         },
         {
           "id": "MAT-03",
@@ -2037,7 +2074,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 7
+          "semana_sugerida": 7,
+          "status": "teoria_concluida"
         },
         {
           "id": "MAT-05",
@@ -2045,7 +2083,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 4
+          "semana_sugerida": 4,
+          "status": "teoria_concluida"
         },
         {
           "id": "MAT-06",
@@ -2069,7 +2108,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 6
+          "semana_sugerida": 6,
+          "status": "dominado"
         },
         {
           "id": "MAT-09",
@@ -2077,7 +2117,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 10
+          "semana_sugerida": 10,
+          "status": "teoria_concluida"
         },
         {
           "id": "MAT-10",
@@ -2133,7 +2174,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 3
+          "semana_sugerida": 3,
+          "status": "teoria_concluida"
         },
         {
           "id": "MAT-17",
@@ -2270,7 +2312,8 @@
           "incidencia_pct": 9,
           "prioridade": 1,
           "horas_estimadas": 3,
-          "semana_sugerida": 3
+          "semana_sugerida": 3,
+          "status": "teoria_concluida"
         },
         {
           "id": "ETI-03",
@@ -2302,7 +2345,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 6
+          "semana_sugerida": 6,
+          "status": "teoria_concluida"
         },
         {
           "id": "ETI-07",
@@ -2310,7 +2354,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 7
+          "semana_sugerida": 7,
+          "status": "teoria_concluida"
         },
         {
           "id": "ETI-08",
@@ -2326,7 +2371,8 @@
           "incidencia_pct": 5,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 9
+          "semana_sugerida": 9,
+          "status": "teoria_concluida"
         },
         {
           "id": "ETI-10",
@@ -2350,7 +2396,8 @@
           "incidencia_pct": 6,
           "prioridade": 1,
           "horas_estimadas": 2,
-          "semana_sugerida": 4
+          "semana_sugerida": 4,
+          "status": "dominado"
         },
         {
           "id": "ETI-13",
@@ -8593,7 +8640,7 @@
   "planoId": "demo-trf3",
   "config": {
     "nomeUsuario": "",
-    "metaQuestoesSemana": 180
+    "metaQuestoesSemana": 200
   },
   "sessoes": [
     {
@@ -9628,6 +9675,1271 @@
       "duracaoMin": 85,
       "qFeitas": 17,
       "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-1",
+      "planoId": "demo-trf3",
+      "data": "2026-03-14",
+      "topicoId": "POR-16",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-2",
+      "planoId": "demo-trf3",
+      "data": "2026-03-15",
+      "topicoId": "POR-16",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-3",
+      "planoId": "demo-trf3",
+      "data": "2026-03-29",
+      "topicoId": "POR-12",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-4",
+      "planoId": "demo-trf3",
+      "data": "2026-03-30",
+      "topicoId": "POR-12",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-5",
+      "planoId": "demo-trf3",
+      "data": "2026-04-13",
+      "topicoId": "POR-11",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-6",
+      "planoId": "demo-trf3",
+      "data": "2026-04-14",
+      "topicoId": "POR-11",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-7",
+      "planoId": "demo-trf3",
+      "data": "2026-04-27",
+      "topicoId": "POR-14",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-8",
+      "planoId": "demo-trf3",
+      "data": "2026-04-28",
+      "topicoId": "POR-14",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 14,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-9",
+      "planoId": "demo-trf3",
+      "data": "2026-05-12",
+      "topicoId": "POR-19",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-10",
+      "planoId": "demo-trf3",
+      "data": "2026-05-13",
+      "topicoId": "POR-19",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 17,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-11",
+      "planoId": "demo-trf3",
+      "data": "2026-05-04",
+      "topicoId": "RLM-14",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-12",
+      "planoId": "demo-trf3",
+      "data": "2026-05-05",
+      "topicoId": "RLM-14",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-13",
+      "planoId": "demo-trf3",
+      "data": "2026-03-15",
+      "topicoId": "INF-15",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-14",
+      "planoId": "demo-trf3",
+      "data": "2026-03-16",
+      "topicoId": "INF-15",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-15",
+      "planoId": "demo-trf3",
+      "data": "2026-04-02",
+      "topicoId": "INF-16",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-16",
+      "planoId": "demo-trf3",
+      "data": "2026-04-03",
+      "topicoId": "INF-16",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-17",
+      "planoId": "demo-trf3",
+      "data": "2026-05-07",
+      "topicoId": "INF-11",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-18",
+      "planoId": "demo-trf3",
+      "data": "2026-05-08",
+      "topicoId": "INF-11",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-19",
+      "planoId": "demo-trf3",
+      "data": "2026-03-09",
+      "topicoId": "ADM-13",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-20",
+      "planoId": "demo-trf3",
+      "data": "2026-03-10",
+      "topicoId": "ADM-13",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-21",
+      "planoId": "demo-trf3",
+      "data": "2026-03-22",
+      "topicoId": "ADM-14",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-22",
+      "planoId": "demo-trf3",
+      "data": "2026-03-23",
+      "topicoId": "ADM-14",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-23",
+      "planoId": "demo-trf3",
+      "data": "2026-04-03",
+      "topicoId": "ADM-11",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-24",
+      "planoId": "demo-trf3",
+      "data": "2026-04-04",
+      "topicoId": "ADM-11",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-25",
+      "planoId": "demo-trf3",
+      "data": "2026-04-16",
+      "topicoId": "ADM-23",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-26",
+      "planoId": "demo-trf3",
+      "data": "2026-04-17",
+      "topicoId": "ADM-23",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-27",
+      "planoId": "demo-trf3",
+      "data": "2026-04-28",
+      "topicoId": "ADM-17",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-28",
+      "planoId": "demo-trf3",
+      "data": "2026-04-29",
+      "topicoId": "ADM-17",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 17,
+      "qCertas": 14,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-29",
+      "planoId": "demo-trf3",
+      "data": "2026-05-11",
+      "topicoId": "ADM-21",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-30",
+      "planoId": "demo-trf3",
+      "data": "2026-05-12",
+      "topicoId": "ADM-21",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 18,
+      "qCertas": 16,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-31",
+      "planoId": "demo-trf3",
+      "data": "2026-02-24",
+      "topicoId": "CON-04",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-32",
+      "planoId": "demo-trf3",
+      "data": "2026-02-25",
+      "topicoId": "CON-04",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 12,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-33",
+      "planoId": "demo-trf3",
+      "data": "2026-03-10",
+      "topicoId": "CON-12",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-34",
+      "planoId": "demo-trf3",
+      "data": "2026-03-11",
+      "topicoId": "CON-12",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-35",
+      "planoId": "demo-trf3",
+      "data": "2026-03-25",
+      "topicoId": "CON-05",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-36",
+      "planoId": "demo-trf3",
+      "data": "2026-03-26",
+      "topicoId": "CON-05",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-37",
+      "planoId": "demo-trf3",
+      "data": "2026-04-09",
+      "topicoId": "CON-20",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-38",
+      "planoId": "demo-trf3",
+      "data": "2026-04-10",
+      "topicoId": "CON-20",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-39",
+      "planoId": "demo-trf3",
+      "data": "2026-04-23",
+      "topicoId": "CON-18",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-40",
+      "planoId": "demo-trf3",
+      "data": "2026-04-24",
+      "topicoId": "CON-18",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-41",
+      "planoId": "demo-trf3",
+      "data": "2026-05-08",
+      "topicoId": "CON-11",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-42",
+      "planoId": "demo-trf3",
+      "data": "2026-05-09",
+      "topicoId": "CON-11",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 17,
+      "qCertas": 15,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-43",
+      "planoId": "demo-trf3",
+      "data": "2026-02-23",
+      "topicoId": "LEG-16",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-44",
+      "planoId": "demo-trf3",
+      "data": "2026-02-24",
+      "topicoId": "LEG-16",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 12,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-45",
+      "planoId": "demo-trf3",
+      "data": "2026-03-17",
+      "topicoId": "LEG-01",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-46",
+      "planoId": "demo-trf3",
+      "data": "2026-03-18",
+      "topicoId": "LEG-01",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 8,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-47",
+      "planoId": "demo-trf3",
+      "data": "2026-04-08",
+      "topicoId": "LEG-02",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-48",
+      "planoId": "demo-trf3",
+      "data": "2026-04-09",
+      "topicoId": "LEG-02",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-49",
+      "planoId": "demo-trf3",
+      "data": "2026-04-30",
+      "topicoId": "LEG-08",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-50",
+      "planoId": "demo-trf3",
+      "data": "2026-05-01",
+      "topicoId": "LEG-08",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-51",
+      "planoId": "demo-trf3",
+      "data": "2026-02-22",
+      "topicoId": "APU-09",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-52",
+      "planoId": "demo-trf3",
+      "data": "2026-02-23",
+      "topicoId": "APU-09",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 12,
+      "qCertas": 8,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-53",
+      "planoId": "demo-trf3",
+      "data": "2026-03-08",
+      "topicoId": "APU-18",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-54",
+      "planoId": "demo-trf3",
+      "data": "2026-03-09",
+      "topicoId": "APU-18",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-55",
+      "planoId": "demo-trf3",
+      "data": "2026-03-23",
+      "topicoId": "APU-13",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-56",
+      "planoId": "demo-trf3",
+      "data": "2026-03-24",
+      "topicoId": "APU-13",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-57",
+      "planoId": "demo-trf3",
+      "data": "2026-04-07",
+      "topicoId": "APU-10",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-58",
+      "planoId": "demo-trf3",
+      "data": "2026-04-08",
+      "topicoId": "APU-10",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-59",
+      "planoId": "demo-trf3",
+      "data": "2026-04-21",
+      "topicoId": "APU-05",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-60",
+      "planoId": "demo-trf3",
+      "data": "2026-04-22",
+      "topicoId": "APU-05",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-61",
+      "planoId": "demo-trf3",
+      "data": "2026-05-06",
+      "topicoId": "APU-02",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-62",
+      "planoId": "demo-trf3",
+      "data": "2026-05-07",
+      "topicoId": "APU-02",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 17,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-63",
+      "planoId": "demo-trf3",
+      "data": "2026-02-21",
+      "topicoId": "AFO-01",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-64",
+      "planoId": "demo-trf3",
+      "data": "2026-02-22",
+      "topicoId": "AFO-01",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 12,
+      "qCertas": 8,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-65",
+      "planoId": "demo-trf3",
+      "data": "2026-03-10",
+      "topicoId": "AFO-10",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-66",
+      "planoId": "demo-trf3",
+      "data": "2026-03-11",
+      "topicoId": "AFO-10",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-67",
+      "planoId": "demo-trf3",
+      "data": "2026-03-28",
+      "topicoId": "AFO-07",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-68",
+      "planoId": "demo-trf3",
+      "data": "2026-03-29",
+      "topicoId": "AFO-07",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-69",
+      "planoId": "demo-trf3",
+      "data": "2026-04-14",
+      "topicoId": "AFO-16",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-70",
+      "planoId": "demo-trf3",
+      "data": "2026-04-15",
+      "topicoId": "AFO-16",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-71",
+      "planoId": "demo-trf3",
+      "data": "2026-05-02",
+      "topicoId": "AFO-09",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-72",
+      "planoId": "demo-trf3",
+      "data": "2026-05-03",
+      "topicoId": "AFO-09",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-73",
+      "planoId": "demo-trf3",
+      "data": "2026-02-20",
+      "topicoId": "MAT-16",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-74",
+      "planoId": "demo-trf3",
+      "data": "2026-02-21",
+      "topicoId": "MAT-16",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 12,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-75",
+      "planoId": "demo-trf3",
+      "data": "2026-03-06",
+      "topicoId": "MAT-05",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-76",
+      "planoId": "demo-trf3",
+      "data": "2026-03-07",
+      "topicoId": "MAT-05",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-77",
+      "planoId": "demo-trf3",
+      "data": "2026-03-21",
+      "topicoId": "MAT-08",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-78",
+      "planoId": "demo-trf3",
+      "data": "2026-03-22",
+      "topicoId": "MAT-08",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-79",
+      "planoId": "demo-trf3",
+      "data": "2026-04-05",
+      "topicoId": "MAT-04",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-80",
+      "planoId": "demo-trf3",
+      "data": "2026-04-06",
+      "topicoId": "MAT-04",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-81",
+      "planoId": "demo-trf3",
+      "data": "2026-04-19",
+      "topicoId": "MAT-02",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-82",
+      "planoId": "demo-trf3",
+      "data": "2026-04-20",
+      "topicoId": "MAT-02",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-83",
+      "planoId": "demo-trf3",
+      "data": "2026-05-04",
+      "topicoId": "MAT-09",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-84",
+      "planoId": "demo-trf3",
+      "data": "2026-05-05",
+      "topicoId": "MAT-09",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 17,
+      "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-85",
+      "planoId": "demo-trf3",
+      "data": "2026-02-19",
+      "topicoId": "ETI-02",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-86",
+      "planoId": "demo-trf3",
+      "data": "2026-02-20",
+      "topicoId": "ETI-02",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 12,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-87",
+      "planoId": "demo-trf3",
+      "data": "2026-03-08",
+      "topicoId": "ETI-12",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-88",
+      "planoId": "demo-trf3",
+      "data": "2026-03-09",
+      "topicoId": "ETI-12",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 13,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-89",
+      "planoId": "demo-trf3",
+      "data": "2026-03-26",
+      "topicoId": "ETI-06",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-90",
+      "planoId": "demo-trf3",
+      "data": "2026-03-27",
+      "topicoId": "ETI-06",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 14,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-91",
+      "planoId": "demo-trf3",
+      "data": "2026-04-12",
+      "topicoId": "ETI-07",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-92",
+      "planoId": "demo-trf3",
+      "data": "2026-04-13",
+      "topicoId": "ETI-07",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 15,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-93",
+      "planoId": "demo-trf3",
+      "data": "2026-04-30",
+      "topicoId": "ETI-09",
+      "tipo": "teoria",
+      "duracaoMin": 45,
+      "qFeitas": 0,
+      "qCertas": 0,
+      "teoriaOk": true
+    },
+    {
+      "id": "demo-gens-94",
+      "planoId": "demo-trf3",
+      "data": "2026-05-01",
+      "topicoId": "ETI-09",
+      "tipo": "questoes",
+      "duracaoMin": 50,
+      "qFeitas": 16,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-95",
+      "planoId": "demo-trf3",
+      "data": "2026-06-20",
+      "topicoId": "POR-01",
+      "tipo": "questoes",
+      "duracaoMin": 25,
+      "qFeitas": 10,
+      "qCertas": 7,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-96",
+      "planoId": "demo-trf3",
+      "data": "2026-06-19",
+      "topicoId": "POR-04",
+      "tipo": "questoes",
+      "duracaoMin": 30,
+      "qFeitas": 11,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-97",
+      "planoId": "demo-trf3",
+      "data": "2026-06-18",
+      "topicoId": "POR-07",
+      "tipo": "questoes",
+      "duracaoMin": 35,
+      "qFeitas": 12,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-98",
+      "planoId": "demo-trf3",
+      "data": "2026-06-17",
+      "topicoId": "POR-12",
+      "tipo": "questoes",
+      "duracaoMin": 40,
+      "qFeitas": 13,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-99",
+      "planoId": "demo-trf3",
+      "data": "2026-06-16",
+      "topicoId": "POR-19",
+      "tipo": "questoes",
+      "duracaoMin": 25,
+      "qFeitas": 14,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-100",
+      "planoId": "demo-trf3",
+      "data": "2026-06-15",
+      "topicoId": "RLM-03",
+      "tipo": "questoes",
+      "duracaoMin": 30,
+      "qFeitas": 15,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-101",
+      "planoId": "demo-trf3",
+      "data": "2026-06-14",
+      "topicoId": "RLM-06",
+      "tipo": "questoes",
+      "duracaoMin": 35,
+      "qFeitas": 10,
+      "qCertas": 8,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-102",
+      "planoId": "demo-trf3",
+      "data": "2026-06-13",
+      "topicoId": "RLM-14",
+      "tipo": "questoes",
+      "duracaoMin": 40,
+      "qFeitas": 11,
+      "qCertas": 8,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-103",
+      "planoId": "demo-trf3",
+      "data": "2026-06-12",
+      "topicoId": "INF-03",
+      "tipo": "questoes",
+      "duracaoMin": 25,
+      "qFeitas": 12,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-104",
+      "planoId": "demo-trf3",
+      "data": "2026-06-11",
+      "topicoId": "INF-06",
+      "tipo": "questoes",
+      "duracaoMin": 30,
+      "qFeitas": 13,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-105",
+      "planoId": "demo-trf3",
+      "data": "2026-06-10",
+      "topicoId": "INF-11",
+      "tipo": "questoes",
+      "duracaoMin": 35,
+      "qFeitas": 14,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-106",
+      "planoId": "demo-trf3",
+      "data": "2026-06-09",
+      "topicoId": "ADM-01",
+      "tipo": "questoes",
+      "duracaoMin": 40,
+      "qFeitas": 15,
+      "qCertas": 13,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-107",
+      "planoId": "demo-trf3",
+      "data": "2026-06-08",
+      "topicoId": "ADM-04",
+      "tipo": "questoes",
+      "duracaoMin": 25,
+      "qFeitas": 10,
+      "qCertas": 8,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-108",
+      "planoId": "demo-trf3",
+      "data": "2026-06-07",
+      "topicoId": "ADM-14",
+      "tipo": "questoes",
+      "duracaoMin": 30,
+      "qFeitas": 11,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-109",
+      "planoId": "demo-trf3",
+      "data": "2026-06-06",
+      "topicoId": "ADM-23",
+      "tipo": "questoes",
+      "duracaoMin": 35,
+      "qFeitas": 12,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-110",
+      "planoId": "demo-trf3",
+      "data": "2026-06-05",
+      "topicoId": "CON-11",
+      "tipo": "questoes",
+      "duracaoMin": 40,
+      "qFeitas": 13,
+      "qCertas": 11,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-111",
+      "planoId": "demo-trf3",
+      "data": "2026-06-04",
+      "topicoId": "CON-20",
+      "tipo": "questoes",
+      "duracaoMin": 25,
+      "qFeitas": 14,
+      "qCertas": 10,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-112",
+      "planoId": "demo-trf3",
+      "data": "2026-06-03",
+      "topicoId": "LEG-08",
+      "tipo": "questoes",
+      "duracaoMin": 30,
+      "qFeitas": 15,
+      "qCertas": 12,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-113",
+      "planoId": "demo-trf3",
+      "data": "2026-06-02",
+      "topicoId": "APU-05",
+      "tipo": "questoes",
+      "duracaoMin": 35,
+      "qFeitas": 10,
+      "qCertas": 9,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-114",
+      "planoId": "demo-trf3",
+      "data": "2026-06-01",
+      "topicoId": "APU-13",
+      "tipo": "questoes",
+      "duracaoMin": 40,
+      "qFeitas": 11,
+      "qCertas": 8,
+      "teoriaOk": false
+    },
+    {
+      "id": "demo-gens-115",
+      "planoId": "demo-trf3",
+      "data": "2026-05-31",
+      "topicoId": "AFO-07",
+      "tipo": "questoes",
+      "duracaoMin": 25,
+      "qFeitas": 12,
+      "qCertas": 11,
       "teoriaOk": false
     }
   ],
