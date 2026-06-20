@@ -115,11 +115,13 @@
   <script src="js/timer.js?v=20260619w-bloco"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
   <script src="data/catalogo-editais.js?v=20260616v-acentos"></script>
-  <script src="js/app.js?v=20260620e-simresp"></script>
+  <script src="js/app.js?v=20260620f-update-loop"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
+        var regSW = null;
         navigator.serviceWorker.register('sw.js').then(function (reg) {
+          regSW = reg;
           function avisar(worker) {
             // só avisa quando JÁ havia um SW controlando (atualização, não 1ª instalação)
             if (!worker || !navigator.serviceWorker.controller) return;
@@ -141,9 +143,11 @@
           if (recarregando) return; recarregando = true; window.location.reload();
         });
         // Chamado pelo botão "Atualizar": pede ao SW em espera para assumir.
+        // Re-consulta o reg.waiting na hora (referência sempre atual) — é o que
+        // dispara o controllerchange e, com ele, o reload.
         window.__ativarNovaVersaoSW = function () {
-          var w = window.__novaVersaoSW;
-          if (w) w.postMessage({ type: 'SKIP_WAITING' });
+          var alvo = (regSW && regSW.waiting) || window.__novaVersaoSW;
+          if (alvo) alvo.postMessage({ type: 'SKIP_WAITING' });
         };
       });
     }

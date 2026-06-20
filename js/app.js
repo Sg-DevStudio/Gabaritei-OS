@@ -9402,10 +9402,19 @@
     btnAtualizar.style.cssText = 'width:100%;margin-bottom:0.55rem';
     btnAtualizar.textContent = 'Atualizar agora';
     btnAtualizar.addEventListener('click', function () {
-      btnAtualizar.disabled = true; btnAtualizar.textContent = 'Atualizando…';
+      // O card some NA HORA do clique (não fica "preso" enquanto atualiza).
+      ov.remove();
+      // Mostra um overlay neutro de "Atualizando…" só para não piscar a tela.
+      const aviso = document.createElement('div');
+      aviso.id = 'update-recarregando';
+      aviso.style.cssText = 'position:fixed;inset:0;z-index:300;display:flex;align-items:center;' +
+        'justify-content:center;background:rgba(10,12,18,0.55);color:#fff;font-weight:600';
+      aviso.textContent = 'Atualizando…';
+      document.body.appendChild(aviso);
       if (typeof window.__ativarNovaVersaoSW === 'function') window.__ativarNovaVersaoSW();
-      // rede de segurança: se o controllerchange não disparar, recarrega assim mesmo.
-      setTimeout(function () { window.location.reload(); }, 2000);
+      // Rede de segurança: se o SW novo não assumir (controllerchange) em alguns
+      // segundos, recarrega assim mesmo — sem ficar preso esperando.
+      setTimeout(function () { window.location.reload(); }, 4000);
     });
     const btnDepois = document.createElement('button');
     btnDepois.type = 'button';
