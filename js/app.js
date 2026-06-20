@@ -2803,7 +2803,7 @@
         const aposProva = prazo && r.dataAgendada > prazo;
         html += '<div class="fila-item">' + bolha(t.status) +
           '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(t.nome) + '</div>' +
-          '<div class="fila-sub">agendada para ' + D.formatarDataBR(r.dataAgendada) + '</div></div>' +
+          '<div class="fila-sub">agendada para ' + D.formatarDataBR(r.dataAgendada) + ' · ' + D.formatarMin(D.duracaoRevisaoMin(r.tipo)) + '</div></div>' +
           (aposProva ? '<span class="etiqueta etiqueta-alerta" title="Esta revisão cai depois do início da janela da prova">⚠ depois da prova</span>' : '') +
           badgeAdaptacaoRevisao(r) +
           '<span class="etiqueta ' + g.classe + '">' + esc(r.tipo) + '</span>' +
@@ -5758,6 +5758,51 @@
   function blocosDoDia(diaISO) {
     return doAtivo(state.agenda).filter(function (a) { return a.data === diaISO; }).sort(compararAgenda);
   }
+  // Revisões (repetição espaçada) pendentes de um dia — fonte única, refletida no
+  // calendário; cada uma já descontou tempo do dia na geração da agenda.
+  function revisoesDoDia(diaISO) { return D.revisoesPendentesNoDia(state, diaISO); }
+  function rotuloTipoRevisao(tipo) { return tipo === 'reforço' || tipo === 'manutenção' ? tipo : tipo; }
+  // Chip de revisão para a grade semanal (não arrastável; clica para mover).
+  function revisaoChipSemana(r) {
+    const t = D.topicoPorId(state, r.topicoId);
+    const d = D.disciplinaDoTopico(state, r.topicoId);
+    const cor = d ? d.cor : '#9A9DA3';
+    const dur = D.duracaoRevisaoMin(r.tipo);
+    const sub = D.formatarMin(dur) + ' · ' + rotuloTipoRevisao(r.tipo) + (t ? ' · ' + t.nome : '');
+    return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + '">' +
+      '<span class="agenda-bloco-rev-ic" aria-hidden="true">🔁</span>' +
+      '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão</span>' +
+      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
+  }
+  // Move uma revisão de dia (ajuste manual sobre o agendamento do motor). Re-reserva
+  // o tempo das semanas afetadas (gerarBlocosSemanaAgenda preserva blocos manuais).
+  function abrirMoverRevisao(revId) {
+    const r = doAtivo(state.revisoes).find(function (x) { return x.id === revId; });
+    if (!r) return;
+    const t = D.topicoPorId(state, r.topicoId);
+    const m = abrirModal(
+      '<h3>Mover revisão</h3>' +
+      '<p class="sub">' + (t ? esc(t.nome) + ' · ' : '') + 'revisão ' + esc(rotuloTipoRevisao(r.tipo)) + ' · ' + D.formatarMin(D.duracaoRevisaoMin(r.tipo)) + '</p>' +
+      '<label for="mv-data">Nova data</label>' +
+      '<input id="mv-data" type="date" value="' + esc(r.dataAgendada) + '" min="' + esc(D.hojeISO()) + '">' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="mv-cancelar">Cancelar</button>' +
+      '<button type="button" id="mv-salvar">Mover</button></div>'
+    );
+    m.querySelector('#mv-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#mv-salvar').addEventListener('click', function () {
+      const nova = m.querySelector('#mv-data').value;
+      if (!nova) { toast('Escolha uma data.', 'erro'); return; }
+      const antiga = r.dataAgendada;
+      r.dataAgendada = nova;
+      const semanaAtual = D.segundaDaSemana(D.hojeISO());
+      [antiga, nova].forEach(function (dt) {
+        const ini = D.segundaDaSemana(dt);
+        if (ini >= semanaAtual) { try { gerarBlocosSemanaAgenda(ini); } catch (e) {} }
+      });
+      salvar(); fecharModal(); render();
+      toast('Revisão movida para ' + D.formatarDataBR(nova), 'sucesso');
+    });
+  }
   // grava a ordem explícita (0,1,2,…) de todos os blocos do dia
   function renumerarDia(diaISO) {
     blocosDoDia(diaISO).forEach(function (b, i) { b.ordem = i; });
@@ -6890,7 +6935,6 @@
     docs.forEach(function (d) { d.topicos.forEach(function (x) { somaHorasTop += (x.topico.horas_estimadas || 2); nTop++; }); });
     const avgHorasTop = nTop > 0 ? somaHorasTop / nTop : 2;
     const orcamentoTopSemana = Math.max(1, Math.min(30, Math.round(horasSemana / (1.8 * Math.max(0.5, avgHorasTop)))));
-    const estudadosPorSemana = {};
     for (let s = 1; s <= semanas; s++) {
       let ativos = docs.filter(function (d) { return d.inicio <= s && d.cursor < d.topicos.length; });
       if (ativos.length < 3) {
@@ -6928,23 +6972,14 @@
           teoriaAgendada++;
           semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'teoria' });
           semanasCron[s - 1].blocos.push({ disciplina: d.disciplina.id, topico: t.id, tipo: 'questoes' });
-          (estudadosPorSemana[s] = estudadosPorSemana[s] || []).push({ disciplina: d.disciplina.id, topico: t.id });
           if (d.cursor === d.topicos.length) semanasCron[s - 1].marcos.push(d.disciplina.nome + ': primeira passada concluída');
         }
       }
-      if (s > 4 && s % 2 === 0 && estudadosPorSemana[s - 4]) {
-        estudadosPorSemana[s - 4].slice(0, 3).forEach(function (b) {
-          semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
-        });
-      }
-      // Regra 4 — disciplinas antigas (já concluídas) entram em manutenção/questões,
-      // rotacionando pelos tópicos de maior incidência sem sobrecarregar a semana.
-      if (manutencao.length > 0 && s % 2 === 1) {
-        for (let k = 0; k < Math.min(2, manutencao.length); k++) {
-          const b = manutencao[(s + k) % manutencao.length];
-          semanasCron[s - 1].blocos.push({ disciplina: b.disciplina, topico: b.topico, tipo: 'revisao' });
-        }
-        if (s === 1) semanasCron[0].marcos.push('Manutenção das disciplinas já vencidas');
+      // As revisões NÃO entram mais como blocos do cronograma: a fonte única é o
+      // sistema de repetição espaçada (state.revisoes), refletido no calendário e
+      // que desconta do tempo do dia. Mantemos só o marco de manutenção como aviso.
+      if (s === 1 && manutencao.length > 0) {
+        semanasCron[0].marcos.push('Manutenção das disciplinas já vencidas (ver Revisões)');
       }
       if (s > Math.round(semanas * 0.78) && s % 3 === 0) {
         semanasCron[s - 1].marcos.push('Simulado e revisão por questões');
@@ -6991,6 +7026,10 @@
     entrada.plano.gerado_em = D.segundaDaSemana(D.hojeISO());
     entrada.plano.ultimaRecalcSemana = D.segundaDaSemana(D.hojeISO());
     window.Store.hidratar(state);
+    // Revisões são a fonte única de "manutenção": tópicos já concluídos/dominados
+    // (inclusive vindos do ponto de partida) ganham a curva de repetição espaçada
+    // aqui — antes isso vinha de blocos "revisao" do cronograma, agora removidos.
+    concluidos.forEach(function (id) { agendarRevisoesSeNecessario(id); });
     sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
     salvar();
     // Falha A — cobertura: nesse prazo nem toda a teoria do edital coube no
@@ -7785,10 +7824,13 @@
       for (let i = 0; i < 7; i++) {
         const data = D.addDias(agendaRef, i);
         const blocos = blocosDoDia(data);
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+        const revs = revisoesDoDia(data);
+        const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
           (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
+          revs.map(revisaoChipSemana).join('') +
           blocos.map(function (b) {
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
@@ -7828,17 +7870,21 @@
         blocos.forEach(function (b) {
           if (discsDia.indexOf(b.disciplinaId) < 0) discsDia.push(b.disciplinaId);
         });
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+        const revs = revisoesDoDia(cursor);
+        const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
         const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
+        const temConteudo = blocos.length > 0 || revs.length > 0;
         const pontos = discsDia.slice(0, 5).map(function (id) {
           const d = D.disciplinaPorId(state, id);
           return '<span class="mes-ponto" style="background:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc(d ? d.nome : id) + '"></span>';
-        }).join('') + (discsDia.length > 5 ? '<span class="mes-ponto-mais">+' + (discsDia.length - 5) + '</span>' : '');
+        }).join('') + (discsDia.length > 5 ? '<span class="mes-ponto-mais">+' + (discsDia.length - 5) + '</span>' : '') +
+          (revs.length > 0 ? '<span class="mes-ponto-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '">🔁</span>' : '');
         html += '<div class="mes-celula mes-celula-pontos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
           (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
-          D.formatarDataBR(cursor) + (blocos.length ? ' — ' + blocos.length + ' blocos' : ' — sem blocos') + '">' +
+          D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' : ' — sem blocos') + '">' +
           '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
-          (blocos.length > 0
+          (temConteudo
             ? '<div class="mes-pontos">' + pontos + '</div>' +
               '<span class="mes-dia-total">' + D.formatarMin(totalMin) + '</span>'
             : '') +
@@ -7918,8 +7964,22 @@
   // Tela de detalhes de um dia (a partir da visão mensal estilo Google)
   function abrirDetalhesDia(dataISO) {
     const blocos = blocosDoDia(dataISO);
-    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+    const revs = revisoesDoDia(dataISO);
+    const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
+    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
     const feitos = blocos.filter(blocoAgendaConcluido).length;
+    const revsHtml = revs.length === 0 ? '' :
+      '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">🔁 Revisões do dia</h4><div class="dia-detalhe-lista">' +
+      revs.map(function (r) {
+        const t = D.topicoPorId(state, r.topicoId);
+        const d = D.disciplinaDoTopico(state, r.topicoId);
+        const cor = d ? d.cor : '#9A9DA3';
+        return '<div class="dia-detalhe-item dia-detalhe-rev" style="--disc-cor:' + esc(cor) + '">' +
+          '<span class="dia-detalhe-cor" style="background:' + esc(cor) + '"></span>' +
+          '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + (t ? esc(t.nome) : 'Revisão') + '</span>' +
+          '<span class="dia-detalhe-sub">' + D.formatarMin(D.duracaoRevisaoMin(r.tipo)) + ' · revisão ' + esc(rotuloTipoRevisao(r.tipo)) + '</span></span>' +
+          '<button type="button" class="botao-mini botao-quieto" data-mover-rev="' + esc(r.id) + '">Mover</button></div>';
+      }).join('') + '</div></div>';
     const ymd = dataISO.split('-').map(Number);
     const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(ymd[0], ymd[1] - 1, ymd[2]).getDay()];
     const listaHtml = blocos.length === 0
@@ -7940,13 +8000,16 @@
         }).join('') + '</div>';
     const m = abrirModal(
       '<div class="dia-detalhe-cab"><div><h3>' + D.formatarDataBR(dataISO) + '</h3>' +
-      '<p class="sub">' + diaSemana + (blocos.length ? ' · ' + blocos.length + ' blocos · ' + D.formatarMin(totalMin) + ' · ' + feitos + '/' + blocos.length + ' feitos' : ' · dia livre') + '</p></div></div>' +
-      listaHtml +
+      '<p class="sub">' + diaSemana + (blocos.length || revs.length ? ' · ' + blocos.length + ' blocos · ' + revs.length + ' revisões · ' + D.formatarMin(totalMin) : ' · dia livre') + '</p></div></div>' +
+      listaHtml + revsHtml +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="dd-semana">Abrir semana</button>' +
       '<button type="button" class="botao" id="dd-add">+ Adicionar bloco</button></div>'
     );
     m.querySelectorAll('[data-dia-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { fecharModal(); abrirBlocoAgenda(el.getAttribute('data-dia-bloco')); });
+    });
+    m.querySelectorAll('[data-mover-rev]').forEach(function (el) {
+      el.addEventListener('click', function () { fecharModal(); abrirMoverRevisao(el.getAttribute('data-mover-rev')); });
     });
     m.querySelector('#dd-add').addEventListener('click', function () { fecharModal(); abrirNovoBlocoAgenda(dataISO); });
     m.querySelector('#dd-semana').addEventListener('click', function () {
@@ -8178,6 +8241,11 @@
 
     // blocos existentes: clicar edita, arrastar move/reordena. Cada bloco também é
     // alvo de soltura: soltar sobre ele insere a disciplina ANTES dele (reordenar).
+    raiz.querySelectorAll('[data-revisao]').forEach(function (el) {
+      const abrir = function () { abrirMoverRevisao(el.getAttribute('data-revisao')); };
+      el.addEventListener('click', abrir);
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirBlocoAgenda(el.getAttribute('data-bloco')); } });
@@ -8665,6 +8733,9 @@
       return { data: D.addDias(ini, d.offset), restante: cfg.minutos || 0 };
     }).filter(function (s) { return !ehSemanaAtual || s.data >= hojeRef; });
     if (slots.length === 0) return 0;
+    // As revisões do dia (repetição espaçada) consomem o tempo PRIMEIRO — são
+    // sensíveis a prazo. O que sobra é o que teoria/questões podem ocupar.
+    slots.forEach(function (s) { s.restante = Math.max(0, s.restante - D.minutosRevisaoNoDia(state, s.data)); });
     function colocar(slot, disciplina, bloco, dur) {
       const topico = bloco.topico ? D.topicoPorId(state, bloco.topico) : null;
       const obj = {

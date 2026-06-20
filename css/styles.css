@@ -2603,6 +2603,14 @@ html[data-tema="escuro"] .mes-evento {
   display: inline-block;
 }
 .mes-ponto-mais { font-size: 0.6rem; font-weight: 700; color: var(--grafite); }
+.mes-ponto-rev { font-size: 0.6rem; line-height: 1; }
+
+/* Revisões no calendário (chip semanal + item no detalhe do dia) */
+.agenda-bloco-revisao { background: var(--fundo-suave, rgba(0,0,0,0.03)); border-style: dashed; cursor: pointer; }
+.agenda-bloco-revisao .agenda-bloco-rev-ic { margin-right: 0.2rem; }
+.dia-detalhe-revs { margin-top: 0.6rem; }
+.dia-detalhe-revs-tit { margin: 0 0 0.4rem; font-size: 0.9rem; }
+.dia-detalhe-rev { cursor: default; }
 .mes-dia-total {
   font-size: 0.62rem;
   font-family: var(--fonte-mono);
