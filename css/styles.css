@@ -985,7 +985,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 }
 
 /* Semáforo de meta (RN05) */
-.semaforo { display: inline-block; font-weight: 600; font-family: var(--fonte-mono); }
+.semaforo { display: inline-block; font-weight: 600; font-family: var(--fonte-mono); white-space: nowrap; }
 .semaforo-verde { color: var(--correto); }
 .semaforo-amarelo { color: var(--alerta); }
 .semaforo-vermelho { color: var(--errado); }
