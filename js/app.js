@@ -9391,9 +9391,9 @@
     { rota: 'simulados', seletor: '#conteudo .card',
       titulo: '📝 Simulados',
       texto: 'Registre o gabarito por disciplina e veja a "Prioridade cirúrgica": o que mais cai × seu pior desempenho, pronto para atacar.' },
-    { rota: 'stats', seletor: '#conteudo .card',
+    { rota: 'stats', seletor: '#conteudo .stats-kpi-full, #conteudo .card',
       titulo: '📊 Desempenho',
-      texto: 'Acompanhe acertos por disciplina e tópico, horas estudadas e evolução — para saber onde focar.' },
+      texto: 'Aqui você vê seu acerto geral vs. a meta, e logo abaixo o desempenho por disciplina e por tópico, horas estudadas e evolução — para saber exatamente onde focar.' },
     { rota: 'hoje', seletor: null,
       titulo: '🚀 Tudo pronto!',
       texto: 'Esse era o tour. Continue explorando o exemplo à vontade — nada é salvo. Quando quiser começar de verdade, é só entrar com sua conta e montar o seu plano.' }
