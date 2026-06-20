@@ -115,11 +115,36 @@
   <script src="js/timer.js?v=20260619w-bloco"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
   <script src="data/catalogo-editais.js?v=20260616v-acentos"></script>
-  <script src="js/app.js?v=20260620a-metas"></script>
+  <script src="js/app.js?v=20260620c-update"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('sw.js').catch(function () { /* app funciona sem SW */ });
+        navigator.serviceWorker.register('sw.js').then(function (reg) {
+          function avisar(worker) {
+            // só avisa quando JÁ havia um SW controlando (atualização, não 1ª instalação)
+            if (!worker || !navigator.serviceWorker.controller) return;
+            window.__novaVersaoSW = worker;
+            window.dispatchEvent(new CustomEvent('sw-nova-versao'));
+          }
+          if (reg.waiting) avisar(reg.waiting);
+          reg.addEventListener('updatefound', function () {
+            var nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener('statechange', function () {
+              if (nw.state === 'installed') avisar(nw);
+            });
+          });
+        }).catch(function () { /* app funciona sem SW */ });
+        // Quando o novo SW assume o controle, recarrega uma única vez.
+        var recarregando = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (recarregando) return; recarregando = true; window.location.reload();
+        });
+        // Chamado pelo botão "Atualizar": pede ao SW em espera para assumir.
+        window.__ativarNovaVersaoSW = function () {
+          var w = window.__novaVersaoSW;
+          if (w) w.postMessage({ type: 'SKIP_WAITING' });
+        };
       });
     }
   </script>

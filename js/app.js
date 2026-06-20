@@ -9402,6 +9402,37 @@
   });
   const botaoPerfil = document.getElementById('botao-perfil');
   if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);
+
+  // Aviso de nova versão (disparado pelo registro do service worker no index.html):
+  // banner discreto com botão que ativa o SW em espera e recarrega o app.
+  function mostrarBannerAtualizacao() {
+    if (document.getElementById('update-banner')) return;
+    const b = document.createElement('div');
+    b.id = 'update-banner';
+    b.setAttribute('role', 'status');
+    b.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);' +
+      'bottom:calc(var(--abas-alt, 0px) + 1rem + env(safe-area-inset-bottom));z-index:200;' +
+      'display:flex;align-items:center;gap:0.75rem;background:var(--caneta-forte);color:#fff;' +
+      'padding:0.7rem 1rem;border-radius:12px;box-shadow:0 10px 30px rgba(23,24,28,0.35);' +
+      'max-width:calc(100vw - 2rem);font-size:0.9rem;font-weight:600';
+    b.innerHTML = '<span>✨ Nova versão disponível</span>';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Atualizar';
+    btn.style.cssText = 'background:#fff;color:var(--caneta-forte);border:none;border-radius:8px;' +
+      'padding:0.4rem 0.85rem;font-weight:700;cursor:pointer;flex:0 0 auto';
+    btn.addEventListener('click', function () {
+      btn.disabled = true; btn.textContent = 'Atualizando…';
+      if (typeof window.__ativarNovaVersaoSW === 'function') window.__ativarNovaVersaoSW();
+      // rede de segurança: se o controllerchange não disparar, recarrega assim mesmo.
+      setTimeout(function () { window.location.reload(); }, 2500);
+    });
+    b.appendChild(btn);
+    document.body.appendChild(b);
+  }
+  window.addEventListener('sw-nova-versao', mostrarBannerAtualizacao);
+  // o evento pode ter sido disparado antes do app.js carregar
+  if (window.__novaVersaoSW) mostrarBannerAtualizacao();
   // FAB speed-dial: toggle expande os atalhos rápidos (Desempenho / Timer).
   const fabRapido = document.getElementById('fab-rapido');
   const fabToggle = document.getElementById('fab-toggle');
