@@ -115,40 +115,21 @@
   <script src="js/timer.js?v=20260619w-bloco"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
   <script src="data/catalogo-editais.js?v=20260616v-acentos"></script>
-  <script src="js/app.js?v=20260620f-update-loop"></script>
+  <script src="js/app.js?v=20260620g-autoupdate"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        var regSW = null;
-        navigator.serviceWorker.register('sw.js').then(function (reg) {
-          regSW = reg;
-          function avisar(worker) {
-            // só avisa quando JÁ havia um SW controlando (atualização, não 1ª instalação)
-            if (!worker || !navigator.serviceWorker.controller) return;
-            window.__novaVersaoSW = worker;
-            window.dispatchEvent(new CustomEvent('sw-nova-versao'));
-          }
-          if (reg.waiting) avisar(reg.waiting);
-          reg.addEventListener('updatefound', function () {
-            var nw = reg.installing;
-            if (!nw) return;
-            nw.addEventListener('statechange', function () {
-              if (nw.state === 'installed') avisar(nw);
-            });
-          });
-        }).catch(function () { /* app funciona sem SW */ });
-        // Quando o novo SW assume o controle, recarrega uma única vez.
+        // havia um SW controlando esta aba? se sim, uma troca de controller
+        // significa ATUALIZAÇÃO — recarregamos uma vez para pegar a versão nova.
+        // (na 1ª instalação não há controller, então não recarrega à toa).
+        var tinhaControle = !!navigator.serviceWorker.controller;
         var recarregando = false;
         navigator.serviceWorker.addEventListener('controllerchange', function () {
-          if (recarregando) return; recarregando = true; window.location.reload();
+          if (!tinhaControle || recarregando) return;
+          recarregando = true;
+          window.location.reload();
         });
-        // Chamado pelo botão "Atualizar": pede ao SW em espera para assumir.
-        // Re-consulta o reg.waiting na hora (referência sempre atual) — é o que
-        // dispara o controllerchange e, com ele, o reload.
-        window.__ativarNovaVersaoSW = function () {
-          var alvo = (regSW && regSW.waiting) || window.__novaVersaoSW;
-          if (alvo) alvo.postMessage({ type: 'SKIP_WAITING' });
-        };
+        navigator.serviceWorker.register('sw.js').catch(function () { /* app funciona sem SW */ });
       });
     }
   </script>
