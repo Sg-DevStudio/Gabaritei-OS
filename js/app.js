@@ -9347,7 +9347,11 @@
         carregarCatalogoGlobalFirebase(); // modo exemplo vê o catálogo global real (Firebase)
         if (!opcoes.silencioso && !opcoes.ofertarTour) toast('Modo exemplo ativado — explore à vontade', 'sucesso');
         if (opcoes.aoConcluir) opcoes.aoConcluir();
-        if (opcoes.ofertarTour) ofertarTourDemo();
+        // Adia a oferta: trocar o hash para #hoje dispara um hashchange que chama
+        // fecharModal() — se abríssemos a oferta agora, ela seria fechada logo em
+        // seguida (por isso "só aparecia na 2ª entrada"). 200ms garante que o
+        // hashchange já passou.
+        if (opcoes.ofertarTour) setTimeout(ofertarTourDemo, 200);
       })
       .catch(function () {
         if (btn) btn.disabled = false;
@@ -9363,9 +9367,9 @@
     { rota: 'hoje', seletor: null,
       titulo: '👋 Bem-vindo ao Gabaritei OS!',
       texto: 'Vou te mostrar em 1 minuto como tudo funciona, usando um plano de exemplo. Nada aqui é salvo na sua conta — é só uma demonstração.' },
-    { rota: 'hoje', seletor: '#conteudo .card',
-      titulo: '🎯 Aba Hoje',
-      texto: 'É seu ponto de partida diário: o que estudar hoje e o progresso do plano. Você abre o app e já sabe o que fazer.' },
+    { rota: 'hoje', seletor: '#conteudo .estudar-hoje-card',
+      titulo: '🎯 O que estudar hoje',
+      texto: 'Este é seu ponto de partida diário: a fila com o que estudar hoje, já na ordem certa. Você abre o app e sabe exatamente por onde começar.' },
     { rota: 'hoje', seletor: '#conteudo .constancia-card',
       titulo: '🔥 Mapa de constância (heatmap)',
       texto: 'Cada quadradinho é um dia: quanto mais você estuda, mais forte a cor. Ele te ajuda a manter a sequência de dias estudando, sem furos.' },
@@ -9381,12 +9385,15 @@
     { rota: 'timer', seletor: '#conteudo .timer-page, #conteudo .card',
       titulo: '⏱️ Timer',
       texto: 'Cronometre o estudo (cronômetro ou pomodoro). O tempo abate automaticamente do bloco do dia e entra nas suas estatísticas.' },
+    { rota: 'revisoes', seletor: '#conteudo .card',
+      titulo: '🔁 Revisões & Flashcards',
+      texto: 'O app agenda revisões sozinho na curva do esquecimento (24h · 3d · 7d · 14d · 30d) e ainda as ajusta pelo seu DESEMPENHO: foi bem, ele espaça; foi mal, ele aproxima (e pode reabrir o tópico). Na aba Flashcards você cria cartas (frente/verso) com repetição espaçada — ótimo para memorizar leis, conceitos e datas.' },
     { rota: 'simulados', seletor: '#conteudo .card',
       titulo: '📝 Simulados',
       texto: 'Registre o gabarito por disciplina e veja a "Prioridade cirúrgica": o que mais cai × seu pior desempenho, pronto para atacar.' },
-    { rota: 'stats', seletor: '#conteudo .card',
+    { rota: 'stats', seletor: '#conteudo .stats-kpi-full, #conteudo .card',
       titulo: '📊 Desempenho',
-      texto: 'Acompanhe acertos por disciplina e tópico, horas estudadas e evolução — para saber onde focar.' },
+      texto: 'Aqui você vê seu acerto geral vs. a meta, e logo abaixo o desempenho por disciplina e por tópico, horas estudadas e evolução — para saber exatamente onde focar.' },
     { rota: 'hoje', seletor: null,
       titulo: '🚀 Tudo pronto!',
       texto: 'Esse era o tour. Continue explorando o exemplo à vontade — nada é salvo. Quando quiser começar de verdade, é só entrar com sua conta e montar o seu plano.' }
