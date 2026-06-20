@@ -384,11 +384,13 @@
       }
     }
 
-    const jaListados = new Set(fila.map((i) => i.topicoId + '|' + i.categoria));
+    // Dedup por tópico: um reaberto que já está na fila (revisão vencida ou bloco
+    // da semana) não deve aparecer uma 2ª vez como "reaberto".
+    const jaListados = new Set(fila.map((i) => i.topicoId));
     const reabertos = [];
     for (const d of state.disciplinas) {
       for (const t of d.topicos) {
-        if (t.reaberto && !jaListados.has(t.id + '|reaberto')) {
+        if (t.reaberto && !jaListados.has(t.id)) {
           reabertos.push({ categoria: 'reaberto', topicoId: t.id });
         }
       }
@@ -742,7 +744,17 @@
     const horasFeitas = horasRealizadas(state, inicio, null);
     const decorridas = Math.min(semanasTotais, Math.max(0, diffDias(inicio, hoje) / 7));
     const semanasRestantes = Math.max(0.5, semanasTotais - decorridas);
-    const restante = Math.max(0, esforcoTotal - horasFeitas);
+    // "Concluído" deve significar EDITAL concluído (tópicos), não só o orçamento de
+    // horas estimado gasto. esforcoTotal é uma estimativa fixa: quem faz muitas
+    // questões pode gastar mais horas que o previsto com matéria ainda pendente
+    // (restante iria a 0 e diria "Concluído" cedo demais); e quem fecha os tópicos
+    // abaixo do orçamento ficaria eternamente "quase lá". Ancora o restante nos
+    // tópicos: 0 só quando tudo está concluído; senão, no MENOS o esforço pendente.
+    const prog = progressoEdital(state);
+    const tudoFeito = prog.total > 0 && prog.concluidos >= prog.total;
+    const fracPendente = prog.total > 0 ? (prog.total - prog.concluidos) / prog.total : 0;
+    let restante = tudoFeito ? 0 : Math.max(0, esforcoTotal - horasFeitas);
+    if (restante <= 0 && !tudoFeito) restante = Math.max(1, Math.round(esforcoTotal * fracPendente));
     const cargaIdeal = Math.round((restante / semanasRestantes) * 10) / 10;
     const cargaPlanejada = r.h_semana || cargaIdeal;
     // Ritmo real medido sobre o período ATIVO (da 1ª sessão até hoje), não desde a
