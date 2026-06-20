@@ -73,6 +73,8 @@
   let catalogoPublicacaoErro = '';
   let catalogoPublicacaoOkEm = '';
   let onboardingNomeAberto = false;
+  let tourAtivo = false;   // tour guiado de 1º acesso em andamento
+  let tourPasso = 0;
   let syncInicialFeito = false; // 1ª sincronização com o Firebase concluída (evita pedir o nome antes do estado da nuvem chegar)
   let statsTopicosFiltro = { disciplina: '', ordem: 'piores', limite: '18' };
 
@@ -9129,12 +9131,20 @@
       '<div class="modal-acoes" style="justify-content:flex-start;margin-top:0.75rem">' +
       '<button type="button" class="botao-secundario" id="pf-exportar-cal"' + (temPlano ? '' : ' disabled') + '>Exportar calendário (.ics)</button>' +
       '</div></div>' +
+      '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
+      '<strong style="display:block;font-size:0.95rem">🧭 Tour guiado</strong>' +
+      '<p class="sub" style="margin:0.3rem 0 0">Uma demonstração rápida das principais funções (com um plano de exemplo).</p>' +
+      '<div class="modal-acoes" style="justify-content:flex-start;margin-top:0.75rem">' +
+      '<button type="button" class="botao-secundario" id="pf-tour">Fazer o tour guiado</button>' +
+      '</div></div>' +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
       '<button type="button" id="pf-salvar-nome">Salvar</button></div>'
     );
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
+    const pfTour = m.querySelector('#pf-tour');
+    if (pfTour) pfTour.addEventListener('click', function () { fecharModal(); iniciarTour(); });
     const pfSair = m.querySelector('#pf-sair');
     if (pfSair) pfSair.addEventListener('click', function () {
       if (!window.FirebaseSync) { toast('Sincronização indisponível.', 'erro'); return; }
@@ -9274,6 +9284,7 @@
     atualizarSyncUi();
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
     setTimeout(abrirOnboardingNome, 0);
+    setTimeout(talvezOferecerTour, 0);
   }
 
   // Faixa fixa no topo do conteúdo durante o modo exemplo, com convite ao login.
@@ -9303,8 +9314,9 @@
     render();
   }
 
-  function entrarModoDemo(btn) {
-    if (modoDemo) return;
+  function entrarModoDemo(btn, opcoes) {
+    opcoes = opcoes || {};
+    if (modoDemo) { if (opcoes.aoConcluir) opcoes.aoConcluir(); return; }
     if (btn) btn.disabled = true;
     fetch('data/exemplo-trf3.json')
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
@@ -9323,12 +9335,165 @@
         if (location.hash !== '#hoje') location.hash = '#hoje';
         render();
         carregarCatalogoGlobalFirebase(); // modo exemplo vê o catálogo global real (Firebase)
-        toast('Modo exemplo ativado — explore à vontade', 'sucesso');
+        if (!opcoes.silencioso) toast('Modo exemplo ativado — explore à vontade', 'sucesso');
+        if (opcoes.aoConcluir) opcoes.aoConcluir();
       })
       .catch(function () {
         if (btn) btn.disabled = false;
         toast('Não consegui carregar o plano de exemplo. Tente de novo.', 'erro');
       });
+  }
+
+  // ===================== Tour guiado (1º acesso) =====================
+  // Roda DENTRO do modo demo (nada é salvo): mostra exemplos reais e, ao concluir,
+  // sai do demo deixando a conta limpa. Só a flag onboardingTourVisto é persistida.
+  const PASSOS_TOUR = [
+    { rota: 'hoje', seletor: null,
+      titulo: '👋 Bem-vindo ao Gabaritei OS!',
+      texto: 'Vou te mostrar em 1 minuto como tudo funciona, usando um plano de exemplo. Nada aqui é salvo na sua conta — é só uma demonstração.' },
+    { rota: 'hoje', seletor: '#conteudo .card',
+      titulo: '🎯 Aba Hoje',
+      texto: 'É seu ponto de partida diário: o que estudar hoje, sua constância e o progresso do plano. Você abre o app e já sabe o que fazer.' },
+    { rota: 'planejamento', seletor: '#conteudo .checkin-card, #conteudo .card',
+      titulo: '📅 Planejamento & Agenda',
+      texto: 'Aqui fica seu cronograma da semana, o check-in semanal e a projeção de conclusão. Dá para arrastar matérias para os dias.' },
+    { rota: 'timer', seletor: '#conteudo .timer-page, #conteudo .card',
+      titulo: '⏱️ Timer',
+      texto: 'Cronometre o estudo (cronômetro ou pomodoro). O tempo abate automaticamente do bloco do dia e entra nas suas estatísticas.' },
+    { rota: 'simulados', seletor: '#conteudo .card',
+      titulo: '📝 Simulados',
+      texto: 'Registre o gabarito por disciplina e veja a "Prioridade cirúrgica": o que mais cai × seu pior desempenho, pronto para atacar.' },
+    { rota: 'stats', seletor: '#conteudo .card',
+      titulo: '📊 Desempenho',
+      texto: 'Acompanhe acertos por disciplina e tópico, horas estudadas e evolução — para saber onde focar.' },
+    { rota: 'hoje', seletor: null,
+      titulo: '🚀 Tudo pronto!',
+      texto: 'Agora é com você: vamos criar o seu plano de verdade. Ao concluir, este exemplo some e sua conta fica limpa para começar.' }
+  ];
+
+  function iniciarTour() {
+    if (tourAtivo) return;
+    entrarModoDemo(null, { silencioso: true, aoConcluir: function () {
+      tourAtivo = true;
+      tourPasso = 0;
+      renderTourPasso();
+    } });
+  }
+
+  function removerOverlayTour() {
+    const el = document.getElementById('tour-overlay');
+    if (el) el.remove();
+  }
+
+  function encerrarTour() {
+    tourAtivo = false;
+    removerOverlayTour();
+    // sai do modo demo: recarrega o estado REAL (intacto) e marca o tour como visto.
+    modoDemo = false;
+    state = window.Store.carregar();
+    if (state.config) { state.config.onboardingTourVisto = true; salvar(); }
+    location.hash = state.plano ? '#hoje' : '#planos';
+    render();
+  }
+
+  function tourIr(delta) {
+    const novo = tourPasso + delta;
+    if (novo < 0) return;
+    if (novo >= PASSOS_TOUR.length) { encerrarTour(); return; }
+    tourPasso = novo;
+    renderTourPasso();
+  }
+
+  function renderTourPasso() {
+    if (!tourAtivo) return;
+    const passo = PASSOS_TOUR[tourPasso];
+    const rotaAlvo = '#' + passo.rota;
+    if (location.hash !== rotaAlvo) { location.hash = rotaAlvo; }
+    // espera o render da rota assentar antes de medir/posicionar o destaque
+    setTimeout(function () { pintarTourPasso(passo); }, location.hash === rotaAlvo ? 60 : 180);
+  }
+
+  function pintarTourPasso(passo) {
+    if (!tourAtivo) return;
+    removerOverlayTour();
+    const alvo = passo.seletor ? document.querySelector(passo.seletor) : null;
+    const rect = alvo ? alvo.getBoundingClientRect() : null;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tour-overlay';
+    overlay.className = 'tour-overlay';
+
+    const catch_ = document.createElement('div');
+    catch_.className = 'tour-catch' + (rect ? '' : ' tour-catch-dim');
+    overlay.appendChild(catch_);
+
+    if (rect) {
+      const pad = 6;
+      const hole = document.createElement('div');
+      hole.className = 'tour-hole';
+      hole.style.left = (rect.left - pad) + 'px';
+      hole.style.top = (rect.top - pad) + 'px';
+      hole.style.width = (rect.width + pad * 2) + 'px';
+      hole.style.height = (rect.height + pad * 2) + 'px';
+      overlay.appendChild(hole);
+    }
+
+    const ehUltimo = tourPasso === PASSOS_TOUR.length - 1;
+    const tip = document.createElement('div');
+    tip.className = 'tour-tip';
+    tip.innerHTML =
+      '<h4>' + esc(passo.titulo) + '</h4>' +
+      '<p>' + esc(passo.texto) + '</p>' +
+      '<div class="tour-tip-acoes">' +
+      '<span class="tour-passo-num">' + (tourPasso + 1) + '/' + PASSOS_TOUR.length + '</span>' +
+      '<button type="button" class="botao-mini botao-quieto" data-tour="pular">Pular</button>' +
+      (tourPasso > 0 ? '<button type="button" class="botao-mini botao-quieto" data-tour="anterior">Anterior</button>' : '') +
+      '<button type="button" class="botao-mini" data-tour="proximo">' + (ehUltimo ? 'Criar meu plano' : 'Próximo') + '</button>' +
+      '</div>';
+    overlay.appendChild(tip);
+    document.body.appendChild(overlay);
+
+    // posiciona o balão: abaixo do alvo se couber, senão acima; sem alvo, centraliza.
+    const vh = window.innerHeight, vw = window.innerWidth;
+    const th = tip.offsetHeight, tw = tip.offsetWidth;
+    if (rect) {
+      let top = rect.bottom + 12;
+      if (top + th > vh - 12) top = Math.max(12, rect.top - th - 12);
+      let left = rect.left + rect.width / 2 - tw / 2;
+      left = Math.max(12, Math.min(left, vw - tw - 12));
+      tip.style.top = top + 'px';
+      tip.style.left = left + 'px';
+    } else {
+      tip.style.top = Math.max(12, (vh - th) / 2) + 'px';
+      tip.style.left = Math.max(12, (vw - tw) / 2) + 'px';
+    }
+
+    overlay.querySelector('[data-tour="pular"]').addEventListener('click', encerrarTour);
+    const ant = overlay.querySelector('[data-tour="anterior"]');
+    if (ant) ant.addEventListener('click', function () { tourIr(-1); });
+    overlay.querySelector('[data-tour="proximo"]').addEventListener('click', function () { tourIr(1); });
+  }
+
+  // Oferece o tour no 1º acesso (logo após o onboarding de nome), uma única vez.
+  function talvezOferecerTour() {
+    if (tourAtivo || modoDemo) return;
+    if (!usuarioLogado() || !state.config || state.config.onboardingTourVisto) return;
+    if (window.FirebaseSync && !syncInicialFeito && !autenticacaoExpirou) return;
+    if (!state.config.onboardingNomeVisto) return; // primeiro o nome
+    if (document.getElementById('modal-raiz').children.length || onboardingNomeAberto) return;
+    const m = abrirModal(
+      '<div class="dialogo-icone" aria-hidden="true">🧭</div>' +
+      '<h3>Quer um tour rápido?</h3>' +
+      '<p class="sub dialogo-msg">São ~1 minuto pelas principais funções, com um plano de exemplo. No fim, sua conta fica limpa para você criar o seu.</p>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="tour-pular">Agora não</button>' +
+      '<button type="button" id="tour-comecar">Fazer o tour</button></div>'
+    );
+    m.classList.add('modal-dialogo');
+    function marcarVisto() {
+      if (state.config) { state.config.onboardingTourVisto = true; salvar(); }
+    }
+    m.querySelector('#tour-pular').addEventListener('click', function () { marcarVisto(); fecharModal(); });
+    m.querySelector('#tour-comecar').addEventListener('click', function () { fecharModal(); iniciarTour(); });
   }
 
   // ---------------- inicialização ----------------
