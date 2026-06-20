@@ -263,7 +263,6 @@
       state.config.metaAcertoDisc = {};
     }
     if (state.config.onboardingNomeVisto === undefined) state.config.onboardingNomeVisto = !!state.config.nomeUsuario;
-    if (state.config.onboardingTourVisto === undefined) state.config.onboardingTourVisto = false;
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];

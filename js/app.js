@@ -73,8 +73,9 @@
   let catalogoPublicacaoErro = '';
   let catalogoPublicacaoOkEm = '';
   let onboardingNomeAberto = false;
-  let tourAtivo = false;   // tour guiado de 1º acesso em andamento
+  let tourAtivo = false;   // tour guiado em andamento
   let tourPasso = 0;
+  let tourEntrouNoDemo = false; // o tour é que ativou o demo (volta ao real ao fim)
   let syncInicialFeito = false; // 1ª sincronização com o Firebase concluída (evita pedir o nome antes do estado da nuvem chegar)
   let statsTopicosFiltro = { disciplina: '', ordem: 'piores', limite: '18' };
 
@@ -402,7 +403,7 @@
       });
     });
     const demo = raiz.querySelector('#login-demo');
-    if (demo) demo.addEventListener('click', function () { entrarModoDemo(demo); });
+    if (demo) demo.addEventListener('click', function () { entrarModoDemo(demo, { ofertarTour: true }); });
   }
 
   // Hook opcional chamado quando o modal principal fecha (por qualquer caminho:
@@ -9284,7 +9285,6 @@
     atualizarSyncUi();
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
     setTimeout(abrirOnboardingNome, 0);
-    setTimeout(talvezOferecerTour, 0);
   }
 
   // Faixa fixa no topo do conteúdo durante o modo exemplo, com convite ao login.
@@ -9335,8 +9335,9 @@
         if (location.hash !== '#hoje') location.hash = '#hoje';
         render();
         carregarCatalogoGlobalFirebase(); // modo exemplo vê o catálogo global real (Firebase)
-        if (!opcoes.silencioso) toast('Modo exemplo ativado — explore à vontade', 'sucesso');
+        if (!opcoes.silencioso && !opcoes.ofertarTour) toast('Modo exemplo ativado — explore à vontade', 'sucesso');
         if (opcoes.aoConcluir) opcoes.aoConcluir();
+        if (opcoes.ofertarTour) ofertarTourDemo();
       })
       .catch(function () {
         if (btn) btn.disabled = false;
@@ -9344,9 +9345,10 @@
       });
   }
 
-  // ===================== Tour guiado (1º acesso) =====================
-  // Roda DENTRO do modo demo (nada é salvo): mostra exemplos reais e, ao concluir,
-  // sai do demo deixando a conta limpa. Só a flag onboardingTourVisto é persistida.
+  // ===================== Tour guiado (modo exemplo) =====================
+  // Oferecido ao entrar no modo exemplo (e pelo Perfil). Roda DENTRO do demo, onde
+  // nada é salvo. Visitante: ao fim, continua no demo explorando. Vindo de conta
+  // real (Perfil): ao fim, volta ao estado real intacto.
   const PASSOS_TOUR = [
     { rota: 'hoje', seletor: null,
       titulo: '👋 Bem-vindo ao Gabaritei OS!',
@@ -9368,14 +9370,16 @@
       texto: 'Acompanhe acertos por disciplina e tópico, horas estudadas e evolução — para saber onde focar.' },
     { rota: 'hoje', seletor: null,
       titulo: '🚀 Tudo pronto!',
-      texto: 'Agora é com você: vamos criar o seu plano de verdade. Ao concluir, este exemplo some e sua conta fica limpa para começar.' }
+      texto: 'Esse era o tour. Continue explorando o exemplo à vontade — nada é salvo. Quando quiser começar de verdade, é só entrar com sua conta e montar o seu plano.' }
   ];
 
   function iniciarTour() {
     if (tourAtivo) return;
+    const jaNoDemo = modoDemo;
     entrarModoDemo(null, { silencioso: true, aoConcluir: function () {
       tourAtivo = true;
       tourPasso = 0;
+      tourEntrouNoDemo = !jaNoDemo; // se já estávamos no demo (visitante), fica nele ao fim
       renderTourPasso();
     } });
   }
@@ -9388,11 +9392,16 @@
   function encerrarTour() {
     tourAtivo = false;
     removerOverlayTour();
-    // sai do modo demo: recarrega o estado REAL (intacto) e marca o tour como visto.
-    modoDemo = false;
-    state = window.Store.carregar();
-    if (state.config) { state.config.onboardingTourVisto = true; salvar(); }
-    location.hash = state.plano ? '#hoje' : '#planos';
+    if (tourEntrouNoDemo) {
+      // o tour ativou o demo (ex.: botão do Perfil numa conta real): volta ao real.
+      modoDemo = false;
+      state = window.Store.carregar();
+      location.hash = state.plano ? '#hoje' : '#planos';
+    } else {
+      // visitante do modo exemplo: continua no demo, livre para explorar (nada é salvo).
+      if (location.hash !== '#hoje') location.hash = '#hoje';
+    }
+    tourEntrouNoDemo = false;
     render();
   }
 
@@ -9448,7 +9457,7 @@
       '<span class="tour-passo-num">' + (tourPasso + 1) + '/' + PASSOS_TOUR.length + '</span>' +
       '<button type="button" class="botao-mini botao-quieto" data-tour="pular">Pular</button>' +
       (tourPasso > 0 ? '<button type="button" class="botao-mini botao-quieto" data-tour="anterior">Anterior</button>' : '') +
-      '<button type="button" class="botao-mini" data-tour="proximo">' + (ehUltimo ? 'Criar meu plano' : 'Próximo') + '</button>' +
+      '<button type="button" class="botao-mini" data-tour="proximo">' + (ehUltimo ? 'Concluir' : 'Próximo') + '</button>' +
       '</div>';
     overlay.appendChild(tip);
     document.body.appendChild(overlay);
@@ -9474,25 +9483,20 @@
     overlay.querySelector('[data-tour="proximo"]').addEventListener('click', function () { tourIr(1); });
   }
 
-  // Oferece o tour no 1º acesso (logo após o onboarding de nome), uma única vez.
-  function talvezOferecerTour() {
-    if (tourAtivo || modoDemo) return;
-    if (!usuarioLogado() || !state.config || state.config.onboardingTourVisto) return;
-    if (window.FirebaseSync && !syncInicialFeito && !autenticacaoExpirou) return;
-    if (!state.config.onboardingNomeVisto) return; // primeiro o nome
-    if (document.getElementById('modal-raiz').children.length || onboardingNomeAberto) return;
+  // Ao ENTRAR no modo exemplo: oferece o tour guiado (sempre disponível) ou deixa
+  // a pessoa explorar livremente — nada é salvo de qualquer forma.
+  function ofertarTourDemo() {
+    if (tourAtivo) return;
+    if (document.getElementById('modal-raiz').children.length) return;
     const m = abrirModal(
       '<div class="dialogo-icone" aria-hidden="true">🧭</div>' +
-      '<h3>Quer um tour rápido?</h3>' +
-      '<p class="sub dialogo-msg">São ~1 minuto pelas principais funções, com um plano de exemplo. No fim, sua conta fica limpa para você criar o seu.</p>' +
-      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="tour-pular">Agora não</button>' +
+      '<h3>Modo exemplo</h3>' +
+      '<p class="sub dialogo-msg">Este é um plano de demonstração — explore à vontade, <strong>nada é salvo</strong>. Quer um tour guiado de ~1 minuto pelas principais funções?</p>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="tour-explorar">Explorar por conta</button>' +
       '<button type="button" id="tour-comecar">Fazer o tour</button></div>'
     );
     m.classList.add('modal-dialogo');
-    function marcarVisto() {
-      if (state.config) { state.config.onboardingTourVisto = true; salvar(); }
-    }
-    m.querySelector('#tour-pular').addEventListener('click', function () { marcarVisto(); fecharModal(); });
+    m.querySelector('#tour-explorar').addEventListener('click', fecharModal);
     m.querySelector('#tour-comecar').addEventListener('click', function () { fecharModal(); iniciarTour(); });
   }
 
