@@ -9588,6 +9588,38 @@
     render();
   }
 
+  // Modo exemplo: transforma o histórico de sessões (que alimenta KPIs/streak) em
+  // blocos de agenda CONCLUÍDOS nos dias passados, para o calendário também mostrar
+  // o esforço já feito. O gerador de cronograma só preenche de hoje p/ frente; sem
+  // isto a semana corrente (seg–sex) e as anteriores ficavam vazias, dando a falsa
+  // impressão de que o aluno não estudou. Agrupa por dia+tópico+tipo somando o tempo.
+  function semearAgendaPassadaDemo() {
+    const hoje = D.hojeISO();
+    const sessoes = D.sessoesDoPlano(state).filter(function (s) {
+      return s.data && s.data.slice(0, 10) < hoje && s.topicoId;
+    });
+    if (!sessoes.length) return;
+    const grupos = {};
+    sessoes.forEach(function (s) {
+      const dia = s.data.slice(0, 10);
+      const tipo = (s.tipo === 'teoria' || s.tipo === 'questoes' || s.tipo === 'revisao') ? s.tipo : 'teoria';
+      const chave = dia + '|' + s.topicoId + '|' + tipo;
+      if (!grupos[chave]) grupos[chave] = { dia: dia, topicoId: s.topicoId, tipo: tipo, min: 0 };
+      grupos[chave].min += s.duracaoMin || 0;
+    });
+    Object.keys(grupos).forEach(function (chave) {
+      const g = grupos[chave];
+      const disc = D.disciplinaDoTopico(state, g.topicoId);
+      if (!disc) return;
+      const min = Math.max(5, Math.round(g.min));
+      state.agenda.push({
+        id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
+        data: g.dia, disciplinaId: disc.id, topicoId: g.topicoId,
+        duracaoMin: min, feitoMin: min, feito: true, obs: g.tipo
+      });
+    });
+  }
+
   function entrarModoDemo(btn, opcoes) {
     opcoes = opcoes || {};
     if (modoDemo) { if (opcoes.aoConcluir) opcoes.aoConcluir(); return; }
@@ -9611,6 +9643,12 @@
         if (entradaDemo && entradaDemo.disciplinas.some(function (d) { return d.id !== 'ORF' && (d.topicos || []).length; })) {
           aplicarPlanoDuracaoAoAtivo(null, 30, true);
         }
+        // O cronograma nasce só para FRENTE (de hoje em diante). Sem isto, os dias
+        // já estudados (incl. seg–sex da semana corrente e semanas anteriores)
+        // aparecem vazios no calendário — o aluno dedicado parece ter "furado" a
+        // semana. Materializa o histórico de sessões como blocos concluídos para
+        // o calendário refletir o esforço passado, coerente com KPIs e streak.
+        semearAgendaPassadaDemo();
         // navega para #hoje e renderiza de forma determinística (não depende só do
         // evento hashchange, que pode não disparar se já estávamos em #hoje).
         if (location.hash !== '#hoje') location.hash = '#hoje';
