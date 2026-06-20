@@ -9618,6 +9618,16 @@
         duracaoMin: min, feitoMin: min, feito: true, obs: g.tipo
       });
     });
+    // Revisões vencidas (data agendada já passou) num aluno dedicado já teriam sido
+    // feitas. O calendário só mostra revisão PENDENTE — uma concluída some, não fica
+    // riscada — então uma revisão vencida e não concluída dá a impressão de que ele
+    // estudou o dia mas "furou" a revisão. Marca como concluída na própria data
+    // prevista para sumir do passado; as de hoje/futuras seguem pendentes.
+    doAtivo(state.revisoes).forEach(function (r) {
+      if (!r.dataConcluida && r.dataAgendada && r.dataAgendada < hoje) {
+        r.dataConcluida = r.dataAgendada;
+      }
+    });
   }
 
   function entrarModoDemo(btn, opcoes) {
