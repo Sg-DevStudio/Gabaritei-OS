@@ -62,3 +62,19 @@ test('avancarCiclo: estudar disciplina fora do ciclo não credita', () => {
   assert.equal(r.creditou, false);
   assert.equal(ciclo.blocos[0].feitoMin, 0);
 });
+
+test('sugerirCiclo: tópico com bagagem ("já estudei") fica atrás do inédito', () => {
+  const st = {
+    plano: { meta: { corte_pct: 70 }, ordemAtaque: 'incidencia' },
+    disciplinas: [{
+      id: 'D0', nome: 'D', peso: 1, topicos: [
+        { id: 'bag', nome: 'Já estudei', incidencia_pct: 90, status: 'pendente', horas_estimadas: 2, bagagem: 'estudei' },
+        { id: 'novo', nome: 'Inédito', incidencia_pct: 10, status: 'pendente', horas_estimadas: 2 }
+      ]
+    }],
+    sessoes: []
+  };
+  const blocos = D.sugerirCiclo(st, { minutosSemana: 600, minBloco: 30, maxBloco: 75 });
+  assert.equal(blocos.length, 1);
+  assert.equal(blocos[0].topicoId, 'novo', 'inédito vem antes mesmo com incidência menor que o de bagagem');
+});

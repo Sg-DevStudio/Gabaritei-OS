@@ -1572,10 +1572,15 @@ html[data-tema="escuro"] .frase-dia .autor { color: #B8BECC; }
 .fila-rodape .fila-acoes { margin-left: auto; }
 .fila-checklist { align-items: flex-start; }
 
+/* Card de revisões do Hoje: leve acento na cor de revisão para diferenciar do
+   card de estudo, já que agora são dois cards separados. */
+.revisoes-hoje-card { border-left: 3px solid var(--errado); }
+
 /* Na Hoje (celular), a fila "O que estudar hoje" não precisa da etiqueta da
    disciplina — o nome do tópico já basta e a tag só ocupa espaço. */
 @media (max-width: 760px) {
-  .estudar-hoje-card .fila-titulo .tag-disc { display: none; }
+  .estudar-hoje-card .fila-titulo .tag-disc,
+  .revisoes-hoje-card .fila-titulo .tag-disc { display: none; }
 }
 
 .painel-disciplinas-mobile { display: none; }

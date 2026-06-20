@@ -286,6 +286,10 @@
       const nuncaVista = topicos.every(function (t) { return t.status === 'pendente' && !t.reaberto; });
       const usarIncidencia = ordemAtaque === 'incidencia' && !nuncaVista;
       topicos.sort(function (a, b) {
+        // bagagem ("já estudei/domino") por último: 1ª passada depois dos inéditos
+        const aBag = a.bagagem ? 1 : 0;
+        const bBag = b.bagagem ? 1 : 0;
+        if (aBag !== bBag) return aBag - bBag;
         const aConcl = a.status === 'teoria_concluida' ? 1 : 0;
         const bConcl = b.status === 'teoria_concluida' ? 1 : 0;
         if (aConcl !== bConcl) return aConcl - bConcl;

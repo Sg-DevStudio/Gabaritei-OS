@@ -1204,6 +1204,58 @@
     return agendou;
   }
 
+  // Migração: planos criados ANTES da correção do "ponto de partida" têm dezenas
+  // de revisões empilhadas no mesmo dia — a curva completa de cada tópico marcado
+  // como "já estudei/domino" foi ancorada na mesma data (com 24h e tudo), porque
+  // a versão antiga agendava revisão a partir de uma data passada inventada. Isso
+  // entope o calendário. No modelo novo a curva só nasce de estudo real, então
+  // aqui: (1) removemos essas revisões em massa e (2) devolvemos os tópicos à fila
+  // (status pendente + bagagem), para o aluno fazer a 1ª passada e a curva começar
+  // daí. Por fim regeneramos o cronograma para esses tópicos reaparecerem.
+  // Guardas: só age quando há pilha de fato e só em tópicos NUNCA estudados (sem
+  // sessão) e SEM revisão concluída. Flag por plano evita reprocessar a cada load.
+  const LIMIAR_PILHA_REV = 6; // mais que isso no mesmo dia = parede
+  function migrarRevisoesEmPilha() {
+    if (!state.planoAtivoId || !state.plano) return 0;
+    if (state.plano.revisoesRedistribuidasEm) return 0; // já migrado
+    const ativos = doAtivo(state.revisoes).filter(function (r) {
+      return r && !r.dataConcluida && D.topicoPorId(state, r.topicoId);
+    });
+    if (ativos.length === 0) return 0;
+    // há parede? algum dia concentra muitas revisões pendentes
+    const porDia = {};
+    ativos.forEach(function (r) { porDia[r.dataAgendada] = (porDia[r.dataAgendada] || 0) + 1; });
+    const temPilha = Object.keys(porDia).some(function (d) { return porDia[d] > LIMIAR_PILHA_REV; });
+    if (!temPilha) return 0;
+    // tópicos "tocados" (estudados de verdade ou com revisão concluída) ficam de fora
+    const tocado = {};
+    doAtivo(state.revisoes).forEach(function (r) { if (r && r.dataConcluida) tocado[r.topicoId] = true; });
+    doAtivo(state.sessoes).forEach(function (s) { if (s && s.topicoId) tocado[s.topicoId] = true; });
+    const alvoSet = {};
+    ativos.forEach(function (r) { if (!tocado[r.topicoId]) alvoSet[r.topicoId] = true; });
+    const alvos = Object.keys(alvoSet);
+    if (!alvos.length) return 0;
+    // 1) remove as revisões em massa desses tópicos (pendentes, no plano ativo)
+    state.revisoes = state.revisoes.filter(function (r) {
+      if (!r) return false;
+      const noAtivo = !r.planoId || r.planoId === state.planoAtivoId;
+      return !(noAtivo && !r.dataConcluida && alvoSet[r.topicoId]);
+    });
+    // 2) devolve os tópicos à fila: o status concluído/dominado vira pendente e
+    //    guarda a bagagem para deprioridade e esforço reduzido.
+    alvos.forEach(function (id) {
+      const t = D.topicoPorId(state, id);
+      if (!t) return;
+      if (t.status === 'dominado') t.bagagem = 'domino';
+      else if (t.status === 'teoria_concluida') t.bagagem = 'estudei';
+      t.status = 'pendente';
+    });
+    state.plano.revisoesRedistribuidasEm = D.hojeISO();
+    // 3) regenera o cronograma para os tópicos devolvidos reaparecerem na fila.
+    if (state.plano.ritmos && state.plano.ritmoAtivo) recalcularPlanoAdaptativo(true);
+    return alvos.length;
+  }
+
   // Conclui a teoria de um tópico. Se há um cronômetro em andamento DESTE tópico,
   // finaliza e registra a sessão (assim o tempo de hoje conta na carga diária e o
   // bloco aparece riscado no calendário) — além de agendar as revisões. Sem timer
@@ -1881,7 +1933,110 @@
 
     html += painelDisciplinasHojeHtml();
 
-    // fila do dia (RN06 + agenda manual)
+    // Renderiza um item da fila do dia. Extraído do loop único para ser
+    // compartilhado pelos dois cards do Hoje (Revisões e Estudo).
+    function itemHtmlFila(item) {
+      if (item.categoria === 'ciclo') {
+        const b = item.bloco;
+        const dC = D.disciplinaPorId(state, b.disciplinaId);
+        const tC = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
+        const feito = Math.min(b.feitoMin || 0, b.metaMin || 0);
+        const pct = b.metaMin > 0 ? Math.round((feito / b.metaMin) * 100) : 0;
+        const restante = Math.max(0, (b.metaMin || 0) - feito);
+        const tituloC = (dC ? tagDisc(dC) + ' ' : '') + esc(tC ? tC.nome : (dC ? dC.nome : b.disciplinaId));
+        const dataReg = 'data-disc="' + esc(b.disciplinaId) + '"' + (b.topicoId ? ' data-id="' + esc(b.topicoId) + '"' : '') + ' data-dur="' + restante + '"';
+        return '<div class="fila-item fila-checklist' + (item.atual ? ' fila-ciclo-atual' : '') + '">' +
+          '<span class="fila-ciclo-marca" aria-hidden="true">' + (item.atual ? '▶' : '○') + '</span>' +
+          '<div class="fila-corpo">' +
+          '<div class="fila-info"><div class="fila-titulo">' + tituloC + '</div>' +
+          '<div class="fila-sub">' + D.formatarMin(feito) + ' / ' + D.formatarMin(b.metaMin || 0) +
+          '<span class="fila-ciclo-barra"><span style="width:' + pct + '%;background:' + esc(dC ? dC.cor : '#9A9DA3') + '"></span></span></div></div>' +
+          '<div class="fila-rodape">' +
+          '<span class="etiqueta etiqueta-bloco">' + (item.atual ? 'Ciclo · agora' : 'Ciclo') + '</span>' +
+          '<div class="fila-acoes">' +
+          '<button class="botao-mini botao-quieto" data-acao="ciclo-timer" ' + dataReg + '>Timer</button>' +
+          '<button class="botao-mini" data-acao="ciclo-registrar" ' + dataReg + '>Estudar</button>' +
+          '</div></div></div></div>';
+      }
+      if (item.categoria === 'agenda') {
+        const a = item.agenda;
+        const dA = D.disciplinaPorId(state, a.disciplinaId);
+        const tA = a.topicoId ? D.topicoPorId(state, a.topicoId) : null;
+        const tituloATexto = tA ? tA.nome : (dA ? dA.nome : a.disciplinaId);
+        const tituloA = (dA ? tagDisc(dA) + ' ' : '') + esc(tituloATexto);
+        return '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
+          checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
+          '<div class="fila-corpo">' +
+          '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
+          '<div class="fila-rodape">' +
+          (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
+            (mostrarFogo && a.id === topUrgenteId ? '<span class="etiqueta etiqueta-alerta" title="Prioridade do dia: mais alta incidência × desempenho abaixo da meta (e/ou prova próxima). Ataque este primeiro.">🔥 prioridade</span>' : '') +
+            '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
+            (blocoParcial(a) ? '<span class="etiqueta etiqueta-parcial" title="Você já estudou parte deste bloco.">faltam ' + D.formatarMin(blocoRestanteMin(a)) + '</span>' : '') +
+            '<div class="fila-acoes">' +
+            '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
+            '<button class="botao-mini" data-acao="concluir-agenda" data-id="' + esc(a.id) + '">Registrar</button></div>') +
+          '</div></div></div>';
+      }
+      const t = D.topicoPorId(state, item.topicoId);
+      const d = D.disciplinaDoTopico(state, item.topicoId);
+      let etiqueta, sub, acoes;
+      if (item.categoria === 'revisao') {
+        const atraso = D.diffDias(item.revisao.dataAgendada, hoje);
+        etiqueta = '<span class="etiqueta etiqueta-revisao">Revisão ' + esc(item.revisao.tipo) + '</span>' + badgeAdaptacaoRevisao(item.revisao);
+        sub = atraso > 0 ? 'vencida há ' + atraso + (atraso === 1 ? ' dia' : ' dias') : 'vence hoje';
+        acoes = '<button class="botao-mini" data-acao="concluir-revisao" data-id="' + esc(item.revisao.id) + '">Concluir</button>';
+      } else if (item.categoria === 'bloco') {
+        etiqueta = item.feito
+          ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>'
+          : '<span class="etiqueta etiqueta-bloco">' + (item.tipoBloco === 'teoria' ? 'Teoria' : 'Questões') + '</span>';
+        sub = 'bloco da semana ' + item.semana;
+        acoes = item.feito ? '' :
+          '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
+          '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '">Registrar</button>';
+      } else {
+        etiqueta = '<span class="etiqueta etiqueta-reaberto">Reaberto</span>';
+        sub = 'voltou para a fila (desempenho baixo)';
+        acoes = '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
+          '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="questoes">Registrar</button>';
+      }
+      const tituloTopico = t ? t.nome : item.topicoId;
+      // 3 desempenhos seguidos abaixo de 65% → sugere revisar a base teórica.
+      const avisoTeoria = D.sugereRevisarTeoria(state, item.topicoId)
+        ? '<span class="etiqueta etiqueta-reaberto" title="3 desempenhos seguidos abaixo de 65% — as questões não estão fixando, vale revisar a teoria">↩ Revisar teoria</span>'
+        : '';
+      const check = item.categoria === 'revisao'
+        ? checkEstudoHtml(false, 'concluir-revisao', item.revisao.id, null, tituloTopico)
+        : checkEstudoHtml(!!item.feito, 'registrar', item.topicoId, item.categoria === 'reaberto' ? 'questoes' : item.tipoBloco, tituloTopico);
+      return '<div class="fila-item fila-checklist' + (item.feito ? ' fila-feita' : '') + '">' +
+        check +
+        '<div class="fila-corpo">' +
+        '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
+        '<div class="fila-sub">' + sub + '</div></div>' +
+        '<div class="fila-rodape">' + etiqueta + avisoTeoria +
+        '<div class="fila-acoes">' + acoes + '</div></div>' +
+        '</div></div>';
+    }
+
+    // Particiona a fila: revisões ganham um card próprio (no topo, mantêm a
+    // prioridade); blocos/agenda/ciclo/reaberto ficam no card "O que estudar hoje".
+    const filaRev = fila.filter(function (i) { return i.categoria === 'revisao'; });
+    const filaEstudo = fila.filter(function (i) { return i.categoria !== 'revisao'; });
+
+    // Card de Revisões — só aparece quando há revisões vencidas/para hoje.
+    if (filaRev.length) {
+      const vencidas = filaRev.filter(function (i) { return D.diffDias(i.revisao.dataAgendada, hoje) > 0; }).length;
+      const minRev = filaRev.reduce(function (n, i) { return n + D.duracaoRevisaoMin(i.revisao.tipo); }, 0);
+      html += '<div class="card revisoes-hoje-card"><h3 style="margin-bottom:0.25rem">🔁 Revisões de hoje</h3>' +
+        '<p class="sub" style="color:var(--grafite);font-size:0.85rem">' +
+        filaRev.length + (filaRev.length === 1 ? ' revisão' : ' revisões') +
+        (vencidas ? ' · ' + vencidas + (vencidas === 1 ? ' vencida' : ' vencidas') : '') +
+        ' · ~' + D.formatarMin(minRev) + ' · <a href="#revisoes">ver todas</a></p>';
+      filaRev.forEach(function (item) { html += itemHtmlFila(item); });
+      html += '</div>';
+    }
+
+    // Card do estudo do dia (RN06 + agenda manual) — sem as revisões.
     html += '<div class="card estudar-hoje-card"><h3 style="margin-bottom:0.25rem">O que estudar hoje? 🤔</h3>';
     if (ciclo) {
       const temBlocos = (ciclo.blocos || []).length > 0;
@@ -1899,104 +2054,26 @@
         (sem.marcos && sem.marcos.length ? ' · ' + esc(sem.marcos.join(' · ')) : '') + '</p>';
     }
 
-    if (fila.length === 0) {
-      // Dia sem nada agendado: oferece adiantar a próxima matéria e ver a semana.
-      const temCronograma = !!(state.plano && !ciclo && sem && !sem.futura && !sem.encerrado);
-      const temFuturo = doAtivo(state.agenda).some(function (a) { return a.data > hoje && !a.feito; });
-      html += '<div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Dia livre 🎉</strong>Você está em dia — nada agendado para hoje.' +
-        (temCronograma
-          ? '<div class="compact-actions" style="margin-top:1rem;justify-content:center">' +
-            (temFuturo ? '<button class="botao-mini" id="hoje-adiantar">Adiantar próxima matéria</button>' : '') +
-            '<a class="botao-mini botao-quieto" href="#planejamento">Ver a semana toda</a></div>'
-          : '<p style="margin-top:1rem"><a class="botao botao-secundario" href="#planejamento">Abrir planejamento</a></p>') +
-        '</div>';
-    } else {
-      for (let i = 0; i < fila.length; i++) {
-        const item = fila[i];
-        if (item.categoria === 'ciclo') {
-          const b = item.bloco;
-          const dC = D.disciplinaPorId(state, b.disciplinaId);
-          const tC = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
-          const feito = Math.min(b.feitoMin || 0, b.metaMin || 0);
-          const pct = b.metaMin > 0 ? Math.round((feito / b.metaMin) * 100) : 0;
-          const restante = Math.max(0, (b.metaMin || 0) - feito);
-          const tituloC = (dC ? tagDisc(dC) + ' ' : '') + esc(tC ? tC.nome : (dC ? dC.nome : b.disciplinaId));
-          const dataReg = 'data-disc="' + esc(b.disciplinaId) + '"' + (b.topicoId ? ' data-id="' + esc(b.topicoId) + '"' : '') + ' data-dur="' + restante + '"';
-          html += '<div class="fila-item fila-checklist' + (item.atual ? ' fila-ciclo-atual' : '') + '">' +
-            '<span class="fila-ciclo-marca" aria-hidden="true">' + (item.atual ? '▶' : '○') + '</span>' +
-            '<div class="fila-corpo">' +
-            '<div class="fila-info"><div class="fila-titulo">' + tituloC + '</div>' +
-            '<div class="fila-sub">' + D.formatarMin(feito) + ' / ' + D.formatarMin(b.metaMin || 0) +
-            '<span class="fila-ciclo-barra"><span style="width:' + pct + '%;background:' + esc(dC ? dC.cor : '#9A9DA3') + '"></span></span></div></div>' +
-            '<div class="fila-rodape">' +
-            '<span class="etiqueta etiqueta-bloco">' + (item.atual ? 'Ciclo · agora' : 'Ciclo') + '</span>' +
-            '<div class="fila-acoes">' +
-            '<button class="botao-mini botao-quieto" data-acao="ciclo-timer" ' + dataReg + '>Timer</button>' +
-            '<button class="botao-mini" data-acao="ciclo-registrar" ' + dataReg + '>Estudar</button>' +
-            '</div></div></div></div>';
-          continue;
-        }
-        if (item.categoria === 'agenda') {
-          const a = item.agenda;
-          const dA = D.disciplinaPorId(state, a.disciplinaId);
-          const tA = a.topicoId ? D.topicoPorId(state, a.topicoId) : null;
-          const tituloATexto = tA ? tA.nome : (dA ? dA.nome : a.disciplinaId);
-          const tituloA = (dA ? tagDisc(dA) + ' ' : '') + esc(tituloATexto);
-          html += '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
-            checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
-            '<div class="fila-corpo">' +
-            '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
-            '<div class="fila-rodape">' +
-            (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
-              (mostrarFogo && a.id === topUrgenteId ? '<span class="etiqueta etiqueta-alerta" title="Prioridade do dia: mais alta incidência × desempenho abaixo da meta (e/ou prova próxima). Ataque este primeiro.">🔥 prioridade</span>' : '') +
-              '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
-              (blocoParcial(a) ? '<span class="etiqueta etiqueta-parcial" title="Você já estudou parte deste bloco.">faltam ' + D.formatarMin(blocoRestanteMin(a)) + '</span>' : '') +
-              '<div class="fila-acoes">' +
-              '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
-              '<button class="botao-mini" data-acao="concluir-agenda" data-id="' + esc(a.id) + '">Registrar</button></div>') +
-            '</div></div></div>';
-          continue;
-        }
-        const t = D.topicoPorId(state, item.topicoId);
-        const d = D.disciplinaDoTopico(state, item.topicoId);
-        let etiqueta, sub, acoes;
-        if (item.categoria === 'revisao') {
-          const atraso = D.diffDias(item.revisao.dataAgendada, hoje);
-          etiqueta = '<span class="etiqueta etiqueta-revisao">Revisão ' + esc(item.revisao.tipo) + '</span>' + badgeAdaptacaoRevisao(item.revisao);
-          sub = atraso > 0 ? 'vencida há ' + atraso + (atraso === 1 ? ' dia' : ' dias') : 'vence hoje';
-          acoes = '<button class="botao-mini" data-acao="concluir-revisao" data-id="' + esc(item.revisao.id) + '">Concluir</button>';
-        } else if (item.categoria === 'bloco') {
-          etiqueta = item.feito
-            ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>'
-            : '<span class="etiqueta etiqueta-bloco">' + (item.tipoBloco === 'teoria' ? 'Teoria' : 'Questões') + '</span>';
-          sub = 'bloco da semana ' + item.semana;
-          acoes = item.feito ? '' :
-            '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
-            '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="' + esc(item.tipoBloco) + '">Registrar</button>';
-        } else {
-          etiqueta = '<span class="etiqueta etiqueta-reaberto">Reaberto</span>';
-          sub = 'voltou para a fila (desempenho baixo)';
-          acoes = '<button class="botao-mini botao-quieto" data-acao="estudar" data-id="' + esc(item.topicoId) + '">Timer</button>' +
-            '<button class="botao-mini" data-acao="registrar" data-id="' + esc(item.topicoId) + '" data-tipo="questoes">Registrar</button>';
-        }
-        const tituloTopico = t ? t.nome : item.topicoId;
-        // 3 desempenhos seguidos abaixo de 65% → sugere revisar a base teórica.
-        const avisoTeoria = D.sugereRevisarTeoria(state, item.topicoId)
-          ? '<span class="etiqueta etiqueta-reaberto" title="3 desempenhos seguidos abaixo de 65% — as questões não estão fixando, vale revisar a teoria">↩ Revisar teoria</span>'
-          : '';
-        const check = item.categoria === 'revisao'
-          ? checkEstudoHtml(false, 'concluir-revisao', item.revisao.id, null, tituloTopico)
-          : checkEstudoHtml(!!item.feito, 'registrar', item.topicoId, item.categoria === 'reaberto' ? 'questoes' : item.tipoBloco, tituloTopico);
-        html += '<div class="fila-item fila-checklist' + (item.feito ? ' fila-feita' : '') + '">' +
-          check +
-          '<div class="fila-corpo">' +
-          '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
-          '<div class="fila-sub">' + sub + '</div></div>' +
-          '<div class="fila-rodape">' + etiqueta + avisoTeoria +
-          '<div class="fila-acoes">' + acoes + '</div></div>' +
-          '</div></div>';
+    if (filaEstudo.length === 0) {
+      if (filaRev.length) {
+        // Sem blocos novos, mas há revisões no card acima — não é "dia livre".
+        html += '<div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
+          '<strong>Sem blocos novos hoje</strong>Foque nas revisões acima — o resto da teoria está em dia.</div>';
+      } else {
+        // Dia sem nada agendado: oferece adiantar a próxima matéria e ver a semana.
+        const temCronograma = !!(state.plano && !ciclo && sem && !sem.futura && !sem.encerrado);
+        const temFuturo = doAtivo(state.agenda).some(function (a) { return a.data > hoje && !a.feito; });
+        html += '<div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
+          '<strong>Dia livre 🎉</strong>Você está em dia — nada agendado para hoje.' +
+          (temCronograma
+            ? '<div class="compact-actions" style="margin-top:1rem;justify-content:center">' +
+              (temFuturo ? '<button class="botao-mini" id="hoje-adiantar">Adiantar próxima matéria</button>' : '') +
+              '<a class="botao-mini botao-quieto" href="#planejamento">Ver a semana toda</a></div>'
+            : '<p style="margin-top:1rem"><a class="botao botao-secundario" href="#planejamento">Abrir planejamento</a></p>') +
+          '</div>';
       }
+    } else {
+      filaEstudo.forEach(function (item) { html += itemHtmlFila(item); });
     }
     html += '</div>';
     return html;
@@ -6810,14 +6887,26 @@
     { id: 'estudei', rotulo: 'Já estudei' },
     { id: 'domino', rotulo: 'Já domino' }
   ];
-  function nivelConhDoStatus(s) {
-    if (s === 'dominado') return 'domino';
-    if (s === 'teoria_concluida') return 'estudei';
+  // Aceita o TÓPICO (lê a flag de bagagem) ou, por retrocompat, a string de status.
+  // Modelo novo: "já estudei"/"já domino" não viram mais teoria_concluida/dominado
+  // (que sumiam da fila); ficam pendentes com t.bagagem marcando o nível, então a
+  // origem do nível precisa vir da bagagem.
+  function nivelConhDoStatus(t) {
+    if (t && typeof t === 'object') {
+      if (t.bagagem === 'domino') return 'domino';
+      if (t.bagagem === 'estudei') return 'estudei';
+      return nivelConhDoStatus(t.status);
+    }
+    if (t === 'dominado') return 'domino';
+    if (t === 'teoria_concluida') return 'estudei';
     return 'novo';
   }
+  // No modelo novo, "já estudei" e "já domino" voltam para a fila (status pendente)
+  // para uma 1ª passada guiada pela plataforma — a curva de revisão só nasce desse
+  // estudo real, nunca de uma data-base inventada. O nível fica em t.bagagem (ver
+  // aplicação no wizard), usado para deprioridade e para reduzir o esforço estimado.
   function statusDoNivelConh(n, statusAtual) {
-    if (n === 'domino') return 'dominado';
-    if (n === 'estudei') return 'teoria_concluida';
+    if (n === 'estudei' || n === 'domino') return 'pendente';
     // "novo": só rebaixa quem estava concluído; não mexe em em_curso/pendente
     return (statusAtual === 'teoria_concluida' || statusAtual === 'dominado') ? 'pendente' : (statusAtual || 'pendente');
   }
@@ -6910,6 +6999,11 @@
       });
       const usarIncidencia = porIncidencia && !disciplinaNuncaVista;
       topicos.sort(function (a, b) {
+        // Tópicos com bagagem ("já estudei/domino") vão por último: o aluno faz a
+        // 1ª passada deles depois dos que nunca viu.
+        const bagA = a.topico.bagagem ? 1 : 0;
+        const bagB = b.topico.bagagem ? 1 : 0;
+        if (bagA !== bagB) return bagA - bagB;
         if (usarIncidencia) {
           // ataca primeiro os tópicos mais cobrados nas provas (regra 80/20)
           return (b.topico.incidencia_pct || 0) - (a.topico.incidencia_pct || 0) ||
@@ -7276,7 +7370,7 @@
     const ppHtml = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
       const tops = (d.topicos || []).filter(function (t) { return !t.orfao; });
       const linhas = tops.map(function (t) {
-        const atual = nivelConhDoStatus(t.status);
+        const atual = nivelConhDoStatus(t);
         return '<div class="gp-pp-top"><span class="gp-pp-top-nome">' + esc(t.nome) + '</span>' +
           '<select class="gp-pp-sel" data-pp-top="' + esc(t.id) + '">' +
           NIVEIS_CONH.map(function (n) { return '<option value="' + n.id + '"' + (atual === n.id ? ' selected' : '') + '>' + n.rotulo + '</option>'; }).join('') +
@@ -7483,7 +7577,7 @@
         (d.topicos || []).forEach(function (t) {
           if (t.orfao) return;
           const base = t.horas_estimadas || 2;
-          const nivel = nivelPorTop[t.id] || nivelConhDoStatus(t.status);
+          const nivel = nivelPorTop[t.id] || nivelConhDoStatus(t);
           const fator = nivel === 'domino' ? 0.15 : nivel === 'estudei' ? 0.5 : 1;
           h += base * fator;
         });
@@ -7622,13 +7716,16 @@
         if (disc && sel) disc.dificuldade = sel.getAttribute('data-dif');
       });
       // Ponto de partida: semeia o status de cada tópico a partir do que o aluno
-      // já sabe. "Já estudei"/"já domino" também agendam o ciclo de revisões.
+      // já sabe. "Já estudei"/"já domino" NÃO agendam revisão aqui — viram tópicos
+      // pendentes com bagagem (t.bagagem), que voltam à fila com prioridade menor
+      // para a 1ª passada guiada. A curva de revisão só nasce desse estudo real
+      // (data conhecida), nunca de uma data passada que não dá para saber.
       m.querySelectorAll('.gp-pp-sel').forEach(function (sel) {
         const t = D.topicoPorId(state, sel.getAttribute('data-pp-top'));
         if (!t) return;
-        const novoStatus = statusDoNivelConh(sel.value, t.status);
-        t.status = novoStatus;
-        if (novoStatus === 'teoria_concluida' || novoStatus === 'dominado') agendarRevisoesSeNecessario(t.id);
+        t.status = statusDoNivelConh(sel.value, t.status);
+        if (sel.value === 'estudei' || sel.value === 'domino') t.bagagem = sel.value;
+        else delete t.bagagem;
       });
       state.plano.pontoPartida = { nivel: ppNivelSel, definidoEm: D.hojeISO() };
       // Data-alvo definida no passo Prazo → vira a janela da prova do plano.
@@ -9796,6 +9893,9 @@
   atualizarTituloTimer(estadoInicialTimer);
   if (estadoInicialTimer && estadoInicialTimer.limiteAtingido) avisarLimiteTimer(estadoInicialTimer);
 
+  // Cura planos antigos com a parede de revisões empilhadas (ponto de partida).
+  if (migrarRevisoesEmPilha() > 0) salvar();
+
   render();
 
   // Se o Firebase nao confirmar a sessao em poucos segundos (offline, bloqueado),
@@ -9810,7 +9910,10 @@
     obterEstado: function () { return state; },
     aplicarEstado: function (novoState, silencioso) {
       state = novoState;
-      window.Store.salvar(state, { marcarAlterado: false });
+      // Estado vindo do Firebase pode trazer a parede de revisões antiga: cura e
+      // marca como alterado para ressincronizar o resultado.
+      const curou = migrarRevisoesEmPilha() > 0;
+      window.Store.salvar(state, { marcarAlterado: curou });
       render();
       if (!silencioso) toast('Dados sincronizados', 'sucesso');
     }
