@@ -8806,7 +8806,8 @@
 
   // núcleo da geração: preenche a agenda de UMA semana a partir do cronograma
   // (sem toast/salvar/render — quem chama decide). Retorna null se não houver semana.
-  function gerarBlocosSemanaAgenda(refInicio) {
+  function gerarBlocosSemanaAgenda(refInicio, opts) {
+    const incluirPassados = !!(opts && opts.incluirPassados);
     const dist = distribuicaoSemanal(refInicio);
     if (!dist) return null;
     const rotina = rotinaEstudosAtual();
@@ -8850,13 +8851,15 @@
     const slots = diasAtivos.map(function (d) {
       const cfg = rotina.dias[d.id];
       return { data: D.addDias(ini, d.offset), restante: cfg.minutos || 0 };
-    }).filter(function (s) { return !ehSemanaAtual || s.data >= hojeRef; });
+    }).filter(function (s) { return incluirPassados || !ehSemanaAtual || s.data >= hojeRef; });
     if (slots.length === 0) return 0;
     // As revisões do dia (repetição espaçada) consomem o tempo PRIMEIRO — são
     // sensíveis a prazo. O que sobra é o que teoria/questões podem ocupar.
     slots.forEach(function (s) { s.restante = Math.max(0, s.restante - D.minutosRevisaoNoDia(state, s.data)); });
     function colocar(slot, disciplina, bloco, dur) {
       const topico = bloco.topico ? D.topicoPorId(state, bloco.topico) : null;
+      // dia já passado num preenchimento retroativo (modo exemplo): nasce concluído.
+      const diaPassado = incluirPassados && slot.data < hojeRef;
       const obj = {
         id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
         data: slot.data, disciplinaId: disciplina.id,
@@ -8864,9 +8867,10 @@
         duracaoMin: dur,
         obs: bloco.tipo === 'teoria' ? 'teoria' : bloco.tipo,
         // só a teoria de um tópico já vencido nasce "feita"; questões/revisão não
-        feito: bloco.tipo === 'teoria' && topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false,
+        feito: diaPassado || (bloco.tipo === 'teoria' && topico ? (topico.status === 'teoria_concluida' || topico.status === 'dominado') : false),
         gerado: true
       };
+      if (diaPassado) obj.feitoMin = dur;
       state.agenda.push(obj);
       slot.ultimoBloco = obj;
       return obj;
@@ -9589,14 +9593,15 @@
   }
 
   // Modo exemplo: transforma o histórico de sessões (que alimenta KPIs/streak) em
-  // blocos de agenda CONCLUÍDOS nos dias passados, para o calendário também mostrar
-  // o esforço já feito. O gerador de cronograma só preenche de hoje p/ frente; sem
-  // isto a semana corrente (seg–sex) e as anteriores ficavam vazias, dando a falsa
-  // impressão de que o aluno não estudou. Agrupa por dia+tópico+tipo somando o tempo.
+  // blocos de agenda CONCLUÍDOS nas SEMANAS ANTERIORES, para o calendário também
+  // mostrar o esforço já feito ao navegar para trás. A semana CORRENTE é tratada
+  // à parte (gerada cheia pelo motor, com os dias passados marcados feitos), então
+  // aqui só preenchemos antes da segunda desta semana. Agrupa por dia+tópico+tipo.
   function semearAgendaPassadaDemo() {
     const hoje = D.hojeISO();
+    const limite = D.segundaDaSemana(hoje); // só semanas anteriores à corrente
     const sessoes = D.sessoesDoPlano(state).filter(function (s) {
-      return s.data && s.data.slice(0, 10) < hoje && s.topicoId;
+      return s.data && s.data.slice(0, 10) < limite && s.topicoId;
     });
     if (!sessoes.length) return;
     const grupos = {};
@@ -9656,9 +9661,12 @@
         // O cronograma nasce só para FRENTE (de hoje em diante). Sem isto, os dias
         // já estudados (incl. seg–sex da semana corrente e semanas anteriores)
         // aparecem vazios no calendário — o aluno dedicado parece ter "furado" a
-        // semana. Materializa o histórico de sessões como blocos concluídos para
-        // o calendário refletir o esforço passado, coerente com KPIs e streak.
+        // semana. Duas peças: (1) regenera a semana corrente CHEIA (todos os dias,
+        // ~carga planejada), com os dias passados marcados feitos — assim a "Carga
+        // horária planejada / semana" reflete a meta real (e não só hoje/amanhã);
+        // (2) materializa o histórico de sessões nas semanas anteriores.
         semearAgendaPassadaDemo();
+        gerarBlocosSemanaAgenda(D.segundaDaSemana(D.hojeISO()), { incluirPassados: true });
         // navega para #hoje e renderiza de forma determinística (não depende só do
         // evento hashchange, que pode não disparar se já estávamos em #hoje).
         if (location.hash !== '#hoje') location.hash = '#hoje';
