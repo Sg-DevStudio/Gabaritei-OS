@@ -1085,11 +1085,15 @@
   // seguinte (recorrência sob demanda, sem disparar tudo de uma vez).
   const DIAS_MANUTENCAO = 30;
   const TIPOS_PONTA_CURVA = { '30d': true, 'manutenção': true };
-  function ajustePosRevisao(revisao, resultadoPct, qFeitas) {
+  // `incidenciaPct` (opcional): adia um pouco o reforço em tópicos de baixa
+  // incidência (k<1) — o reforço acontece, mas mais espaçado. base/k arredondado.
+  function ajustePosRevisao(revisao, resultadoPct, qFeitas, incidenciaPct) {
     const r = { reabrir: false, subirPrioridade: false, revisaoExtraDias: null, dominar: false, manutencaoDias: null };
     if (resultadoPct == null) return r; // revisão só de leitura, sem questões — neutro
-    if (resultadoPct < 50) { r.reabrir = true; r.subirPrioridade = true; r.revisaoExtraDias = 2; }
-    else if (resultadoPct < 70) { r.subirPrioridade = true; r.revisaoExtraDias = 3; if (revisao.tipo === '30d') r.reabrir = true; }
+    const k = moduladorIncidencia(incidenciaPct);
+    const reforcoDias = function (base) { return Math.round(base / k); }; // k=1→base; k=0,5→2×base
+    if (resultadoPct < 50) { r.reabrir = true; r.subirPrioridade = true; r.revisaoExtraDias = reforcoDias(2); }
+    else if (resultadoPct < 70) { r.subirPrioridade = true; r.revisaoExtraDias = reforcoDias(3); if (revisao.tipo === '30d') r.reabrir = true; }
     else {
       if (resultadoPct >= 85 && TIPOS_PONTA_CURVA[revisao.tipo] && (qFeitas == null || qFeitas >= MIN_Q_DOMINIO)) r.dominar = true;
       if (TIPOS_PONTA_CURVA[revisao.tipo]) r.manutencaoDias = DIAS_MANUTENCAO; // ≥70% na ponta da curva → mantém aquecido
@@ -1143,6 +1147,20 @@
     return 0.6;                      // não fixou: aproxima bastante
   }
 
+  // Modulador da INTENSIDADE do ajuste pela incidência do tópico (0..1). O acerto
+  // continua mandando na DIREÇÃO (espaçar/aproximar); a incidência só regula o
+  // QUANTO. Rampa linear: incidência ≥50% → k=1 (efeito cheio); incidência 0% →
+  // k=0,5 (metade do efeito). Assim, errar muito num tópico de baixa incidência
+  // ainda aproxima a revisão, mas com menos agressividade — sem roubar tempo dos
+  // tópicos campeões de incidência. Nunca inverte o sinal.
+  const INCIDENCIA_K_PISO = 0.5;
+  const INCIDENCIA_K_PLENA = 50; // a partir daqui, efeito cheio
+  function moduladorIncidencia(incidenciaPct) {
+    if (incidenciaPct == null) return 1; // sem dado de incidência → efeito cheio (retrocompat)
+    const inc = Math.max(0, Math.min(INCIDENCIA_K_PLENA, incidenciaPct));
+    return INCIDENCIA_K_PISO + (1 - INCIDENCIA_K_PISO) * (inc / INCIDENCIA_K_PLENA);
+  }
+
   // Fator multiplicativo do espaçamento (1 = neutro), PONDERADO POR RECÊNCIA.
   // Cada revisão feita estica (acerto alto) ou encurta (acerto baixo) a cadência,
   // mas a mais recente pesa mais e as antigas desvanecem (peso geométrico 0.6^idade):
@@ -1153,7 +1171,7 @@
   // realimentam o timing como um multiplicador recente adicional.
   const JANELA_REV_ESPACAMENTO = 6;
   const DECAIMENTO_RECENCIA = 0.6;
-  function fatorEspacamentoRevisao(revisoes, topicoId, sessoes) {
+  function fatorEspacamentoRevisao(revisoes, topicoId, sessoes, incidenciaPct) {
     const feitas = (revisoes || [])
       .filter(function (r) {
         return r.topicoId === topicoId && TIPOS_CICLO_REV[r.tipo] && r.dataConcluida && r.resultadoPct != null;
@@ -1178,14 +1196,18 @@
         if (fe > 0) f *= multiplicadorEspacamento(Math.round((ce / fe) * 100));
       }
     }
+    // Pondera a intensidade pela incidência: puxa o fator de volta ao neutro (1)
+    // quanto menor a incidência. f_ajustado = 1 + (f - 1) * k.
+    const k = moduladorIncidencia(incidenciaPct);
+    f = 1 + (f - 1) * k;
     return Math.max(0.4, Math.min(2.2, Math.round(f * 100) / 100));
   }
 
   // Reescala as revisões do ciclo ainda PENDENTES (futuras) do tópico pelo fator
   // de espaçamento. Não mexe em revisões já feitas nem nas vencidas/de hoje.
-  function reagendarRevisoesAdaptativo(revisoes, topicoId, hoje, sessoes) {
+  function reagendarRevisoesAdaptativo(revisoes, topicoId, hoje, sessoes, incidenciaPct) {
     hoje = hoje || hojeISO();
-    const f = fatorEspacamentoRevisao(revisoes, topicoId, sessoes);
+    const f = fatorEspacamentoRevisao(revisoes, topicoId, sessoes, incidenciaPct);
     let ajustadas = 0;
     (revisoes || []).forEach(function (r) {
       if (r.topicoId !== topicoId || !TIPOS_CICLO_REV[r.tipo] || r.dataConcluida) return;
@@ -1693,7 +1715,7 @@
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
-    reagendarRevisoesAdaptativo, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
+    reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     alertaCobertura, adicionarTopicosAoCiclo,

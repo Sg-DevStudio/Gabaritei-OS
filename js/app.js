@@ -1380,7 +1380,7 @@
     // próximas revisões pendentes do tópico (vai bem → espaça; vai mal → aproxima).
     let reagDiario = { ajustadas: 0, fator: 1 };
     if (dados.qFeitas > 0 && topico) {
-      reagDiario = D.reagendarRevisoesAdaptativo(state.revisoes, dados.topicoId, hoje, D.sessoesDoPlano(state));
+      reagDiario = D.reagendarRevisoesAdaptativo(state.revisoes, dados.topicoId, hoje, D.sessoesDoPlano(state), topico.incidencia_pct);
     }
 
     salvar();
@@ -2680,8 +2680,9 @@
       });
 
       // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
-      const aj = D.ajustePosRevisao(rev, rev.resultadoPct, feitas);
       const t = D.topicoPorId(state, rev.topicoId);
+      const incT = t ? t.incidencia_pct : null;
+      const aj = D.ajustePosRevisao(rev, rev.resultadoPct, feitas, incT);
       if (t) {
         if (aj.subirPrioridade) t.prioridade = Math.max(1, (t.prioridade || 2) - 1);
         if (aj.reabrir) { t.status = 'em_curso'; t.reaberto = true; }
@@ -2709,7 +2710,7 @@
       }
       // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
       // ou encurta (indo mal) as próximas revisões pendentes.
-      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state));
+      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state), incT);
       if (aj.reabrir) {
         toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.revisaoExtraDias != null) {

@@ -64,3 +64,54 @@ test('revisaoReabreTopico: só 30d com <70%', () => {
   assert.equal(D.revisaoReabreTopico({ tipo: '30d' }, 70), false);
   assert.equal(D.revisaoReabreTopico({ tipo: '7d' }, 10), false);
 });
+
+// ---------- Ponderação por incidência (erro × incidência) ----------
+const revFeita = (topicoId, tipo, data, pct) =>
+  ({ topicoId, tipo, dataConcluida: data, resultadoPct: pct });
+
+test('moduladorIncidencia: rampa 0,5..1 (≥50% efeito cheio)', () => {
+  assert.equal(D.moduladorIncidencia(50), 1);
+  assert.equal(D.moduladorIncidencia(90), 1);   // satura
+  assert.equal(D.moduladorIncidencia(0), 0.5);  // piso
+  assert.equal(D.moduladorIncidencia(25), 0.75); // meio termo linear
+  assert.equal(D.moduladorIncidencia(null), 1);  // sem dado → cheio (retrocompat)
+});
+
+test('espaçamento: erro alto aproxima menos quando a incidência é baixa', () => {
+  const revs = [revFeita('t1', '7d', '2026-06-01', 40)]; // foi mal
+  const altaInc = D.fatorEspacamentoRevisao(revs, 't1', null, 90);
+  const baixaInc = D.fatorEspacamentoRevisao(revs, 't1', null, 5);
+  const semInc = D.fatorEspacamentoRevisao(revs, 't1', null);
+  assert.ok(altaInc < 1, 'erro alto encurta (fator < 1)');
+  assert.ok(baixaInc < 1, 'baixa incidência ainda encurta, não inverte');
+  assert.ok(baixaInc > altaInc, 'baixa incidência encurta MENOS que alta');
+  assert.equal(semInc, altaInc, 'sem param == efeito cheio (inc≥50)');
+});
+
+test('espaçamento: acerto alto espaça menos quando a incidência é baixa', () => {
+  const revs = [revFeita('t1', '7d', '2026-06-01', 95)]; // foi bem
+  const altaInc = D.fatorEspacamentoRevisao(revs, 't1', null, 90);
+  const baixaInc = D.fatorEspacamentoRevisao(revs, 't1', null, 5);
+  assert.ok(altaInc > 1, 'acerto alto espaça (fator > 1)');
+  assert.ok(baixaInc > 1 && baixaInc < altaInc, 'baixa incidência espaça MENOS, sem inverter');
+});
+
+test('espaçamento: caso médio (incidência ~25%, erro ~60%) fica entre os extremos', () => {
+  const revs = [revFeita('t1', '7d', '2026-06-01', 60)]; // vacilando
+  const alta = D.fatorEspacamentoRevisao(revs, 't1', null, 90);
+  const media = D.fatorEspacamentoRevisao(revs, 't1', null, 25);
+  const baixa = D.fatorEspacamentoRevisao(revs, 't1', null, 0);
+  assert.ok(alta < media && media < baixa, 'interpolação monotônica, sem salto');
+  assert.ok(baixa < 1, 'ainda aproxima');
+});
+
+test('reforço: baixa incidência adia o reforço (sem cancelar)', () => {
+  // <50% → base 2 dias; k=1 (inc≥50) mantém 2, k=0,5 (inc 0) dobra p/ 4
+  assert.equal(D.ajustePosRevisao({ tipo: '7d' }, 40, 10, 90).revisaoExtraDias, 2);
+  assert.equal(D.ajustePosRevisao({ tipo: '7d' }, 40, 10, 0).revisaoExtraDias, 4);
+  // <70% → base 3 dias; inc 0 → 6
+  assert.equal(D.ajustePosRevisao({ tipo: '7d' }, 60, 10, 90).revisaoExtraDias, 3);
+  assert.equal(D.ajustePosRevisao({ tipo: '7d' }, 60, 10, 0).revisaoExtraDias, 6);
+  // retrocompat: sem incidência == efeito cheio
+  assert.equal(D.ajustePosRevisao({ tipo: '7d' }, 40, 10).revisaoExtraDias, 2);
+});
