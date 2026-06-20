@@ -117,3 +117,27 @@ test('adicionarTopicosAoCiclo: adiciona na volta atual, ignora duplicatas', () =
   assert.equal(novo.metaMin, 30);
   assert.equal(novo.feitoMin, 0);
 });
+
+// ---- #1: espaçamento ponderado por recência ------------------------------
+test('fatorEspacamento: bom recente após ruim antigo não fica preso no piso', () => {
+  const revs = [
+    { topicoId: 't', tipo: '7d', dataConcluida: '2026-01-01', resultadoPct: 40 },  // mult 0.6
+    { topicoId: 't', tipo: '14d', dataConcluida: '2026-02-01', resultadoPct: 90 }, // mult 1.25 (recente)
+  ];
+  const f = D.fatorEspacamentoRevisao(revs, 't');
+  // produto puro daria 0.6*1.25=0.75; com recência o recente bom puxa para cima
+  assert.ok(f > 0.75, 'recência puxa acima do produto puro: ' + f);
+});
+
+test('fatorEspacamento: melhora recente > piora recente (mesma base)', () => {
+  const base = [{ topicoId: 't', tipo: '7d', dataConcluida: '2026-01-01', resultadoPct: 90 }];
+  const melhora = base.concat([{ topicoId: 't', tipo: '14d', dataConcluida: '2026-02-01', resultadoPct: 95 }]);
+  const piora = base.concat([{ topicoId: 't', tipo: '14d', dataConcluida: '2026-02-01', resultadoPct: 40 }]);
+  assert.ok(D.fatorEspacamentoRevisao(melhora, 't') > D.fatorEspacamentoRevisao(piora, 't'));
+});
+
+test('fatorEspacamento: respeita os limites [0.4, 2.2]', () => {
+  const ruins = [];
+  for (let i = 0; i < 8; i++) ruins.push({ topicoId: 't', tipo: '7d', dataConcluida: '2026-0' + (i + 1) + '-01', resultadoPct: 10 });
+  assert.ok(D.fatorEspacamentoRevisao(ruins, 't') >= 0.4);
+});
