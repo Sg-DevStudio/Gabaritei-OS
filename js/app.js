@@ -9375,62 +9375,8 @@
   });
   const botaoPerfil = document.getElementById('botao-perfil');
   if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);
-
-  // Aviso de nova versão (disparado pelo registro do service worker no index.html):
-  // card centralizado, com botão que ativa o SW em espera e recarrega o app, e
-  // opção "Agora não" (ou tocar fora) para dispensar — assim o aviso sempre sai
-  // da tela, com ou sem atualizar.
-  function mostrarBannerAtualizacao() {
-    if (document.getElementById('update-overlay')) return;
-    const ov = document.createElement('div');
-    ov.id = 'update-overlay';
-    ov.setAttribute('role', 'dialog');
-    ov.setAttribute('aria-label', 'Nova versão disponível');
-    ov.style.cssText = 'position:fixed;inset:0;z-index:300;display:flex;align-items:center;' +
-      'justify-content:center;background:rgba(10,12,18,0.55);padding:1.5rem';
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--vidro);color:var(--tinta);border:1px solid var(--linha);' +
-      'border-radius:16px;box-shadow:0 20px 50px rgba(10,12,18,0.45);max-width:340px;width:100%;' +
-      'padding:1.5rem 1.3rem;text-align:center';
-    card.innerHTML = '<div style="font-size:2rem;line-height:1">✨</div>' +
-      '<strong style="display:block;font-size:1.15rem;margin:0.6rem 0 0.35rem">Nova versão disponível</strong>' +
-      '<p style="margin:0 0 1.2rem;font-size:0.92rem;color:var(--grafite);line-height:1.4">' +
-      'Atualize para usar as últimas melhorias do app.</p>';
-    const btnAtualizar = document.createElement('button');
-    btnAtualizar.type = 'button';
-    btnAtualizar.className = 'botao';
-    btnAtualizar.style.cssText = 'width:100%;margin-bottom:0.55rem';
-    btnAtualizar.textContent = 'Atualizar agora';
-    btnAtualizar.addEventListener('click', function () {
-      // O card some NA HORA do clique (não fica "preso" enquanto atualiza).
-      ov.remove();
-      // Mostra um overlay neutro de "Atualizando…" só para não piscar a tela.
-      const aviso = document.createElement('div');
-      aviso.id = 'update-recarregando';
-      aviso.style.cssText = 'position:fixed;inset:0;z-index:300;display:flex;align-items:center;' +
-        'justify-content:center;background:rgba(10,12,18,0.55);color:#fff;font-weight:600';
-      aviso.textContent = 'Atualizando…';
-      document.body.appendChild(aviso);
-      if (typeof window.__ativarNovaVersaoSW === 'function') window.__ativarNovaVersaoSW();
-      // Rede de segurança: se o SW novo não assumir (controllerchange) em alguns
-      // segundos, recarrega assim mesmo — sem ficar preso esperando.
-      setTimeout(function () { window.location.reload(); }, 4000);
-    });
-    const btnDepois = document.createElement('button');
-    btnDepois.type = 'button';
-    btnDepois.className = 'botao-quieto';
-    btnDepois.style.cssText = 'width:100%';
-    btnDepois.textContent = 'Agora não';
-    btnDepois.addEventListener('click', function () { ov.remove(); });
-    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
-    card.appendChild(btnAtualizar);
-    card.appendChild(btnDepois);
-    ov.appendChild(card);
-    document.body.appendChild(ov);
-  }
-  window.addEventListener('sw-nova-versao', mostrarBannerAtualizacao);
-  // o evento pode ter sido disparado antes do app.js carregar
-  if (window.__novaVersaoSW) mostrarBannerAtualizacao();
+  // A atualização de versão agora é automática e silenciosa (service worker no
+  // index.html): sem card nem ação do usuário.
   // FAB speed-dial: toggle expande os atalhos rápidos (Desempenho / Timer).
   const fabRapido = document.getElementById('fab-rapido');
   const fabToggle = document.getElementById('fab-toggle');
