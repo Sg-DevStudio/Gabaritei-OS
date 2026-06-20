@@ -1,11 +1,11 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v73-banner';
+const CACHE = 'estudos-v74-simresp';
 const ESTATICOS = [
   './',
   './index.html',
   './manifest.json',
   './js/frases.js',
-  './css/styles.css?v=20260620a-metas',
+  './css/styles.css?v=20260620e-simresp',
   './js/domain.js?v=20260620a-metas',
   './js/store.js?v=20260620a-metas',
   './js/sync.js',
@@ -13,7 +13,7 @@ const ESTATICOS = [
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260620d-banner',
+  './js/app.js?v=20260620e-simresp',
   './icons/icone.svg'
 ];
 

@@ -3369,29 +3369,6 @@
     return (v != null && v > 0) ? v : metaAcertoGeral();
   }
 
-  // Mini-gráfico de barras da evolução dos simulados (% geral por data).
-  function tendenciaSimuladosHtml(tend, meta) {
-    if (!tend.pontos.length) return '';
-    const arrow = tend.tendencia === 'subindo' ? '📈 subindo' : tend.tendencia === 'caindo' ? '📉 caindo' : '➡️ estável';
-    const classe = tend.tendencia === 'subindo' ? 'ok' : tend.tendencia === 'caindo' ? 'alerta' : '';
-    const barras = tend.pontos.map(function (p) {
-      const h = Math.max(4, Math.round((p.pct / 100) * 100));
-      const cor = p.pct >= meta ? 'var(--correto)' : p.pct >= meta - 10 ? 'var(--alerta)' : 'var(--errado)';
-      return '<div class="sim-trend-col" title="' + esc(D.formatarDataBR(p.data)) + ': ' + p.pct + '%">' +
-        '<span class="sim-trend-bar" style="height:' + h + '%;background:' + cor + '"></span>' +
-        '<span class="sim-trend-lbl">' + p.pct + '</span></div>';
-    }).join('');
-    const deltaTxt = tend.deltaAnterior != null
-      ? (tend.deltaAnterior > 0 ? '+' : '') + tend.deltaAnterior + ' pts vs. o anterior'
-      : 'primeiro simulado';
-    return '<div class="card"><div class="card-cab-acao"><h3>Evolução dos simulados</h3>' +
-      '<span class="etiqueta etiqueta-' + (classe || 'agenda') + '">' + arrow + '</span></div>' +
-      '<div class="sim-trend" style="--meta:' + meta + '%">' + barras + '</div>' +
-      '<p class="sub" style="margin:0.5rem 0 0">Último: <strong>' + tend.ultimo + '%</strong> · ' + esc(deltaTxt) +
-      (tend.deltaPrimeiro != null ? ' · ' + (tend.deltaPrimeiro >= 0 ? '+' : '') + tend.deltaPrimeiro + ' pts desde o 1º' : '') +
-      ' · linha da meta: ' + meta + '%.</p></div>';
-  }
-
   // Ranking acionável: "o que mais cai × seu pior desempenho", com ação direta.
   function rankingAcionavelHtml() {
     const ranking = D.rankingAcionavel(state, 8, D.hojeISO());
@@ -3442,10 +3419,6 @@
         '<strong>Nenhum simulado registrado</strong>Registre o resultado por disciplina e veja a distância até a zona de nomeação.</div></div>';
       return html;
     }
-
-    // Evolução (tendência) dos simulados ao longo do tempo.
-    const tend = D.tendenciaSimulados(simuladosAtivos);
-    if (tend.pontos.length >= 1) html += tendenciaSimuladosHtml(tend, metaAcertoGeral());
 
     const ordenados = [...simuladosAtivos].sort(function (a, b) { return b.data.localeCompare(a.data); });
     ordenados.forEach(function (sim) {
