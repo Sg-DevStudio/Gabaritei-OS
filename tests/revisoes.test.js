@@ -115,3 +115,11 @@ test('reforço: baixa incidência adia o reforço (sem cancelar)', () => {
   // retrocompat: sem incidência == efeito cheio
   assert.equal(D.ajustePosRevisao({ tipo: '7d' }, 40, 10).revisaoExtraDias, 2);
 });
+
+test('agendarRevisoes: pular24h gera curva retroativa 3-7-14-30 (sem 24h)', () => {
+  const completa = D.agendarRevisoes('t1', '2026-06-20');
+  assert.deepEqual(completa.map(r => r.tipo), ['24h', '3d', '7d', '14d', '30d']);
+  const retro = D.agendarRevisoes('t1', '2026-06-20', { pular24h: true });
+  assert.deepEqual(retro.map(r => r.tipo), ['3d', '7d', '14d', '30d']);
+  assert.equal(retro[0].dataAgendada, '2026-06-23'); // base + 3 dias
+});

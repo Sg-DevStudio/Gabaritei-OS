@@ -80,14 +80,20 @@
   // Intervalos expansivos (1, 3, 7, 14, 30 dias) — alinhados à evidência de
   // repetição espaçada para achatar a curva do esquecimento. A 1ª revisão fica
   // em ~24h (a mais crítica) e as demais espaçam progressivamente.
-  function agendarRevisoes(topicoId, dataBaseISO) {
-    const intervalos = [
+  // `opcoes.pular24h`: omite a revisão de 24h. Usado no agendamento RETROATIVO em
+  // massa (tópicos marcados como "já estudei": ponto de partida, modo aprofundar,
+  // plano de exemplo) — como NÃO houve estudo no dia anterior, a 24h não se aplica
+  // e a curva começa em 3d. A 24h fica reservada para o estudo real do dia.
+  function agendarRevisoes(topicoId, dataBaseISO, opcoes) {
+    opcoes = opcoes || {};
+    let intervalos = [
       { tipo: '24h', dias: 1 },
       { tipo: '3d', dias: 3 },
       { tipo: '7d', dias: 7 },
       { tipo: '14d', dias: 14 },
       { tipo: '30d', dias: 30 }
     ];
+    if (opcoes.pular24h) intervalos = intervalos.filter(function (iv) { return iv.tipo !== '24h'; });
     return intervalos.map(function (iv) {
       return {
         id: 'rev-' + topicoId + '-' + iv.tipo + '-' + dataBaseISO, topicoId: topicoId, tipo: iv.tipo,
