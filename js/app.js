@@ -7974,13 +7974,23 @@
     let cabecalho, acoes;
     if (alerta.modo === 'ciclo') {
       const vr = alerta.voltasRestantes;
-      cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
-        '<h3>Reta final: ' + top.length + ' tópico' + (plural ? 's' : '') + ' pode' + (plural ? 'm' : '') + ' ficar de fora</h3>' +
-        '<p class="sub dialogo-msg">No seu ritmo restam ~' + vr + ' volta' + (vr > 1 ? 's' : '') +
-        ' até a prova. Estes tópicos (de menor incidência) não devem ser alcançados pelo ciclo. ' +
-        'Você decide: adicioná-los agora ou seguir focado no que mais cai.</p>';
-      acoes = '<button type="button" class="botao-quieto" data-cob="fechar">Manter como está</button>' +
-        '<button type="button" data-cob="addciclo">Adicionar ao ciclo</button>';
+      // Na reta final o app prega consolidar, não abrir matéria nova: adapta o tom
+      // e remove o "Adicionar ao ciclo" para não contradizer o modo reta final.
+      if (D.retaFinalInfo(state, D.hojeISO()).ativa) {
+        cabecalho = '<div class="dialogo-icone" aria-hidden="true">🏁</div>' +
+          '<h3>' + top.length + ' tópico' + (plural ? 's' : '') + ' não deve' + (plural ? 'm' : '') + ' ser visto' + (plural ? 's' : '') + ' a tempo</h3>' +
+          '<p class="sub dialogo-msg">Você está na reta final — é esperado deixar os de menor incidência de fora. ' +
+          'Em vez de abrir matéria nova, foque em consolidar o que já viu (questões, simulados e revisão).</p>';
+        acoes = '<button type="button" data-cob="fechar">Entendi</button>';
+      } else {
+        cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
+          '<h3>' + top.length + ' tópico' + (plural ? 's' : '') + ' pode' + (plural ? 'm' : '') + ' ficar de fora do ciclo</h3>' +
+          '<p class="sub dialogo-msg">No seu ritmo restam ~' + vr + ' volta' + (vr > 1 ? 's' : '') +
+          ' até a prova. Estes tópicos (de menor incidência) não devem ser alcançados pelo ciclo. ' +
+          'Você decide: adicioná-los agora ou seguir focado no que mais cai.</p>';
+        acoes = '<button type="button" class="botao-quieto" data-cob="fechar">Manter como está</button>' +
+          '<button type="button" data-cob="addciclo">Adicionar ao ciclo</button>';
+      }
     } else {
       const sa = alerta.semanasApos;
       cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
