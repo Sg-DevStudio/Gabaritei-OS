@@ -1205,14 +1205,15 @@
   }
 
   // Migração: planos criados ANTES da correção do "ponto de partida" têm dezenas
-  // de revisões empilhadas no mesmo dia (a curva completa de cada tópico marcado
-  // como "já estudei" foi ancorada na mesma data, com 24h e tudo). Isso entope o
-  // calendário. Aqui detectamos a parede e reconstruímos as revisões desses
-  // tópicos com a lógica nova (pula 24h + escalona a base). Guardas para não
-  // tocar em curvas legítimas: só age (a) quando há pilha de fato, (b) só em
-  // tópicos NUNCA estudados (sem sessão) e SEM nenhuma revisão concluída — ou
-  // seja, curvas que nunca saíram do agendamento em massa. Flag por plano evita
-  // reprocessar a cada load. Roda no plano ATIVO (usa as disciplinas dele).
+  // de revisões empilhadas no mesmo dia — a curva completa de cada tópico marcado
+  // como "já estudei/domino" foi ancorada na mesma data (com 24h e tudo), porque
+  // a versão antiga agendava revisão a partir de uma data passada inventada. Isso
+  // entope o calendário. No modelo novo a curva só nasce de estudo real, então
+  // aqui: (1) removemos essas revisões em massa e (2) devolvemos os tópicos à fila
+  // (status pendente + bagagem), para o aluno fazer a 1ª passada e a curva começar
+  // daí. Por fim regeneramos o cronograma para esses tópicos reaparecerem.
+  // Guardas: só age quando há pilha de fato e só em tópicos NUNCA estudados (sem
+  // sessão) e SEM revisão concluída. Flag por plano evita reprocessar a cada load.
   const LIMIAR_PILHA_REV = 6; // mais que isso no mesmo dia = parede
   function migrarRevisoesEmPilha() {
     if (!state.planoAtivoId || !state.plano) return 0;
@@ -1234,14 +1235,24 @@
     ativos.forEach(function (r) { if (!tocado[r.topicoId]) alvoSet[r.topicoId] = true; });
     const alvos = Object.keys(alvoSet);
     if (!alvos.length) return 0;
-    // remove as revisões pendentes desses tópicos (no plano ativo) e re-agenda em lote
+    // 1) remove as revisões em massa desses tópicos (pendentes, no plano ativo)
     state.revisoes = state.revisoes.filter(function (r) {
       if (!r) return false;
       const noAtivo = !r.planoId || r.planoId === state.planoAtivoId;
       return !(noAtivo && !r.dataConcluida && alvoSet[r.topicoId]);
     });
-    agendarRevisoesEmLote(alvos);
+    // 2) devolve os tópicos à fila: o status concluído/dominado vira pendente e
+    //    guarda a bagagem para deprioridade e esforço reduzido.
+    alvos.forEach(function (id) {
+      const t = D.topicoPorId(state, id);
+      if (!t) return;
+      if (t.status === 'dominado') t.bagagem = 'domino';
+      else if (t.status === 'teoria_concluida') t.bagagem = 'estudei';
+      t.status = 'pendente';
+    });
     state.plano.revisoesRedistribuidasEm = D.hojeISO();
+    // 3) regenera o cronograma para os tópicos devolvidos reaparecerem na fila.
+    if (state.plano.ritmos && state.plano.ritmoAtivo) recalcularPlanoAdaptativo(true);
     return alvos.length;
   }
 
@@ -6876,14 +6887,26 @@
     { id: 'estudei', rotulo: 'Já estudei' },
     { id: 'domino', rotulo: 'Já domino' }
   ];
-  function nivelConhDoStatus(s) {
-    if (s === 'dominado') return 'domino';
-    if (s === 'teoria_concluida') return 'estudei';
+  // Aceita o TÓPICO (lê a flag de bagagem) ou, por retrocompat, a string de status.
+  // Modelo novo: "já estudei"/"já domino" não viram mais teoria_concluida/dominado
+  // (que sumiam da fila); ficam pendentes com t.bagagem marcando o nível, então a
+  // origem do nível precisa vir da bagagem.
+  function nivelConhDoStatus(t) {
+    if (t && typeof t === 'object') {
+      if (t.bagagem === 'domino') return 'domino';
+      if (t.bagagem === 'estudei') return 'estudei';
+      return nivelConhDoStatus(t.status);
+    }
+    if (t === 'dominado') return 'domino';
+    if (t === 'teoria_concluida') return 'estudei';
     return 'novo';
   }
+  // No modelo novo, "já estudei" e "já domino" voltam para a fila (status pendente)
+  // para uma 1ª passada guiada pela plataforma — a curva de revisão só nasce desse
+  // estudo real, nunca de uma data-base inventada. O nível fica em t.bagagem (ver
+  // aplicação no wizard), usado para deprioridade e para reduzir o esforço estimado.
   function statusDoNivelConh(n, statusAtual) {
-    if (n === 'domino') return 'dominado';
-    if (n === 'estudei') return 'teoria_concluida';
+    if (n === 'estudei' || n === 'domino') return 'pendente';
     // "novo": só rebaixa quem estava concluído; não mexe em em_curso/pendente
     return (statusAtual === 'teoria_concluida' || statusAtual === 'dominado') ? 'pendente' : (statusAtual || 'pendente');
   }
@@ -6976,6 +6999,11 @@
       });
       const usarIncidencia = porIncidencia && !disciplinaNuncaVista;
       topicos.sort(function (a, b) {
+        // Tópicos com bagagem ("já estudei/domino") vão por último: o aluno faz a
+        // 1ª passada deles depois dos que nunca viu.
+        const bagA = a.topico.bagagem ? 1 : 0;
+        const bagB = b.topico.bagagem ? 1 : 0;
+        if (bagA !== bagB) return bagA - bagB;
         if (usarIncidencia) {
           // ataca primeiro os tópicos mais cobrados nas provas (regra 80/20)
           return (b.topico.incidencia_pct || 0) - (a.topico.incidencia_pct || 0) ||
@@ -7342,7 +7370,7 @@
     const ppHtml = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
       const tops = (d.topicos || []).filter(function (t) { return !t.orfao; });
       const linhas = tops.map(function (t) {
-        const atual = nivelConhDoStatus(t.status);
+        const atual = nivelConhDoStatus(t);
         return '<div class="gp-pp-top"><span class="gp-pp-top-nome">' + esc(t.nome) + '</span>' +
           '<select class="gp-pp-sel" data-pp-top="' + esc(t.id) + '">' +
           NIVEIS_CONH.map(function (n) { return '<option value="' + n.id + '"' + (atual === n.id ? ' selected' : '') + '>' + n.rotulo + '</option>'; }).join('') +
@@ -7549,7 +7577,7 @@
         (d.topicos || []).forEach(function (t) {
           if (t.orfao) return;
           const base = t.horas_estimadas || 2;
-          const nivel = nivelPorTop[t.id] || nivelConhDoStatus(t.status);
+          const nivel = nivelPorTop[t.id] || nivelConhDoStatus(t);
           const fator = nivel === 'domino' ? 0.15 : nivel === 'estudei' ? 0.5 : 1;
           h += base * fator;
         });
@@ -7688,19 +7716,17 @@
         if (disc && sel) disc.dificuldade = sel.getAttribute('data-dif');
       });
       // Ponto de partida: semeia o status de cada tópico a partir do que o aluno
-      // já sabe. "Já estudei"/"já domino" também agendam o ciclo de revisões.
-      const idsPontoPartida = [];
+      // já sabe. "Já estudei"/"já domino" NÃO agendam revisão aqui — viram tópicos
+      // pendentes com bagagem (t.bagagem), que voltam à fila com prioridade menor
+      // para a 1ª passada guiada. A curva de revisão só nasce desse estudo real
+      // (data conhecida), nunca de uma data passada que não dá para saber.
       m.querySelectorAll('.gp-pp-sel').forEach(function (sel) {
         const t = D.topicoPorId(state, sel.getAttribute('data-pp-top'));
         if (!t) return;
-        const novoStatus = statusDoNivelConh(sel.value, t.status);
-        t.status = novoStatus;
-        if (novoStatus === 'teoria_concluida' || novoStatus === 'dominado') idsPontoPartida.push(t.id);
+        t.status = statusDoNivelConh(sel.value, t.status);
+        if (sel.value === 'estudei' || sel.value === 'domino') t.bagagem = sel.value;
+        else delete t.bagagem;
       });
-      // Retroativo: tópicos que o aluno já estudou/domina não foram estudados
-      // ontem — pula a 24h e escalona a data-base pra não empilhar (era o que
-      // entupia o calendário de quem trazia muita bagagem no ponto de partida).
-      agendarRevisoesEmLote(idsPontoPartida);
       state.plano.pontoPartida = { nivel: ppNivelSel, definidoEm: D.hojeISO() };
       // Data-alvo definida no passo Prazo → vira a janela da prova do plano.
       if (dataAlvo) {
