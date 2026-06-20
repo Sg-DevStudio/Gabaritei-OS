@@ -1110,6 +1110,24 @@
     return { id: 'rev-' + topicoId + '-manut-' + data, topicoId: topicoId, tipo: 'manutenção', dataAgendada: data, dataConcluida: null, resultadoPct: null };
   }
 
+  // ---------- RN13 — Revisão como item de tempo (fonte única no calendário) ----------
+  // Duração estimada por tipo de revisão (min): curta no início da curva, mais
+  // longa nas pontas; reforço/manutenção tratados como revisão "cheia". É o que
+  // o calendário mostra e o que as revisões descontam do tempo do dia.
+  const DURACAO_REVISAO_MIN = { '24h': 10, '3d': 15, '7d': 15, '14d': 20, '30d': 20, 'manutenção': 20, 'reforço': 20 };
+  function duracaoRevisaoMin(tipo) { return DURACAO_REVISAO_MIN[tipo] || 15; }
+
+  // Revisões PENDENTES (não concluídas) agendadas para um dia, com tópico válido.
+  // Fonte única para Hoje, aba Revisões e calendário — todos leem daqui.
+  function revisoesPendentesNoDia(state, dia) {
+    return doPlanoAtivo(state, state.revisoes || []).filter(function (r) {
+      return r && !r.dataConcluida && r.dataAgendada === dia && topicoPorId(state, r.topicoId);
+    });
+  }
+  function minutosRevisaoNoDia(state, dia) {
+    return revisoesPendentesNoDia(state, dia).reduce(function (n, r) { return n + duracaoRevisaoMin(r.tipo); }, 0);
+  }
+
   // ---------- Espaçamento adaptativo das revisões (curva por desempenho) ----------
   // A cadência de revisão reflete o histórico de acertos do tópico: quem vai
   // melhorando precisa revisar com MENOS frequência (intervalos esticam), quem
@@ -1683,6 +1701,7 @@
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
+    duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel,
     revisarFlashcard, flashcardDevido

@@ -141,3 +141,40 @@ test('fatorEspacamento: respeita os limites [0.4, 2.2]', () => {
   for (let i = 0; i < 8; i++) ruins.push({ topicoId: 't', tipo: '7d', dataConcluida: '2026-0' + (i + 1) + '-01', resultadoPct: 10 });
   assert.ok(D.fatorEspacamentoRevisao(ruins, 't') >= 0.4);
 });
+
+// ---- #2: revisão como item de tempo (fonte única no calendário) ----------
+function stateRevisoes() {
+  return {
+    planoAtivoId: 'p1',
+    disciplinas: [disc('D0', 'Português', [top('D0-1', 50), top('D0-2', 30)])],
+    revisoes: [
+      { id: 'r1', planoId: 'p1', topicoId: 'D0-1', tipo: '24h', dataAgendada: '2026-06-25', dataConcluida: null },
+      { id: 'r2', planoId: 'p1', topicoId: 'D0-2', tipo: '30d', dataAgendada: '2026-06-25', dataConcluida: null },
+      { id: 'r3', planoId: 'p1', topicoId: 'D0-1', tipo: '7d', dataAgendada: '2026-06-26', dataConcluida: null },
+      { id: 'r4', planoId: 'p1', topicoId: 'D0-1', tipo: '3d', dataAgendada: '2026-06-25', dataConcluida: '2026-06-25' }, // já feita
+      { id: 'r5', planoId: 'p1', topicoId: 'ZZZ', tipo: '24h', dataAgendada: '2026-06-25', dataConcluida: null },       // tópico inexistente
+    ],
+  };
+}
+
+test('duracaoRevisaoMin: por tipo (10/15/20) e fallback', () => {
+  assert.equal(D.duracaoRevisaoMin('24h'), 10);
+  assert.equal(D.duracaoRevisaoMin('7d'), 15);
+  assert.equal(D.duracaoRevisaoMin('30d'), 20);
+  assert.equal(D.duracaoRevisaoMin('reforço'), 20);
+  assert.equal(D.duracaoRevisaoMin('xpto'), 15);
+});
+
+test('revisoesPendentesNoDia: só pendentes, do dia e com tópico válido', () => {
+  const st = stateRevisoes();
+  const r = D.revisoesPendentesNoDia(st, '2026-06-25');
+  // r1 e r2 entram; r4 (feita), r5 (tópico inexistente) e r3 (outro dia) saem
+  assert.deepEqual(r.map((x) => x.id).sort(), ['r1', 'r2']);
+});
+
+test('minutosRevisaoNoDia: soma as durações do dia', () => {
+  const st = stateRevisoes();
+  assert.equal(D.minutosRevisaoNoDia(st, '2026-06-25'), 10 + 20); // 24h + 30d
+  assert.equal(D.minutosRevisaoNoDia(st, '2026-06-26'), 15);       // 7d
+  assert.equal(D.minutosRevisaoNoDia(st, '2026-06-27'), 0);
+});
