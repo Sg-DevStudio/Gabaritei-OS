@@ -1,11 +1,11 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v82-tour134';
+const CACHE = 'estudos-v83-donut';
 const ESTATICOS = [
   './',
   './index.html',
   './manifest.json',
   './js/frases.js',
-  './css/styles.css?v=20260620i-tour2',
+  './css/styles.css?v=20260620n-donut',
   './js/domain.js?v=20260620a-metas',
   './js/store.js?v=20260620h-tour',
   './js/sync.js',
@@ -13,7 +13,7 @@ const ESTATICOS = [
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260620m-tour134',
+  './js/app.js?v=20260620n-donut',
   './icons/icone.svg'
 ];
 

@@ -7898,8 +7898,67 @@
 
     html += '</div>' +
       '<div class="ciclo-rodape"><button class="botao-mini botao-secundario" id="ciclo-add">+ Adicionar matéria</button>' +
-      '<span class="paleta-dica">arraste pelo ⠿ ou use ▲▼ para reordenar</span></div></div>';
+      '<span class="paleta-dica">arraste pelo ⠿ ou use ▲▼ para reordenar</span></div>' +
+      cicloDonutHtml() +
+      '</div>';
     return html;
+  }
+
+  // Donut da composição de UMA volta do ciclo: cada fatia = uma disciplina,
+  // proporcional ao tempo dela na volta. Hover/toque mostra a disciplina no
+  // centro; o centro padrão mostra as voltas estimadas até a prova.
+  function cicloDonutHtml() {
+    const blocos = (state.plano.ciclo && state.plano.ciclo.blocos) || [];
+    if (blocos.length === 0) return '';
+    const porDisc = {};
+    blocos.forEach(function (b) {
+      const d = D.disciplinaPorId(state, b.disciplinaId);
+      const id = b.disciplinaId;
+      if (!porDisc[id]) porDisc[id] = { nome: d ? nomeDiscCurto(d.nome) : id, cor: d ? d.cor : '#9A9DA3', min: 0 };
+      porDisc[id].min += b.metaMin || 0;
+    });
+    const fatias = Object.keys(porDisc).map(function (k) { return porDisc[k]; })
+      .filter(function (f) { return f.min > 0; })
+      .sort(function (a, b) { return b.min - a.min; });
+    const total = fatias.reduce(function (n, f) { return n + f.min; }, 0);
+    if (total <= 0 || fatias.length === 0) return '';
+
+    // Voltas estimadas até a prova = (semanas restantes × min/semana) ÷ tempo/volta.
+    const minSemana = totalMinutosRotina(rotinaEstudosAtual());
+    const janela = state.plano.radar && state.plano.radar.janela_prova;
+    let voltas = null;
+    if (janela && janela[1] && minSemana > 0) {
+      const provaISO = janela[1].length === 7 ? janela[1] + '-01' : janela[1];
+      const dias = D.diffDias(D.hojeISO(), provaISO);
+      if (dias > 0) voltas = Math.max(1, Math.round((dias / 7 * minSemana) / total));
+    }
+
+    const R = 45, W = 18, C = 2 * Math.PI * R;
+    let acc = 0;
+    const segs = fatias.map(function (f) {
+      const len = (f.min / total) * C;
+      const seg = '<circle class="ciclo-donut-seg" cx="60" cy="60" r="' + R + '" fill="none" stroke="' + esc(f.cor) + '" stroke-width="' + W + '"' +
+        ' stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-acc).toFixed(2) + '"' +
+        ' tabindex="0" role="img" data-donut-nome="' + esc(f.nome) + '" data-donut-min="' + f.min + '" data-donut-pct="' + Math.round((f.min / total) * 100) + '"></circle>';
+      acc += len;
+      return seg;
+    }).join('');
+
+    const centroPadrao = voltas
+      ? '<strong>~' + voltas + ' voltas</strong><span>' + esc(D.formatarMin(total)) + ' / volta</span>'
+      : '<strong>' + esc(D.formatarMin(total)) + '</strong><span>por volta</span>';
+    const legenda = fatias.map(function (f) {
+      return '<span class="ciclo-donut-chip"><span class="ciclo-donut-cor" style="background:' + esc(f.cor) + '"></span>' +
+        esc(f.nome) + ' · ' + esc(D.formatarMin(f.min)) + '</span>';
+    }).join('');
+
+    return '<div class="ciclo-donut-card">' +
+      '<h4>🍩 Composição da volta' + (voltas ? ' — ~' + voltas + ' voltas até a prova' : '') + '</h4>' +
+      '<p class="sub" style="margin:-0.2rem 0 0.7rem">Passe o mouse (ou toque) numa fatia para ver a disciplina.</p>' +
+      '<div class="ciclo-donut-wrap"><div class="ciclo-donut">' +
+      '<svg viewBox="0 0 120 120"><g transform="rotate(-90 60 60)">' + segs + '</g></svg>' +
+      '<div class="ciclo-donut-centro" id="ciclo-donut-centro">' + centroPadrao + '</div>' +
+      '</div><div class="ciclo-donut-legenda">' + legenda + '</div></div></div>';
   }
 
   // Tela de detalhes de um dia (a partir da visão mensal estilo Google)
@@ -8162,6 +8221,26 @@
     if (add) add.addEventListener('click', function () { abrirEditarCiclo(null); });
     const reiniciar = raiz.querySelector('#ciclo-reiniciar');
     if (reiniciar) reiniciar.addEventListener('click', reiniciarVoltaCiclo);
+
+    // Donut do ciclo: hover/toque/foco numa fatia mostra a disciplina no centro.
+    const donutCentro = raiz.querySelector('#ciclo-donut-centro');
+    if (donutCentro) {
+      const padrao = donutCentro.innerHTML;
+      raiz.querySelectorAll('.ciclo-donut-seg').forEach(function (seg) {
+        const mostra = function () {
+          donutCentro.innerHTML = '<strong>' + esc(seg.getAttribute('data-donut-nome')) + '</strong>' +
+            '<span>' + esc(D.formatarMin(parseInt(seg.getAttribute('data-donut-min'), 10) || 0)) +
+            ' · ' + esc(seg.getAttribute('data-donut-pct')) + '%</span>';
+          raiz.querySelectorAll('.ciclo-donut-seg').forEach(function (s) { s.classList.toggle('ativa', s === seg); });
+        };
+        const some = function () { donutCentro.innerHTML = padrao; seg.classList.remove('ativa'); };
+        seg.addEventListener('mouseenter', mostra);
+        seg.addEventListener('mouseleave', some);
+        seg.addEventListener('focus', mostra);
+        seg.addEventListener('blur', some);
+        seg.addEventListener('touchstart', mostra, { passive: true });
+      });
+    }
 
     raiz.querySelectorAll('[data-ciclo-mover]').forEach(function (b) {
       b.addEventListener('click', function () {
