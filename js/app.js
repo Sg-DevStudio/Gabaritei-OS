@@ -1204,6 +1204,47 @@
     return agendou;
   }
 
+  // Migração: planos criados ANTES da correção do "ponto de partida" têm dezenas
+  // de revisões empilhadas no mesmo dia (a curva completa de cada tópico marcado
+  // como "já estudei" foi ancorada na mesma data, com 24h e tudo). Isso entope o
+  // calendário. Aqui detectamos a parede e reconstruímos as revisões desses
+  // tópicos com a lógica nova (pula 24h + escalona a base). Guardas para não
+  // tocar em curvas legítimas: só age (a) quando há pilha de fato, (b) só em
+  // tópicos NUNCA estudados (sem sessão) e SEM nenhuma revisão concluída — ou
+  // seja, curvas que nunca saíram do agendamento em massa. Flag por plano evita
+  // reprocessar a cada load. Roda no plano ATIVO (usa as disciplinas dele).
+  const LIMIAR_PILHA_REV = 6; // mais que isso no mesmo dia = parede
+  function migrarRevisoesEmPilha() {
+    if (!state.planoAtivoId || !state.plano) return 0;
+    if (state.plano.revisoesRedistribuidasEm) return 0; // já migrado
+    const ativos = doAtivo(state.revisoes).filter(function (r) {
+      return r && !r.dataConcluida && D.topicoPorId(state, r.topicoId);
+    });
+    if (ativos.length === 0) return 0;
+    // há parede? algum dia concentra muitas revisões pendentes
+    const porDia = {};
+    ativos.forEach(function (r) { porDia[r.dataAgendada] = (porDia[r.dataAgendada] || 0) + 1; });
+    const temPilha = Object.keys(porDia).some(function (d) { return porDia[d] > LIMIAR_PILHA_REV; });
+    if (!temPilha) return 0;
+    // tópicos "tocados" (estudados de verdade ou com revisão concluída) ficam de fora
+    const tocado = {};
+    doAtivo(state.revisoes).forEach(function (r) { if (r && r.dataConcluida) tocado[r.topicoId] = true; });
+    doAtivo(state.sessoes).forEach(function (s) { if (s && s.topicoId) tocado[s.topicoId] = true; });
+    const alvoSet = {};
+    ativos.forEach(function (r) { if (!tocado[r.topicoId]) alvoSet[r.topicoId] = true; });
+    const alvos = Object.keys(alvoSet);
+    if (!alvos.length) return 0;
+    // remove as revisões pendentes desses tópicos (no plano ativo) e re-agenda em lote
+    state.revisoes = state.revisoes.filter(function (r) {
+      if (!r) return false;
+      const noAtivo = !r.planoId || r.planoId === state.planoAtivoId;
+      return !(noAtivo && !r.dataConcluida && alvoSet[r.topicoId]);
+    });
+    agendarRevisoesEmLote(alvos);
+    state.plano.revisoesRedistribuidasEm = D.hojeISO();
+    return alvos.length;
+  }
+
   // Conclui a teoria de um tópico. Se há um cronômetro em andamento DESTE tópico,
   // finaliza e registra a sessão (assim o tempo de hoje conta na carga diária e o
   // bloco aparece riscado no calendário) — além de agendar as revisões. Sem timer
@@ -7648,13 +7689,18 @@
       });
       // Ponto de partida: semeia o status de cada tópico a partir do que o aluno
       // já sabe. "Já estudei"/"já domino" também agendam o ciclo de revisões.
+      const idsPontoPartida = [];
       m.querySelectorAll('.gp-pp-sel').forEach(function (sel) {
         const t = D.topicoPorId(state, sel.getAttribute('data-pp-top'));
         if (!t) return;
         const novoStatus = statusDoNivelConh(sel.value, t.status);
         t.status = novoStatus;
-        if (novoStatus === 'teoria_concluida' || novoStatus === 'dominado') agendarRevisoesSeNecessario(t.id);
+        if (novoStatus === 'teoria_concluida' || novoStatus === 'dominado') idsPontoPartida.push(t.id);
       });
+      // Retroativo: tópicos que o aluno já estudou/domina não foram estudados
+      // ontem — pula a 24h e escalona a data-base pra não empilhar (era o que
+      // entupia o calendário de quem trazia muita bagagem no ponto de partida).
+      agendarRevisoesEmLote(idsPontoPartida);
       state.plano.pontoPartida = { nivel: ppNivelSel, definidoEm: D.hojeISO() };
       // Data-alvo definida no passo Prazo → vira a janela da prova do plano.
       if (dataAlvo) {
@@ -9821,6 +9867,9 @@
   atualizarTituloTimer(estadoInicialTimer);
   if (estadoInicialTimer && estadoInicialTimer.limiteAtingido) avisarLimiteTimer(estadoInicialTimer);
 
+  // Cura planos antigos com a parede de revisões empilhadas (ponto de partida).
+  if (migrarRevisoesEmPilha() > 0) salvar();
+
   render();
 
   // Se o Firebase nao confirmar a sessao em poucos segundos (offline, bloqueado),
@@ -9835,7 +9884,10 @@
     obterEstado: function () { return state; },
     aplicarEstado: function (novoState, silencioso) {
       state = novoState;
-      window.Store.salvar(state, { marcarAlterado: false });
+      // Estado vindo do Firebase pode trazer a parede de revisões antiga: cura e
+      // marca como alterado para ressincronizar o resultado.
+      const curou = migrarRevisoesEmPilha() > 0;
+      window.Store.salvar(state, { marcarAlterado: curou });
       render();
       if (!silencioso) toast('Dados sincronizados', 'sucesso');
     }
