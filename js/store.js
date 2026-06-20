@@ -256,6 +256,12 @@
     if (!state.config.criadoEm) state.config.criadoEm = agoraISO();
     if (!state.config.atualizadoEm) state.config.atualizadoEm = state.config.criadoEm;
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
+    // Metas de acerto definidas pelo aluno: % geral (null = usa a nota de corte do
+    // plano) e overrides por disciplina ({ disciplinaId: pct }).
+    if (state.config.metaAcertoPct === undefined) state.config.metaAcertoPct = null;
+    if (!state.config.metaAcertoDisc || typeof state.config.metaAcertoDisc !== 'object' || Array.isArray(state.config.metaAcertoDisc)) {
+      state.config.metaAcertoDisc = {};
+    }
     if (state.config.onboardingNomeVisto === undefined) state.config.onboardingNomeVisto = !!state.config.nomeUsuario;
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';

@@ -3356,6 +3356,69 @@
   }
 
   // ---------------- TELA: Simulados (F3) ----------------
+  // Metas de acerto do aluno (Perfil). % geral cai para a nota de corte do plano
+  // quando não definida; a meta por disciplina cai para a geral.
+  function metaAcertoGeral() {
+    const m = state.config && state.config.metaAcertoPct;
+    if (m != null && m > 0) return m;
+    return (state.plano && state.plano.meta && state.plano.meta.corte_pct) || 70;
+  }
+  function metaAcertoDisciplina(discId) {
+    const mapa = (state.config && state.config.metaAcertoDisc) || {};
+    const v = mapa[discId];
+    return (v != null && v > 0) ? v : metaAcertoGeral();
+  }
+
+  // Mini-gráfico de barras da evolução dos simulados (% geral por data).
+  function tendenciaSimuladosHtml(tend, meta) {
+    if (!tend.pontos.length) return '';
+    const arrow = tend.tendencia === 'subindo' ? '📈 subindo' : tend.tendencia === 'caindo' ? '📉 caindo' : '➡️ estável';
+    const classe = tend.tendencia === 'subindo' ? 'ok' : tend.tendencia === 'caindo' ? 'alerta' : '';
+    const barras = tend.pontos.map(function (p) {
+      const h = Math.max(4, Math.round((p.pct / 100) * 100));
+      const cor = p.pct >= meta ? 'var(--correto)' : p.pct >= meta - 10 ? 'var(--alerta)' : 'var(--errado)';
+      return '<div class="sim-trend-col" title="' + esc(D.formatarDataBR(p.data)) + ': ' + p.pct + '%">' +
+        '<span class="sim-trend-bar" style="height:' + h + '%;background:' + cor + '"></span>' +
+        '<span class="sim-trend-lbl">' + p.pct + '</span></div>';
+    }).join('');
+    const deltaTxt = tend.deltaAnterior != null
+      ? (tend.deltaAnterior > 0 ? '+' : '') + tend.deltaAnterior + ' pts vs. o anterior'
+      : 'primeiro simulado';
+    return '<div class="card"><div class="card-cab-acao"><h3>Evolução dos simulados</h3>' +
+      '<span class="etiqueta etiqueta-' + (classe || 'agenda') + '">' + arrow + '</span></div>' +
+      '<div class="sim-trend" style="--meta:' + meta + '%">' + barras + '</div>' +
+      '<p class="sub" style="margin:0.5rem 0 0">Último: <strong>' + tend.ultimo + '%</strong> · ' + esc(deltaTxt) +
+      (tend.deltaPrimeiro != null ? ' · ' + (tend.deltaPrimeiro >= 0 ? '+' : '') + tend.deltaPrimeiro + ' pts desde o 1º' : '') +
+      ' · linha da meta: ' + meta + '%.</p></div>';
+  }
+
+  // Ranking acionável: "o que mais cai × seu pior desempenho", com ação direta.
+  function rankingAcionavelHtml() {
+    const ranking = D.rankingAcionavel(state, 8, D.hojeISO());
+    if (!ranking.length) return '';
+    let html = '<div class="card"><h3>⚡ Prioridade cirúrgica</h3>' +
+      '<p class="sub" style="margin:0 0 0.6rem">Ordenado pelo que <strong>mais cai</strong> × seu <strong>pior desempenho</strong> (× proximidade da prova). Ataque de cima para baixo.</p>';
+    ranking.forEach(function (r, i) {
+      const d = D.disciplinaPorId(state, r.disciplinaId);
+      const metaD = metaAcertoDisciplina(r.disciplinaId);
+      const desempTxt = r.pct == null
+        ? '<span class="sim-rk-sem">sem questões ainda — diagnostique</span>'
+        : '<span class="' + (r.pct >= metaD ? 'painel-acertos' : 'painel-erros') + '">' + r.pct + '% em ' + r.feitas + ' q</span> <span class="sim-rk-meta">(meta ' + metaD + '%)</span>';
+      const acao = r.reaberto
+        ? '<span class="etiqueta etiqueta-reaberto">na fila</span>'
+        : '<div class="fila-acoes">' +
+          '<button class="botao-mini botao-quieto" data-sim-timer="' + esc(r.topicoId) + '">Timer</button>' +
+          '<button class="botao-mini" data-sim-reg="' + esc(r.topicoId) + '">Questões</button>' +
+          '<button class="botao-mini botao-quieto" data-fila="' + esc(r.topicoId) + '">→ fila</button></div>';
+      html += '<div class="fila-item sim-rk-item">' +
+        '<span class="sim-rk-pos">' + (i + 1) + '</span>' +
+        '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(r.nome) + '</div>' +
+        '<div class="fila-sub">' + tagIncidenciaHtml(r.incidencia, false) + ' · ' + desempTxt + '</div></div>' +
+        acao + '</div>';
+    });
+    return html + '</div>';
+  }
+
   function telaSimulados() {
     if (!state.plano) {
       return '<h1>Simulados</h1><div class="card"><div class="estado-vazio">' +
@@ -3379,6 +3442,10 @@
         '<strong>Nenhum simulado registrado</strong>Registre o resultado por disciplina e veja a distância até a zona de nomeação.</div></div>';
       return html;
     }
+
+    // Evolução (tendência) dos simulados ao longo do tempo.
+    const tend = D.tendenciaSimulados(simuladosAtivos);
+    if (tend.pontos.length >= 1) html += tendenciaSimuladosHtml(tend, metaAcertoGeral());
 
     const ordenados = [...simuladosAtivos].sort(function (a, b) { return b.data.localeCompare(a.data); });
     ordenados.forEach(function (sim) {
@@ -3434,21 +3501,9 @@
       html += '</div>';
     }
 
-    // 3 piores tópicos com dados (para realimentar a fila)
-    const piores = D.pioresTopicos(state, 3);
-    if (piores.length > 0) {
-      html += '<div class="card"><h3>Piores tópicos com registro (mín. 5 questões)</h3>';
-      piores.forEach(function (p) {
-        html += '<div class="fila-item">' + bolha(p.topico.status) +
-          '<div class="fila-info"><div class="fila-titulo">' + tagDisc(p.disciplina) + ' ' + esc(p.topico.nome) + '</div>' +
-          '<div class="fila-sub">' + p.pct + '% de acerto em ' + p.feitas + ' questões</div></div>' +
-          (p.topico.reaberto
-            ? '<span class="etiqueta etiqueta-reaberto">na fila</span>'
-            : '<button class="botao-mini" data-fila="' + esc(p.topico.id) + '">Mandar para a fila</button>') +
-          '</div>';
-      });
-      html += '</div>';
-    }
+    // Ranking acionável: o que mais cai × seu pior desempenho (substitui a lista
+    // simples de "piores tópicos" por uma priorização estratégica com ação).
+    html += rankingAcionavelHtml();
     return html;
   }
 
@@ -3532,6 +3587,12 @@
         salvar(); render();
         toast('Tópico na fila da semana', 'sucesso');
       });
+    });
+    raiz.querySelectorAll('[data-sim-timer]').forEach(function (b) {
+      b.addEventListener('click', function () { timerPreselecao = b.getAttribute('data-sim-timer'); location.hash = '#timer'; });
+    });
+    raiz.querySelectorAll('[data-sim-reg]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirRegistro({ topicoId: b.getAttribute('data-sim-reg'), tipo: 'questoes', aoSalvar: function () { render(); } }); });
     });
   }
 
@@ -9048,6 +9109,33 @@
   }
 
   // ---------------- Perfil (menu superior) ----------------
+  // Bloco de metas no Perfil: questões/semana, % de acerto geral e por disciplina.
+  function perfilMetasHtml() {
+    const metaQ = (state.config && state.config.metaQuestoesSemana != null) ? state.config.metaQuestoesSemana : 100;
+    const geral = metaAcertoGeral();
+    const geralVal = (state.config && state.config.metaAcertoPct) ? state.config.metaAcertoPct : '';
+    const corte = (state.plano && state.plano.meta && state.plano.meta.corte_pct) || 70;
+    const discs = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    let porDisc = '';
+    if (discs.length) {
+      porDisc = '<details class="pf-metas-disc"><summary>Meta por disciplina (opcional)</summary>' +
+        '<p class="sub" style="margin:0.3rem 0 0.5rem">Em branco usa a meta geral (' + geral + '%).</p>' +
+        discs.map(function (d) {
+          const v = (state.config.metaAcertoDisc && state.config.metaAcertoDisc[d.id]) || '';
+          return '<label class="pf-meta-linha"><span>' + esc(nomeDiscCurto(d.nome)) + '</span>' +
+            '<input type="number" min="0" max="100" data-meta-disc="' + esc(d.id) + '" value="' + esc(String(v)) + '" placeholder="' + geral + '"></label>';
+        }).join('') + '</details>';
+    }
+    return '<div class="card card-quieto pf-metas" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
+      '<strong style="display:block;font-size:0.95rem">🎯 Minhas metas</strong>' +
+      '<label class="pf-meta-linha"><span>Questões por semana</span>' +
+      '<input id="pf-meta-q" type="number" min="0" max="2000" value="' + metaQ + '"></label>' +
+      '<label class="pf-meta-linha"><span>Acerto geral (%)</span>' +
+      '<input id="pf-meta-geral" type="number" min="0" max="100" value="' + esc(String(geralVal)) + '" placeholder="' + corte + ' (corte)"></label>' +
+      porDisc +
+      '</div>';
+  }
+
   function abrirPerfilUsuario() {
     const atual = statusSincronizacao();
     const email = atual && atual.usuario && atual.usuario.email ? atual.usuario.email : null;
@@ -9061,6 +9149,7 @@
       '<input id="pf-som-conquistas" type="checkbox"' + (state.config.somConquistasOff ? '' : ' checked') + '></label>' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
+      perfilMetasHtml() +
       '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
       '<strong style="display:block;font-size:0.95rem">Calendário</strong>' +
       '<p class="sub" style="margin:0.3rem 0 0">Exporte um arquivo <strong>.ics</strong> para importar no Google Calendar, Apple ou Outlook.</p>' +
@@ -9096,6 +9185,17 @@
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
       state.config.onboardingNomeVisto = true;
       state.config.somConquistasOff = pfSom ? !pfSom.checked : state.config.somConquistasOff;
+      // Metas
+      const mq = m.querySelector('#pf-meta-q');
+      if (mq) state.config.metaQuestoesSemana = Math.max(0, Math.min(2000, parseInt(mq.value, 10) || 0));
+      const mg = m.querySelector('#pf-meta-geral');
+      if (mg) { const v = parseInt(mg.value, 10); state.config.metaAcertoPct = (v > 0 && v <= 100) ? v : null; }
+      const mapa = {};
+      m.querySelectorAll('[data-meta-disc]').forEach(function (inp) {
+        const v = parseInt(inp.value, 10);
+        if (v > 0 && v <= 100) mapa[inp.getAttribute('data-meta-disc')] = v;
+      });
+      state.config.metaAcertoDisc = mapa;
       salvar();
       fecharModal();
       render();

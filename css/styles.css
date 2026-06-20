@@ -875,6 +875,25 @@ html[data-tema="escuro"] .ic-tema-sol { display: block; }
   .erro-rot { flex-basis: 7rem; max-width: 7rem; font-size: 0.8rem; }
 }
 
+/* Evolução dos simulados — mini gráfico de barras */
+.sim-trend { display: flex; align-items: flex-end; gap: 0.4rem; height: 120px; padding-top: 0.5rem; border-bottom: 1px dashed var(--linha); }
+.sim-trend-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 0.2rem; }
+.sim-trend-bar { width: 60%; max-width: 28px; border-radius: 4px 4px 0 0; min-height: 4px; }
+.sim-trend-lbl { font-size: 0.7rem; font-family: var(--fonte-mono); color: var(--grafite); }
+
+/* Ranking acionável (prioridade cirúrgica) */
+.sim-rk-item { align-items: center; }
+.sim-rk-pos { flex: 0 0 1.6rem; height: 1.6rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--caneta-suave); color: var(--caneta); font-weight: 700; font-size: 0.85rem; }
+.sim-rk-sem { color: var(--alerta); font-size: 0.82rem; }
+.sim-rk-meta { color: var(--grafite); font-size: 0.8rem; }
+
+/* Perfil — metas */
+.pf-metas .pf-meta-linha { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.55rem; }
+.pf-meta-linha span { font-size: 0.9rem; }
+.pf-meta-linha input { width: 6.5rem; flex: 0 0 auto; }
+.pf-metas-disc { margin-top: 0.7rem; }
+.pf-metas-disc summary { cursor: pointer; font-size: 0.88rem; color: var(--caneta); }
+
 label { display: block; font-size: 0.82rem; font-weight: 700; margin: 0.75rem 0 0.28rem; color: var(--tinta); }
 
 input, select, textarea {
