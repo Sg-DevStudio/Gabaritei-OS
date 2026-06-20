@@ -9404,31 +9404,47 @@
   if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);
 
   // Aviso de nova versão (disparado pelo registro do service worker no index.html):
-  // banner discreto com botão que ativa o SW em espera e recarrega o app.
+  // card centralizado, com botão que ativa o SW em espera e recarrega o app, e
+  // opção "Agora não" (ou tocar fora) para dispensar — assim o aviso sempre sai
+  // da tela, com ou sem atualizar.
   function mostrarBannerAtualizacao() {
-    if (document.getElementById('update-banner')) return;
-    const b = document.createElement('div');
-    b.id = 'update-banner';
-    b.setAttribute('role', 'status');
-    b.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);' +
-      'bottom:calc(var(--abas-alt, 0px) + 1rem + env(safe-area-inset-bottom));z-index:200;' +
-      'display:flex;align-items:center;gap:0.75rem;background:var(--caneta-forte);color:#fff;' +
-      'padding:0.7rem 1rem;border-radius:12px;box-shadow:0 10px 30px rgba(23,24,28,0.35);' +
-      'max-width:calc(100vw - 2rem);font-size:0.9rem;font-weight:600';
-    b.innerHTML = '<span>✨ Nova versão disponível</span>';
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = 'Atualizar';
-    btn.style.cssText = 'background:#fff;color:var(--caneta-forte);border:none;border-radius:8px;' +
-      'padding:0.4rem 0.85rem;font-weight:700;cursor:pointer;flex:0 0 auto';
-    btn.addEventListener('click', function () {
-      btn.disabled = true; btn.textContent = 'Atualizando…';
+    if (document.getElementById('update-overlay')) return;
+    const ov = document.createElement('div');
+    ov.id = 'update-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-label', 'Nova versão disponível');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:300;display:flex;align-items:center;' +
+      'justify-content:center;background:rgba(10,12,18,0.55);padding:1.5rem';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--vidro);color:var(--tinta);border:1px solid var(--linha);' +
+      'border-radius:16px;box-shadow:0 20px 50px rgba(10,12,18,0.45);max-width:340px;width:100%;' +
+      'padding:1.5rem 1.3rem;text-align:center';
+    card.innerHTML = '<div style="font-size:2rem;line-height:1">✨</div>' +
+      '<strong style="display:block;font-size:1.15rem;margin:0.6rem 0 0.35rem">Nova versão disponível</strong>' +
+      '<p style="margin:0 0 1.2rem;font-size:0.92rem;color:var(--grafite);line-height:1.4">' +
+      'Atualize para usar as últimas melhorias do app.</p>';
+    const btnAtualizar = document.createElement('button');
+    btnAtualizar.type = 'button';
+    btnAtualizar.className = 'botao';
+    btnAtualizar.style.cssText = 'width:100%;margin-bottom:0.55rem';
+    btnAtualizar.textContent = 'Atualizar agora';
+    btnAtualizar.addEventListener('click', function () {
+      btnAtualizar.disabled = true; btnAtualizar.textContent = 'Atualizando…';
       if (typeof window.__ativarNovaVersaoSW === 'function') window.__ativarNovaVersaoSW();
       // rede de segurança: se o controllerchange não disparar, recarrega assim mesmo.
-      setTimeout(function () { window.location.reload(); }, 2500);
+      setTimeout(function () { window.location.reload(); }, 2000);
     });
-    b.appendChild(btn);
-    document.body.appendChild(b);
+    const btnDepois = document.createElement('button');
+    btnDepois.type = 'button';
+    btnDepois.className = 'botao-quieto';
+    btnDepois.style.cssText = 'width:100%';
+    btnDepois.textContent = 'Agora não';
+    btnDepois.addEventListener('click', function () { ov.remove(); });
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+    card.appendChild(btnAtualizar);
+    card.appendChild(btnDepois);
+    ov.appendChild(card);
+    document.body.appendChild(ov);
   }
   window.addEventListener('sw-nova-versao', mostrarBannerAtualizacao);
   // o evento pode ter sido disparado antes do app.js carregar
