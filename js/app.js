@@ -1185,6 +1185,25 @@
     return false;
   }
 
+  // Agenda revisões para vários tópicos "já estudados" de uma vez (ponto de
+  // partida, modo aprofundar, plano de exemplo). Difere do estudo real do dia:
+  // como NÃO houve estudo ontem, pula a revisão de 24h E escalona a data-base
+  // entre os tópicos — assim a curva não empilha num único dia (era o que
+  // entupia o calendário com dezenas de "24h" no mesmo dia). Idempotente.
+  const REVISOES_LOTE_POR_DIA = 3; // tópicos por dia-base → ~3 revisões/dia
+  function agendarRevisoesEmLote(topicoIds) {
+    let i = 0, agendou = 0;
+    (topicoIds || []).forEach(function (id) {
+      if (doAtivo(state.revisoes).some(function (r) { return r.topicoId === id; })) return;
+      const base = D.addDias(D.hojeISO(), Math.floor(i / REVISOES_LOTE_POR_DIA));
+      const novas = D.agendarRevisoes(id, base, { pular24h: true });
+      novas.forEach(function (r) { r.planoId = state.planoAtivoId; });
+      state.revisoes = state.revisoes.concat(novas);
+      i++; agendou++;
+    });
+    return agendou;
+  }
+
   // Conclui a teoria de um tópico. Se há um cronômetro em andamento DESTE tópico,
   // finaliza e registra a sessão (assim o tempo de hoje conta na carga diária e o
   // bloco aparece riscado no calendário) — além de agendar as revisões. Sem timer
@@ -1380,7 +1399,7 @@
     // próximas revisões pendentes do tópico (vai bem → espaça; vai mal → aproxima).
     let reagDiario = { ajustadas: 0, fator: 1 };
     if (dados.qFeitas > 0 && topico) {
-      reagDiario = D.reagendarRevisoesAdaptativo(state.revisoes, dados.topicoId, hoje, D.sessoesDoPlano(state));
+      reagDiario = D.reagendarRevisoesAdaptativo(state.revisoes, dados.topicoId, hoje, D.sessoesDoPlano(state), topico.incidencia_pct);
     }
 
     salvar();
@@ -2680,8 +2699,9 @@
       });
 
       // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
-      const aj = D.ajustePosRevisao(rev, rev.resultadoPct, feitas);
       const t = D.topicoPorId(state, rev.topicoId);
+      const incT = t ? t.incidencia_pct : null;
+      const aj = D.ajustePosRevisao(rev, rev.resultadoPct, feitas, incT);
       if (t) {
         if (aj.subirPrioridade) t.prioridade = Math.max(1, (t.prioridade || 2) - 1);
         if (aj.reabrir) { t.status = 'em_curso'; t.reaberto = true; }
@@ -2709,7 +2729,7 @@
       }
       // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
       // ou encurta (indo mal) as próximas revisões pendentes.
-      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state));
+      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state), incT);
       if (aj.reabrir) {
         toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.revisaoExtraDias != null) {
@@ -6150,14 +6170,16 @@
       state.plano.modoAprofundamento = true;
       delete state.plano.modoRetaFinal; // modos opostos
       // subentende "já estudei" para todos os tópicos do plano e agenda revisões
+      const idsAprofundar = [];
       state.disciplinas.forEach(function (d) {
         if (d.id === 'ORF') return;
         (d.topicos || []).forEach(function (t) {
           if (t.orfao) return;
           if (t.status !== 'dominado') t.status = 'teoria_concluida';
-          agendarRevisoesSeNecessario(t.id);
+          idsAprofundar.push(t.id);
         });
       });
+      agendarRevisoesEmLote(idsAprofundar); // retroativo: pula 24h e escalona a base
       salvar(); fecharModal(); render();
       toast('Modo aprofundamento ativado 🎓 — bora reter e aprofundar!', 'sucesso');
     });
@@ -7029,7 +7051,7 @@
     // Revisões são a fonte única de "manutenção": tópicos já concluídos/dominados
     // (inclusive vindos do ponto de partida) ganham a curva de repetição espaçada
     // aqui — antes isso vinha de blocos "revisao" do cronograma, agora removidos.
-    concluidos.forEach(function (id) { agendarRevisoesSeNecessario(id); });
+    agendarRevisoesEmLote(Array.from(concluidos)); // retroativo: pula 24h e escalona a base
     sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
     salvar();
     // Falha A — cobertura: nesse prazo nem toda a teoria do edital coube no
