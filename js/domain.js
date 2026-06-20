@@ -1489,6 +1489,55 @@
     return { porTipo: porTipo, totalClassificado: totalClassificado, totalErros: totalErros, dominante: dominante };
   }
 
+  // Série histórica de simulados (por data, antigo→recente) com a % geral de cada
+  // um e a tendência (variação do último vs. o anterior e vs. o primeiro). Base do
+  // gráfico de evolução na aba Simulados.
+  function tendenciaSimulados(simulados) {
+    const pontos = (simulados || [])
+      .map(function (s) {
+        let c = 0, q = 0;
+        (s.acertos || []).forEach(function (a) { c += a.certas || 0; q += a.total || 0; });
+        return { data: s.data, pct: q > 0 ? Math.round((c / q) * 100) : null, certas: c, total: q, tipo: s.tipo };
+      })
+      .filter(function (p) { return p.pct !== null; })
+      .sort(function (a, b) { return String(a.data).localeCompare(String(b.data)); });
+    if (!pontos.length) return { pontos: pontos, ultimo: null, deltaAnterior: null, deltaPrimeiro: null, tendencia: 'sem_dados' };
+    const ultimo = pontos[pontos.length - 1].pct;
+    const deltaAnterior = pontos.length >= 2 ? ultimo - pontos[pontos.length - 2].pct : null;
+    const deltaPrimeiro = pontos.length >= 2 ? ultimo - pontos[0].pct : null;
+    let tendencia = 'estavel';
+    if (deltaAnterior != null) tendencia = deltaAnterior > 2 ? 'subindo' : deltaAnterior < -2 ? 'caindo' : 'estavel';
+    return { pontos: pontos, ultimo: ultimo, deltaAnterior: deltaAnterior, deltaPrimeiro: deltaPrimeiro, tendencia: tendencia };
+  }
+
+  // Ranking ACIONÁVEL: "o que mais cai × seu pior desempenho". Ordena os tópicos
+  // pela urgência (incidência × déficit de desempenho × proximidade da prova),
+  // trazendo também os de alta incidência ainda SEM questões (diagnóstico). Itens
+  // já dominados saem do foco. Retorna os n primeiros, prontos para virar ação.
+  function rankingAcionavel(state, n, hoje) {
+    hoje = hoje || hojeISO();
+    const metaPct = (state.plano && state.plano.meta && state.plano.meta.corte_pct) || 70;
+    const sessoes = sessoesDoPlano(state);
+    const itens = [];
+    (state.disciplinas || []).forEach(function (d) {
+      if (d.id === 'ORF') return;
+      (d.topicos || []).forEach(function (t) {
+        if (t.orfao || t.status === 'dominado') return;
+        const dt = desempenhoTopico(sessoes, t.id);
+        itens.push({
+          topicoId: t.id, nome: t.nome, disciplinaId: d.id,
+          incidencia: t.incidencia_pct || 0, pct: dt.pct, feitas: dt.feitas,
+          urgencia: urgenciaTopico(state, t.id, hoje, metaPct),
+          reaberto: !!t.reaberto, status: t.status
+        });
+      });
+    });
+    itens.sort(function (a, b) {
+      return b.urgencia - a.urgencia || b.incidencia - a.incidencia || (a.pct || 0) - (b.pct || 0);
+    });
+    return itens.slice(0, n || 8);
+  }
+
   window.Dominio = {
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
@@ -1502,6 +1551,7 @@
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
+    tendenciaSimulados, rankingAcionavel,
     revisarFlashcard, flashcardDevido
   };
 })();
