@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v71-metas';
+const CACHE = 'estudos-v72-update';
 const ESTATICOS = [
   './',
   './index.html',
@@ -13,12 +13,20 @@ const ESTATICOS = [
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260620a-metas',
+  './js/app.js?v=20260620c-update',
   './icons/icone.svg'
 ];
 
+// NÃO chamamos skipWaiting() aqui: o SW novo fica em "espera" e a página avisa
+// o usuário ("Nova versão disponível"). Só ativa quando ele toca em Atualizar
+// (mensagem SKIP_WAITING abaixo) — evita troca abrupta no meio do uso.
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ESTATICOS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ESTATICOS)));
+});
+
+// A página manda esta mensagem ao tocar em "Atualizar": ativa o SW em espera.
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
