@@ -239,6 +239,32 @@ function iniciar(novasOpcoes) {
     reconciliarComRemoto(true).then(observarMudancas);
     registrarPush(user); // lembretes de estudo (defensivo; só ativa com VAPID + permissão)
   });
+  registrarReSyncPrimeiroPlano();
+}
+
+// O onSnapshot ao vivo morre silenciosamente quando o navegador congela/descarta
+// a aba em segundo plano (comum em PWA no celular). Ao voltar ao primeiro plano,
+// o app ficava preso nos dados locais antigos e não buscava as novidades da
+// nuvem — daí "nenhum estudo registrado hoje" ao abrir no outro aparelho. Aqui
+// reconciliamos (busca fresca + reata o ouvinte) a cada foco/volta/reconexão, e
+// damos flush no envio pendente ao sair. Espelha o que o sync.js já fazia.
+let reSyncRegistrado = false;
+function registrarReSyncPrimeiroPlano() {
+  if (reSyncRegistrado) return;
+  reSyncRegistrado = true;
+
+  function reconciliarFresco() {
+    if (!refEstado) return;
+    reconciliarComRemoto(true).then(observarMudancas);
+  }
+
+  window.addEventListener('online', reconciliarFresco);
+  window.addEventListener('focus', reconciliarFresco);
+  window.addEventListener('pagehide', flushEnvio);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) flushEnvio();
+    else reconciliarFresco();
+  });
 }
 
 // Registra o token de push do dispositivo (lembretes de estudo). Tudo aqui é
@@ -272,7 +298,18 @@ async function registrarPush(user) {
 function agendarEnvio(state) {
   if (!usuario || !refEstado) return;
   clearTimeout(envioPendente);
-  envioPendente = setTimeout(function () { gravarRemoto(state); }, 650);
+  envioPendente = null;
+  envioPendente = setTimeout(function () { envioPendente = null; gravarRemoto(state); }, 650);
+}
+
+// Garante que o último envio agendado (debounce de 650ms) saia ANTES de a aba
+// ser congelada/fechada. Sem isso, registrar estudo e fechar o app logo em
+// seguida (típico no fim de uma sessão) podia perder a última gravação na nuvem.
+function flushEnvio() {
+  if (!envioPendente) return;
+  clearTimeout(envioPendente);
+  envioPendente = null;
+  if (opcoes && opcoes.obterEstado) gravarRemoto(opcoes.obterEstado());
 }
 
 function sincronizarAgora(opcoesSync) {
