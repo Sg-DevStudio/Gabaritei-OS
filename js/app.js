@@ -4020,9 +4020,16 @@
       (function () { const quentes = idsTopicosQuentes(disc.topicos); return disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
         const dt = D.desempenhoTopico(D.sessoesDoPlano(state), t.id);
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
+        // "em curso": tem estudo registrado (sessão) mas a teoria não foi concluída.
+        // Mostra um ponto preenchido — feedback visual de que a sessão FOI registrada,
+        // sem alegar conclusão (que é a ação separada da caixinha/✓ verde).
+        const emCurso = !feito && t.status === 'em_curso';
+        const classeCheck = feito ? 'check-estudo-feito' : (emCurso ? 'check-estudo-curso' : '');
+        const tituloCheck = feito ? 'Teoria concluída (clique para reabrir)'
+          : (emCurso ? 'Estudado — clique para marcar teoria concluída' : 'Marcar teoria concluída');
         const erros = Math.max(0, dt.feitas - dt.certas);
         return '<tr data-topico-detalhe="' + esc(t.id) + '" role="button" tabindex="0">' +
-          '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + (feito ? 'check-estudo-feito' : '') + '" data-topico-check="' + esc(t.id) + '" aria-label="Marcar tópico">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
+          '<td><span class="topico-check-wrap"><button type="button" class="check-estudo ' + classeCheck + '" data-topico-check="' + esc(t.id) + '" title="' + esc(tituloCheck) + '" aria-label="' + esc(tituloCheck + ': ' + t.nome) + '">' + (feito ? '✓' : '') + '</button><span>' + esc(t.nome) + '</span></span></td>' +
           '<td class="num edital-qtd-col">' + dt.feitas + '</td><td class="num edital-rend-col">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) + '</td>' +
           '<td class="num">' + tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</td></tr>';
       }).join(''); })() + '</tbody></table></div></div>';
