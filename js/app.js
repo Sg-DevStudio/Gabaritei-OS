@@ -1037,8 +1037,11 @@
       const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
       // Marca o bloco como concluído: registra só o tempo que ainda FALTAVA (não
       // duplica o que já foi cronometrado em sessões parciais) e fecha o bloco.
+      // Sempre cria a sessão (mesmo sem tópico resolvido, topId null) para que as
+      // horas do dia/semana somem — antes, um bloco sem tópico era riscado mas
+      // não contava nas horas.
       const restante = blocoRestanteMin(b) || (b.duracaoMin || 30);
-      const sessao = topId ? concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: restante, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, blocoId: b.id, semRender: true }) : null;
+      const sessao = concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: restante, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, blocoId: b.id, semRender: true });
       if (sessao) b.registroRapidoId = sessao.id;
       b.feitoMin = b.duracaoMin || 0;
       b.feito = true;
