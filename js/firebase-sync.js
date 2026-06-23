@@ -183,7 +183,20 @@ async function reconciliarComRemoto(silencioso) {
     if (!localTemDados && remotoTemDados && !apagouLocal) {
       aplicarRemoto(remoto.state, silencioso);
       definirStatus('sincronizado', 'Sincronizado com Firebase');
-    } else if (localMs > remotoMs + FOLGA_RELOGIO_MS || apagouLocal) {
+    } else if (apagouLocal) {
+      await gravarRemoto(local);
+    } else if (localTemDados && remotoTemDados) {
+      // Ambos têm dados: mescla por id para não perder registros de estudo que só
+      // existem em um dos lados (correção do last-write-wins). O mais recente é a
+      // base (vence plano/config e empates); o outro contribui os ids que faltam.
+      const base = remotoMs >= localMs ? remoto.state : local;
+      const outro = remotoMs >= localMs ? local : remoto.state;
+      const merged = window.Store.mesclarEstados(base, outro);
+      const recuperou = window.Store.contarRegistros(merged) > window.Store.contarRegistros(base);
+      if (remotoMs >= localMs || recuperou) aplicarRemoto(merged, silencioso);
+      if (recuperou || localMs > remotoMs + FOLGA_RELOGIO_MS) await gravarRemoto(merged);
+      definirStatus('sincronizado', 'Sincronizado com Firebase');
+    } else if (localMs > remotoMs + FOLGA_RELOGIO_MS) {
       await gravarRemoto(local);
     } else if (remotoMs > localMs + FOLGA_RELOGIO_MS) {
       aplicarRemoto(remoto.state, silencioso);
@@ -211,7 +224,18 @@ function observarMudancas() {
     // Local sem dados (ex.: recém-aberto, atualizadoEm = agora) não deve "ganhar"
     // da nuvem por timestamp — adota o remoto que tem dados, como na reconciliação.
     const localVazioRemotoCheio = !temDados(local) && temDados(remoto.state) && !apagouLocal;
-    if ((remotoMs > localMs + FOLGA_RELOGIO_MS || localVazioRemotoCheio) && !apagouLocal) {
+    if (apagouLocal) return;
+    if (localVazioRemotoCheio) {
+      aplicarRemoto(remoto.state, true);
+      definirStatus('sincronizado', 'Atualizado pela nuvem');
+    } else if (remotoMs > localMs + FOLGA_RELOGIO_MS && temDados(local)) {
+      // Remoto mais novo, mas o local pode ter registros ainda não sincronizados:
+      // mescla (remoto como base) para não perdê-los e reenvia se recuperou algo.
+      const merged = window.Store.mesclarEstados(remoto.state, local);
+      aplicarRemoto(merged, true);
+      if (window.Store.contarRegistros(merged) > window.Store.contarRegistros(remoto.state)) gravarRemoto(merged);
+      definirStatus('sincronizado', 'Atualizado pela nuvem');
+    } else if (remotoMs > localMs + FOLGA_RELOGIO_MS) {
       aplicarRemoto(remoto.state, true);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
     }

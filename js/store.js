@@ -428,9 +428,56 @@
     return state.planos.length > 0 || state.sessoes.length > 0;
   }
 
+  // Listas de registros de estudo que devem SOMAR entre dispositivos (e não ser
+  // substituídas por completo). Cada item tem id estável. A `agenda` fica de fora
+  // de propósito: é regenerável (ganha ids novos a cada recálculo) e uni-la
+  // duplicaria blocos no calendário — as horas vivem nas `sessoes`, não nos blocos.
+  const LISTAS_ESTUDO = ['sessoes', 'revisoes', 'simulados', 'flashcards'];
+
+  // Quantos registros de estudo um estado carrega (para detectar se a mesclagem
+  // realmente recuperou itens que faltavam num dos lados).
+  function contarRegistros(state) {
+    if (!state) return 0;
+    return LISTAS_ESTUDO.reduce(function (n, k) {
+      return n + (Array.isArray(state[k]) ? state[k].length : 0);
+    }, 0);
+  }
+
+  // Mescla dois estados sem perder registros de estudo: `base` (normalmente o mais
+  // recente) define plano/config/disciplinas e vence empates de mesmo id; `outro`
+  // contribui apenas os registros cujo id não existe em `base`. Resolve a perda de
+  // dados multi-dispositivo do last-write-wins (um aparelho sobrescrevia as
+  // sessões que só existiam no outro). Não ressuscita exclusões totais — isso é
+  // tratado antes, pelo apagadoEm.
+  function mesclarEstados(base, outro) {
+    const merged = JSON.parse(JSON.stringify(base || {}));
+    if (!outro) return migrar(merged);
+    LISTAS_ESTUDO.forEach(function (k) {
+      const baseLista = Array.isArray(merged[k]) ? merged[k] : (merged[k] = []);
+      const outroLista = Array.isArray(outro[k]) ? outro[k] : [];
+      if (outroLista.length === 0) return;
+      const ids = {};
+      baseLista.forEach(function (item) { if (item && item.id) ids[item.id] = true; });
+      outroLista.forEach(function (item) {
+        if (item && item.id && !ids[item.id]) { baseLista.push(item); ids[item.id] = true; }
+      });
+    });
+    // Planos que só existem no outro lado também são recuperados (cada plano
+    // carrega seu próprio conteúdo; sessões órfãs sem plano não contam horas).
+    if (Array.isArray(outro.planos) && Array.isArray(merged.planos)) {
+      const idsP = {};
+      merged.planos.forEach(function (p) { if (p && p.id) idsP[p.id] = true; });
+      outro.planos.forEach(function (p) {
+        if (p && p.id && !idsP[p.id]) { merged.planos.push(p); idsP[p.id] = true; }
+      });
+    }
+    return migrar(merged);
+  }
+
   window.Store = {
     carregar, salvar, estadoVazio, normalizar: migrar, hidratar, novoId,
     ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados,
+    mesclarEstados, contarRegistros,
     corrigirAcentosTexto, normalizarAcentosEdital, normalizarAcentosConteudo
   };
 })();
