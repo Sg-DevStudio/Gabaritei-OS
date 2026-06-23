@@ -250,6 +250,35 @@
     return plano;
   }
 
+  // Recupera horas perdidas: para cada bloco da agenda concluído cujo tópico não
+  // era resolvível (b.topicoId nulo e a disciplina sem tópicos), o registro antigo
+  // pela bolinha NÃO criava sessão. Aqui recriamos a sessão correspondente. Blocos
+  // com tópico ficam de fora (já têm sessão) e o guard registroRapidoId evita
+  // recriar caso a migração rode de novo.
+  function backfillSessoesBlocosSemTopico(state) {
+    if (!Array.isArray(state.agenda)) return;
+    function discDoBloco(b) {
+      const p = (state.planos || []).find(function (x) { return x.id === b.planoId; });
+      const lista = p ? p.disciplinas : state.disciplinas;
+      return (lista || []).find(function (d) { return d.id === b.disciplinaId; }) || null;
+    }
+    state.agenda.forEach(function (b) {
+      if (!b || !b.feito || b.registroRapidoId) return;
+      const min = b.feitoMin || b.duracaoMin || 0;
+      if (min <= 0) return;
+      const disc = discDoBloco(b);
+      const topId = b.topicoId || (disc && disc.topicos && disc.topicos[0] ? disc.topicos[0].id : null);
+      if (topId) return; // tinha tópico → o registro antigo já gravou a sessão
+      const sessao = {
+        id: novoId('ses'), planoId: b.planoId, data: b.data, topicoId: null,
+        tipo: b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria',
+        duracaoMin: min, qFeitas: 0, qCertas: 0, obs: '', origemRegistroRapido: 'fila'
+      };
+      state.sessoes.push(sessao);
+      b.registroRapidoId = sessao.id;
+    });
+  }
+
   function migrar(state) {
     // ponto único para migrações de schema
     if (!state.config) state.config = { ultimoBackup: null, metaQuestoesSemana: 100 };
@@ -312,6 +341,15 @@
     // ciclo (fila ponderada de blocos). Planos antigos ficam em 'cronograma'.
     state.planos.forEach(function (p) { if (p && p.plano) normalizarCicloPlano(p.plano); });
     normalizarAcentosConteudo(state);
+    // Backfill único: até a correção do registro pela bolinha, um bloco concluído
+    // SEM tópico resolvível era riscado (feito) mas não gravava sessão — então as
+    // horas não somavam. Recriamos a sessão só para esses casos (tópico não
+    // resolvível = o código antigo nunca criou sessão), sem risco de duplicar:
+    // blocos com tópico já têm sessão e o guard registroRapidoId torna idempotente.
+    if (!state.config.backfillSessoesSemTopico) {
+      backfillSessoesBlocosSemTopico(state);
+      state.config.backfillSessoesSemTopico = true;
+    }
     state.versao = VERSAO_SCHEMA;
     return hidratar(state);
   }
