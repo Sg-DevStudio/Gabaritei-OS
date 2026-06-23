@@ -1014,13 +1014,24 @@
     if (kind !== 'registrar') return null;
     const hoje = D.hojeISO();
     const tipoBusca = tipo || 'teoria';
-    return state.sessoes.slice().reverse().find(function (s) {
+    // O check verde de um "bloco da semana" (blocoFeito) liga para QUALQUER
+    // sessão do tópico na semana corrente — não só a de hoje. Para que o ✓
+    // seja sempre desfazível (e não vire um <span> morto quando o registro
+    // rápido foi num dia anterior da mesma semana), buscamos na mesma janela.
+    // Continua restrito a origemRegistroRapido === 'fila' (registro detalhado/
+    // timer não vira desfazer de 1 toque) e prioriza a sessão de hoje.
+    const inicioSemana = D.segundaDaSemana(hoje);
+    const fimSemana = D.addDias(inicioSemana, 7);
+    const candidatas = state.sessoes.filter(function (s) {
       return s.origemRegistroRapido === 'fila' &&
         s.topicoId === id &&
         s.tipo === tipoBusca &&
-        s.data === hoje &&
+        s.data >= inicioSemana && s.data < fimSemana &&
         (!state.planoAtivoId || s.planoId === state.planoAtivoId);
-    }) || null;
+    });
+    if (candidatas.length === 0) return null;
+    return candidatas.filter(function (s) { return s.data === hoje; }).pop() ||
+      candidatas[candidatas.length - 1];
   }
 
   // Registro rápido pela bolinha: cria a sessão com padrões e dá o "check verde".
