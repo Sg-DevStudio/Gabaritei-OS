@@ -284,6 +284,9 @@
     if (!state.config) state.config = { ultimoBackup: null, metaQuestoesSemana: 100 };
     if (!state.config.criadoEm) state.config.criadoEm = agoraISO();
     if (!state.config.atualizadoEm) state.config.atualizadoEm = state.config.criadoEm;
+    // Tombstones: ids de registros de estudo excluídos de propósito. O merge
+    // multi-dispositivo usa isso para NÃO ressuscitar o que o usuário apagou.
+    if (!Array.isArray(state.config.removidos)) state.config.removidos = [];
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
     // Metas de acerto definidas pelo aluno: % geral (null = usa a nota de corte do
     // plano) e overrides por disciplina ({ disciplinaId: pct }).
@@ -429,10 +432,12 @@
   }
 
   // Listas de registros de estudo que devem SOMAR entre dispositivos (e não ser
-  // substituídas por completo). Cada item tem id estável. A `agenda` fica de fora
-  // de propósito: é regenerável (ganha ids novos a cada recálculo) e uni-la
-  // duplicaria blocos no calendário — as horas vivem nas `sessoes`, não nos blocos.
-  const LISTAS_ESTUDO = ['sessoes', 'revisoes', 'simulados', 'flashcards'];
+  // substituídas por completo). Restrito DE PROPÓSITO ao que é irrecuperável e
+  // praticamente append-only: sessões (horas/questões) e simulados. `planos`,
+  // `revisoes`, `flashcards` e `agenda` ficam de fora porque têm ciclo de vida
+  // (são apagados/regenerados) — uni-los por id ressuscitaria o que o usuário
+  // apagou. Esses seguem o estado mais recente (base).
+  const LISTAS_ESTUDO = ['sessoes', 'simulados'];
 
   // Quantos registros de estudo um estado carrega (para detectar se a mesclagem
   // realmente recuperou itens que faltavam num dos lados).
@@ -443,41 +448,53 @@
     }, 0);
   }
 
-  // Mescla dois estados sem perder registros de estudo: `base` (normalmente o mais
-  // recente) define plano/config/disciplinas e vence empates de mesmo id; `outro`
-  // contribui apenas os registros cujo id não existe em `base`. Resolve a perda de
-  // dados multi-dispositivo do last-write-wins (um aparelho sobrescrevia as
-  // sessões que só existiam no outro). Não ressuscita exclusões totais — isso é
-  // tratado antes, pelo apagadoEm.
+  // Marca ids como removidos de propósito (tombstone), para o merge não os trazer
+  // de volta de um dispositivo desatualizado. Aceita um id ou um array de ids.
+  function marcarRemovido(state, ids) {
+    if (!state.config) state.config = {};
+    if (!Array.isArray(state.config.removidos)) state.config.removidos = [];
+    const lista = Array.isArray(ids) ? ids : [ids];
+    const set = {};
+    state.config.removidos.forEach(function (i) { set[i] = true; });
+    lista.forEach(function (i) { if (i && !set[i]) { state.config.removidos.push(i); set[i] = true; } });
+  }
+
+  // Mescla dois estados sem perder registros de estudo: `base` (o mais recente)
+  // define plano/config/disciplinas e vence empates de mesmo id; `outro` contribui
+  // apenas os registros (sessões/simulados) cujo id não existe em `base`. Resolve a
+  // perda multi-dispositivo do last-write-wins (um aparelho sobrescrevia as sessões
+  // que só existiam no outro), SEM ressuscitar o que foi apagado: tombstones
+  // (config.removidos) de qualquer lado são respeitados e propagados, e a exclusão
+  // total continua tratada antes, pelo apagadoEm.
   function mesclarEstados(base, outro) {
     const merged = JSON.parse(JSON.stringify(base || {}));
     if (!outro) return migrar(merged);
+    if (!merged.config) merged.config = {};
+    // Tombstones combinados dos dois lados: ninguém ressuscita o que alguém apagou.
+    const tomb = {};
+    [base, outro].forEach(function (st) {
+      const r = st && st.config && Array.isArray(st.config.removidos) ? st.config.removidos : [];
+      r.forEach(function (id) { tomb[id] = true; });
+    });
+    merged.config.removidos = Object.keys(tomb);
     LISTAS_ESTUDO.forEach(function (k) {
-      const baseLista = Array.isArray(merged[k]) ? merged[k] : (merged[k] = []);
+      let baseLista = Array.isArray(merged[k]) ? merged[k] : (merged[k] = []);
       const outroLista = Array.isArray(outro[k]) ? outro[k] : [];
-      if (outroLista.length === 0) return;
+      // tira do resultado o que foi apagado em QUALQUER dispositivo (deleção vence)
+      baseLista = merged[k] = baseLista.filter(function (item) { return !item || !tomb[item.id]; });
       const ids = {};
       baseLista.forEach(function (item) { if (item && item.id) ids[item.id] = true; });
       outroLista.forEach(function (item) {
-        if (item && item.id && !ids[item.id]) { baseLista.push(item); ids[item.id] = true; }
+        if (item && item.id && !ids[item.id] && !tomb[item.id]) { baseLista.push(item); ids[item.id] = true; }
       });
     });
-    // Planos que só existem no outro lado também são recuperados (cada plano
-    // carrega seu próprio conteúdo; sessões órfãs sem plano não contam horas).
-    if (Array.isArray(outro.planos) && Array.isArray(merged.planos)) {
-      const idsP = {};
-      merged.planos.forEach(function (p) { if (p && p.id) idsP[p.id] = true; });
-      outro.planos.forEach(function (p) {
-        if (p && p.id && !idsP[p.id]) { merged.planos.push(p); idsP[p.id] = true; }
-      });
-    }
     return migrar(merged);
   }
 
   window.Store = {
     carregar, salvar, estadoVazio, normalizar: migrar, hidratar, novoId,
     ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados,
-    mesclarEstados, contarRegistros,
+    mesclarEstados, contarRegistros, marcarRemovido,
     corrigirAcentosTexto, normalizarAcentosEdital, normalizarAcentosConteudo
   };
 })();
