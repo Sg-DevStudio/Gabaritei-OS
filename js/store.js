@@ -291,7 +291,11 @@
     if (!state.config.metaAcertoDisc || typeof state.config.metaAcertoDisc !== 'object' || Array.isArray(state.config.metaAcertoDisc)) {
       state.config.metaAcertoDisc = {};
     }
-    if (state.config.onboardingNomeVisto === undefined) state.config.onboardingNomeVisto = !!state.config.nomeUsuario;
+    if (!state.config.onboardingNomeVisto) {
+      const temAtividade = (Array.isArray(state.planos) && state.planos.length > 0) ||
+                           (Array.isArray(state.sessoes) && state.sessoes.length > 0);
+      state.config.onboardingNomeVisto = !!state.config.nomeUsuario || temAtividade;
+    }
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
@@ -470,6 +474,15 @@
       outro.planos.forEach(function (p) {
         if (p && p.id && !idsP[p.id]) { merged.planos.push(p); idsP[p.id] = true; }
       });
+    }
+    // Flags de onboarding são "sticky": uma vez vistas, não devem regredir para
+    // false por causa de uma base remota mais antiga que não tinha o campo.
+    if (outro.config) {
+      if (outro.config.onboardingNomeVisto) merged.config.onboardingNomeVisto = true;
+      if (outro.config.onboardingGuiaVisto) merged.config.onboardingGuiaVisto = true;
+      if (outro.config.nomeUsuario && !merged.config.nomeUsuario) {
+        merged.config.nomeUsuario = outro.config.nomeUsuario;
+      }
     }
     return migrar(merged);
   }
