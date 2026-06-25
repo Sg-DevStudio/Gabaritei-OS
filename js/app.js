@@ -54,6 +54,7 @@
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let timerBlocoPendente = null; // bloco da agenda a creditar no próximo timer iniciado
   let timerLimitePendente = null; // tempo restante do bloco, pré-preenchido no timer
+  let timerAutoIniciar = false;  // ao abrir a tela do timer, já dispara a contagem
   let audioCtx = null;
   let ultimaRotaRender = null;
   let pulaRecalcSemanal = false; // evita recálculo/toast como efeito colateral (ex.: ao excluir um plano)
@@ -2545,8 +2546,7 @@
     function botoes() {
       const e = window.Timer.estado();
       if (!e) {
-        acoes.innerHTML = '<button id="t-iniciar">Iniciar</button>';
-        acoes.querySelector('#t-iniciar').addEventListener('click', function () {
+        const iniciarTimer = function () {
           if (!selTop || !selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
           const limiteMin = limiteInput && limiteInput.value ? parseInt(limiteInput.value, 10) : null;
           if (limiteInput && limiteInput.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) {
@@ -2560,8 +2560,15 @@
           timerBlocoPendente = null;
           timerLimitePendente = null;
           render();
-        });
+        };
+        acoes.innerHTML = '<button id="t-iniciar">Iniciar</button>';
+        acoes.querySelector('#t-iniciar').addEventListener('click', iniciarTimer);
         if (info) info.textContent = '';
+        // Veio de "Cronometrar" na agenda: já dispara a contagem ao abrir a tela.
+        if (timerAutoIniciar) {
+          timerAutoIniciar = false;
+          if (selTop && selTop.value) iniciarTimer();
+        }
         return;
       }
       acoes.innerHTML =
@@ -5958,6 +5965,7 @@
     timerBlocoPendente = blocoAg.id;
     const restante = blocoRestanteMin(blocoAg);
     timerLimitePendente = restante > 0 ? restante : (blocoAg.duracaoMin || null);
+    timerAutoIniciar = true;
     location.hash = '#timer';
   }
 
@@ -9566,7 +9574,7 @@
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
     const tela = telas[rota];
-    if (rota !== 'timer') { pintarTimerAtual = null; timerBlocoPendente = null; timerLimitePendente = null; }
+    if (rota !== 'timer') { pintarTimerAtual = null; timerBlocoPendente = null; timerLimitePendente = null; timerAutoIniciar = false; }
     // À prova de falhas: um erro numa tela não pode mais congelar a navegação
     // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
     try {
