@@ -1445,6 +1445,21 @@
           if (bl.feito) toast('Bloco concluído ✓', 'sucesso');
           else toast('Faltam ' + D.formatarMin(blocoRestanteMin(bl)) + ' para fechar o bloco', 'sucesso');
         }
+      } else if (topico && dados.tipo !== 'revisao' && (dados.duracaoMin || 0) > 0) {
+        // Estudo livre (Timer/registro avulso) num tópico SEM bloco planejado no
+        // dia: cria um bloco "extra" já concluído, para o estudo aparecer sozinho
+        // no calendário — sem a pessoa precisar arrastar um bloco e cronometrar.
+        // É manual (gerado:false → sobrevive a recálculos) e marcado como extra,
+        // fora da distribuição planejada do plano (não desconta do tempo do dia).
+        const disc = D.disciplinaDoTopico(state, dados.topicoId);
+        state.agenda.push({
+          id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
+          data: data, disciplinaId: disc ? disc.id : null,
+          topicoId: dados.topicoId, duracaoMin: dados.duracaoMin,
+          obs: dados.tipo === 'teoria' ? 'teoria' : dados.tipo,
+          feito: true, feitoMin: dados.duracaoMin,
+          gerado: false, extra: true
+        });
       }
     }
 
@@ -7135,7 +7150,7 @@
     return semanasCron;
   }
 
-  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque, nomeRitmo) {
+  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque, nomeRitmo, preservarHistorico) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || entrada.disciplinas.length === 0) {
       if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
@@ -7157,25 +7172,55 @@
         if (!t.orfao && (t.status === 'teoria_concluida' || t.status === 'dominado')) concluidos.add(t.id);
       });
     });
-    entrada.cronogramas = {};
     entrada.plano.ritmos = entrada.plano.ritmos || {};
     const relCobertura = {};
-    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos, relatorio: relCobertura });
+    // ATUALIZAÇÃO preservando histórico: ao editar um plano que já rodou algumas
+    // semanas (nova carga/prazo), congelamos as semanas PASSADAS (o que já foi
+    // estudado) e só refazemos da semana atual em diante — em vez de zerar o
+    // calendário inteiro a partir desta segunda, que apagava o histórico. Espelha
+    // o recálculo adaptativo semanal.
+    const inicioAtual = D.segundaDaSemana(D.hojeISO());
+    const cronAntigo = (entrada.cronogramas && entrada.cronogramas[chave]) || [];
+    const inicioPlanoAnt = entrada.plano.gerado_em ? D.segundaDaSemana(entrada.plano.gerado_em) : inicioAtual;
+    const semanaBase = Math.max(0, Math.round(D.diffDias(inicioPlanoAnt, inicioAtual) / 7));
+    const preservar = !!preservarHistorico && cronAntigo.length > 0 && semanaBase > 0;
+    const passadas = preservar ? cronAntigo.filter(function (s) { return s.inicio < inicioAtual; }) : [];
+    const semanasFuturas = Math.max(1, semanas - semanaBase);
+    let cronNovo;
+    if (preservar) {
+      const futuras = gerarCronogramaHierarquico(entrada.disciplinas, semanasFuturas, {
+        horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos,
+        inicio: inicioAtual, semanaBase: semanaBase, relatorio: relCobertura
+      });
+      cronNovo = passadas.concat(futuras);
+    } else {
+      cronNovo = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos, relatorio: relCobertura });
+    }
+    entrada.cronogramas = {};
+    entrada.cronogramas[chave] = cronNovo;
     entrada.plano.ritmos = {};
-    entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
+    entrada.plano.ritmos[chave] = { meses: meses, semanas: preservar ? semanaBase + semanasFuturas : semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
     entrada.plano.ritmoAtivo = chave;
     entrada.plano.modoPlanejamento = 'cronograma';
     entrada.plano.ciclo = { blocos: [], volta: 1 };
     // Âncora do cronograma = segunda da semana atual, igual ao calendário e ao
     // recálculo. Evita divergência de até 6 dias no burndown/projeção de término.
-    entrada.plano.gerado_em = D.segundaDaSemana(D.hojeISO());
-    entrada.plano.ultimaRecalcSemana = D.segundaDaSemana(D.hojeISO());
+    // Numa atualização preservando histórico mantemos a âncora original para não
+    // deslocar as semanas passadas.
+    if (!preservar) entrada.plano.gerado_em = inicioAtual;
+    entrada.plano.ultimaRecalcSemana = inicioAtual;
     window.Store.hidratar(state);
     // Revisões são a fonte única de "manutenção": tópicos já concluídos/dominados
     // (inclusive vindos do ponto de partida) ganham a curva de repetição espaçada
     // aqui — antes isso vinha de blocos "revisao" do cronograma, agora removidos.
     agendarRevisoesEmLote(Array.from(concluidos)); // retroativo: pula 24h e escalona a base
-    sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
+    if (preservar) {
+      // só refaz a agenda da semana atual em diante; as semanas passadas (o que já
+      // foi estudado) permanecem intactas no calendário.
+      cronNovo.forEach(function (sem) { if (sem.inicio >= inicioAtual) gerarBlocosSemanaAgenda(sem.inicio); });
+    } else {
+      sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
+    }
     salvar();
     // Falha A — cobertura: nesse prazo nem toda a teoria do edital coube no
     // cronograma. Em vez de descartar tópicos em silêncio, avisa quanto cobriu e
@@ -7341,6 +7386,11 @@
     const rotina = rotinaEstudosAtual();
     const totalAtual = totalMinutosRotina(rotina);
     const entrada = entradaPlanoAtivo();
+    // Edição de um plano que JÁ existe (vs. criar do zero pelo "Iniciar"). Quando
+    // verdadeiro, o botão final diz "Atualizar plano" e a regeneração preserva o
+    // histórico já estudado em vez de zerar o calendário.
+    const ehAtualizacao = !opcoes.novoPlanoId && !!(state.plano.ritmoAtivo ||
+      (state.plano.ciclo && state.plano.ciclo.blocos && state.plano.ciclo.blocos.length));
     // Ritmos com meses estimados a partir do tamanho do edital ativo.
     const ritmosCalc = ritmosEstimados(entrada);
     // Seleção inicial: ritmo do plano atual (mais próximo) ou o Equilibrado.
@@ -7498,7 +7548,7 @@
       '<button type="button" class="botao-quieto" id="gp-cancelar">Cancelar</button>' +
       '<button type="button" class="botao-quieto oculto" id="gp-voltar">← Voltar</button>' +
       '<button type="button" id="gp-proximo">Próximo →</button>' +
-      '<button type="submit" class="oculto" id="gp-gerar">Gerar plano</button>' +
+      '<button type="submit" class="oculto" id="gp-gerar">' + (ehAtualizacao ? 'Atualizar plano' : 'Gerar plano') + '</button>' +
       '</div></form></div>'
     );
     m.classList.add('modal-amplo');
@@ -7787,7 +7837,7 @@
         limparAgendaGeradaPlano(state.planoAtivoId);
         salvar();
       } else {
-        if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo)) return;
+        if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo, ehAtualizacao)) return;
       }
       planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
       if (state.plano) delete state.plano.rascunho; // confirmado: não é mais rascunho
@@ -7796,7 +7846,7 @@
       agendaRef = modoPlano === 'ciclo' ? D.segundaDaSemana(D.hojeISO()) : (cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO()));
       agendaModo = 'semana';
       render();
-      toast('Plano ' + nomeRitmo + ' gerado — calendário preenchido', 'sucesso');
+      toast('Plano ' + nomeRitmo + (ehAtualizacao ? ' atualizado — histórico preservado' : ' gerado — calendário preenchido'), 'sucesso');
     });
 
     mostrarPasso(1);
@@ -7987,7 +8037,7 @@
             const tempoTxt = parcial
               ? 'faltam ' + D.formatarMin(blocoRestanteMin(b)) + ' de ' + D.formatarMin(b.duracaoMin || 0)
               : rotuloHorarioAgenda(b);
-            const sub = tempoTxt + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '');
+            const sub = tempoTxt + (t ? ' · ' + esc(t.nome) : '') + (b.extra ? ' · extra' : '') + (concluido ? ' · feito ✓' : '');
             const pct = parcial ? Math.min(100, Math.round((blocoFeitoMin(b) / (b.duracaoMin || 1)) * 100)) : 0;
             const barra = parcial ? '<span class="agenda-bloco-prog"><span style="width:' + pct + '%"></span></span>' : '';
             // No modo compacto (telas estreitas) só o título aparece; o detalhe
