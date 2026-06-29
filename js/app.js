@@ -199,15 +199,30 @@
     // versão oficial do autor, sem embutir o conteúdo no app.
     if (calc.externo) { window.open(calc.url, '_blank', 'noopener'); return; }
     const titulo = calc.rotulo.replace(/^💰\s*/, '');
-    const m = abrirModal(
-      '<div class="calc-modal-cab"><h3>' + esc(titulo) + '</h3>' +
-      '<p class="sub">Estimativa para planejar seus estudos — não é contracheque oficial.</p></div>' +
-      '<iframe src="' + esc(calc.arquivo) + '" title="' + esc(titulo) + '" loading="lazy" ' +
-      'style="width:100%;height:72vh;border:0;border-radius:12px;background:#0a1633"></iframe>' +
-      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="calc-fechar">Fechar</button></div>'
-    );
-    m.classList.add('modal-amplo');
-    m.querySelector('#calc-fechar').addEventListener('click', fecharModal);
+    // Calculadora própria: tela cheia (sem scroll aninhado de modal). Barra no
+    // topo com Fechar sempre visível + Fechar no final, e a página rola dentro
+    // do iframe.
+    const ov = document.createElement('div');
+    ov.className = 'calc-fullscreen';
+    ov.innerHTML =
+      '<div class="calc-fs-bar">' +
+      '<div class="calc-fs-tit"><strong>' + esc(titulo) + '</strong>' +
+      '<span class="sub">estimativa para planejar seus estudos · não é contracheque oficial</span></div>' +
+      '<button type="button" class="botao-mini botao-secundario calc-fs-fechar" aria-label="Fechar calculadora">✕ Fechar</button>' +
+      '</div>' +
+      '<iframe class="calc-fs-frame" src="' + esc(calc.arquivo) + '" title="' + esc(titulo) + '"></iframe>' +
+      '<div class="calc-fs-rodape"><button type="button" class="botao calc-fs-fechar">Fechar calculadora</button></div>';
+    document.body.appendChild(ov);
+    const scrollAntes = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    function fechar() {
+      ov.remove();
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = scrollAntes;
+    }
+    function onKey(e) { if (e.key === 'Escape') fechar(); }
+    document.addEventListener('keydown', onKey);
+    ov.querySelectorAll('.calc-fs-fechar').forEach(function (b) { b.addEventListener('click', fechar); });
   }
 
   function limparEditalParaCatalogo(e) {
