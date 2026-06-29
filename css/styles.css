@@ -3215,11 +3215,14 @@ canvas.grafico {
 /* Botão compacto "Calculadora de salário" — inline ao lado do "x tópicos" */
 .catalogo-calc-mini {
   display: inline-flex; align-items: center; gap: 0.15rem; cursor: pointer;
-  margin-left: 0.35rem; padding: 0.02rem 0.34rem; vertical-align: baseline;
-  font: inherit; font-size: 0.62rem; font-weight: 500; line-height: 1.45; white-space: nowrap;
+  margin-left: 0.35rem; padding: 0.12rem 0.4rem; vertical-align: middle;
+  font: inherit; font-size: 0.62rem; font-weight: 500; line-height: 1; white-space: nowrap;
+  min-height: 0; box-shadow: none;
   color: var(--verde-escuro, #14705f); background: var(--verde-suave, rgba(63, 207, 142, 0.12));
   border: 1px solid var(--verde-borda, rgba(63, 207, 142, 0.4)); border-radius: 0.4rem;
 }
+.catalogo-calc-mini:hover { transform: none; box-shadow: none; filter: none; }
+.catalogo-calc-mini > * { line-height: 1; }
 .catalogo-calc-mini:hover { background: var(--verde-borda, rgba(63, 207, 142, 0.22)); }
 
 /* Calculadora de salário em tela cheia (sem scroll aninhado de modal) */
