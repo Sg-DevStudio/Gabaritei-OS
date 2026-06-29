@@ -1085,15 +1085,23 @@
 
     // Conteúdo compartilhado torna a conciliação eficiente: estudar uma vez
     // aproveita nos dois. Por isso a sobreposição puxa o nível para cima:
-    //  • ≥50%  → sobe um nível (ex.: moderada → alta quando a carga cabe);
+    //  • ≥45%  → sobe um nível;
     //  • ≥75%  → sobe outro nível (editais quase iguais chegam a "alta");
     //  • ≥30%  → ao menos tira do "não recomendado" (vira meio-termo: baixa).
-    if (overlapPct >= 50) nivel = subirNivel(nivel);
+    if (overlapPct >= 45) nivel = subirNivel(nivel);
     if (overlapPct >= 75 && ratio <= 1.2) nivel = subirNivel(nivel);
     if (overlapPct >= 30 && nivel === 'nao_recomendado') nivel = 'baixa';
+    // Muito conteúdo em comum (≥45%) garante PELO MENOS "moderada", mesmo com
+    // carga apertada: estudar a interseção uma única vez é justamente o que
+    // viabiliza conciliar dois concursos parecidos (a carga real ainda cai
+    // quando o aluno marca a bagagem que já tem na configuração do plano).
+    // Exceção: prova muito próxima (< 8 semanas) é limite físico real e não
+    // pode ser mascarado pela sobreposição — aí o piso não se aplica.
+    const provaCritica = provaDefinida && semanasDisponiveis < 8;
+    if (overlapPct >= 45 && !provaCritica && ordem.indexOf(nivel) < ordem.indexOf('moderada')) nivel = 'moderada';
 
     // Provas muito próximas com carga acima da capacidade derrubam um nível.
-    if (provaDefinida && semanasDisponiveis < 8 && ratio > 1.1) nivel = descerNivel(nivel);
+    if (provaCritica && ratio > 1.1) nivel = descerNivel(nivel);
 
     const detalhes = {
       disciplinasComuns: disciplinasComuns, nDisciplinasComuns: disciplinasComuns.length,

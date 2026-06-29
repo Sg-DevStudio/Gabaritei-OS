@@ -5296,7 +5296,9 @@
       item('Carga semanal exigida', '~' + d.exigidaSemana + 'h') +
       item('Você tem por semana', '~' + d.horasSemana + 'h') +
       item('Até a prova mais próxima', d.provaDefinida ? 'aprox. ' + d.semanasDisponiveis + ' sem' : 'sem data') +
-      '</div></div>';
+      '</div>' +
+      '<p class="sub cmp-bagagem">📚 Esta estimativa é <strong>do zero</strong>. Na configuração do plano você marca o que já domina (sua bagagem) — e a carga e o tempo reais para terminar caem conforme isso.</p>' +
+      '</div>';
   }
 
   function abrirCompararPlanos(idA) {

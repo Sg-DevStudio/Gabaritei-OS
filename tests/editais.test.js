@@ -69,6 +69,15 @@ test('combinarEditais: expõe rótulos de origem e prova de cada edital', () => 
   assert.equal(comb.rotulos.provaB, '2026-09');
 });
 
+test('conciliarPlanos: muito conteúdo em comum (≥45%) não cai abaixo de "moderada" mesmo com carga apertada', () => {
+  const comuns = Array.from({ length: 10 }, (_, i) => ['Comum ' + i, 6, 20]);
+  const a = edital('A', [disc('Direito', comuns.concat([['ExA1', 6, 20], ['ExA2', 6, 20], ['ExA3', 6, 20]]))], { janelaProva: { inicio: '2026-09', fim: '' } });
+  const b = edital('B', [disc('Direito', comuns.concat([['ExB1', 6, 20], ['ExB2', 6, 20], ['ExB3', 6, 20]]))], { janelaProva: { inicio: '2026-09', fim: '' } });
+  const r = D.conciliarPlanos(a, b, { horasSemana: 5, hoje: '2026-06-19' });
+  assert.ok(r.detalhes.overlapPct >= 45, 'sobreposição deveria ser alta, veio ' + r.detalhes.overlapPct);
+  assert.ok(['moderada', 'alta'].includes(r.nivel), 'nível não deveria cair abaixo de moderada, veio ' + r.nivel);
+});
+
 test('fatorEnfase: sem ênfase mantém o peso (fator 1)', () => {
   assert.equal(D.fatorEnfase(null, { origem: 'Alfa' }, '2026-06-19'), 1);
 });
