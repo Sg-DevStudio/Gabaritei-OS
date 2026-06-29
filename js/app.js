@@ -204,12 +204,9 @@
     // do iframe.
     const ov = document.createElement('div');
     ov.className = 'calc-fullscreen';
+    // Sem barra de título no topo: o nome já aparece dentro da própria
+    // calculadora. O botão de fechar fica no rodapé, fixo na base da tela.
     ov.innerHTML =
-      '<div class="calc-fs-bar">' +
-      '<div class="calc-fs-tit"><strong>' + esc(titulo) + '</strong>' +
-      '<span class="sub">estimativa para planejar seus estudos · não é contracheque oficial</span></div>' +
-      '<button type="button" class="botao-mini botao-secundario calc-fs-fechar" aria-label="Fechar calculadora">✕ Fechar</button>' +
-      '</div>' +
       '<iframe class="calc-fs-frame" src="' + esc(calc.arquivo) + '" title="' + esc(titulo) + '"></iframe>' +
       '<div class="calc-fs-rodape"><button type="button" class="botao calc-fs-fechar">Fechar calculadora</button></div>';
     document.body.appendChild(ov);

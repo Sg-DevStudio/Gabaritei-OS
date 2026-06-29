@@ -3230,19 +3230,11 @@ canvas.grafico {
   position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column;
   background: var(--papel, #111319);
 }
-.calc-fs-bar {
-  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  padding: 0.6rem 1rem; border-bottom: 1px solid var(--linha); background: var(--papel-card);
-}
-.calc-fs-tit { display: flex; flex-direction: column; min-width: 0; }
-.calc-fs-tit strong { font-size: 0.95rem; color: var(--tinta); }
-.calc-fs-tit .sub { font-size: 0.76rem; }
 .calc-fs-frame { flex: 1 1 auto; width: 100%; min-height: 0; border: 0; background: #0a1633; }
 .calc-fs-rodape {
   flex: 0 0 auto; display: flex; justify-content: center;
   padding: 0.55rem; border-top: 1px solid var(--linha); background: var(--papel-card);
 }
-@media (max-width: 560px) { .calc-fs-tit .sub { display: none; } }
 
 /* Seção "Comparar dois editais" (topo da aba Planos) */
 .comparar-secao { margin-bottom: 1rem; padding: 0.85rem 1rem; }
