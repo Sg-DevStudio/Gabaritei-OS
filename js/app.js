@@ -2313,6 +2313,7 @@
     // Convite ao aprofundamento (plano concluído) tem prioridade sobre o modal de
     // "meta do dia" para não abrirem dois modais no mesmo render.
     if (!talvezConvidarAprofundamento()) talvezComemorarDia();
+    setTimeout(talvezAvisarProvaPassada, 0);
     raiz.querySelectorAll('.prova-editar').forEach(function (b) { b.addEventListener('click', abrirEditarProva); });
     const adiantar = raiz.querySelector('#hoje-adiantar');
     if (adiantar) adiantar.addEventListener('click', adiantarProximaMateria);
@@ -3441,13 +3442,27 @@
   // (ou "por igual") e um botão para ajustar.
   function enfaseBannerHtml() {
     const enf = state.plano && state.plano.enfase;
+    const comb = state.plano && state.plano.combinado;
+    const r = comb && comb.rotulos;
+    const enc = (comb && comb.encerrados) || [];
+    const mes = D.hojeISO().slice(0, 7);
+    const passouA = r && r.provaA && mes > r.provaA;
+    const passouB = r && r.provaB && mes > r.provaB;
     let texto;
-    if (enf && enf.split) {
+    if (r && enc.length) {
+      const restante = enc.indexOf(r.a) >= 0 ? r.b : r.a;
+      texto = '🎯 Focando só em <strong>' + esc(restante) + '</strong> (o outro concurso foi encerrado).';
+    } else if (enf && enf.split) {
       const p = Math.round(enf.split * 100), s = 100 - p;
-      const passou = enf.provaSecundario && D.hojeISO().slice(0, 7) > enf.provaSecundario;
+      const passou = enf.provaSecundario && mes > enf.provaSecundario;
       texto = passou
         ? '🎯 Prova de <strong>' + esc(enf.secundario) + '</strong> já passou — foco voltou 100% para <strong>' + esc(enf.principal) + '</strong>.'
         : '🎯 Ênfase: <strong>' + p + '%</strong> ' + esc(enf.principal) + ' · <strong>' + s + '%</strong> ' + esc(enf.secundario) + '.';
+    } else if (passouA && passouB) {
+      texto = '🏁 As provas dos dois concursos já passaram.';
+    } else if (passouA || passouB) {
+      const saiu = passouA ? r.a : r.b, restante = passouA ? r.b : r.a;
+      texto = '🎯 Prova de <strong>' + esc(saiu) + '</strong> já passou — o foco migrou para <strong>' + esc(restante) + '</strong>.';
     } else {
       texto = '⚖️ Estudando os dois por igual.';
     }
@@ -3496,6 +3511,120 @@
       if (enfase) state.plano.enfase = enfase; else delete state.plano.enfase;
       salvar(); fecharModal(); render();
       toast('Ênfase atualizada', 'sucesso');
+    });
+  }
+
+  // ---- Aviso quando a data prevista de uma prova chega ----
+  // Detecta a prova (do plano simples, ou de UM dos concursos do combinado) que
+  // já passou e ainda não foi tratada pelo aluno (provaAvisada).
+  function provaPassadaPendente() {
+    if (!state.plano) return null;
+    const mes = D.hojeISO().slice(0, 7);
+    const avisada = state.plano.provaAvisada || '';
+    const comb = state.plano.combinado;
+    if (comb && comb.rotulos) {
+      const r = comb.rotulos, enc = comb.encerrados || [];
+      const cands = [];
+      if (r.provaA && mes > r.provaA && enc.indexOf(r.a) < 0) cands.push({ prova: r.provaA, rotulo: r.a, outro: r.b, outroProva: r.provaB });
+      if (r.provaB && mes > r.provaB && enc.indexOf(r.b) < 0) cands.push({ prova: r.provaB, rotulo: r.b, outro: r.a, outroProva: r.provaA });
+      const pend = cands.filter(function (c) { return c.prova > avisada; }).sort(function (a, b) { return a.prova.localeCompare(b.prova); })[0];
+      if (!pend) return null;
+      pend.combinado = true;
+      pend.outroPassou = !!(pend.outroProva && mes > pend.outroProva);
+      return pend;
+    }
+    const jp = state.plano.radar && state.plano.radar.janela_prova;
+    const provaMes = jp && jp[0];
+    if (provaMes && mes > provaMes && provaMes > avisada) return { combinado: false, prova: provaMes };
+    return null;
+  }
+
+  function talvezAvisarProvaPassada() {
+    if (!state.plano) return;
+    const raizModal = document.getElementById('modal-raiz');
+    if (raizModal && raizModal.children.length) return; // outro modal aberto: tenta depois
+    const info = provaPassadaPendente();
+    if (info) abrirDialogoProvaPassada(info);
+  }
+
+  function marcarProvaAvisada(prova) {
+    if (state.plano) { state.plano.provaAvisada = prova; salvar(); }
+  }
+
+  function abrirDialogoProvaPassada(info) {
+    let corpo, acoes;
+    if (info.combinado && !info.outroPassou) {
+      corpo = '<div class="dialogo-icone" aria-hidden="true">🎯</div>' +
+        '<h3>A prova de ' + esc(info.rotulo) + ' já passou</h3>' +
+        '<p class="sub dialogo-msg">O foco já está migrando para <strong>' + esc(info.outro) + '</strong>. Como quer seguir?</p>';
+      acoes = '<button type="button" data-pp="focar">Seguir só com ' + esc(info.outro) + '</button>' +
+        '<button type="button" class="botao-secundario" data-pp="data">' + esc(info.rotulo) + ' foi adiado — nova data</button>' +
+        '<button type="button" class="botao-quieto" data-pp="manter">Manter os dois</button>';
+    } else {
+      const titulo = info.combinado ? 'As provas dos dois concursos já passaram' : 'A data da sua prova já passou';
+      corpo = '<div class="dialogo-icone" aria-hidden="true">' + (info.combinado ? '🏁' : '🎯') + '</div>' +
+        '<h3>' + titulo + '</h3>' +
+        '<p class="sub dialogo-msg">O que você quer fazer?</p>';
+      acoes = '<button type="button" data-pp="arquivar">Arquivar o plano</button>' +
+        '<button type="button" class="botao-secundario" data-pp="data">Mudar a data da prova</button>' +
+        '<button type="button" class="botao-quieto" data-pp="manter">Manter como está</button>';
+    }
+    const m = abrirModal('<div class="dialogo-prova">' + corpo + '<div class="modal-acoes modal-acoes-empilhado">' + acoes + '</div></div>');
+    m.querySelectorAll('[data-pp]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const acao = b.getAttribute('data-pp');
+        if (acao === 'manter') { marcarProvaAvisada(info.prova); fecharModal(); return; }
+        if (acao === 'focar') {
+          const comb = state.plano.combinado; comb.encerrados = comb.encerrados || [];
+          if (comb.encerrados.indexOf(info.rotulo) < 0) comb.encerrados.push(info.rotulo);
+          if (state.plano.enfase) delete state.plano.enfase;
+          marcarProvaAvisada(info.prova);
+          salvar(); fecharModal(); render();
+          toast('Agora focando só em ' + info.outro, 'sucesso');
+          return;
+        }
+        if (acao === 'arquivar') {
+          marcarProvaAvisada(info.prova);
+          fecharModal();
+          excluirPlano(state.planoAtivoId, false);
+          return;
+        }
+        if (acao === 'data') {
+          if (info.combinado && !info.outroPassou) { fecharModal(); abrirNovaDataConcurso(info); }
+          else { marcarProvaAvisada(''); fecharModal(); abrirEditarProva(); }
+          return;
+        }
+      });
+    });
+  }
+
+  // Mini-editor de nova data para um concurso de um plano combinado (ex.: adiado
+  // ou próxima edição). Atualiza a data daquele concurso e a referência do plano.
+  function abrirNovaDataConcurso(info) {
+    const r = state.plano.combinado.rotulos;
+    const atualProva = info.rotulo === r.a ? r.provaA : r.provaB;
+    const m = abrirModal(
+      '<h3>Nova data de ' + esc(info.rotulo) + '</h3>' +
+      '<p class="sub">Se o concurso foi adiado ou você vai mirar a próxima edição, escolha o novo mês previsto.</p>' +
+      '<label>Mês previsto</label>' + seletorMesHtml('nd-prova', atualProva || hojeMesISO()) +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="nd-cancelar">Cancelar</button>' +
+      '<button type="button" id="nd-salvar">Salvar</button></div>'
+    );
+    ligarSeletoresMes(m);
+    m.querySelector('#nd-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#nd-salvar').addEventListener('click', function () {
+      const novo = m.querySelector('#nd-prova').value;
+      if (!novo) return;
+      if (info.rotulo === r.a) r.provaA = novo; else r.provaB = novo;
+      const futuras = [r.provaA, r.provaB].filter(Boolean).sort();
+      if (futuras.length) {
+        const prev = state.plano.radar || {};
+        state.plano.radar = Object.assign({}, prev, { janela_prova: [futuras[0], (prev.janela_prova && prev.janela_prova[1]) || futuras[futuras.length - 1]] });
+      }
+      if (state.plano.enfase && state.plano.enfase.secundario === info.rotulo) state.plano.enfase.provaSecundario = novo;
+      state.plano.provaAvisada = '';
+      salvar(); fecharModal(); render();
+      toast('Data de ' + info.rotulo + ' atualizada', 'sucesso');
     });
   }
 
@@ -8532,6 +8661,7 @@
 
   function ligarPlanejamento(raiz) {
     setTimeout(talvezAlertarCobertura, 0);
+    setTimeout(talvezAvisarProvaPassada, 0);
     const btnEnf = raiz.querySelector('#enf-ajustar');
     if (btnEnf) btnEnf.addEventListener('click', abrirAjusteEnfase);
     // alternar método (cronograma ↔ ciclo)
@@ -9030,7 +9160,7 @@
       const d = D.disciplinaPorId(state, id);
       if (!d) return;
       const w = (d.peso || 1) * multDificuldade(d) * (porDisc[id].teoria ? 1.6 : 0.6) *
-        D.fatorEnfase(state.plano && state.plano.enfase, d, hoje);
+        D.fatorDisciplinaCombinada(state.plano, d, hoje);
       somaW += w;
       itens.push({ disciplina: d, w, teoria: porDisc[id].teoria, blocos: porDisc[id].blocos });
     });

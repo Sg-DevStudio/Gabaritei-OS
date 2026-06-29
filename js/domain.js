@@ -272,7 +272,6 @@
     if (discs.length === 0) return [];
 
     const hojeCiclo = opcoes.hoje || hojeISO();
-    const enfaseCiclo = state.plano && state.plano.enfase;
     const minutosSemana = opcoes.minutosSemana > 0 ? opcoes.minutosSemana : 600;
     const minBloco = Math.max(10, Math.round(Number(opcoes.minBloco) || 30));
     const maxBloco = Math.max(minBloco, Math.round(Number(opcoes.maxBloco) || 75));
@@ -315,8 +314,8 @@
       // matéria fraca (desempenho < 70%) ganha até +50% de tempo
       const pct = desempenhoDisciplina(state, d);
       const reforco = (pct !== null && pct < 70) ? 1 + (70 - pct) / 140 : 1;
-      // ênfase do plano combinado: prioriza o concurso principal
-      const enf = fatorEnfase(enfaseCiclo, d, hojeCiclo);
+      // plano combinado: ênfase manual + foco que migra quando uma prova passa
+      const enf = fatorDisciplinaCombinada(state.plano, d, hojeCiclo);
       return { disc: d, peso: base * reforco * enf };
     });
     const somaPesos = pesos.reduce(function (s, p) { return s + p.peso; }, 0) || 1;
@@ -1483,6 +1482,33 @@
     return Math.round(((1 - s) / s) * 100) / 100;
   }
 
+  // Fator de peso de uma disciplina num PLANO (combinado ou não), juntando duas
+  // regras:
+  //  1) Qualquer concurso cuja PROVA JÁ PASSOU tem seu conteúdo EXCLUSIVO
+  //     esmaecido — vale em qualquer modo (com ou sem ênfase). É o que faz o
+  //     foco migrar sozinho para o concurso que ainda vem.
+  //  2) Ênfase manual (priorizar um concurso) — quando configurada.
+  // Precisa de plano.combinado.rotulos = { a, b, provaA, provaB } (AAAA-MM).
+  function fatorDisciplinaCombinada(plano, disc, hoje) {
+    if (!plano) return 1;
+    hoje = hoje || hojeISO();
+    const comb = plano.combinado;
+    if (comb && comb.rotulos) {
+      const origem = (disc && disc.origem) || '';
+      const r = comb.rotulos;
+      const enc = comb.encerrados || [];
+      const exclusivaA = origem === r.a && origem !== r.b;
+      const exclusivaB = origem === r.b && origem !== r.a;
+      // concurso que o aluno ENCERROU manualmente ("seguir só com o outro") → fora
+      if ((exclusivaA && enc.indexOf(r.a) >= 0) || (exclusivaB && enc.indexOf(r.b) >= 0)) return 0.04;
+      const passou = function (prova) { return prova && hoje.slice(0, 7) > prova; };
+      // conteúdo exclusivo de um concurso cuja prova já aconteceu → quase fora
+      if (exclusivaA && passou(r.provaA)) return 0.12;
+      if (exclusivaB && passou(r.provaB)) return 0.12;
+    }
+    return fatorEnfase(plano.enfase, disc, hoje);
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -1792,7 +1818,7 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, conquistas,
+    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel,

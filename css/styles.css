@@ -3255,6 +3255,12 @@ canvas.grafico {
   flex-wrap: wrap; margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed var(--linha); }
 .enf-banner .sub { margin: 0; }
 
+/* Diálogo "a prova passou": botões empilhados (decisão importante) */
+.dialogo-prova { text-align: center; }
+.dialogo-prova h3 { margin: 0.2rem 0 0.3rem; }
+.modal-acoes-empilhado { flex-direction: column; align-items: stretch; gap: 0.5rem; margin-top: 1rem; }
+.modal-acoes-empilhado button { width: 100%; }
+
 /* Seção "Comparar dois editais" (topo da aba Planos) */
 .comparar-secao { margin-bottom: 1rem; padding: 0.85rem 1rem; }
 .comparar-aviso { margin-top: 0.2rem; }

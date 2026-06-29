@@ -93,3 +93,23 @@ test('fatorEnfase: após a prova do secundário, foco volta ao principal', () =>
   const enf = { principal: 'Alfa', secundario: 'Beta', split: 0.7, provaSecundario: '2026-07' };
   assert.equal(D.fatorEnfase(enf, { origem: 'Beta' }, '2026-09-01'), 0.12);
 });
+
+test('fatorDisciplinaCombinada: concurso com prova passada esmaece mesmo SEM ênfase', () => {
+  const plano = { combinado: { rotulos: { a: 'Alfa', b: 'Beta', provaA: '2026-07', provaB: '2026-12' } } };
+  // prova de Alfa (jul) já passou em set → exclusiva de Alfa cai; Beta segue cheia
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa' }, '2026-09-01'), 0.12);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Beta' }, '2026-09-01'), 1);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa + Beta' }, '2026-09-01'), 1); // comum segue cheio
+  // antes de qualquer prova: tudo cheio
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa' }, '2026-06-01'), 1);
+  // sem plano combinado: nunca interfere
+  assert.equal(D.fatorDisciplinaCombinada({}, { origem: 'Alfa' }, '2026-09-01'), 1);
+});
+
+test('fatorDisciplinaCombinada: concurso ENCERRADO pelo aluno sai do peso (foco no outro)', () => {
+  const plano = { combinado: { rotulos: { a: 'Alfa', b: 'Beta', provaA: '2026-12', provaB: '2027-03' }, encerrados: ['Alfa'] } };
+  // mesmo antes da prova, Alfa foi encerrado → quase zero; Beta e comum seguem
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa' }, '2026-06-01'), 0.04);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Beta' }, '2026-06-01'), 1);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa + Beta' }, '2026-06-01'), 1);
+});
