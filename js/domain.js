@@ -709,8 +709,25 @@
     }, 0);
   }
 
+  function fatorBagagemTopico(t) {
+    if (!t) return 1;
+    if (t.bagagem === 'domino') return 0.15;
+    if (t.bagagem === 'estudei') return 0.5;
+    return 1;
+  }
+
+  function totalHorasTeoriaAjustada(disciplinas) {
+    if (!disciplinas) return 0;
+    return disciplinas.reduce(function (n, d) {
+      if (d.id === 'ORF') return n;
+      return n + (d.topicos || []).reduce(function (m, t) {
+        return t.orfao ? m : m + ((t.horas_estimadas || 2) * fatorBagagemTopico(t));
+      }, 0);
+    }, 0);
+  }
+
   function esforcoTotalHoras(state) {
-    return Math.round(totalHorasTeoria(state.disciplinas) * FATOR_ESFORCO);
+    return Math.round(totalHorasTeoriaAjustada(state.disciplinas) * FATOR_ESFORCO);
   }
 
   function horasRealizadas(state, desdeISO, ateISO) {
@@ -1817,7 +1834,7 @@
     alertaCobertura, adicionarTopicosAoCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
-    totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
+    totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,

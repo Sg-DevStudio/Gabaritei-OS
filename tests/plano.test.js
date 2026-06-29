@@ -48,3 +48,22 @@ test('validarPlano: aceita plano mínimo válido e recusa inválido', () => {
   assert.equal(bad.ok, false);
   assert.ok(bad.erros.length > 0);
 });
+test('burndownEdital respeita bagagem na conclusao estimada', () => {
+  const st = {
+    plano: { gerado_em: '2026-06-01', ritmos: { ativo: 'sustentavel', sustentavel: { semanas: 12, meses: 3, h_semana: 9 } } },
+    disciplinas: [{
+      id: 'D1',
+      topicos: [
+        { id: 'novo', horas_estimadas: 10, status: 'pendente' },
+        { id: 'bag', horas_estimadas: 10, status: 'pendente', bagagem: 'estudei' }
+      ]
+    }],
+    sessoes: []
+  };
+  const bd = D.burndownEdital(st, '2026-06-01');
+
+  assert.equal(D.totalHorasTeoria(st.disciplinas), 20);
+  assert.equal(D.totalHorasTeoriaAjustada(st.disciplinas), 15);
+  assert.equal(bd.restante, 27);
+  assert.equal(bd.semanasParaConcluir, 3);
+});
