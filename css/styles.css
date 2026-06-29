@@ -3236,6 +3236,21 @@ canvas.grafico {
   padding: 0.55rem; border-top: 1px solid var(--linha); background: var(--papel-card);
 }
 
+/* Ênfase do plano combinado: seletor (modal) + linha no card do plano */
+.enf-opcoes { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.6rem 0; }
+.enf-op { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.6rem 0.7rem;
+  border: 1px solid var(--linha); border-radius: 10px; cursor: pointer; }
+.enf-op:hover { border-color: var(--caneta, #2454D6); }
+.enf-op input { margin-top: 0.2rem; }
+.enf-op-txt { display: flex; flex-direction: column; }
+.enf-op-txt .sub { font-size: 0.8rem; }
+.enf-split { margin: 0.2rem 0 0.4rem; }
+.enf-split label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; }
+.enf-split select { width: 100%; }
+.enf-banner { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  flex-wrap: wrap; margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed var(--linha); }
+.enf-banner .sub { margin: 0; }
+
 /* Seção "Comparar dois editais" (topo da aba Planos) */
 .comparar-secao { margin-bottom: 1rem; padding: 0.85rem 1rem; }
 .comparar-aviso { margin-top: 0.2rem; }

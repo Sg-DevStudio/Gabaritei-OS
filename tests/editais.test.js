@@ -59,3 +59,28 @@ test('combinarEditais: dedup por nome, pega maior incidência/horas e menor prio
   assert.match(comb.banca, /FGV/);
   assert.match(comb.banca, /Cebraspe/);
 });
+
+test('combinarEditais: expõe rótulos de origem e prova de cada edital', () => {
+  const a = edital('Alfa', [disc('Português', [['Crase', 2, 20]])]);
+  const b = edital('Beta', [disc('Matemática', [['Juros', 2, 20]])], { janelaProva: { inicio: '2026-09', fim: '' } });
+  const comb = D.combinarEditais(a, b);
+  assert.equal(comb.rotulos.a, 'Alfa');
+  assert.equal(comb.rotulos.b, 'Beta');
+  assert.equal(comb.rotulos.provaB, '2026-09');
+});
+
+test('fatorEnfase: sem ênfase mantém o peso (fator 1)', () => {
+  assert.equal(D.fatorEnfase(null, { origem: 'Alfa' }, '2026-06-19'), 1);
+});
+
+test('fatorEnfase: só a disciplina EXCLUSIVA do secundário perde peso', () => {
+  const enf = { principal: 'Alfa', secundario: 'Beta', split: 0.7, provaSecundario: '2026-12' };
+  assert.equal(D.fatorEnfase(enf, { origem: 'Beta' }, '2026-06-19'), 0.43); // (1-0.7)/0.7
+  assert.equal(D.fatorEnfase(enf, { origem: 'Alfa' }, '2026-06-19'), 1);        // principal cheio
+  assert.equal(D.fatorEnfase(enf, { origem: 'Alfa + Beta' }, '2026-06-19'), 1); // comum cheio
+});
+
+test('fatorEnfase: após a prova do secundário, foco volta ao principal', () => {
+  const enf = { principal: 'Alfa', secundario: 'Beta', split: 0.7, provaSecundario: '2026-07' };
+  assert.equal(D.fatorEnfase(enf, { origem: 'Beta' }, '2026-09-01'), 0.12);
+});

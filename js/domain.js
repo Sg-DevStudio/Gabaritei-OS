@@ -271,6 +271,8 @@
     const discs = (state.disciplinas || []).filter(function (d) { return d && d.id !== 'ORF'; });
     if (discs.length === 0) return [];
 
+    const hojeCiclo = opcoes.hoje || hojeISO();
+    const enfaseCiclo = state.plano && state.plano.enfase;
     const minutosSemana = opcoes.minutosSemana > 0 ? opcoes.minutosSemana : 600;
     const minBloco = Math.max(10, Math.round(Number(opcoes.minBloco) || 30));
     const maxBloco = Math.max(minBloco, Math.round(Number(opcoes.maxBloco) || 75));
@@ -313,7 +315,9 @@
       // matéria fraca (desempenho < 70%) ganha até +50% de tempo
       const pct = desempenhoDisciplina(state, d);
       const reforco = (pct !== null && pct < 70) ? 1 + (70 - pct) / 140 : 1;
-      return { disc: d, peso: base * reforco };
+      // ênfase do plano combinado: prioriza o concurso principal
+      const enf = fatorEnfase(enfaseCiclo, d, hojeCiclo);
+      return { disc: d, peso: base * reforco * enf };
     });
     const somaPesos = pesos.reduce(function (s, p) { return s + p.peso; }, 0) || 1;
 
@@ -1453,6 +1457,24 @@
     return add;
   }
 
+  // Ênfase do plano combinado: dá mais tempo a um concurso ("principal") sem
+  // largar o outro. Devolve um MULTIPLICADOR do peso de uma disciplina:
+  //  • disciplina compartilhada ou exclusiva do PRINCIPAL  → 1 (peso cheio);
+  //  • disciplina EXCLUSIVA do secundário                  → (1-split)/split;
+  //  • após a prova do secundário                          → ~0 (foco volta 100%
+  //    ao principal automaticamente).
+  // enfase = { principal, secundario, split (fração do principal), provaSecundario (AAAA-MM) }.
+  function fatorEnfase(enfase, disc, hoje) {
+    if (!enfase || !enfase.secundario || !enfase.split) return 1;
+    const origem = (disc && disc.origem) || '';
+    if (origem !== enfase.secundario) return 1; // só afeta exclusivas do secundário
+    hoje = hoje || hojeISO();
+    if (enfase.provaSecundario && hoje.slice(0, 7) > enfase.provaSecundario) return 0.12;
+    const s = enfase.split;
+    if (s <= 0 || s >= 1) return 1;
+    return Math.round(((1 - s) / s) * 100) / 100;
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -1501,7 +1523,14 @@
       notaCorte: Math.max(edA.notaCorte || 70, edB.notaCorte || 70),
       nivel: 'dificil',
       janelaProva: inis.length ? { inicio: inis[0], fim: '' } : { inicio: '', fim: '' },
-      disciplinas: disciplinas
+      disciplinas: disciplinas,
+      // rótulos exatos de cada origem (o mesmo texto gravado em disc.origem) +
+      // janela de prova de cada um — base para configurar a ênfase no plano.
+      rotulos: {
+        a: rotuloA, b: rotuloB,
+        provaA: (edA.janelaProva && edA.janelaProva.inicio) || '',
+        provaB: (edB.janelaProva && edB.janelaProva.inicio) || ''
+      }
     };
   }
 
@@ -1755,7 +1784,7 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
+    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, conquistas,
     duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel,

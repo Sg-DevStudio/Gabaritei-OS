@@ -3433,7 +3433,70 @@
     return '<div class="card compat-editais compat-' + classe + '">' +
       '<div class="compat-topo"><span class="compat-icone" aria-hidden="true">' + icone + '</span>' +
       '<div><strong>Estes editais são ' + comb.pct + '% compatíveis</strong>' + (fontes ? ' · ' + esc(fontes) : '') + '</div></div>' +
-      (comb.mensagem ? '<p class="sub">' + esc(comb.mensagem) + '</p>' : '') + '</div>';
+      (comb.mensagem ? '<p class="sub">' + esc(comb.mensagem) + '</p>' : '') +
+      enfaseBannerHtml() + '</div>';
+  }
+
+  // Linha de ênfase dentro do banner do plano combinado: mostra a divisão de foco
+  // (ou "por igual") e um botão para ajustar.
+  function enfaseBannerHtml() {
+    const enf = state.plano && state.plano.enfase;
+    let texto;
+    if (enf && enf.split) {
+      const p = Math.round(enf.split * 100), s = 100 - p;
+      const passou = enf.provaSecundario && D.hojeISO().slice(0, 7) > enf.provaSecundario;
+      texto = passou
+        ? '🎯 Prova de <strong>' + esc(enf.secundario) + '</strong> já passou — foco voltou 100% para <strong>' + esc(enf.principal) + '</strong>.'
+        : '🎯 Ênfase: <strong>' + p + '%</strong> ' + esc(enf.principal) + ' · <strong>' + s + '%</strong> ' + esc(enf.secundario) + '.';
+    } else {
+      texto = '⚖️ Estudando os dois por igual.';
+    }
+    return '<div class="enf-banner"><span class="sub">' + texto + '</span>' +
+      '<button type="button" class="botao-mini botao-quieto" id="enf-ajustar">Ajustar ênfase</button></div>';
+  }
+
+  // Reabre o seletor de ênfase para um plano combinado já existente, mudando só a
+  // priorização (não regera o edital). O ciclo é dinâmico e o calendário futuro
+  // se reajusta semana a semana.
+  function abrirAjusteEnfase() {
+    const comb = state.plano && state.plano.combinado;
+    if (!comb || !comb.rotulos) { toast('Ajuste disponível só em planos combinados novos.', 'erro'); return; }
+    const rA = comb.rotulos.a, rB = comb.rotulos.b;
+    const atual = state.plano.enfase;
+    const principalAtual = atual ? atual.principal : '';
+    const opcao = function (val, titulo, sub) {
+      return '<label class="enf-op"><input type="radio" name="enf-aj-principal" value="' + esc(val) + '"' + (principalAtual === val || (!val && !atual) ? ' checked' : '') + '>' +
+        '<span class="enf-op-txt"><strong>' + esc(titulo) + '</strong><span class="sub">' + esc(sub) + '</span></span></label>';
+    };
+    const m = abrirModal(
+      '<h3>Ajustar ênfase</h3>' +
+      '<div class="enf-opcoes">' +
+      opcao('', 'Estudar os dois por igual', 'Tempo dividido por peso e incidência.') +
+      opcao(rA, 'Priorizar ' + rA, 'A maior parte do tempo vai para ' + rA + '.') +
+      opcao(rB, 'Priorizar ' + rB, 'A maior parte do tempo vai para ' + rB + '.') +
+      '</div>' +
+      '<div class="enf-split' + (atual ? '' : ' oculto') + '" id="enf-aj-split-box"><label>Quanto do tempo para o principal?' +
+      '<select id="enf-aj-split">' +
+      ['0.7', '0.6', '0.8'].map(function (v) {
+        const lbl = { '0.7': '70% · 30%', '0.6': '60% · 40%', '0.8': '80% · 20%' }[v];
+        return '<option value="' + v + '"' + (atual && String(atual.split) === v ? ' selected' : '') + '>' + lbl + '</option>';
+      }).join('') + '</select></label></div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="enf-aj-cancelar">Cancelar</button>' +
+      '<button type="button" id="enf-aj-salvar">Salvar</button></div>'
+    );
+    const splitBox = m.querySelector('#enf-aj-split-box');
+    m.querySelectorAll('input[name="enf-aj-principal"]').forEach(function (r) {
+      r.addEventListener('change', function () { splitBox.classList.toggle('oculto', !r.value); });
+    });
+    m.querySelector('#enf-aj-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#enf-aj-salvar').addEventListener('click', function () {
+      const sel = m.querySelector('input[name="enf-aj-principal"]:checked');
+      const enfase = montarEnfase(comb, sel ? sel.value : '');
+      if (enfase) enfase.split = parseFloat(m.querySelector('#enf-aj-split').value) || 0.7;
+      if (enfase) state.plano.enfase = enfase; else delete state.plano.enfase;
+      salvar(); fecharModal(); render();
+      toast('Ênfase atualizada', 'sucesso');
+    });
   }
 
   function telaEdital() {
@@ -5274,9 +5337,63 @@
     recalc();
   }
 
-  // Une dois editais conciliáveis num plano único e gera o cronograma adaptativo.
-  async function gerarPlanoCombinado(edA, edB) {
+  // Une dois editais conciliáveis num plano único. Antes de gerar, pergunta se o
+  // aluno quer dar ênfase a um dos concursos (priorizar o principal sem largar o
+  // outro) — depois gera o cronograma adaptativo.
+  function gerarPlanoCombinado(edA, edB) {
     const comb = D.combinarEditais(edA, edB);
+    abrirEscolhaEnfase(comb, edA, edB);
+  }
+
+  // Monta o objeto de ênfase a partir da escolha do aluno (ou null = igual).
+  function montarEnfase(comb, principalRotulo) {
+    if (!principalRotulo) return null;
+    const ehA = principalRotulo === comb.rotulos.a;
+    return {
+      principal: ehA ? comb.rotulos.a : comb.rotulos.b,
+      secundario: ehA ? comb.rotulos.b : comb.rotulos.a,
+      split: 0.7,
+      provaSecundario: ehA ? comb.rotulos.provaB : comb.rotulos.provaA
+    };
+  }
+
+  function abrirEscolhaEnfase(comb, edA, edB) {
+    const rA = comb.rotulos.a, rB = comb.rotulos.b;
+    const opcao = function (val, titulo, sub) {
+      return '<label class="enf-op"><input type="radio" name="enf-principal" value="' + esc(val) + '">' +
+        '<span class="enf-op-txt"><strong>' + esc(titulo) + '</strong><span class="sub">' + esc(sub) + '</span></span></label>';
+    };
+    const m = abrirModal(
+      '<h3>Combinar concursos</h3>' +
+      '<p class="sub">Quer dar ênfase a um deles? Útil quando um é o seu foco e o outro é uma oportunidade do momento — sem largar o principal.</p>' +
+      '<div class="enf-opcoes">' +
+      opcao('', 'Estudar os dois por igual', 'Tempo dividido por peso e incidência das matérias (padrão).') +
+      opcao(rA, 'Priorizar ' + rA, 'A maior parte do tempo vai para ' + rA + '.') +
+      opcao(rB, 'Priorizar ' + rB, 'A maior parte do tempo vai para ' + rB + '.') +
+      '</div>' +
+      '<div class="enf-split oculto" id="enf-split-box"><label>Quanto do tempo para o principal?' +
+      '<select id="enf-split"><option value="0.7">70% principal · 30% secundário</option>' +
+      '<option value="0.6">60% principal · 40% secundário</option>' +
+      '<option value="0.8">80% principal · 20% secundário</option></select></label>' +
+      '<p class="sub">O conteúdo em comum vale para os dois. Quando a prova do concurso secundário passar, o foco volta 100% ao principal.</p></div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="enf-cancelar">Cancelar</button>' +
+      '<button type="button" id="enf-gerar">Gerar plano combinado</button></div>'
+    );
+    const splitBox = m.querySelector('#enf-split-box');
+    m.querySelectorAll('input[name="enf-principal"]').forEach(function (r) {
+      r.addEventListener('change', function () { splitBox.classList.toggle('oculto', !r.value); });
+    });
+    m.querySelector('input[name="enf-principal"]').checked = true; // "igual" por padrão
+    m.querySelector('#enf-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#enf-gerar').addEventListener('click', function () {
+      const sel = m.querySelector('input[name="enf-principal"]:checked');
+      const enfase = montarEnfase(comb, sel ? sel.value : '');
+      if (enfase) enfase.split = parseFloat(m.querySelector('#enf-split').value) || 0.7;
+      executarPlanoCombinado(comb, edA, edB, enfase);
+    });
+  }
+
+  async function executarPlanoCombinado(comb, edA, edB, enfase) {
     gerarIdsEdital(comb.disciplinas);
     const reg = Object.assign(
       // ocultoNoCatalogo: o edital combinado é um artefato do plano do aluno, não
@@ -5298,8 +5415,10 @@
         fontes: [tituloCurto(edA.titulo), tituloCurto(edB.titulo)],
         pct: compat.detalhes.overlapPct,
         nivel: compat.nivel,
-        mensagem: compat.mensagem
+        mensagem: compat.mensagem,
+        rotulos: comb.rotulos // permite reabrir o ajuste de ênfase depois
       };
+      if (enfase) state.plano.enfase = enfase; else delete state.plano.enfase;
       salvar();
     }
   }
@@ -6333,6 +6452,7 @@
       '</div>' +
       modoRetaFinalControleHtml() +
       modoAprofundamentoControleHtml() +
+      (state.plano.combinado ? enfaseBannerHtml() : '') +
       '</div>';
   }
 
@@ -8410,6 +8530,8 @@
 
   function ligarPlanejamento(raiz) {
     setTimeout(talvezAlertarCobertura, 0);
+    const btnEnf = raiz.querySelector('#enf-ajustar');
+    if (btnEnf) btnEnf.addEventListener('click', abrirAjusteEnfase);
     // alternar método (cronograma ↔ ciclo)
     raiz.querySelectorAll('[data-modo-plan]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -8905,7 +9027,8 @@
     Object.keys(porDisc).forEach(function (id) {
       const d = D.disciplinaPorId(state, id);
       if (!d) return;
-      const w = (d.peso || 1) * multDificuldade(d) * (porDisc[id].teoria ? 1.6 : 0.6);
+      const w = (d.peso || 1) * multDificuldade(d) * (porDisc[id].teoria ? 1.6 : 0.6) *
+        D.fatorEnfase(state.plano && state.plano.enfase, d, hoje);
       somaW += w;
       itens.push({ disciplina: d, w, teoria: porDisc[id].teoria, blocos: porDisc[id].blocos });
     });
