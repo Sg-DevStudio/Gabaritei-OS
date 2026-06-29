@@ -605,6 +605,17 @@
         qCertas += s.qCertas || 0;
       }
     }
+    // Simulados da semana também são questões resolvidas: entram na contagem e,
+    // sobretudo, na margem de acertos (qCertas/qFeitas) — antes só as sessões
+    // de estudo contavam e os simulados ficavam de fora desse cálculo.
+    for (const sim of doPlanoAtivo(state, state.simulados || [])) {
+      if (sim.data >= inicio && sim.data < fim) {
+        for (const a of (sim.acertos || [])) {
+          qFeitas += a.total || 0;
+          qCertas += a.certas || 0;
+        }
+      }
+    }
     let horasAlvo = 0;
     if (state.plano && state.plano.ritmos) {
       const r = state.plano.ritmos[state.plano.ritmoAtivo || 'sustentavel'];

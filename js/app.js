@@ -158,6 +158,45 @@
     return editaisDoCatalogo().find(function (e) { return e.id === id; }) || null;
   }
 
+  // Calculadora de remuneração específica do cargo, quando houver. Identifica
+  // pelo texto do edital (título/órgão/cargo): Petrobras nível técnico e Técnico
+  // Judiciário Federal (TRF/TRT/TRE/tribunais superiores) têm página própria.
+  // Devolve { arquivo, rotulo } ou null.
+  function calculadoraDoEdital(e) {
+    if (!e) return null;
+    const txt = ((e.titulo || '') + ' ' + (e.orgao || '') + ' ' + (e.cargo || '')).toLowerCase();
+    // Petrobras e Transpetro: mesma carreira/ACT do Sistema Petrobras, então
+    // compartilham a calculadora.
+    if (/petrobras|transpetro|petróleo brasileiro/.test(txt)) {
+      return { arquivo: 'calc/petrobras.html', rotulo: '💰 Quanto ganha um técnico da Petrobras' };
+    }
+    // Técnico Judiciário FEDERAL: precisa ser "técnico judiciário" E de um órgão
+    // da Justiça da União (TRF/TRT/TRE/tribunais superiores). Exclui os Tribunais
+    // de Justiça estaduais (ex.: TJSP — Escrevente Técnico Judiciário).
+    const ehTecJud = /t[ée]cnico\s+judici[áa]rio/.test(txt);
+    const ehFederal = /\b(trf|trt|tre|tst|tse|stj|stf|cjf|tjdft|stm)\b|tribunal regional|tribunal superior|justi[çc]a (federal|do trabalho|eleitoral|militar)/.test(txt);
+    if (ehTecJud && ehFederal) {
+      return { arquivo: 'calc/judiciario-federal.html', rotulo: '💰 Quanto ganha um técnico judiciário federal' };
+    }
+    return null;
+  }
+
+  // Abre a calculadora de remuneração num modal amplo, isolada num iframe (cada
+  // calculadora é uma página HTML completa com estilos próprios).
+  function abrirCalculadoraRemuneracao(calc) {
+    if (!calc) return;
+    const titulo = calc.rotulo.replace(/^💰\s*/, '');
+    const m = abrirModal(
+      '<div class="calc-modal-cab"><h3>' + esc(titulo) + '</h3>' +
+      '<p class="sub">Estimativa para planejar seus estudos — não é contracheque oficial.</p></div>' +
+      '<iframe src="' + esc(calc.arquivo) + '" title="' + esc(titulo) + '" loading="lazy" ' +
+      'style="width:100%;height:72vh;border:0;border-radius:12px;background:#0a1633"></iframe>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="calc-fechar">Fechar</button></div>'
+    );
+    m.classList.add('modal-amplo');
+    m.querySelector('#calc-fechar').addEventListener('click', fecharModal);
+  }
+
   function limparEditalParaCatalogo(e) {
     const c = clonarJson(e);
     delete c._global;
@@ -4784,12 +4823,15 @@
     const nt = contarTopicosEdital(e);
     const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
     const selComparar = comparacaoIds.indexOf(e.id) >= 0;
+    const calc = calculadoraDoEdital(e);
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     return '<div class="card catalogo-card catalogo-card-compacto' + (selComparar ? ' catalogo-card-comparando' : '') + '">' +
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
       '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) +
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</strong>' +
-      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</span>' +
+      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos' +
+      (calc ? ' <button type="button" class="catalogo-calc-mini" data-pl-calc="' + esc(e.id) + '" title="Estimar a remuneração do cargo">💰 Calculadora de salário</button>' : '') +
+      '</span>' +
       (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div></div>' +
       '<div class="catalogo-metricas">' +
@@ -5081,6 +5123,9 @@
     raiz.querySelectorAll('[data-pl-detalhes]').forEach(function (b) {
       b.addEventListener('click', function () { abrirDetalhesEdital(b.getAttribute('data-pl-detalhes')); });
     });
+    raiz.querySelectorAll('[data-pl-calc]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirCalculadoraRemuneracao(calculadoraDoEdital(editalPorId(b.getAttribute('data-pl-calc')))); });
+    });
     raiz.querySelectorAll('[data-pl-iniciar]').forEach(function (b) {
       b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-pl-iniciar')); });
     });
@@ -5102,6 +5147,7 @@
   function abrirDetalhesEdital(id) {
     const e = editalPorId(id);
     if (!e) return;
+    const calc = calculadoraDoEdital(e);
     // Disciplinas com tópicos · incidência · horas (antiga "tela 2", agora direto)
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
@@ -5129,11 +5175,13 @@
       (e.beneficios ? '<p class="sub" style="margin:0.1rem 0 0.5rem"><strong>Benefícios:</strong> ' + esc(e.beneficios) + '</p>' : '') +
       '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (incidência nas provas e horas estimadas).</p>' +
       '<div class="detalhe-discs">' + discHtml + '</div>' +
+      (calc ? '<button type="button" class="botao-secundario det-calc" id="det-calc" style="width:100%;margin:0.2rem 0 0.6rem">' + calc.rotulo + '</button>' : '') +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
       '<button id="det-iniciar">Iniciar plano</button></div>');
     m.classList.add('modal-amplo');
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
+    if (calc) m.querySelector('#det-calc').addEventListener('click', function () { abrirCalculadoraRemuneracao(calc); });
   }
 
   function vereditoConciliacaoHtml(res) {
@@ -5901,6 +5949,17 @@
   // Revisões (repetição espaçada) pendentes de um dia — fonte única, refletida no
   // calendário; cada uma já descontou tempo do dia na geração da agenda.
   function revisoesDoDia(diaISO) { return D.revisoesPendentesNoDia(state, diaISO); }
+  // Simulados registrados num dia (do plano ativo) — marcados no calendário.
+  function simuladosDoDia(diaISO) {
+    return doAtivo(state.simulados).filter(function (s) { return s.data === diaISO; });
+  }
+  // Resumo curto de um simulado: nº de questões e % geral de acerto.
+  function resumoSimulado(s) {
+    let c = 0, q = 0;
+    (s.acertos || []).forEach(function (a) { c += a.certas || 0; q += a.total || 0; });
+    const pct = q > 0 ? Math.round((c / q) * 100) : null;
+    return { certas: c, total: q, pct: pct };
+  }
   function rotuloTipoRevisao(tipo) { return tipo === 'reforço' || tipo === 'manutenção' ? tipo : tipo; }
   // Chip de revisão para a grade semanal (não arrastável; clica para mover).
   function revisaoChipSemana(r) {
@@ -5912,6 +5971,17 @@
     return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + '">' +
       '<span class="agenda-bloco-rev-ic" aria-hidden="true">🔁</span>' +
       '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão</span>' +
+      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
+  }
+  // Chip de simulado para a grade semanal (clica para abrir os detalhes do dia).
+  function simuladoChipSemana(s) {
+    const r = resumoSimulado(s);
+    const tipoTxt = s.tipo === 'total' ? 'Simulado total' : s.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
+    const sub = (r.total > 0 ? r.certas + '/' + r.total + ' acertos' + (r.pct != null ? ' · ' + r.pct + '%' : '') : 'registrado') +
+      (s.duracaoMin ? ' · ' + D.formatarMin(s.duracaoMin) : '');
+    return '<div class="agenda-bloco agenda-bloco-simulado" data-dia-detalhe="' + esc(s.data) + '" role="button" tabindex="0" title="' + esc(tipoTxt + ' · ' + sub) + '">' +
+      '<span class="agenda-bloco-rev-ic" aria-hidden="true">📝</span>' +
+      '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Simulado</span>' +
       '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
   }
   // Move uma revisão de dia (ajuste manual sobre o agendamento do motor). Re-reserva
@@ -8023,12 +8093,15 @@
         const data = D.addDias(agendaRef, i);
         const blocos = blocosDoDia(data);
         const revs = revisoesDoDia(data);
+        const sims = simuladosDoDia(data);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
+        const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
           (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
           revs.map(revisaoChipSemana).join('') +
+          sims.map(simuladoChipSemana).join('') +
           blocos.map(function (b) {
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
@@ -8069,18 +8142,21 @@
           if (discsDia.indexOf(b.disciplinaId) < 0) discsDia.push(b.disciplinaId);
         });
         const revs = revisoesDoDia(cursor);
+        const sims = simuladosDoDia(cursor);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
+        const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
         const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
-        const temConteudo = blocos.length > 0 || revs.length > 0;
+        const temConteudo = blocos.length > 0 || revs.length > 0 || sims.length > 0;
         const pontos = discsDia.slice(0, 5).map(function (id) {
           const d = D.disciplinaPorId(state, id);
           return '<span class="mes-ponto" style="background:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc(d ? d.nome : id) + '"></span>';
         }).join('') + (discsDia.length > 5 ? '<span class="mes-ponto-mais">+' + (discsDia.length - 5) + '</span>' : '') +
-          (revs.length > 0 ? '<span class="mes-ponto-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '">🔁</span>' : '');
+          (revs.length > 0 ? '<span class="mes-ponto-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '">🔁</span>' : '') +
+          (sims.length > 0 ? '<span class="mes-ponto-sim" title="' + sims.length + ' simulado(s)">📝</span>' : '');
         html += '<div class="mes-celula mes-celula-pontos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
           (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
-          D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' : ' — sem blocos') + '">' +
+          D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' + (sims.length > 0 ? ', ' + sims.length + ' simulados' : '') : ' — sem blocos') + '">' +
           '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
           (temConteudo
             ? '<div class="mes-pontos">' + pontos + '</div>' +
@@ -8163,9 +8239,24 @@
   function abrirDetalhesDia(dataISO) {
     const blocos = blocosDoDia(dataISO);
     const revs = revisoesDoDia(dataISO);
+    const sims = simuladosDoDia(dataISO);
     const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
-    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
+    const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
     const feitos = blocos.filter(blocoAgendaConcluido).length;
+    const simsHtml = sims.length === 0 ? '' :
+      '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">📝 Simulados do dia</h4><div class="dia-detalhe-lista">' +
+      sims.map(function (s) {
+        const r = resumoSimulado(s);
+        const tipoTxt = s.tipo === 'total' ? 'Simulado total' : s.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
+        const sub = (r.total > 0 ? r.certas + '/' + r.total + ' acertos' + (r.pct != null ? ' · ' + r.pct + '%' : '') : 'registrado') +
+          (s.duracaoMin ? ' · ' + D.formatarMin(s.duracaoMin) : '');
+        return '<button type="button" class="dia-detalhe-item dia-detalhe-rev" data-dia-sim="' + esc(s.id) + '" style="--disc-cor:#3fcf8e">' +
+          '<span class="dia-detalhe-cor" style="background:#3fcf8e"></span>' +
+          '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + esc(tipoTxt) + '</span>' +
+          '<span class="dia-detalhe-sub">' + esc(sub) + '</span></span>' +
+          '<span class="dia-detalhe-seta">›</span></button>';
+      }).join('') + '</div></div>';
     const revsHtml = revs.length === 0 ? '' :
       '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">🔁 Revisões do dia</h4><div class="dia-detalhe-lista">' +
       revs.map(function (r) {
@@ -8198,13 +8289,16 @@
         }).join('') + '</div>';
     const m = abrirModal(
       '<div class="dia-detalhe-cab"><div><h3>' + D.formatarDataBR(dataISO) + '</h3>' +
-      '<p class="sub">' + diaSemana + (blocos.length || revs.length ? ' · ' + blocos.length + ' blocos · ' + revs.length + ' revisões · ' + D.formatarMin(totalMin) : ' · dia livre') + '</p></div></div>' +
-      listaHtml + revsHtml +
+      '<p class="sub">' + diaSemana + (blocos.length || revs.length || sims.length ? ' · ' + blocos.length + ' blocos · ' + revs.length + ' revisões' + (sims.length ? ' · ' + sims.length + ' simulados' : '') + ' · ' + D.formatarMin(totalMin) : ' · dia livre') + '</p></div></div>' +
+      listaHtml + revsHtml + simsHtml +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="dd-semana">Abrir semana</button>' +
       '<button type="button" class="botao" id="dd-add">+ Adicionar bloco</button></div>'
     );
     m.querySelectorAll('[data-dia-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { fecharModal(); abrirBlocoAgenda(el.getAttribute('data-dia-bloco')); });
+    });
+    m.querySelectorAll('[data-dia-sim]').forEach(function (el) {
+      el.addEventListener('click', function () { fecharModal(); location.hash = '#simulados'; });
     });
     m.querySelectorAll('[data-mover-rev]').forEach(function (el) {
       el.addEventListener('click', function () { fecharModal(); abrirMoverRevisao(el.getAttribute('data-mover-rev')); });

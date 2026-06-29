@@ -1,0 +1,153 @@
+{
+  "tipo": "edital_esquematizado",
+  "versao": 1,
+  "gerado_em": "2026-06-24",
+  "titulo": "IFRJ — Assistente em Administração (concurso previsto 2026 — IDECAN)",
+  "banca": "IDECAN",
+  "cargo": "Assistente em Administração (Classe D / nível médio - PCCTAE)",
+  "fonte": "Edital do IFRJ ainda NÃO publicado (concurso em planejamento; banca IDECAN confirmada por dispensa). Conteúdo e incidência baseados no último edital IDECAN para o MESMO cargo em Instituto Federal — IF-PA, Edital nº 25/2021, prova de 13/03/2022 (distribuição real: 19 Port, 17 Dir. Adm, 12 Informática, 10 Adm. Geral, 7 RLM, 6 Arquivologia, 5 Ética) — cruzado com o projeto básico do IFRJ 2026 (50 questões: 8 Port / 7 Legislação e Ética / 35 Específicos) e incidência por tema de bancos de questões (Tec/Qconcursos). Nota de corte: aproximação declarada — lista oficial inexistente (edital não publicado).",
+  "janela_prova": {
+    "inicio": "",
+    "fim": ""
+  },
+  "nota_corte_sugerida_pct": 68,
+  "notas_corte_ultimo_nomeado": {
+    "escala": "Prova objetiva ~50 questões (previsão IFRJ 2026); percentual = acertos / total. APROXIMAÇÃO DECLARADA — sem lista oficial (edital ainda não publicado).",
+    "_observacao": "O concurso IFRJ 2026 ainda não tem edital nem lista de classificação. ÂNCORA REAL: no último concurso próprio do IFRJ (Selecon, Edital 03/2022, prova 10/04/2022), o mínimo para classificação era 40% por disciplina E 60% no total — esse é o piso eliminatório. A estimativa de 68% (ampla) / 60% (negros) para o ÚLTIMO NOMEADO fica acima desse piso, refletindo a concorrência típica. Substitua pelos valores oficiais quando o edital e o resultado do IFRJ 2026 saírem.",
+    "Rio de Janeiro (estimativa)": {
+      "ampla_pct": 68,
+      "negros_pct": 60
+    }
+  },
+  "disciplinas": [
+    {
+      "id": "POR",
+      "nome": "Língua Portuguesa",
+      "cor": "#E67E22",
+      "peso": 2,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "POR-01", "nome": "Interpretação e compreensão de textos (núcleo IDECAN — ~metade da prova)", "incidencia_pct": 40, "prioridade": 1, "horas_estimadas": 14, "semana_sugerida": 1 },
+        { "id": "POR-02", "nome": "Coesão, coerência e reescrita de frases", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
+        { "id": "POR-03", "nome": "Morfologia e classes de palavras", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
+        { "id": "POR-04", "nome": "Sintaxe — período, oração e concordância", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
+        { "id": "POR-05", "nome": "Regência verbal/nominal e crase", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
+        { "id": "POR-06", "nome": "Semântica — sentido, sinonímia, figuras de linguagem", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 6 },
+        { "id": "POR-07", "nome": "Ortografia, acentuação e pontuação", "incidencia_pct": 11, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 }
+      ]
+    },
+    {
+      "id": "LEG",
+      "nome": "Legislação e Ética",
+      "cor": "#27AE60",
+      "peso": 2,
+      "base_teorica": "lei_seca",
+      "topicos": [
+        { "id": "LEG-01", "nome": "Ética na Administração Pública — Decreto 1.171/1994 e Lei 8.429/1992", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
+        { "id": "LEG-02", "nome": "Constituição Federal — Administração Pública (arts. 37-41)", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
+        { "id": "LEG-03", "nome": "Lei 8.112/1990 — Regime Jurídico Único dos servidores federais", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 3 },
+        { "id": "LEG-04", "nome": "Lei 11.091/2005 — Plano de Carreira dos TAE (PCCTAE)", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
+        { "id": "LEG-05", "nome": "Lei 9.784/1999 — Processo Administrativo Federal", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 5 },
+        { "id": "LEG-06", "nome": "Estrutura dos Institutos Federais — Lei 11.892/2008", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 6 }
+      ]
+    },
+    {
+      "id": "DAD",
+      "nome": "Direito Administrativo",
+      "cor": "#16A085",
+      "peso": 3,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "DAD-01", "nome": "Princípios e regime jurídico-administrativo", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
+        { "id": "DAD-02", "nome": "Poderes da Administração", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 },
+        { "id": "DAD-03", "nome": "Atos administrativos — atributos, espécies, vícios", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
+        { "id": "DAD-04", "nome": "Organização administrativa — direta e indireta", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
+        { "id": "DAD-05", "nome": "Licitações e contratos — Lei 14.133/2021", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 5 },
+        { "id": "DAD-06", "nome": "Agentes públicos e poder de polícia", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 },
+        { "id": "DAD-07", "nome": "Controle e responsabilidade da Administração", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 7 }
+      ]
+    },
+    {
+      "id": "ADM",
+      "nome": "Administração Geral",
+      "cor": "#34495E",
+      "peso": 2,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "ADM-01", "nome": "Conceitos, princípios e funções da administração", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
+        { "id": "ADM-02", "nome": "Abordagens clássica e neoclássica; Teoria Geral dos Sistemas", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
+        { "id": "ADM-03", "nome": "Tipos de organização e estrutura organizacional", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
+        { "id": "ADM-04", "nome": "Planejamento estratégico (missão, visão, SWOT)", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
+        { "id": "ADM-05", "nome": "Gestão da qualidade", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
+        { "id": "ADM-06", "nome": "Processo organizacional — direção, coordenação e controle", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 }
+      ]
+    },
+    {
+      "id": "GPE",
+      "nome": "Gestão de Pessoas",
+      "cor": "#9B59B6",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "GPE-01", "nome": "Conceitos, objetivos e evolução da gestão de pessoas", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 1 },
+        { "id": "GPE-02", "nome": "Motivação, liderança e clima organizacional", "incidencia_pct": 35, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
+        { "id": "GPE-03", "nome": "Recrutamento, seleção e avaliação de desempenho", "incidencia_pct": 25, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
+        { "id": "GPE-04", "nome": "Treinamento e desenvolvimento", "incidencia_pct": 15, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 4 }
+      ]
+    },
+    {
+      "id": "ARQ",
+      "nome": "Arquivologia",
+      "cor": "#7F8C8D",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "ARQ-01", "nome": "Conceitos de arquivo e documento de arquivo", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 1 },
+        { "id": "ARQ-02", "nome": "Princípios arquivísticos", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 2 },
+        { "id": "ARQ-03", "nome": "Teoria das três idades e ciclo vital dos documentos", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 3 },
+        { "id": "ARQ-04", "nome": "Gestão de documentos — fases e protocolo", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
+        { "id": "ARQ-05", "nome": "Tabela de temporalidade e destinação de documentos", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 5 }
+      ]
+    },
+    {
+      "id": "INF",
+      "nome": "Informática",
+      "cor": "#2980B9",
+      "peso": 1,
+      "base_teorica": "video",
+      "topicos": [
+        { "id": "INF-01", "nome": "Windows e conceitos de sistema operacional", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 1 },
+        { "id": "INF-02", "nome": "Microsoft Word", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 },
+        { "id": "INF-03", "nome": "Microsoft Excel", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
+        { "id": "INF-04", "nome": "Internet, navegadores e correio eletrônico", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
+        { "id": "INF-05", "nome": "Segurança da informação", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 5 },
+        { "id": "INF-06", "nome": "Hardware, software e periféricos", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 6 }
+      ]
+    },
+    {
+      "id": "RLM",
+      "nome": "Raciocínio Lógico",
+      "cor": "#8E44AD",
+      "peso": 1,
+      "base_teorica": "video",
+      "topicos": [
+        { "id": "RLM-01", "nome": "Proposições, conectivos e tabelas-verdade", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 1 },
+        { "id": "RLM-02", "nome": "Estruturas lógicas e diagramas", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
+        { "id": "RLM-03", "nome": "Conjuntos e operações", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 3 },
+        { "id": "RLM-04", "nome": "Porcentagem, razão e proporção", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
+        { "id": "RLM-05", "nome": "Resolução de problemas e sequências", "incidencia_pct": 16, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 5 }
+      ]
+    },
+    {
+      "id": "RED",
+      "nome": "Redação Oficial",
+      "cor": "#C0392B",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "RED-01", "nome": "Manual de Redação da Presidência — princípios e padrão ofício", "incidencia_pct": 55, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 1 },
+        { "id": "RED-02", "nome": "Tipos de expedientes oficiais (ofício, memorando, e-mail)", "incidencia_pct": 45, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 }
+      ]
+    }
+  ]
+}

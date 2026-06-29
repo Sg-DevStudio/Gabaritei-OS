@@ -2616,10 +2616,14 @@ html[data-tema="escuro"] .mes-evento {
 }
 .mes-ponto-mais { font-size: 0.6rem; font-weight: 700; color: var(--grafite); }
 .mes-ponto-rev { font-size: 0.6rem; line-height: 1; }
+.mes-ponto-sim { font-size: 0.6rem; line-height: 1; }
 
 /* Revisões no calendário (chip semanal + item no detalhe do dia) */
 .agenda-bloco-revisao { background: var(--fundo-suave, rgba(0,0,0,0.03)); border-style: dashed; cursor: pointer; }
 .agenda-bloco-revisao .agenda-bloco-rev-ic { margin-right: 0.2rem; }
+/* Simulados no calendário: chip semanal verde, com a mesma estrutura das revisões */
+.agenda-bloco-simulado { background: rgba(63, 207, 142, 0.1); border-color: #3fcf8e !important; cursor: pointer; }
+.agenda-bloco-simulado .agenda-bloco-rev-ic { margin-right: 0.2rem; }
 .dia-detalhe-revs { margin-top: 0.6rem; }
 .dia-detalhe-revs-tit { margin: 0 0 0.4rem; font-size: 0.9rem; }
 .dia-detalhe-rev { cursor: default; }
@@ -3208,6 +3212,17 @@ canvas.grafico {
 .catalogo-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
 /* "plano criado ✓" aparece logo abaixo do subtítulo do edital */
 .catalogo-feito { align-self: flex-start; margin: 0.15rem 0 0; }
+/* Botão pequeno "Calculadora de salário" — inline ao lado do "x tópicos" */
+.catalogo-calc-mini {
+  display: inline-flex; align-items: center; gap: 0.2rem; cursor: pointer;
+  margin-left: 0.4rem; padding: 0.1rem 0.45rem; vertical-align: baseline;
+  font: inherit; font-size: 0.72rem; font-weight: 600; line-height: 1.5;
+  color: var(--verde-escuro, #14705f); background: var(--verde-suave, rgba(63, 207, 142, 0.12));
+  border: 1px solid var(--verde-borda, rgba(63, 207, 142, 0.4)); border-radius: 0.5rem;
+}
+.catalogo-calc-mini:hover { background: var(--verde-borda, rgba(63, 207, 142, 0.22)); }
+.calc-modal-cab h3 { margin: 0 0 0.15rem; }
+.calc-modal-cab .sub { margin: 0 0 0.6rem; }
 
 /* Seção "Comparar dois editais" (topo da aba Planos) */
 .comparar-secao { margin-bottom: 1rem; padding: 0.85rem 1rem; }

@@ -1,0 +1,158 @@
+{
+  "tipo": "edital_esquematizado",
+  "versao": 1,
+  "gerado_em": "2026-06-24",
+  "titulo": "Colégio Pedro II — Assistente em Administração (Edital TAE nº 26/2023)",
+  "banca": "Selecon",
+  "cargo": "Assistente em Administração (Classe D / nível médio - PCCTAE)",
+  "fonte": "Conteúdo programático do certame TAE do Colégio Pedro II (cargo Assistente em Administração); concurso anterior aplicado em 04/02/2024, homologado no DOU de 04/04/2024 (43 vagas). Nota de corte: aproximação declarada — listas de classificação não acessíveis na geração (servidor dhui.cp2.g12.br fora do ar; ranking olhonavaga retornou 403).",
+  "janela_prova": {
+    "inicio": "",
+    "fim": ""
+  },
+  "nota_corte_sugerida_pct": 75,
+  "notas_corte_ultimo_nomeado": {
+    "escala": "Prova objetiva (~70 questões) + prova discursiva; percentual = acertos / total. APROXIMAÇÃO DECLARADA — não confirmada em lista oficial.",
+    "_observacao": "Não foi possível acessar a lista de classificação do último nomeado (servidor oficial fora do ar e ranking de terceiros bloqueado). Os valores abaixo são ESTIMATIVA baseada na alta concorrência do certame (43 vagas para ~24 mil inscritos em 2024). Ajuste no app assim que tiver a lista oficial.",
+    "Rio de Janeiro (ampla)": {
+      "ampla_pct": 75,
+      "negros_pct": 68
+    }
+  },
+  "disciplinas": [
+    {
+      "id": "POR",
+      "nome": "Língua Portuguesa",
+      "cor": "#E67E22",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "POR-01", "nome": "Leitura, compreensão e interpretação de gêneros discursivos", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 14, "semana_sugerida": 1 },
+        { "id": "POR-02", "nome": "Sequências textuais (narração, argumentação, descrição, instrução)", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 2 },
+        { "id": "POR-03", "nome": "Linguagem verbal e não verbal; variações linguísticas; funções da linguagem", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 3 },
+        { "id": "POR-04", "nome": "Morfologia e formação de palavras", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 4 },
+        { "id": "POR-05", "nome": "Coesão, coerência e argumentação", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
+        { "id": "POR-06", "nome": "Sintaxe — concordância verbal e nominal", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 6 },
+        { "id": "POR-07", "nome": "Sintaxe — regência e crase", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 },
+        { "id": "POR-08", "nome": "Semântica — denotação, conotação, figuras de linguagem", "incidencia_pct": 6, "prioridade": 3, "horas_estimadas": 3, "semana_sugerida": 8 },
+        { "id": "POR-09", "nome": "Ortografia, pontuação e acentuação", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 9 }
+      ]
+    },
+    {
+      "id": "INF",
+      "nome": "Informática",
+      "cor": "#2980B9",
+      "peso": 1,
+      "base_teorica": "video",
+      "topicos": [
+        { "id": "INF-01", "nome": "Hardware, software, periféricos e dispositivos de armazenamento", "incidencia_pct": 15, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 1 },
+        { "id": "INF-02", "nome": "Sistema Operacional Microsoft Windows", "incidencia_pct": 15, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 },
+        { "id": "INF-03", "nome": "Microsoft Word 2013", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 3 },
+        { "id": "INF-04", "nome": "Microsoft Excel 2013", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
+        { "id": "INF-05", "nome": "Microsoft PowerPoint 2013", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 2, "semana_sugerida": 5 },
+        { "id": "INF-06", "nome": "Redes de computadores, Internet e navegadores (Edge, Firefox, Chrome)", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 6 },
+        { "id": "INF-07", "nome": "Correio eletrônico e Google Meet", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 2, "semana_sugerida": 7 },
+        { "id": "INF-08", "nome": "Segurança da informação (antivírus, firewall)", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 8 }
+      ]
+    },
+    {
+      "id": "RLM",
+      "nome": "Raciocínio Lógico",
+      "cor": "#8E44AD",
+      "peso": 1,
+      "base_teorica": "video",
+      "topicos": [
+        { "id": "RLM-01", "nome": "Lógica de argumentação, proposições, conectivos e tabelas-verdade", "incidencia_pct": 28, "prioridade": 1, "horas_estimadas": 10, "semana_sugerida": 1 },
+        { "id": "RLM-02", "nome": "Diagramas lógicos e estrutura lógica de relações", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
+        { "id": "RLM-03", "nome": "Conjuntos e operações", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 3 },
+        { "id": "RLM-04", "nome": "Razão, proporção e porcentagem", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 4 },
+        { "id": "RLM-05", "nome": "Resolução de problemas (raciocínio quantitativo)", "incidencia_pct": 18, "prioridade": 2, "horas_estimadas": 7, "semana_sugerida": 5 }
+      ]
+    },
+    {
+      "id": "LEG",
+      "nome": "Legislação",
+      "cor": "#27AE60",
+      "peso": 2,
+      "base_teorica": "lei_seca",
+      "topicos": [
+        { "id": "LEG-01", "nome": "Constituição Federal/1988 — Administração Pública (arts. 37-41) e direitos fundamentais (art. 5º)", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 2 },
+        { "id": "LEG-02", "nome": "Lei 8.112/1990 — regime jurídico, provimento, vacância, deveres, PAD", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 4 },
+        { "id": "LEG-03", "nome": "Decreto 1.171/1994 — Código de Ética do servidor público federal", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 5 },
+        { "id": "LEG-04", "nome": "Lei 11.091/2005 — Plano de Carreira dos Cargos TAE (PCCTAE)", "incidencia_pct": 10, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 6 },
+        { "id": "LEG-05", "nome": "Lei 9.784/1999 — Processo Administrativo Federal", "incidencia_pct": 9, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 7 },
+        { "id": "LEG-06", "nome": "Lei 8.429/1992 — Improbidade Administrativa (c/ Lei 14.230/2021)", "incidencia_pct": 9, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 8 },
+        { "id": "LEG-07", "nome": "Lei 12.527/2011 — Acesso à Informação", "incidencia_pct": 9, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 9 },
+        { "id": "LEG-08", "nome": "Lei 13.709/2018 — LGPD", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 10 },
+        { "id": "LEG-09", "nome": "Lei 13.146/2015 — Estatuto da Pessoa com Deficiência", "incidencia_pct": 5, "prioridade": 3, "horas_estimadas": 3, "semana_sugerida": 11 },
+        { "id": "LEG-10", "nome": "Lei 13.185/2015 — Programa de Combate ao Bullying", "incidencia_pct": 5, "prioridade": 3, "horas_estimadas": 2, "semana_sugerida": 12 }
+      ]
+    },
+    {
+      "id": "DAD",
+      "nome": "Direito Administrativo",
+      "cor": "#16A085",
+      "peso": 2,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "DAD-01", "nome": "Princípios da Administração Pública", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
+        { "id": "DAD-02", "nome": "Poderes da Administração", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 },
+        { "id": "DAD-03", "nome": "Atos administrativos — conceito, atributos, espécies, vícios", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
+        { "id": "DAD-04", "nome": "Organização administrativa — direta e indireta", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
+        { "id": "DAD-05", "nome": "Licitação — Lei 14.133/2021 e Lei 8.666/1991", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 8, "semana_sugerida": 5 },
+        { "id": "DAD-06", "nome": "Processo administrativo federal (Lei 9.784/1999 — aplicação)", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 6 }
+      ]
+    },
+    {
+      "id": "ADM",
+      "nome": "Administração Geral",
+      "cor": "#34495E",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "ADM-01", "nome": "Abordagem neoclássica e funções administrativas", "incidencia_pct": 15, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 1 },
+        { "id": "ADM-02", "nome": "Planejamento estratégico e análise SWOT", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
+        { "id": "ADM-03", "nome": "Tipos de organização e estrutura organizacional", "incidencia_pct": 18, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
+        { "id": "ADM-04", "nome": "Motivação e liderança", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 4 },
+        { "id": "ADM-05", "nome": "Cultura organizacional", "incidencia_pct": 20, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 5 }
+      ]
+    },
+    {
+      "id": "ARQ",
+      "nome": "Arquivologia",
+      "cor": "#7F8C8D",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "ARQ-01", "nome": "Conceituação de arquivos e documentos de arquivo", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 1 },
+        { "id": "ARQ-02", "nome": "Princípios arquivísticos", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 2 },
+        { "id": "ARQ-03", "nome": "Teoria das três idades", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 3 },
+        { "id": "ARQ-04", "nome": "Gestão de documentos — conceitos, objetivos e fases", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
+        { "id": "ARQ-05", "nome": "Tabela de temporalidade e destinação de documentos", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 5 }
+      ]
+    },
+    {
+      "id": "RED",
+      "nome": "Redação Oficial",
+      "cor": "#C0392B",
+      "peso": 1,
+      "base_teorica": "pdf",
+      "topicos": [
+        { "id": "RED-01", "nome": "Manual de Redação da Presidência da República — princípios e padrão ofício", "incidencia_pct": 55, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
+        { "id": "RED-02", "nome": "Tipos de documentos oficiais (ofício, memorando, e-mail institucional)", "incidencia_pct": 45, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 }
+      ]
+    },
+    {
+      "id": "ECA",
+      "nome": "Estatuto da Criança e do Adolescente",
+      "cor": "#F39C12",
+      "peso": 1,
+      "base_teorica": "lei_seca",
+      "topicos": [
+        { "id": "ECA-01", "nome": "Lei 8.069/1990 — disposições preliminares e direitos fundamentais", "incidencia_pct": 35, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 1 },
+        { "id": "ECA-02", "nome": "Direito à educação, cultura, esporte e lazer", "incidencia_pct": 40, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 2 },
+        { "id": "ECA-03", "nome": "Prevenção", "incidencia_pct": 25, "prioridade": 2, "horas_estimadas": 2, "semana_sugerida": 3 }
+      ]
+    }
+  ]
+}
