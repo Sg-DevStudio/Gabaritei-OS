@@ -6004,9 +6004,12 @@
     const tipoTxt = s.tipo === 'total' ? 'Simulado total' : s.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
     const sub = (r.total > 0 ? r.certas + '/' + r.total + ' acertos' + (r.pct != null ? ' · ' + r.pct + '%' : '') : 'registrado') +
       (s.duracaoMin ? ' · ' + D.formatarMin(s.duracaoMin) : '');
-    return '<div class="agenda-bloco agenda-bloco-simulado" data-dia-detalhe="' + esc(s.data) + '" role="button" tabindex="0" title="' + esc(tipoTxt + ' · ' + sub) + '">' +
+    // Simulado é sempre um evento já concluído (registrado após ser feito), por
+    // isso entra com o visual de "feito" (esmaecido + riscado), como os blocos
+    // concluídos da agenda.
+    return '<div class="agenda-bloco agenda-bloco-simulado feito" data-dia-detalhe="' + esc(s.data) + '" role="button" tabindex="0" title="' + esc(tipoTxt + ' · ' + sub + ' · já realizado') + '">' +
       '<span class="agenda-bloco-rev-ic" aria-hidden="true">📝</span>' +
-      '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Simulado</span>' +
+      '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Simulado ✓</span>' +
       '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
   }
   // Move uma revisão de dia (ajuste manual sobre o agendamento do motor). Re-reserva

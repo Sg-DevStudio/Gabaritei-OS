@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v92-calc9';
+const CACHE = 'estudos-v93-calc10';
 const ESTATICOS = [
   './',
   './index.html',
