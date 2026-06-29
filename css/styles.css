@@ -3241,7 +3241,11 @@ canvas.grafico {
 .enf-op { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.6rem 0.7rem;
   border: 1px solid var(--linha); border-radius: 10px; cursor: pointer; }
 .enf-op:hover { border-color: var(--caneta, #2454D6); }
-.enf-op input { margin-top: 0.2rem; }
+.enf-op input[type="radio"] {
+  width: 18px; height: 18px; min-height: 0; flex: 0 0 auto;
+  padding: 0; margin: 0.15rem 0 0; border-radius: 50%;
+  accent-color: var(--caneta, #2454D6);
+}
 .enf-op-txt { display: flex; flex-direction: column; }
 .enf-op-txt .sub { font-size: 0.8rem; }
 .enf-split { margin: 0.2rem 0 0.4rem; }
