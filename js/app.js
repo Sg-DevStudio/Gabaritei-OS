@@ -178,6 +178,16 @@
     if (ehTecJud && ehFederal) {
       return { arquivo: 'calc/judiciario-federal.html', rotulo: '💰 Quanto ganha um técnico judiciário federal' };
     }
+    // Carreira TAE (técnico-administrativo em educação) — institutos federais,
+    // universidades federais, CEFET, Colégio Pedro II. Marcador forte: PCCTAE.
+    // Calculadora externa (site de terceiros), abre em nova aba.
+    if (/\bpcctae\b|t[ée]cnico[- ]administrativos? em educa[çc]|edital tae|assistente em administra[çc]/.test(txt)) {
+      return { url: 'https://taes.com.br/', externo: true, rotulo: '💰 Calculadora de salário (carreira TAE)' };
+    }
+    // Escrevente Técnico Judiciário do TJSP (estadual) — calculadora externa.
+    if (/\btjsp\b|tribunal de justi[çc]a do estado de s[ãa]o paulo/.test(txt) && /escrevente/.test(txt)) {
+      return { url: 'https://lcavalini.github.io/remuneracao-tjsp/', externo: true, rotulo: '💰 Calculadora de salário (Escrevente TJSP)' };
+    }
     return null;
   }
 
@@ -185,6 +195,9 @@
   // calculadora é uma página HTML completa com estilos próprios).
   function abrirCalculadoraRemuneracao(calc) {
     if (!calc) return;
+    // Calculadoras externas (sites de terceiros) abrem em nova aba — sempre a
+    // versão oficial do autor, sem embutir o conteúdo no app.
+    if (calc.externo) { window.open(calc.url, '_blank', 'noopener'); return; }
     const titulo = calc.rotulo.replace(/^💰\s*/, '');
     const m = abrirModal(
       '<div class="calc-modal-cab"><h3>' + esc(titulo) + '</h3>' +
