@@ -475,6 +475,25 @@
         if (p && p.id && !idsP[p.id]) { merged.planos.push(p); idsP[p.id] = true; }
       });
     }
+    // Lápides de exclusão: um plano excluído num aparelho não pode ressuscitar
+    // quando outro aparelho traz uma cópia local antiga (anterior à exclusão).
+    // A lápide vale para planos criados ANTES dela — recriar um plano gera id
+    // novo, então nunca é bloqueado. As lápides dos dois lados se somam.
+    const tumbas = Object.assign(
+      {},
+      base && base.config && base.config.planosExcluidos,
+      outro && outro.config && outro.config.planosExcluidos
+    );
+    if (Object.keys(tumbas).length > 0) {
+      if (!merged.config) merged.config = {};
+      merged.config.planosExcluidos = Object.assign({}, merged.config.planosExcluidos, tumbas);
+      if (Array.isArray(merged.planos)) {
+        merged.planos = merged.planos.filter(function (p) {
+          if (!p || !p.id || !tumbas[p.id]) return true;
+          return !!(p.criadoEm && p.criadoEm > tumbas[p.id]);
+        });
+      }
+    }
     // Flags de onboarding são "sticky": uma vez vistas, não devem regredir para
     // false por causa de uma base remota mais antiga que não tinha o campo.
     if (outro.config) {

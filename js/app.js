@@ -7211,6 +7211,10 @@
     const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
     if (limparHistorico) limparDadosVinculados(planoId);
     window.Store.removerPlano(state, planoId);
+    // Lápide da exclusão: impede que um aparelho com cópia local antiga
+    // ressuscite este plano na próxima mescla (ver Store.mesclarEstados).
+    if (!state.config.planosExcluidos || typeof state.config.planosExcluidos !== 'object') state.config.planosExcluidos = {};
+    state.config.planosExcluidos[planoId] = new Date().toISOString();
     // Sem nenhum plano restante, marca a exclusão para que a nuvem não
     // ressuscite o plano apagado no próximo sync (ver firebase-sync.js).
     if (state.planos.length === 0) state.config.apagadoEm = new Date().toISOString();
@@ -10480,7 +10484,10 @@
   if (estadoInicialTimer && estadoInicialTimer.limiteAtingido) avisarLimiteTimer(estadoInicialTimer);
 
   // Cura planos antigos com a parede de revisões empilhadas (ponto de partida).
-  if (migrarRevisoesEmPilha() > 0) salvar();
+  // SEM marcar como alterado: carimbar atualizadoEm aqui faria uma cópia local
+  // ANTIGA (aparelho parado há semanas) parecer "mais nova" que a nuvem e vencer
+  // a reconciliação — foi assim que um plano velho engoliu o plano atual.
+  if (migrarRevisoesEmPilha() > 0) window.Store.salvar(state, { marcarAlterado: false });
 
   render();
 
