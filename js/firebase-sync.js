@@ -97,6 +97,19 @@ function atualizadoEm(state) {
   return state && state.config ? state.config.atualizadoEm : null;
 }
 
+function revDe(state) {
+  return (state && state.config && parseInt(state.config.rev, 10)) || 0;
+}
+
+// Decide quem é a base da mescla: rev (contador de edições, monotônico e imune
+// a relógio errado) manda; timestamps só desempatam revs iguais (estados antigos
+// sem rev caem nos timestamps, como antes). Empate total → remoto ganha.
+function remotoEhMaisNovo(remotoState, localState, remotoMs, localMs) {
+  const rR = revDe(remotoState), rL = revDe(localState);
+  if (rR !== rL) return rR > rL;
+  return remotoMs >= localMs;
+}
+
 function temDados(state) {
   return window.Store && window.Store.temDados(state);
 }
@@ -150,6 +163,7 @@ async function gravarRemoto(state) {
       savedAt: serverTimestamp()
     });
     definirStatus('sincronizado', 'Sincronizado com Firebase');
+    talvezSnapshotDiario(stateLimpo); // fire-and-forget: nunca atrasa nem quebra o save
   } catch (e) {
     console.error('Falha ao salvar no Firebase.', e);
     definirStatus('erro', 'Falha ao salvar no Firebase');
@@ -194,13 +208,16 @@ async function reconciliarComRemoto(silencioso) {
     } else if (localTemDados && remotoTemDados) {
       // Ambos têm dados: mescla por id para não perder registros de estudo que só
       // existem em um dos lados (correção do last-write-wins). O mais recente é a
-      // base (vence plano/config e empates); o outro contribui os ids que faltam.
-      const base = remotoMs >= localMs ? remoto.state : local;
-      const outro = remotoMs >= localMs ? local : remoto.state;
+      // base (vence config e empates; a estrutura de cada plano tem carimbo
+      // próprio na mescla). "Mais recente" = rev maior (contador monotônico,
+      // imune a relógio de aparelho errado); timestamps só desempatam.
+      const remotoGanha = remotoEhMaisNovo(remoto.state, local, remotoMs, localMs);
+      const base = remotoGanha ? remoto.state : local;
+      const outro = remotoGanha ? local : remoto.state;
       const merged = window.Store.mesclarEstados(base, outro);
       const recuperou = window.Store.contarRegistros(merged) > window.Store.contarRegistros(base);
-      if (remotoMs >= localMs || recuperou) aplicarRemoto(merged, silencioso);
-      if (recuperou || localMs > remotoMs + FOLGA_RELOGIO_MS) await gravarRemoto(merged);
+      if (remotoGanha || recuperou) aplicarRemoto(merged, silencioso);
+      if (recuperou || !remotoGanha) await gravarRemoto(merged);
       definirStatus('sincronizado', 'Sincronizado com Firebase');
     } else if (localMs > remotoMs + FOLGA_RELOGIO_MS) {
       await gravarRemoto(local);
@@ -231,17 +248,20 @@ function observarMudancas() {
     // da nuvem por timestamp — adota o remoto que tem dados, como na reconciliação.
     const localVazioRemotoCheio = !temDados(local) && temDados(remoto.state) && !apagouLocal;
     if (apagouLocal) return;
+    // rev decide (imune a relógio); com revs iguais, o timestamp com folga.
+    const rR = revDe(remoto.state), rL = revDe(local);
+    const remotoNovo = rR !== rL ? rR > rL : remotoMs > localMs + FOLGA_RELOGIO_MS;
     if (localVazioRemotoCheio) {
       aplicarRemoto(remoto.state, true);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
-    } else if (remotoMs > localMs + FOLGA_RELOGIO_MS && temDados(local)) {
+    } else if (remotoNovo && temDados(local)) {
       // Remoto mais novo, mas o local pode ter registros ainda não sincronizados:
       // mescla (remoto como base) para não perdê-los e reenvia se recuperou algo.
       const merged = window.Store.mesclarEstados(remoto.state, local);
       aplicarRemoto(merged, true);
       if (window.Store.contarRegistros(merged) > window.Store.contarRegistros(remoto.state)) gravarRemoto(merged);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
-    } else if (remotoMs > localMs + FOLGA_RELOGIO_MS) {
+    } else if (remotoNovo) {
       aplicarRemoto(remoto.state, true);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
     }
@@ -324,6 +344,59 @@ async function registrarPush(user) {
   } catch (e) {
     console.warn('Push não ativado (lembretes):', e && e.message ? e.message : e);
   }
+}
+
+// ---------- Backups diários na nuvem (rotação de 7 dias) ----------
+// Um snapshot por dia em users/{uid}/state/backup-<diaDaSemana> (0..6): o slot
+// do mesmo dia da semana seguinte sobrescreve o antigo — sempre os últimos ~7
+// dias, sem precisar listar/limpar. É a rede de segurança contra corrupção ou
+// perda no doc principal. Tudo defensivo: falha (ex.: regra ainda não
+// publicada) apenas loga e segue.
+const CHAVE_SNAPSHOT_DIA = 'estudos.firebase.snapshotDia';
+
+async function talvezSnapshotDiario(stateLimpo) {
+  try {
+    if (!usuario || !temDados(stateLimpo)) return;
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem(CHAVE_SNAPSHOT_DIA) === hoje) return;
+    const slot = 'backup-' + new Date().getDay();
+    await setDoc(doc(db, 'users', usuario.uid, 'state', slot), {
+      state: stateLimpo,
+      criadoEm: new Date().toISOString(),
+      clientId: idDispositivo(),
+      savedAt: serverTimestamp()
+    });
+    localStorage.setItem(CHAVE_SNAPSHOT_DIA, hoje);
+  } catch (e) {
+    console.warn('Backup diário na nuvem não gravado:', e && e.message ? e.message : e);
+  }
+}
+
+// Lista os backups diários existentes (id, data e nº de registros de estudo).
+async function listarBackupsNuvem() {
+  if (!usuario) throw new Error('Entre para ver os backups na nuvem.');
+  const snap = await getDocs(collection(db, 'users', usuario.uid, 'state'));
+  const lista = [];
+  snap.forEach(function (d) {
+    if (d.id.indexOf('backup-') !== 0) return;
+    const dados = d.data() || {};
+    lista.push({
+      id: d.id,
+      criadoEm: dados.criadoEm || '',
+      registros: dados.state ? window.Store.contarRegistros(dados.state) : 0,
+      planos: dados.state && Array.isArray(dados.state.planos) ? dados.state.planos.length : 0
+    });
+  });
+  return lista.sort(function (a, b) { return String(b.criadoEm).localeCompare(String(a.criadoEm)); });
+}
+
+// Devolve o estado salvo num backup diário (normalizado), para o app mesclar.
+async function lerBackupNuvem(id) {
+  if (!usuario) throw new Error('Entre para restaurar backups.');
+  if (String(id).indexOf('backup-') !== 0) throw new Error('Backup inválido.');
+  const snap = await getDoc(doc(db, 'users', usuario.uid, 'state', String(id)));
+  if (!snap.exists() || !snap.data().state) throw new Error('Backup não encontrado.');
+  return window.Store.normalizar(JSON.parse(JSON.stringify(snap.data().state)));
 }
 
 function agendarEnvio(state) {
@@ -438,6 +511,7 @@ async function gerarFlashcardsIA(payload) {
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo,
   carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush,
+  listarBackupsNuvem, lerBackupNuvem
 };
 window.dispatchEvent(new CustomEvent('firebase-sync-ready'));

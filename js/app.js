@@ -4482,6 +4482,7 @@
       '<div class="modal-acoes" style="justify-content:flex-start">' +
       '<button id="fb-login">Entrar com Google</button>' +
       '<button class="botao-secundario" id="sync-agora">Sincronizar agora</button>' +
+      '<button class="botao-secundario" id="fb-backups">Backups na nuvem</button>' +
       '<button class="botao-quieto" id="fb-logout">Sair</button>' +
       '</div></div>';
 
@@ -6084,6 +6085,9 @@
 
     ligarEditaisEsquematizados(raiz);
 
+    const fbBackups = raiz.querySelector('#fb-backups');
+    if (fbBackups) fbBackups.addEventListener('click', abrirBackupsNuvem);
+
     raiz.querySelectorAll('[data-rec-edital]').forEach(function (b) {
       b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-rec-edital')); });
     });
@@ -7161,6 +7165,66 @@
     return (state.editais || []).filter(function (e) {
       if (!e || !e.ocultoNoCatalogo) return false;
       return !state.planos.some(function (p) { return p && p.plano && p.plano.origemEditalId === e.id; });
+    });
+  }
+
+  // ---------- Backups diários na nuvem (ver firebase-sync.js) ----------
+  async function abrirBackupsNuvem() {
+    if (!window.FirebaseSync || !window.FirebaseSync.ativo()) {
+      toast('Entre com Google para ver os backups na nuvem.', 'erro');
+      return;
+    }
+    let lista;
+    try { lista = await window.FirebaseSync.listarBackupsNuvem(); }
+    catch (e) { toast('Não consegui listar os backups: ' + (e && e.message ? e.message : e), 'erro'); return; }
+    if (!lista.length) {
+      abrirModal('<h3>Backups na nuvem</h3><p class="sub">Ainda não há backups. Um snapshot dos seus dados é guardado automaticamente uma vez por dia (últimos 7 dias) a cada sincronização.</p>' +
+        '<div class="modal-acoes"><button type="button" id="bk-fechar">Fechar</button></div>')
+        .querySelector('#bk-fechar').addEventListener('click', fecharModal);
+      return;
+    }
+    let html = '<h3>Backups na nuvem</h3><p class="sub">Um snapshot por dia, últimos 7 dias. Restaurar usa o backup como base e <strong>mantém</strong> os registros feitos depois dele (nada de hoje se perde).</p>';
+    lista.forEach(function (b) {
+      const quando = b.criadoEm ? b.criadoEm.slice(0, 10).split('-').reverse().join('/') + ' ' + b.criadoEm.slice(11, 16) : b.id;
+      html += '<div class="modal-acoes" style="justify-content:space-between;margin-bottom:0.35rem">' +
+        '<span class="sub">' + esc(quando) + ' · ' + b.planos + ' plano(s) · ' + b.registros + ' registro(s)</span>' +
+        '<button type="button" class="botao-secundario botao-mini" data-bk="' + esc(b.id) + '">Restaurar</button></div>';
+    });
+    html += '<div class="modal-acoes"><button type="button" class="botao-quieto" id="bk-fechar">Fechar</button></div>';
+    const m = abrirModal(html);
+    m.querySelector('#bk-fechar').addEventListener('click', fecharModal);
+    m.querySelectorAll('[data-bk]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const ok = await confirmar({
+          titulo: 'Restaurar backup?',
+          mensagem: 'O estado do backup vira a base (planos e configurações daquele dia). Sessões, simulados e revisões registrados depois dele são mantidos.',
+          confirmar: 'Restaurar', icone: '☁️'
+        });
+        if (!ok) return;
+        try {
+          const backup = await window.FirebaseSync.lerBackupNuvem(btn.getAttribute('data-bk'));
+          // Restauração explícita anistia as lápides do que o backup traz de
+          // volta — sem isso, um plano/sessão excluído depois do backup seria
+          // filtrado de novo pela própria mescla.
+          const idsBackup = {};
+          (backup.planos || []).forEach(function (p) { if (p && p.id) idsBackup[p.id] = true; });
+          ['sessoes', 'revisoes', 'simulados', 'flashcards'].forEach(function (k) {
+            (backup[k] || []).forEach(function (r) { if (r && r.id) idsBackup[r.id] = true; });
+          });
+          [state.config, backup.config].forEach(function (cfg) {
+            if (!cfg) return;
+            if (cfg.planosExcluidos) Object.keys(cfg.planosExcluidos).forEach(function (id) { if (idsBackup[id]) delete cfg.planosExcluidos[id]; });
+            if (Array.isArray(cfg.removidos)) cfg.removidos = cfg.removidos.filter(function (id) { return !idsBackup[id]; });
+          });
+          state = window.Store.mesclarEstados(backup, state);
+          window.Store.salvar(state);
+          if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
+          fecharModal(); render();
+          toast('Backup restaurado', 'sucesso');
+        } catch (e) {
+          toast('Falha ao restaurar: ' + (e && e.message ? e.message : e), 'erro');
+        }
+      });
     });
   }
 

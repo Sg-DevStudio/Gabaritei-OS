@@ -1,0 +1,96 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { loadStore } = require('./helpers/load-store');
+const S = loadStore();
+
+function plano(id, criadoEm, nome, atualizadoEm) {
+  return {
+    id, criadoEm, atualizadoEm: atualizadoEm || '',
+    plano: { concurso: nome }, disciplinas: [], cronogramas: {}, links: []
+  };
+}
+
+function estadoCom(fn) {
+  const st = S.estadoVazio();
+  fn(st);
+  return st;
+}
+
+test('mescla une sessões e simulados dos dois lados por id', () => {
+  const a = estadoCom(function (st) { st.sessoes = [{ id: 's1' }]; st.simulados = [{ id: 'm1' }]; });
+  const b = estadoCom(function (st) { st.sessoes = [{ id: 's2' }]; });
+  const m = S.mesclarEstados(a, b);
+  assert.deepEqual(m.sessoes.map(function (s) { return s.id; }).sort(), ['s1', 's2']);
+  assert.equal(m.simulados.length, 1);
+});
+
+test('sessão com tombstone (removidos) não ressuscita de nenhum lado', () => {
+  const a = estadoCom(function (st) { S.marcarRemovido(st, 's-apagada'); });
+  const b = estadoCom(function (st) { st.sessoes = [{ id: 's-apagada' }, { id: 's-viva' }]; });
+  const m = S.mesclarEstados(b, a); // pior caso: lado que ainda tem a sessão é a base
+  assert.deepEqual(m.sessoes.map(function (s) { return s.id; }), ['s-viva']);
+  assert.ok(m.config.removidos.indexOf('s-apagada') >= 0, 'tombstone propaga');
+});
+
+test('lápide de plano (planosExcluidos) impede ressurreição por cópia velha', () => {
+  const nuvem = estadoCom(function (st) {
+    st.planos = [plano('pln-comb', '2026-06-20T00:00:00Z', 'Combinado')];
+    st.planoAtivoId = 'pln-comb';
+    st.config.planosExcluidos = { 'pln-velho': '2026-06-01T00:00:00Z' };
+  });
+  const velho = estadoCom(function (st) {
+    st.planos = [plano('pln-velho', '2026-03-01T00:00:00Z', 'Antigo')];
+    st.planoAtivoId = 'pln-velho';
+    st.sessoes = [{ id: 'ses-old', planoId: 'pln-velho' }];
+  });
+  const m = S.mesclarEstados(velho, nuvem); // pior caso: cópia velha é a base
+  assert.deepEqual(m.planos.map(function (p) { return p.id; }), ['pln-comb']);
+  assert.equal(m.sessoes.length, 1, 'sessões do plano excluído ficam guardadas (órfãs)');
+});
+
+test('plano recriado (id novo, criadoEm após a lápide) não é bloqueado', () => {
+  const a = estadoCom(function (st) {
+    st.planos = [plano('pln-novo', '2026-07-01T00:00:00Z', 'Recriado')];
+    st.planoAtivoId = 'pln-novo';
+    st.config.planosExcluidos = { 'pln-velho': '2026-06-01T00:00:00Z' };
+  });
+  const b = estadoCom(function (st) { st.sessoes = [{ id: 's1' }]; });
+  const m = S.mesclarEstados(a, b);
+  assert.deepEqual(m.planos.map(function (p) { return p.id; }), ['pln-novo']);
+});
+
+test('risco 1: para o mesmo plano, vence a versão com atualizadoEm mais novo (mesmo sem ser a base)', () => {
+  const editadoOntem = plano('pln-x', '2026-06-01T00:00:00Z', 'Versão velha', '2026-06-30T00:00:00Z');
+  const editadoHoje = plano('pln-x', '2026-06-01T00:00:00Z', 'Versão nova', '2026-07-02T00:00:00Z');
+  const base = estadoCom(function (st) { st.planos = [editadoOntem]; st.planoAtivoId = 'pln-x'; });
+  const outro = estadoCom(function (st) { st.planos = [editadoHoje]; st.planoAtivoId = 'pln-x'; });
+  const m = S.mesclarEstados(base, outro);
+  assert.equal(m.planos[0].plano.concurso, 'Versão nova');
+});
+
+test('risco 3: salvar incrementa config.rev e a mescla mantém o maior', () => {
+  const a = estadoCom(function (st) { st.sessoes = [{ id: 's1' }]; });
+  S.salvar(a); S.salvar(a);
+  const b = estadoCom(function (st) { st.sessoes = [{ id: 's2' }]; });
+  S.salvar(b);
+  assert.equal(a.config.rev, 2);
+  const m = S.mesclarEstados(b, a);
+  assert.equal(m.config.rev, 2, 'rev do resultado nunca anda para trás');
+});
+
+test('risco 4: progresso de bloco da agenda com mesmo id soma entre aparelhos', () => {
+  const a = estadoCom(function (st) {
+    st.agenda = [{ id: 'blc-1', feito: false, feitoMin: 10 }, { id: 'blc-2', feito: false, feitoMin: 0 }];
+  });
+  const b = estadoCom(function (st) {
+    st.agenda = [{ id: 'blc-1', feito: true, feitoMin: 45, registroRapidoId: 'ses-9' }, { id: 'blc-3', feito: true, feitoMin: 30 }];
+  });
+  const m = S.mesclarEstados(a, b);
+  const b1 = m.agenda.find(function (x) { return x.id === 'blc-1'; });
+  assert.equal(b1.feito, true);
+  assert.equal(b1.feitoMin, 45);
+  assert.equal(b1.registroRapidoId, 'ses-9');
+  // agenda continua sem união: bloco que só existe no outro lado não entra
+  assert.equal(m.agenda.some(function (x) { return x.id === 'blc-3'; }), false);
+});

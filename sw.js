@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v99-removidos';
+const CACHE = 'estudos-v100-backups';
 const ESTATICOS = [
   './',
   './index.html',
@@ -9,13 +9,13 @@ const ESTATICOS = [
   './js/frases.js',
   './css/styles.css?v=20260620n-donut',
   './js/domain.js?v=20260620a-metas',
-  './js/store.js?v=20260702b-removidos',
+  './js/store.js?v=20260702c-rev-plano',
   './js/sync.js',
-  './js/firebase-sync.js?v=20260702-guard-envio',
+  './js/firebase-sync.js?v=20260702c-backups',
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260702b-removidos',
+  './js/app.js?v=20260702c-backups',
   './icons/icone.svg'
 ];
 
