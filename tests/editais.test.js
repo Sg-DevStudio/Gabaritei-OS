@@ -59,3 +59,57 @@ test('combinarEditais: dedup por nome, pega maior incidência/horas e menor prio
   assert.match(comb.banca, /FGV/);
   assert.match(comb.banca, /Cebraspe/);
 });
+
+test('combinarEditais: expõe rótulos de origem e prova de cada edital', () => {
+  const a = edital('Alfa', [disc('Português', [['Crase', 2, 20]])]);
+  const b = edital('Beta', [disc('Matemática', [['Juros', 2, 20]])], { janelaProva: { inicio: '2026-09', fim: '' } });
+  const comb = D.combinarEditais(a, b);
+  assert.equal(comb.rotulos.a, 'Alfa');
+  assert.equal(comb.rotulos.b, 'Beta');
+  assert.equal(comb.rotulos.provaB, '2026-09');
+});
+
+test('conciliarPlanos: muito conteúdo em comum (≥45%) não cai abaixo de "moderada" mesmo com carga apertada', () => {
+  const comuns = Array.from({ length: 10 }, (_, i) => ['Comum ' + i, 6, 20]);
+  const a = edital('A', [disc('Direito', comuns.concat([['ExA1', 6, 20], ['ExA2', 6, 20], ['ExA3', 6, 20]]))], { janelaProva: { inicio: '2026-09', fim: '' } });
+  const b = edital('B', [disc('Direito', comuns.concat([['ExB1', 6, 20], ['ExB2', 6, 20], ['ExB3', 6, 20]]))], { janelaProva: { inicio: '2026-09', fim: '' } });
+  const r = D.conciliarPlanos(a, b, { horasSemana: 5, hoje: '2026-06-19' });
+  assert.ok(r.detalhes.overlapPct >= 45, 'sobreposição deveria ser alta, veio ' + r.detalhes.overlapPct);
+  assert.ok(['moderada', 'alta'].includes(r.nivel), 'nível não deveria cair abaixo de moderada, veio ' + r.nivel);
+});
+
+test('fatorEnfase: sem ênfase mantém o peso (fator 1)', () => {
+  assert.equal(D.fatorEnfase(null, { origem: 'Alfa' }, '2026-06-19'), 1);
+});
+
+test('fatorEnfase: só a disciplina EXCLUSIVA do secundário perde peso', () => {
+  const enf = { principal: 'Alfa', secundario: 'Beta', split: 0.7, provaSecundario: '2026-12' };
+  assert.equal(D.fatorEnfase(enf, { origem: 'Beta' }, '2026-06-19'), 0.43); // (1-0.7)/0.7
+  assert.equal(D.fatorEnfase(enf, { origem: 'Alfa' }, '2026-06-19'), 1);        // principal cheio
+  assert.equal(D.fatorEnfase(enf, { origem: 'Alfa + Beta' }, '2026-06-19'), 1); // comum cheio
+});
+
+test('fatorEnfase: após a prova do secundário, foco volta ao principal', () => {
+  const enf = { principal: 'Alfa', secundario: 'Beta', split: 0.7, provaSecundario: '2026-07' };
+  assert.equal(D.fatorEnfase(enf, { origem: 'Beta' }, '2026-09-01'), 0.12);
+});
+
+test('fatorDisciplinaCombinada: concurso com prova passada esmaece mesmo SEM ênfase', () => {
+  const plano = { combinado: { rotulos: { a: 'Alfa', b: 'Beta', provaA: '2026-07', provaB: '2026-12' } } };
+  // prova de Alfa (jul) já passou em set → exclusiva de Alfa cai; Beta segue cheia
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa' }, '2026-09-01'), 0.12);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Beta' }, '2026-09-01'), 1);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa + Beta' }, '2026-09-01'), 1); // comum segue cheio
+  // antes de qualquer prova: tudo cheio
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa' }, '2026-06-01'), 1);
+  // sem plano combinado: nunca interfere
+  assert.equal(D.fatorDisciplinaCombinada({}, { origem: 'Alfa' }, '2026-09-01'), 1);
+});
+
+test('fatorDisciplinaCombinada: concurso ENCERRADO pelo aluno sai do peso (foco no outro)', () => {
+  const plano = { combinado: { rotulos: { a: 'Alfa', b: 'Beta', provaA: '2026-12', provaB: '2027-03' }, encerrados: ['Alfa'] } };
+  // mesmo antes da prova, Alfa foi encerrado → quase zero; Beta e comum seguem
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa' }, '2026-06-01'), 0.04);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Beta' }, '2026-06-01'), 1);
+  assert.equal(D.fatorDisciplinaCombinada(plano, { origem: 'Alfa + Beta' }, '2026-06-01'), 1);
+});

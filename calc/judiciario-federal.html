@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora — Técnico Judiciário Federal (TRF)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#0a1633;--navy-900:#0d1d40;--navy-800:#13284f;--navy-700:#1b3563;
+    --line:#27406f;--ink:#eef2fb;--ink-dim:#a9b8d8;--ink-faint:#6f82a8;
+    --gold:#c9a24b;--gold-soft:#e2c277;--green:#4ecb8e;--red:#ff7d72;
+    --c-aq:#7aa2f7;--panel:#101f44;--panel-2:#0c1937;--radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(1100px 560px at 82% -8%, #1a3666 0%, transparent 55%),
+      radial-gradient(900px 500px at -8% 108%, #142a55 0%, transparent 52%),
+      var(--navy-950);
+    color:var(--ink);min-height:100vh;line-height:1.5;
+    padding:clamp(16px,4vw,48px) clamp(12px,4vw,32px);
+  }
+  .wrap{max-width:1060px;margin:0 auto}
+
+  /* Header */
+  header{margin-bottom:28px;position:relative}
+  .crest{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--gold);display:flex;align-items:center;gap:11px;margin-bottom:16px}
+  .crest::before{content:"§";font-size:16px;letter-spacing:0}
+  .crest::after{content:"";flex:0 0 30px;height:1px;background:var(--gold);opacity:.5}
+  h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(30px,6vw,52px);line-height:1;letter-spacing:-.015em}
+  h1 .accent{color:var(--gold);font-style:italic;font-weight:700}
+  .sub{color:var(--ink-dim);max-width:60ch;margin-top:14px;font-size:15px}
+  .law-strip{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .law-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);
+    border:1px solid var(--line);border-radius:6px;padding:5px 10px;background:var(--panel-2)}
+  .law-tag b{color:var(--gold-soft);font-weight:500}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:20px;margin-top:26px}
+  @media(min-width:880px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);
+    border-radius:var(--radius);padding:clamp(18px,3vw,26px)}
+  .card-title{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-dim);margin-bottom:20px;display:flex;align-items:center;gap:9px}
+  .card-title .dot{width:7px;height:7px;border-radius:2px;background:var(--gold);transform:rotate(45deg)}
+
+  .field{margin-bottom:18px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  label{display:block;font-size:13px;color:var(--ink-dim);margin-bottom:7px;font-weight:500}
+  label .hint{color:var(--ink-faint);font-weight:400}
+  .info-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
+    border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;font-family:'Fraunces',serif;
+    cursor:pointer;margin-left:6px;transition:.15s;vertical-align:middle;line-height:1;font-style:normal;flex-shrink:0}
+  .info-i:hover{background:var(--gold);color:var(--navy-950)}
+  input[type=number],select{width:100%;background:var(--navy-950);border:1px solid var(--line);color:var(--ink);
+    border-radius:10px;padding:12px 13px;font-size:15px;font-family:'IBM Plex Mono',monospace;transition:.15s}
+  input[type=number]:focus,select:focus{outline:none;border-color:var(--gold);background:#070f24}
+  select{font-family:'Inter',sans-serif;appearance:none;cursor:pointer;padding-right:34px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a9b8d8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center}
+  .slider-head{display:flex;justify-content:space-between;align-items:baseline}
+  .slider-val{font-family:'IBM Plex Mono',monospace;color:var(--gold);font-weight:600;font-size:14px}
+  input[type=range]{width:100%;height:5px;-webkit-appearance:none;appearance:none;background:var(--line);
+    border-radius:3px;margin-top:12px;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:var(--gold);border:3px solid var(--navy-950);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);border:none;cursor:pointer}
+
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+  .seg.three{grid-template-columns:1fr 1fr 1fr}
+  .seg button{font-family:'Inter';font-size:13px;color:var(--ink-dim);background:var(--navy-950);
+    border:1px solid var(--line);border-radius:9px;padding:10px 6px;cursor:pointer;transition:.15s;text-align:center}
+  .seg button:hover{border-color:var(--navy-700)}
+  .seg button.active{border-color:var(--gold);color:var(--gold);background:rgba(201,162,75,.1)}
+
+  .toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid rgba(39,64,111,.6)}
+  .toggle:first-of-type{border-top:none}
+  .toggle-label{font-size:13.5px}
+  .toggle-label .meta{font-size:11.5px;color:var(--ink-faint);display:block;margin-top:2px}
+  .toggle-label .vr{color:var(--c-aq);font-family:'IBM Plex Mono';font-size:11px}
+  .switch{position:relative;width:42px;height:24px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0}
+  .slider-sw{position:absolute;inset:0;background:var(--line);border-radius:24px;transition:.2s;cursor:pointer}
+  .slider-sw::before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:var(--ink-dim);border-radius:50%;transition:.2s}
+  .switch input:checked+.slider-sw{background:var(--gold)}
+  .switch input:checked+.slider-sw::before{transform:translateX(18px);background:var(--navy-950)}
+
+  .hero-result{background:linear-gradient(135deg,var(--navy-700),var(--navy-800));border:1px solid var(--gold);
+    border-radius:var(--radius);padding:24px;margin-bottom:18px;position:relative;overflow:hidden}
+  .hero-result::after{content:"§";position:absolute;right:-6px;top:-22px;font-family:'Fraunces',serif;
+    font-size:150px;color:rgba(201,162,75,.07);font-weight:900}
+  .hero-label{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-soft);font-family:'IBM Plex Mono',monospace}
+  .hero-value{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(34px,7vw,52px);letter-spacing:-.02em;margin:6px 0 2px;line-height:1}
+  .hero-value .cents{color:var(--ink-dim);font-size:.5em;font-weight:600}
+  .hero-note{font-size:13px;color:var(--ink);position:relative}
+
+  .stat-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+  .stat{background:var(--navy-950);border:1px solid var(--line);border-radius:11px;padding:15px}
+  .stat .s-label{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace}
+  .stat .s-value{font-family:'Fraunces',serif;font-weight:700;font-size:21px;margin-top:5px}
+  .stat.gold .s-value{color:var(--gold)}
+  .stat.green .s-value{color:var(--green)}
+
+  .bd-title{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin:22px 0 10px}
+  .bd{font-family:'IBM Plex Mono',monospace;font-size:13.5px}
+  .bd-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(39,64,111,.5)}
+  .bd-row .bd-name{color:var(--ink-dim)}
+  .bd-row .bd-name .tiny{color:var(--ink-faint);font-size:11px;margin-left:6px}
+  .bd-row .bd-amt{font-weight:500}
+  .bd-row.add .bd-amt{color:var(--green)}
+  .bd-row.sub .bd-amt{color:var(--red)}
+  .bd-row.aq .bd-amt{color:var(--c-aq)}
+  .bd-group{font-size:10.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-top:16px;margin-bottom:2px;font-family:'IBM Plex Mono',monospace}
+  .bd-row.total{border-bottom:none;border-top:2px solid var(--line);margin-top:4px;padding-top:12px}
+  .bd-row.total .bd-name{color:var(--ink);font-family:'Fraunces';font-weight:600;font-size:15px}
+  .bd-row.total .bd-amt{color:var(--gold);font-weight:700;font-size:16px}
+
+  .annual{background:var(--navy-950);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-top:20px}
+  .annual-big{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .annual-big .v{font-family:'Fraunces';font-weight:900;font-size:clamp(26px,5vw,36px);color:var(--green)}
+  .annual-big .l{font-size:13px;color:var(--ink-dim)}
+  .annual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:13px}
+  .annual-grid .ag{display:flex;justify-content:space-between;padding:9px 12px;background:var(--panel-2);border-radius:8px;border:1px solid var(--line)}
+  .annual-grid .ag .agl{color:var(--ink-faint)}
+  .annual-grid .ag .agv{color:var(--ink)}
+
+  .note{font-size:12.5px;color:var(--ink-faint);margin-top:18px;line-height:1.6;border-left:2px solid var(--gold);padding-left:12px}
+  .note strong{color:var(--ink-dim)}
+
+  /* Carreira */
+  .career-head{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+  .chart-wrap{position:relative;width:100%;overflow:hidden;border-radius:11px;background:var(--navy-950);border:1px solid var(--line);padding:16px 8px 8px}
+  svg{display:block;width:100%;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12.5px}
+  .legend .lg{display:flex;align-items:center;gap:7px;color:var(--ink-dim)}
+  .legend .sw{width:12px;height:12px;border-radius:3px}
+  .milestones{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:20px}
+  .ms{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:15px;border-top:3px solid var(--line)}
+  .ms .ms-lvl{font-family:'Fraunces';font-weight:700;font-size:14px}
+  .ms .ms-yr{font-size:11px;color:var(--ink-faint);font-family:'IBM Plex Mono';margin-bottom:8px}
+  .ms .ms-val{font-family:'Fraunces';font-weight:900;font-size:22px;margin-bottom:2px}
+  .ms .ms-sub{font-size:11px;color:var(--ink-faint);font-family:'IBM Plex Mono'}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(5,11,28,.8);backdrop-filter:blur(4px);display:none;
+    align-items:center;justify-content:center;z-index:100;padding:20px;opacity:0;transition:opacity .2s}
+  .modal-overlay.open{display:flex;opacity:1}
+  .modal{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:16px;
+    max-width:540px;width:100%;max-height:85vh;overflow-y:auto;padding:26px;position:relative;
+    transform:translateY(12px) scale(.98);transition:transform .2s}
+  .modal-overlay.open .modal{transform:translateY(0) scale(1)}
+  .modal-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+    background:var(--navy-950);color:var(--ink-dim);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .modal-close:hover{border-color:var(--gold);color:var(--gold)}
+  .modal h2{font-family:'Fraunces',serif;font-weight:700;font-size:21px;margin-bottom:4px;padding-right:36px;display:flex;align-items:center;gap:10px}
+  .modal .m-sub{font-size:12.5px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;margin-bottom:18px}
+  .modal h4{font-family:'IBM Plex Mono';font-weight:600;font-size:11.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px}
+  .modal p{font-size:13.5px;color:var(--ink-dim);line-height:1.6;margin-bottom:10px}
+  .modal p strong{color:var(--ink)}
+  .modal .m-table{width:100%;font-size:13px;font-family:'IBM Plex Mono';margin:10px 0;border-collapse:collapse}
+  .modal .m-table td{padding:8px 0;border-bottom:1px solid rgba(39,64,111,.5);color:var(--ink-dim)}
+  .modal .m-table td:last-child{text-align:right;color:var(--ink);font-weight:500}
+  .modal .m-warn{font-size:12.5px;color:var(--gold-soft);background:rgba(201,162,75,.08);border-radius:9px;padding:12px 14px;line-height:1.55;margin-top:14px}
+  .modal .m-warn strong{color:var(--gold-soft)}
+
+  footer{margin-top:34px;font-size:12px;color:var(--ink-faint);text-align:center;line-height:1.7}
+
+  /* Condições de trabalho */
+  .cond-grid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:620px){.cond-grid{grid-template-columns:1fr 1fr}}
+  .cond{background:var(--navy-950);border:1px solid var(--line);border-radius:11px;padding:16px 17px;display:flex;gap:13px;align-items:flex-start}
+  .cond .ic{font-size:20px;line-height:1;margin-top:2px;flex-shrink:0}
+  .cond .ct{font-family:'Fraunces',serif;font-weight:700;font-size:14.5px;margin-bottom:3px}
+  .cond .cd{font-size:12.5px;color:var(--ink-dim);line-height:1.5}
+  .cond .cd b{color:var(--gold-soft);font-weight:500;font-family:'IBM Plex Mono';font-size:12px}
+  .cond.muted{opacity:.78}
+  .cond.muted .ct{color:var(--ink-dim)}
+  details{margin-top:14px}
+  summary{cursor:pointer;font-size:13px;color:var(--gold-soft);font-weight:500;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--gold)}
+  details[open] summary::before{content:"▾ "}
+  details p{font-size:12.5px;color:var(--ink-faint);margin-top:10px;line-height:1.65}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="crest">TRF · Justiça Federal · Pós-reajuste jul/2026</div>
+    <h1>Quanto recebe um<br><span class="accent">Técnico Judiciário</span> Federal</h1>
+    <p class="sub">Estimativa completa da remuneração de Técnico Judiciário Federal (TRF) com os valores já reajustados de julho/2026: vencimento, GAJ, o novo Adicional de Qualificação, benefícios e a progressão de 30 anos pela carreira. Exemplo com base no TRF da 3ª Região.</p>
+    <div class="law-strip">
+      <span class="law-tag">Lei <b>11.416/2006</b> · carreira</span>
+      <span class="law-tag">Lei <b>15.293/2025</b> · reajuste 8%</span>
+      <span class="law-tag">Lei <b>15.292/2025</b> · novo AQ</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- ENTRADAS -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Sua situação</div>
+
+      <div class="field">
+        <label>Posição na carreira <span class="hint">(classe · padrão)</span><i class="info-i" data-modal="carreira">i</i></label>
+        <div class="seg three" id="classe">
+          <button data-c="A" class="active">Classe A</button>
+          <button data-c="B">Classe B</button>
+          <button data-c="C">Classe C</button>
+        </div>
+        <div class="slider-head" style="margin-top:12px"><label style="margin:0">Padrão</label>
+          <span class="slider-val" id="padraoVal">1</span></div>
+        <input type="range" id="padrao" min="1" max="13" value="1" step="1">
+      </div>
+
+      <div class="card-title" style="margin-top:24px"><span class="dot"></span>Adicional de Qualificação (AQ)<i class="info-i" data-modal="aq">i</i></div>
+      <p style="font-size:12.5px;color:var(--ink-faint);margin:-10px 0 14px">1 VR = R$ 771,55. Cada titulação acadêmica vira acréscimo mensal na remuneração.</p>
+
+      <div class="toggle"><div class="toggle-label">Especialização / MBA <span class="vr">1 VR cada · até 2</span>
+        <span class="meta">Pós-graduação lato sensu</span></div>
+        <label class="switch"><input type="checkbox" id="esp1"><span class="slider-sw"></span></label></div>
+      <div class="toggle"><div class="toggle-label">2ª Especialização <span class="vr">+1 VR</span>
+        <span class="meta">Uma segunda pós rápida</span></div>
+        <label class="switch"><input type="checkbox" id="esp2"><span class="slider-sw"></span></label></div>
+      <div class="toggle"><div class="toggle-label">2ª Graduação <span class="vr">1 VR</span>
+        <span class="meta">A 1ª graduação é requisito de ingresso (não conta)</span></div>
+        <label class="switch"><input type="checkbox" id="grad2"><span class="slider-sw"></span></label></div>
+      <div class="toggle"><div class="toggle-label">Mestrado <span class="vr">3,5 VR = R$ 2.700</span>
+        <span class="meta">Absorve especializações</span></div>
+        <label class="switch"><input type="checkbox" id="mest"><span class="slider-sw"></span></label></div>
+      <div class="toggle"><div class="toggle-label">Capacitações (120h) <span class="vr">0,2 VR cada · até 3</span>
+        <span class="meta">Cursos rápidos; somam com tudo</span></div>
+        <label class="switch"><input type="checkbox" id="cap"><span class="slider-sw"></span></label></div>
+
+      <div class="card-title" style="margin-top:24px"><span class="dot"></span>Previdência e descontos</div>
+      <div class="field">
+        <div class="slider-head"><label style="margin:0">FUNPRESP-JUD <span class="hint">(prev. complementar)</span></label>
+          <span class="slider-val" id="funprespVal">8,5%</span></div>
+        <input type="range" id="funpresp" min="0" max="8.5" value="8.5" step="0.5">
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Dependentes IRPF</label>
+          <input type="number" id="deps" value="0" min="0" max="8" step="1"></div>
+        <div class="field"><label>Filhos (pré-escola)<i class="info-i" data-modal="creche">i</i></label>
+          <input type="number" id="creche" value="0" min="0" max="8" step="1"></div>
+      </div>
+
+      <div class="field">
+        <label>Auxílio-saúde / Pró-Social <span class="hint">(pessoas no plano)</span><i class="info-i" data-modal="saude">i</i></label>
+        <div class="field-row">
+          <select id="saudePessoas">
+            <option value="1">Só você</option>
+            <option value="2">Você + 1</option>
+            <option value="3">Você + 2</option>
+            <option value="4">Você + 3</option>
+          </select>
+          <select id="saudeTeto">
+            <option value="579.39">Teto padrão (R$ 579)</option>
+            <option value="869.09">Teto +50% (50+ anos/PcD)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="toggle" style="border-top:1px solid rgba(39,64,111,.6);margin-top:6px"><div class="toggle-label">Função Comissionada FC-1
+        <span class="meta">Caso exerça função de chefia/assessoria</span></div>
+        <label class="switch"><input type="checkbox" id="fc"><span class="slider-sw"></span></label></div>
+      <div class="toggle"><div class="toggle-label">Gratificação de plantão <span class="vr">estimativa/mês</span>
+        <span class="meta">Se optar por dinheiro em vez de folga</span></div>
+        <label class="switch"><input type="checkbox" id="plantao"><span class="slider-sw"></span></label></div>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Resultado mensal</div>
+      <div class="hero-result">
+        <div class="hero-label">Líquido mensal estimado</div>
+        <div class="hero-value" id="liquido">R$ 0</div>
+        <div class="hero-note" id="liquidoNote">vencimento + GAJ + AQ + auxílios − descontos</div>
+      </div>
+      <div class="stat-pair">
+        <div class="stat gold"><div class="s-label">Bruto total</div><div class="s-value" id="brutoTotal">R$ 0</div></div>
+        <div class="stat green"><div class="s-label">Média mensal c/ 13º+férias</div><div class="s-value" id="mediaMensal">R$ 0</div></div>
+      </div>
+      <div class="bd-title">Composição do contracheque</div>
+      <div class="bd" id="breakdown"></div>
+      <div class="annual">
+        <div class="annual-big"><span class="v" id="anualLiq">R$ 0</span><span class="l">líquido estimado no ano</span></div>
+        <div class="annual-grid" id="anualGrid"></div>
+      </div>
+      <div class="note" id="note"></div>
+    </div>
+  </div>
+
+  <!-- CARREIRA -->
+  <div class="card" style="margin-top:20px">
+    <div class="career-head">
+      <div>
+        <div class="card-title" style="margin-bottom:6px"><span class="dot"></span>Progressão na carreira · 30 anos</div>
+        <p style="font-size:13px;color:var(--ink-dim);max-width:56ch">Bruto mensal subindo padrão a padrão (1 por ano por desempenho) ao longo das três classes da carreira.</p>
+      </div>
+    </div>
+    <div class="chart-wrap"><svg id="chart" viewBox="0 0 720 320" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="legend">
+      <div class="lg"><span class="sw" style="background:var(--green)"></span>Classe A (anos 1–13)</div>
+      <div class="lg"><span class="sw" style="background:var(--c-aq)"></span>Classe B (14–26)</div>
+      <div class="lg"><span class="sw" style="background:var(--gold)"></span>Classe C (27+)</div>
+    </div>
+    <div class="milestones" id="milestones"></div>
+    <div class="note">A progressão depende de avaliação de desempenho a cada ano. O salto entre classes (A→B→C) acontece ao fim do padrão 13 de cada classe. Valores já com reajuste de jul/2026; não incluem AQ nem benefícios (que somam por cima em qualquer ponto).</div>
+  </div>
+
+  <!-- CONDIÇÕES DE TRABALHO -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-title"><span class="dot"></span>Jornada, folgas e plantão</div>
+    <p style="font-size:13px;color:var(--ink-dim);max-width:62ch;margin-bottom:18px">Além da remuneração, estas condições pesam na qualidade de vida — e algumas têm pegadinhas que vale conhecer antes de decidir.</p>
+    <div class="cond-grid">
+      <div class="cond">
+        <span class="ic">🕐</span>
+        <div><div class="ct">Carga horária</div>
+          <div class="cd"><b>40h semanais</b> (8h/dia), com a faculdade de <b>7h ininterruptas</b> conforme o tribunal. Resolução CNJ 88/2009.</div></div>
+      </div>
+      <div class="cond">
+        <span class="ic">🏠</span>
+        <div><div class="ct">Teletrabalho</div>
+          <div class="cd">Permitido por regulamento de cada tribunal, em geral limitado a <b>até 50% dos servidores</b> de cada unidade. Indicação e dias ficam a cargo do gestor.</div></div>
+      </div>
+      <div class="cond">
+        <span class="ic">🌴</span>
+        <div><div class="ct">Férias + recesso</div>
+          <div class="cd"><b>30 dias de férias</b> (fracionáveis em até 3 etapas) + <b>recesso de fim de ano</b> (18 dias de recesso forense, com expediente suspenso na maioria dos tribunais).</div></div>
+      </div>
+      <div class="cond">
+        <span class="ic">⚖️</span>
+        <div><div class="ct">Plantão judiciário</div>
+          <div class="cd">Quem atua em plantão pode <b>optar entre gratificação (dinheiro) ou folga compensatória</b>. Depende da norma de cada órgão — é uma forma de ganhar mais ou descansar mais.</div></div>
+      </div>
+      <div class="cond muted">
+        <span class="ic">⏳</span>
+        <div><div class="ct">Quinquênio / ATS — atenção</div>
+          <div class="cd">O adicional por tempo de serviço (5% a cada 5 anos) foi <b>suprimido para servidores em 1999</b>. Foi restabelecido só para magistrados; para servidores é <b>reivindicação, não direito vigente</b>. Não conte com ele hoje.</div></div>
+      </div>
+      <div class="cond">
+        <span class="ic">🎂</span>
+        <div><div class="ct">Outros direitos</div>
+          <div class="cd">Folga de aniversário, licenças (saúde, capacitação, família) e estabilidade após 3 anos de estágio probatório. Varia conforme regulamento local.</div></div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:18px">As folgas de 60 dias e os ~178 dias de descanso citados na imprensa são de <strong>magistrados</strong>, não de servidores. O servidor tem 30 dias de férias + recesso de fim de ano — ainda assim, um calendário bem mais folgado que a média do mercado.</div>
+  </div>
+
+  <details>
+    <summary>De onde vêm os números</summary>
+    <p><strong>Vencimento + GAJ:</strong> valores oficiais pós-reajuste de 8% (Lei 15.293/2025), vigência jul/2026. Técnico A-1: VB R$ 4.073,63 + GAJ R$ 5.703,08 = R$ 9.776,71. Topo C-13: R$ 14.679,69. A GAJ é 140% do vencimento básico, devida a todos. A progressão entre padrões é interpolada entre esses extremos.</p>
+    <p><strong>AQ (Lei 15.292/2025):</strong> 1 VR = 6,5% da CJ-1 = R$ 771,55 a partir de jul/2026. Especialização 1 VR (até 2), 2ª graduação 1 VR, mestrado 3,5 VR (R$ 2.700,43), doutorado 5 VR (R$ 3.857,75), capacitação 0,2 VR (até 3). Especialização + 2ª grad + certificação somam no máximo 2 VR; mestrado/doutorado absorvem as menores. Incide PSS sobre o AQ.</p>
+    <p><strong>Benefícios:</strong> auxílio-alimentação R$ 1.860,51; assistência pré-escolar R$ 1.288,47/filho; auxílio-saúde ~R$ 400–600 (reembolso, varia por tribunal). <strong>Descontos:</strong> PSS/FUNPRESP-JUD sobre o que exceder o teto do RGPS, IRRF tabela 2025. <strong>Anuais:</strong> 13º e 1/3 de férias. <strong>É estimativa</strong> — o líquido real varia com tribunal, opção previdenciária e situação pessoal.</p>
+  </details>
+
+  <!-- MODAIS -->
+  <div class="modal-overlay" id="modal-carreira">
+    <div class="modal"><button class="modal-close" data-close>×</button>
+      <h2>⚖️ A carreira de Técnico</h2>
+      <div class="m-sub">3 classes × 13 padrões · Lei 11.416/2006</div>
+      <p>A carreira tem <strong>três classes (A, B, C)</strong>, cada uma com <strong>13 padrões</strong>. Você entra em A-1 e sobe um padrão por ano por desempenho; ao fim do padrão 13 de uma classe, é promovido ao padrão 1 da seguinte.</p>
+      <table class="m-table">
+        <tr><td>Início — Classe A, padrão 1</td><td>R$ 9.776,71</td></tr>
+        <tr><td>Topo — Classe C, padrão 13</td><td>R$ 14.679,69</td></tr>
+      </table>
+      <p>Esses são valores de vencimento + GAJ. Por cima entram AQ, auxílios e eventual função comissionada. A progressão entre padrões é <strong>previsível e garantida por lei</strong>, condicionada à avaliação de desempenho.</p>
+      <div class="m-warn">Há ainda os reajustes de 8% de 2027 e 2028, vetados mas em disputa no Congresso. Se a categoria derrubar o veto, toda a tabela sobe mais ~16%.</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-aq">
+    <div class="modal"><button class="modal-close" data-close>×</button>
+      <h2>🎓 Adicional de Qualificação</h2>
+      <div class="m-sub">Lei 15.292/2025 · 1 VR = R$ 771,55</div>
+      <p>Este é o componente que faz os <strong>estudos virarem salário</strong>. O AQ paga um múltiplo de um Valor de Referência (VR) por titulação:</p>
+      <table class="m-table">
+        <tr><td>Especialização / MBA (até 2)</td><td>1 VR cada</td></tr>
+        <tr><td>2ª graduação</td><td>1 VR</td></tr>
+        <tr><td>Certificação profissional (até 2)</td><td>0,5 VR cada</td></tr>
+        <tr><td>Mestrado</td><td>3,5 VR = R$ 2.700,43</td></tr>
+        <tr><td>Doutorado</td><td>5 VR = R$ 3.857,75</td></tr>
+        <tr><td>Capacitação 120h (até 3)</td><td>0,2 VR cada</td></tr>
+      </table>
+      <p>Uma especialização (pós lato sensu ou MBA) já garante 1 VR (~R$ 771/mês). Com duas pós, somam ~R$ 1.543/mês — incorporados à remuneração e contando na aposentadoria.</p>
+      <div class="m-warn"><strong>Regras:</strong> especialização + 2ª graduação + certificação somam no máximo 2 VR. Mestrado e doutorado não acumulam entre si e absorvem as menores — mas capacitação (120h) soma com qualquer uma.</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-creche">
+    <div class="modal"><button class="modal-close" data-close>×</button>
+      <h2>👶 Assistência pré-escolar</h2>
+      <div class="m-sub">benefício por dependente · isento de IR</div>
+      <p>O Judiciário paga <strong>assistência pré-escolar de R$ 1.288,47 por filho</strong> em idade pré-escolar, reajustada por portaria conjunta em 2026. É benefício mensal, não reembolso por nota.</p>
+      <table class="m-table">
+        <tr><td>Valor por dependente</td><td>R$ 1.288,47/mês</td></tr>
+        <tr><td>Auxílio-alimentação (todos)</td><td>R$ 1.860,51/mês</td></tr>
+      </table>
+      <p>O auxílio-alimentação é pago a todos os servidores, todo mês, isento de imposto de renda. A assistência pré-escolar é devida a quem tem filhos na faixa etária prevista.</p>
+      <div class="m-warn">Os valores são definidos por Portaria Conjunta do Poder Judiciário da União e reajustados anualmente pela correção inflacionária prevista na LDO.</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-saude">
+    <div class="modal"><button class="modal-close" data-close>×</button>
+      <h2>🩺 Plano de saúde (Pró-Social)</h2>
+      <div class="m-sub">auxílio-saúde · ressarcimento · exemplo TRF3</div>
+      <p>Cada tribunal mantém um programa de assistência à saúde. No TRF3 é o <strong>Pró-Social</strong>, que oferece planos próprios contratados (no caso, Versátil e Dinâmico TRF3, via Seguros Unimed) e a modalidade <strong>auxílio-saúde</strong> — ressarcimento parcial de plano particular.</p>
+      <h4>Como funciona o auxílio-saúde</h4>
+      <p>O tribunal ressarce um valor <strong>per capita</strong> (por pessoa no plano: titular + dependentes). O reembolso é o per capita × nº de pessoas; se o plano custar menos que o teto, ressarce o valor efetivamente gasto.</p>
+      <table class="m-table">
+        <tr><td>Teto por pessoa (padrão)</td><td>R$ 579,39</td></tr>
+        <tr><td>Teto com acréscimo de 50%</td><td>R$ 869,09</td></tr>
+      </table>
+      <p>O acréscimo de 50% vale quando o servidor (ou dependente) tem <strong>mais de 50 anos, deficiência ou doença grave</strong> prevista em lei. O per capita exato é calculado pela faixa salarial e idade.</p>
+      <div class="m-warn">Quem usa o plano próprio do tribunal tem mensalidade e coparticipação descontadas em folha, conforme tabela de custeio. Quem tem plano particular recebe o ressarcimento. Os valores variam por tribunal e por contrato vigente — ajuste os campos para refletir sua situação.</div>
+    </div>
+  </div>
+
+  <footer>
+    <strong style="color:var(--gold-soft)">Exemplo com base no TRF3.</strong> Vencimento, GAJ e AQ seguem a mesma lei em todo o Judiciário Federal (TRFs, TRTs, TREs, tribunais superiores); já o auxílio-saúde (per capita), o plano e detalhes de plantão e teletrabalho <strong>variam por tribunal</strong>. Previdência e função comissionada são aproximações; vencimento, GAJ, AQ e auxílios são oficiais.<br><br>
+    Fontes: tabelas oficiais CJF 2026 · Leis 11.416/2006, 15.292/2025 e 15.293/2025 · Resolução CNJ 88/2009 · Pró-Social TRF3 · Senado, Câmara, Fenajufe, Sintrajud.<br>
+    Estimativa para planejamento de estudos — não é contracheque oficial.
+  </footer>
+</div>
+
+<script>
+// ===== Constantes oficiais (pós-reajuste jul/2026) =====
+const VENC_INI = 4073.63, GAJ_INI = 5703.08;       // A-1
+const TOTAL_INI = VENC_INI + GAJ_INI;              // 9.776,71
+const TOTAL_TOPO = 14679.69;                        // C-13
+const VR = 771.55;
+const AUX_ALIM = 1860.51, PRE_ESCOLA = 1288.47;
+const TETO_RGPS = 8157.41;
+
+const $=id=>document.getElementById(id);
+const brl=v=>"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const brlInt=v=>"R$ "+Math.round(v).toLocaleString("pt-BR");
+let classe="A";
+
+// 39 passos (3 classes × 13). Interpolação linear entre A-1 e C-13.
+function totalAt(step){ // step 0..38
+  return TOTAL_INI + (TOTAL_TOPO-TOTAL_INI)*(step/38);
+}
+function stepOf(cls,padrao){ return ({A:0,B:13,C:26}[cls]) + (padrao-1); }
+// fração GAJ/venc é fixa (GAJ=140% venc) → venc = total/2.4
+function vencDe(total){ return total/2.4; }
+
+function irpf(base,deps){
+  const b=base-deps*189.59;
+  const f=[[2428.80,0,0],[2826.65,.075,182.16],[3751.05,.15,394.16],[4664.68,.225,675.49],[Infinity,.275,908.73]];
+  for(const [lim,al,ded] of f){ if(b<=lim) return Math.max(0,b*al-ded); }
+  return 0;
+}
+// PSS incide só até o teto RGPS (11%); acima, FUNPRESP opcional sobre excedente
+function descontosPrev(baseRGPS, funprespPct){
+  const pss = Math.min(baseRGPS,TETO_RGPS)*0.11;
+  const exc = Math.max(0, baseRGPS-TETO_RGPS);
+  const funp = exc*(funprespPct/100);
+  return {pss, funp};
+}
+
+function aqTotal(){
+  let vr=0;
+  const mest=$("mest").checked;
+  if(mest){ vr+=3.5; }
+  else {
+    let menores=0;
+    if($("esp1").checked) menores+=1;
+    if($("esp2").checked) menores+=1;
+    if($("grad2").checked) menores+=1;
+    menores=Math.min(menores,2); // teto 2 VR p/ esp+grad+cert
+    vr+=menores;
+  }
+  if($("cap").checked) vr+=0.2; // simplificado: 1 conjunto
+  return vr*VR;
+}
+
+function calc(){
+  const padrao=parseInt($("padrao").value)||1;
+  const step=stepOf(classe,padrao);
+  const total=totalAt(step);
+  const venc=vencDe(total);
+  const gaj=total-venc;
+  const aq=aqTotal();
+  const fc = $("fc").checked ? venc*0.30 : 0; // FC-1 ~30% do venc (aprox.)
+  // Gratificação de plantão: estimativa de 1 plantão de fim de semana/mês.
+  // Hora normal = total/200h; ~16h de plantão com adicional médio de 75%.
+  const plantao = $("plantao").checked ? (total/200)*16*1.75 : 0;
+  const deps=parseInt($("deps").value)||0;
+  const filhos=parseInt($("creche").value)||0;
+  const funprespPct=parseFloat($("funpresp").value)||0;
+  const saudePessoas=parseInt($("saudePessoas").value)||1;
+  const saudeTeto=parseFloat($("saudeTeto").value)||579.39;
+  const auxSaude=saudePessoas*saudeTeto;
+
+  $("padraoVal").textContent=padrao;
+  $("funprespVal").textContent=funprespPct.toFixed(1).replace('.',',')+"%";
+
+  // Base tributável e previdenciária
+  const brutoTrib = total + aq + fc + plantao;           // sujeito a IR/PSS
+  const isentos = AUX_ALIM + auxSaude + filhos*PRE_ESCOLA;
+
+  const {pss,funp}=descontosPrev(brutoTrib,funprespPct);
+  const baseIr = brutoTrib - pss - funp;
+  const ir = irpf(baseIr,deps);
+  const descontos = pss + funp + ir;
+  const liquidoTrib = brutoTrib - descontos;
+  const liquido = liquidoTrib + isentos;
+
+  const [int,cent]=brl(liquido).split(",");
+  $("liquido").innerHTML=int+'<span class="cents">,'+cent+'</span>';
+  $("brutoTotal").textContent=brlInt(brutoTrib+isentos);
+
+  // Anuais: 13º (1 bruto trib) + 1/3 férias (sobre 1 bruto)
+  const decimo=brutoTrib;
+  const tercoFerias=brutoTrib/3;
+  const ratio=liquidoTrib/brutoTrib;
+  const anualLiq = liquido*12 + (decimo+tercoFerias)*ratio;
+  $("mediaMensal").textContent=brlInt(anualLiq/12);
+  $("anualLiq").textContent=brlInt(anualLiq);
+
+  // Breakdown
+  let h="";
+  h+=`<div class="bd-group">Proventos</div>`;
+  h+=row("Vencimento básico","cl. "+classe+"-"+padrao,venc,"add");
+  h+=row("GAJ","140% do venc.",gaj,"add");
+  if(aq>0) h+=row("Adicional de Qualificação",(aq/VR).toFixed(1).replace('.',',')+" VR",aq,"aq");
+  if(fc>0) h+=row("Função Comissionada","FC-1",fc,"add");
+  if(plantao>0) h+=row("Gratificação de plantão","~1 plantão/mês",plantao,"add");
+  h+=row("Auxílio-alimentação","isento IR",AUX_ALIM,"add");
+  h+=row("Auxílio-saúde","Pró-Social · ressarc.",auxSaude,"add");
+  if(filhos>0) h+=row("Assistência pré-escolar",filhos+(filhos>1?" filhos":" filho"),filhos*PRE_ESCOLA,"add");
+  h+=`<div class="bd-group">Descontos</div>`;
+  h+=row("PSS (11% até teto)","prev. oficial",-pss,"sub");
+  if(funp>0) h+=row("FUNPRESP-JUD",funprespPct+"% s/ excedente",-funp,"sub");
+  h+=row("IRRF","tabela 2025",-ir,"sub");
+  h+=`<div class="bd-row total"><span class="bd-name">Líquido mensal</span><span class="bd-amt">${brl(liquido)}</span></div>`;
+  $("breakdown").innerHTML=h;
+
+  // Anuais grid
+  let ag="";
+  ag+=agItem("Líquido × 12",brlInt(liquido*12));
+  ag+=agItem("13º salário",brlInt(decimo*ratio));
+  ag+=agItem("1/3 de férias",brlInt(tercoFerias*ratio));
+  ag+=agItem("AQ no ano",aq>0?brlInt(aq*12):"—");
+  $("anualGrid").innerHTML=ag;
+
+  const efetivo=((descontos/(brutoTrib+isentos))*100).toFixed(0);
+  $("note").innerHTML=`<strong>Desconto efetivo:</strong> ${efetivo}% · `+
+    `<strong>AQ mensal:</strong> ${aq>0?brl(aq):"R$ 0"} · `+
+    `auxílios isentos de IR somam ${brl(isentos)}.`;
+
+  drawCareer();
+}
+
+function drawCareer(){
+  const pts=[]; for(let s=0;s<=38;s++){ pts.push({step:s, total:totalAt(s)}); }
+  const W=720,H=320,padL=70,padR=18,padT=18,padB=34;
+  const maxV=TOTAL_TOPO*1.06, minV=TOTAL_INI*0.9;
+  const x=s=>padL+(s/38)*(W-padL-padR);
+  const yv=v=>H-padB-((v-minV)/(maxV-minV))*(H-padT-padB);
+  let svg="";
+  for(let i=0;i<=4;i++){ const val=minV+(maxV-minV)*i/4, yy=yv(val);
+    svg+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#27406f" stroke-width="1" opacity=".5"/>`;
+    svg+=`<text x="${padL-8}" y="${yy+4}" fill="#6f82a8" font-size="11" font-family="IBM Plex Mono" text-anchor="end">${(val/1000).toFixed(0)}k</text>`;
+  }
+  for(let yr=1;yr<=39;yr+=6){ svg+=`<text x="${x(yr-1)}" y="${H-12}" fill="#6f82a8" font-size="11" font-family="IBM Plex Mono" text-anchor="middle">${yr}a</text>`; }
+  const colors=['#4ecb8e','#7aa2f7','#c9a24b'];
+  for(let c=0;c<3;c++){
+    const seg=pts.filter(p=>Math.floor(p.step/13)===c);
+    const first=pts.indexOf(seg[0]);
+    const segPts = first>0 ? [pts[first-1],...seg] : seg;
+    let d=segPts.map((p,i)=>(i===0?"M":"L")+x(p.step)+" "+yv(p.total)).join(" ");
+    svg+=`<path d="${d}" fill="none" stroke="${colors[c]}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    svg+=`<circle cx="${x(seg[0].step)}" cy="${yv(seg[0].total)}" r="4.5" fill="${colors[c]}" stroke="#0a1633" stroke-width="2"/>`;
+  }
+  const last=pts[38];
+  svg+=`<circle cx="${x(38)}" cy="${yv(last.total)}" r="4.5" fill="#c9a24b" stroke="#0a1633" stroke-width="2"/>`;
+  // marcador da posição atual
+  const cur=stepOf(classe,parseInt($("padrao").value)||1);
+  svg+=`<line x1="${x(cur)}" y1="${padT}" x2="${x(cur)}" y2="${H-padB}" stroke="#e2c277" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/>`;
+  svg+=`<circle cx="${x(cur)}" cy="${yv(totalAt(cur))}" r="6" fill="#e2c277" stroke="#0a1633" stroke-width="2"/>`;
+  $("chart").innerHTML=svg;
+
+  const names=['A','B','C'], lbls=['Classe A','Classe B','Classe C'], yrs=['anos 1–13','anos 14–26','anos 27–39'];
+  let ms="";
+  for(let c=0;c<3;c++){ const s=c*13; ms+=`<div class="ms" style="border-top-color:${colors[c]}">
+    <div class="ms-lvl" style="color:${colors[c]}">${lbls[c]}</div>
+    <div class="ms-yr">${yrs[c]}</div>
+    <div class="ms-val">${brlInt(totalAt(s))}</div>
+    <div class="ms-sub">venc+GAJ no início</div></div>`; }
+  $("milestones").innerHTML=ms;
+}
+
+function row(name,tiny,amt,cls){
+  const t=tiny?`<span class="tiny">${tiny}</span>`:"";
+  return `<div class="bd-row ${cls}"><span class="bd-name">${name}${t}</span><span class="bd-amt">${amt<0?"−":""}${brl(Math.abs(amt))}</span></div>`;
+}
+function agItem(l,v){return `<div class="ag"><span class="agl">${l}</span><span class="agv">${v}</span></div>`;}
+
+// Listeners
+$("classe").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b)return;
+  document.querySelectorAll("#classe button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); classe=b.dataset.c; calc(); });
+["padrao","esp1","esp2","grad2","mest","cap","funpresp","deps","creche","fc","plantao","saudePessoas","saudeTeto"].forEach(id=>$(id).addEventListener("input",calc));
+["saudePessoas","saudeTeto"].forEach(id=>$(id).addEventListener("change",calc));
+
+// Modais
+document.querySelectorAll("[data-modal]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();
+  const m=$("modal-"+el.dataset.modal); if(m)m.classList.add("open");}));
+document.querySelectorAll(".modal-overlay").forEach(ov=>ov.addEventListener("click",e=>{
+  if(e.target===ov||e.target.hasAttribute("data-close"))ov.classList.remove("open");}));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape")document.querySelectorAll(".modal-overlay.open").forEach(m=>m.classList.remove("open"));});
+
+calc();
+</script>
+</body>
+</html>

@@ -54,6 +54,7 @@
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let timerBlocoPendente = null; // bloco da agenda a creditar no próximo timer iniciado
   let timerLimitePendente = null; // tempo restante do bloco, pré-preenchido no timer
+  let timerAutoIniciar = false;  // ao abrir a tela do timer, já dispara a contagem
   let audioCtx = null;
   let ultimaRotaRender = null;
   let pulaRecalcSemanal = false; // evita recálculo/toast como efeito colateral (ex.: ao excluir um plano)
@@ -155,6 +156,70 @@
 
   function editalPorId(id) {
     return editaisDoCatalogo().find(function (e) { return e.id === id; }) || null;
+  }
+
+  // Calculadora de remuneração específica do cargo, quando houver. Identifica
+  // pelo texto do edital (título/órgão/cargo): Petrobras nível técnico e Técnico
+  // Judiciário Federal (TRF/TRT/TRE/tribunais superiores) têm página própria.
+  // Devolve { arquivo, rotulo } ou null.
+  function calculadoraDoEdital(e) {
+    if (!e) return null;
+    const txt = ((e.titulo || '') + ' ' + (e.orgao || '') + ' ' + (e.cargo || '')).toLowerCase();
+    // Petrobras e Transpetro: mesma carreira/ACT do Sistema Petrobras, então
+    // compartilham a calculadora.
+    if (/petrobras|transpetro|petróleo brasileiro/.test(txt)) {
+      return { arquivo: 'calc/petrobras.html', rotulo: '💰 Quanto ganha um técnico da Petrobras' };
+    }
+    // Técnico Judiciário FEDERAL: precisa ser "técnico judiciário" E de um órgão
+    // da Justiça da União (TRF/TRT/TRE/tribunais superiores). Exclui os Tribunais
+    // de Justiça estaduais (ex.: TJSP — Escrevente Técnico Judiciário).
+    const ehTecJud = /t[ée]cnico\s+judici[áa]rio/.test(txt);
+    const ehFederal = /\b(trf|trt|tre|tst|tse|stj|stf|cjf|tjdft|stm)\b|tribunal regional|tribunal superior|justi[çc]a (federal|do trabalho|eleitoral|militar)/.test(txt);
+    if (ehTecJud && ehFederal) {
+      return { arquivo: 'calc/judiciario-federal.html', rotulo: '💰 Quanto ganha um técnico judiciário federal' };
+    }
+    // Carreira TAE (técnico-administrativo em educação) — institutos federais,
+    // universidades federais, CEFET, Colégio Pedro II. Marcador forte: PCCTAE.
+    // Calculadora externa (site de terceiros), abre em nova aba.
+    if (/\bpcctae\b|t[ée]cnico[- ]administrativos? em educa[çc]|edital tae|assistente em administra[çc]/.test(txt)) {
+      return { url: 'https://taes.com.br/', externo: true, rotulo: '💰 Calculadora de salário (carreira TAE)' };
+    }
+    // Escrevente Técnico Judiciário do TJSP (estadual) — calculadora externa.
+    if (/\btjsp\b|tribunal de justi[çc]a do estado de s[ãa]o paulo/.test(txt) && /escrevente/.test(txt)) {
+      return { url: 'https://lcavalini.github.io/remuneracao-tjsp/', externo: true, rotulo: '💰 Calculadora de salário (Escrevente TJSP)' };
+    }
+    return null;
+  }
+
+  // Abre a calculadora de remuneração num modal amplo, isolada num iframe (cada
+  // calculadora é uma página HTML completa com estilos próprios).
+  function abrirCalculadoraRemuneracao(calc) {
+    if (!calc) return;
+    // Calculadoras externas (sites de terceiros) abrem em nova aba — sempre a
+    // versão oficial do autor, sem embutir o conteúdo no app.
+    if (calc.externo) { window.open(calc.url, '_blank', 'noopener'); return; }
+    const titulo = calc.rotulo.replace(/^💰\s*/, '');
+    // Calculadora própria: tela cheia (sem scroll aninhado de modal). Barra no
+    // topo com Fechar sempre visível + Fechar no final, e a página rola dentro
+    // do iframe.
+    const ov = document.createElement('div');
+    ov.className = 'calc-fullscreen';
+    // Sem barra de título no topo: o nome já aparece dentro da própria
+    // calculadora. O botão de fechar fica no rodapé, fixo na base da tela.
+    ov.innerHTML =
+      '<iframe class="calc-fs-frame" src="' + esc(calc.arquivo) + '" title="' + esc(titulo) + '"></iframe>' +
+      '<div class="calc-fs-rodape"><button type="button" class="botao calc-fs-fechar">Fechar calculadora</button></div>';
+    document.body.appendChild(ov);
+    const scrollAntes = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    function fechar() {
+      ov.remove();
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = scrollAntes;
+    }
+    function onKey(e) { if (e.key === 'Escape') fechar(); }
+    document.addEventListener('keydown', onKey);
+    ov.querySelectorAll('.calc-fs-fechar').forEach(function (b) { b.addEventListener('click', fechar); });
   }
 
   function limparEditalParaCatalogo(e) {
@@ -1014,13 +1079,24 @@
     if (kind !== 'registrar') return null;
     const hoje = D.hojeISO();
     const tipoBusca = tipo || 'teoria';
-    return state.sessoes.slice().reverse().find(function (s) {
+    // O check verde de um "bloco da semana" (blocoFeito) liga para QUALQUER
+    // sessão do tópico na semana corrente — não só a de hoje. Para que o ✓
+    // seja sempre desfazível (e não vire um <span> morto quando o registro
+    // rápido foi num dia anterior da mesma semana), buscamos na mesma janela.
+    // Continua restrito a origemRegistroRapido === 'fila' (registro detalhado/
+    // timer não vira desfazer de 1 toque) e prioriza a sessão de hoje.
+    const inicioSemana = D.segundaDaSemana(hoje);
+    const fimSemana = D.addDias(inicioSemana, 7);
+    const candidatas = state.sessoes.filter(function (s) {
       return s.origemRegistroRapido === 'fila' &&
         s.topicoId === id &&
         s.tipo === tipoBusca &&
-        s.data === hoje &&
+        s.data >= inicioSemana && s.data < fimSemana &&
         (!state.planoAtivoId || s.planoId === state.planoAtivoId);
-    }) || null;
+    });
+    if (candidatas.length === 0) return null;
+    return candidatas.filter(function (s) { return s.data === hoje; }).pop() ||
+      candidatas[candidatas.length - 1];
   }
 
   // Registro rápido pela bolinha: cria a sessão com padrões e dá o "check verde".
@@ -1434,6 +1510,21 @@
           if (bl.feito) toast('Bloco concluído ✓', 'sucesso');
           else toast('Faltam ' + D.formatarMin(blocoRestanteMin(bl)) + ' para fechar o bloco', 'sucesso');
         }
+      } else if (topico && dados.tipo !== 'revisao' && (dados.duracaoMin || 0) > 0) {
+        // Estudo livre (Timer/registro avulso) num tópico SEM bloco planejado no
+        // dia: cria um bloco "extra" já concluído, para o estudo aparecer sozinho
+        // no calendário — sem a pessoa precisar arrastar um bloco e cronometrar.
+        // É manual (gerado:false → sobrevive a recálculos) e marcado como extra,
+        // fora da distribuição planejada do plano (não desconta do tempo do dia).
+        const disc = D.disciplinaDoTopico(state, dados.topicoId);
+        state.agenda.push({
+          id: window.Store.novoId('agd'), planoId: state.planoAtivoId,
+          data: data, disciplinaId: disc ? disc.id : null,
+          topicoId: dados.topicoId, duracaoMin: dados.duracaoMin,
+          obs: dados.tipo === 'teoria' ? 'teoria' : dados.tipo,
+          feito: true, feitoMin: dados.duracaoMin,
+          gerado: false, extra: true
+        });
       }
     }
 
@@ -2223,6 +2314,7 @@
     // Convite ao aprofundamento (plano concluído) tem prioridade sobre o modal de
     // "meta do dia" para não abrirem dois modais no mesmo render.
     if (!talvezConvidarAprofundamento()) talvezComemorarDia();
+    setTimeout(talvezAvisarProvaPassada, 0);
     raiz.querySelectorAll('.prova-editar').forEach(function (b) { b.addEventListener('click', abrirEditarProva); });
     const adiantar = raiz.querySelector('#hoje-adiantar');
     if (adiantar) adiantar.addEventListener('click', adiantarProximaMateria);
@@ -2535,8 +2627,7 @@
     function botoes() {
       const e = window.Timer.estado();
       if (!e) {
-        acoes.innerHTML = '<button id="t-iniciar">Iniciar</button>';
-        acoes.querySelector('#t-iniciar').addEventListener('click', function () {
+        const iniciarTimer = function () {
           if (!selTop || !selTop.value) { toast('Escolha um tópico antes de iniciar.', 'erro'); return; }
           const limiteMin = limiteInput && limiteInput.value ? parseInt(limiteInput.value, 10) : null;
           if (limiteInput && limiteInput.value && (!limiteMin || limiteMin < 1 || limiteMin > 720)) {
@@ -2550,8 +2641,15 @@
           timerBlocoPendente = null;
           timerLimitePendente = null;
           render();
-        });
+        };
+        acoes.innerHTML = '<button id="t-iniciar">Iniciar</button>';
+        acoes.querySelector('#t-iniciar').addEventListener('click', iniciarTimer);
         if (info) info.textContent = '';
+        // Veio de "Cronometrar" na agenda: já dispara a contagem ao abrir a tela.
+        if (timerAutoIniciar) {
+          timerAutoIniciar = false;
+          if (selTop && selTop.value) iniciarTimer();
+        }
         return;
       }
       acoes.innerHTML =
@@ -3337,7 +3435,200 @@
     return '<div class="card compat-editais compat-' + classe + '">' +
       '<div class="compat-topo"><span class="compat-icone" aria-hidden="true">' + icone + '</span>' +
       '<div><strong>Estes editais são ' + comb.pct + '% compatíveis</strong>' + (fontes ? ' · ' + esc(fontes) : '') + '</div></div>' +
-      (comb.mensagem ? '<p class="sub">' + esc(comb.mensagem) + '</p>' : '') + '</div>';
+      (comb.mensagem ? '<p class="sub">' + esc(comb.mensagem) + '</p>' : '') +
+      enfaseBannerHtml() + '</div>';
+  }
+
+  // Linha de ênfase dentro do banner do plano combinado: mostra a divisão de foco
+  // (ou "por igual") e um botão para ajustar.
+  function enfaseBannerHtml() {
+    const enf = state.plano && state.plano.enfase;
+    const comb = state.plano && state.plano.combinado;
+    const r = comb && comb.rotulos;
+    const enc = (comb && comb.encerrados) || [];
+    const mes = D.hojeISO().slice(0, 7);
+    const passouA = r && r.provaA && mes > r.provaA;
+    const passouB = r && r.provaB && mes > r.provaB;
+    let texto;
+    if (r && enc.length) {
+      const restante = enc.indexOf(r.a) >= 0 ? r.b : r.a;
+      texto = '🎯 Focando só em <strong>' + esc(restante) + '</strong> (o outro concurso foi encerrado).';
+    } else if (enf && enf.split) {
+      const p = Math.round(enf.split * 100), s = 100 - p;
+      const passou = enf.provaSecundario && mes > enf.provaSecundario;
+      texto = passou
+        ? '🎯 Prova de <strong>' + esc(enf.secundario) + '</strong> já passou — foco voltou 100% para <strong>' + esc(enf.principal) + '</strong>.'
+        : '🎯 Ênfase: <strong>' + p + '%</strong> ' + esc(enf.principal) + ' · <strong>' + s + '%</strong> ' + esc(enf.secundario) + '.';
+    } else if (passouA && passouB) {
+      texto = '🏁 As provas dos dois concursos já passaram.';
+    } else if (passouA || passouB) {
+      const saiu = passouA ? r.a : r.b, restante = passouA ? r.b : r.a;
+      texto = '🎯 Prova de <strong>' + esc(saiu) + '</strong> já passou — o foco migrou para <strong>' + esc(restante) + '</strong>.';
+    } else {
+      texto = '⚖️ Estudando os dois por igual.';
+    }
+    return '<div class="enf-banner"><span class="sub">' + texto + '</span>' +
+      '<button type="button" class="botao-mini botao-quieto" id="enf-ajustar">Ajustar ênfase</button></div>';
+  }
+
+  // Reabre o seletor de ênfase para um plano combinado já existente, mudando só a
+  // priorização (não regera o edital). O ciclo é dinâmico e o calendário futuro
+  // se reajusta semana a semana.
+  function abrirAjusteEnfase() {
+    const comb = state.plano && state.plano.combinado;
+    if (!comb || !comb.rotulos) { toast('Ajuste disponível só em planos combinados novos.', 'erro'); return; }
+    const rA = comb.rotulos.a, rB = comb.rotulos.b;
+    const atual = state.plano.enfase;
+    const principalAtual = atual ? atual.principal : '';
+    const opcao = function (val, titulo, sub) {
+      return '<label class="enf-op"><input type="radio" name="enf-aj-principal" value="' + esc(val) + '"' + (principalAtual === val || (!val && !atual) ? ' checked' : '') + '>' +
+        '<span class="enf-op-txt"><strong>' + esc(titulo) + '</strong><span class="sub">' + esc(sub) + '</span></span></label>';
+    };
+    const m = abrirModal(
+      '<h3>Ajustar ênfase</h3>' +
+      '<div class="enf-opcoes">' +
+      opcao('', 'Estudar os dois por igual', 'Tempo dividido por peso e incidência.') +
+      opcao(rA, 'Priorizar ' + rA, 'A maior parte do tempo vai para ' + rA + '.') +
+      opcao(rB, 'Priorizar ' + rB, 'A maior parte do tempo vai para ' + rB + '.') +
+      '</div>' +
+      '<div class="enf-split' + (atual ? '' : ' oculto') + '" id="enf-aj-split-box"><label>Quanto do tempo para o principal?' +
+      '<select id="enf-aj-split">' +
+      ['0.7', '0.6', '0.8'].map(function (v) {
+        const lbl = { '0.7': '70% · 30%', '0.6': '60% · 40%', '0.8': '80% · 20%' }[v];
+        return '<option value="' + v + '"' + (atual && String(atual.split) === v ? ' selected' : '') + '>' + lbl + '</option>';
+      }).join('') + '</select></label></div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="enf-aj-cancelar">Cancelar</button>' +
+      '<button type="button" id="enf-aj-salvar">Salvar</button></div>'
+    );
+    const splitBox = m.querySelector('#enf-aj-split-box');
+    m.querySelectorAll('input[name="enf-aj-principal"]').forEach(function (r) {
+      r.addEventListener('change', function () { splitBox.classList.toggle('oculto', !r.value); });
+    });
+    m.querySelector('#enf-aj-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#enf-aj-salvar').addEventListener('click', function () {
+      const sel = m.querySelector('input[name="enf-aj-principal"]:checked');
+      const enfase = montarEnfase(comb, sel ? sel.value : '');
+      if (enfase) enfase.split = parseFloat(m.querySelector('#enf-aj-split').value) || 0.7;
+      if (enfase) state.plano.enfase = enfase; else delete state.plano.enfase;
+      salvar(); fecharModal(); render();
+      toast('Ênfase atualizada', 'sucesso');
+    });
+  }
+
+  // ---- Aviso quando a data prevista de uma prova chega ----
+  // Detecta a prova (do plano simples, ou de UM dos concursos do combinado) que
+  // já passou e ainda não foi tratada pelo aluno (provaAvisada).
+  function provaPassadaPendente() {
+    if (!state.plano) return null;
+    const mes = D.hojeISO().slice(0, 7);
+    const avisada = state.plano.provaAvisada || '';
+    const comb = state.plano.combinado;
+    if (comb && comb.rotulos) {
+      const r = comb.rotulos, enc = comb.encerrados || [];
+      const cands = [];
+      if (r.provaA && mes > r.provaA && enc.indexOf(r.a) < 0) cands.push({ prova: r.provaA, rotulo: r.a, outro: r.b, outroProva: r.provaB });
+      if (r.provaB && mes > r.provaB && enc.indexOf(r.b) < 0) cands.push({ prova: r.provaB, rotulo: r.b, outro: r.a, outroProva: r.provaA });
+      const pend = cands.filter(function (c) { return c.prova > avisada; }).sort(function (a, b) { return a.prova.localeCompare(b.prova); })[0];
+      if (!pend) return null;
+      pend.combinado = true;
+      pend.outroPassou = !!(pend.outroProva && mes > pend.outroProva);
+      return pend;
+    }
+    const jp = state.plano.radar && state.plano.radar.janela_prova;
+    const provaMes = jp && jp[0];
+    if (provaMes && mes > provaMes && provaMes > avisada) return { combinado: false, prova: provaMes };
+    return null;
+  }
+
+  function talvezAvisarProvaPassada() {
+    if (!state.plano) return;
+    const raizModal = document.getElementById('modal-raiz');
+    if (raizModal && raizModal.children.length) return; // outro modal aberto: tenta depois
+    const info = provaPassadaPendente();
+    if (info) abrirDialogoProvaPassada(info);
+  }
+
+  function marcarProvaAvisada(prova) {
+    if (state.plano) { state.plano.provaAvisada = prova; salvar(); }
+  }
+
+  function abrirDialogoProvaPassada(info) {
+    let corpo, acoes;
+    if (info.combinado && !info.outroPassou) {
+      corpo = '<div class="dialogo-icone" aria-hidden="true">🎯</div>' +
+        '<h3>A prova de ' + esc(info.rotulo) + ' já passou</h3>' +
+        '<p class="sub dialogo-msg">O foco já está migrando para <strong>' + esc(info.outro) + '</strong>. Como quer seguir?</p>';
+      acoes = '<button type="button" data-pp="focar">Seguir só com ' + esc(info.outro) + '</button>' +
+        '<button type="button" class="botao-secundario" data-pp="data">' + esc(info.rotulo) + ' foi adiado — nova data</button>' +
+        '<button type="button" class="botao-quieto" data-pp="manter">Manter os dois</button>';
+    } else {
+      const titulo = info.combinado ? 'As provas dos dois concursos já passaram' : 'A data da sua prova já passou';
+      corpo = '<div class="dialogo-icone" aria-hidden="true">' + (info.combinado ? '🏁' : '🎯') + '</div>' +
+        '<h3>' + titulo + '</h3>' +
+        '<p class="sub dialogo-msg">O que você quer fazer?</p>';
+      // "Excluir", não "arquivar": a ação remove o plano de fato (excluirPlano) —
+      // o rótulo antigo sugeria algo reversível e induzia à perda do plano.
+      acoes = '<button type="button" data-pp="arquivar">Excluir o plano (estatísticas ficam guardadas)</button>' +
+        '<button type="button" class="botao-secundario" data-pp="data">Mudar a data da prova</button>' +
+        '<button type="button" class="botao-quieto" data-pp="manter">Manter como está</button>';
+    }
+    const m = abrirModal('<div class="dialogo-prova">' + corpo + '<div class="modal-acoes modal-acoes-empilhado">' + acoes + '</div></div>');
+    m.querySelectorAll('[data-pp]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const acao = b.getAttribute('data-pp');
+        if (acao === 'manter') { marcarProvaAvisada(info.prova); fecharModal(); return; }
+        if (acao === 'focar') {
+          const comb = state.plano.combinado; comb.encerrados = comb.encerrados || [];
+          if (comb.encerrados.indexOf(info.rotulo) < 0) comb.encerrados.push(info.rotulo);
+          if (state.plano.enfase) delete state.plano.enfase;
+          marcarProvaAvisada(info.prova);
+          salvar(); fecharModal(); render();
+          toast('Agora focando só em ' + info.outro, 'sucesso');
+          return;
+        }
+        if (acao === 'arquivar') {
+          marcarProvaAvisada(info.prova);
+          fecharModal();
+          excluirPlano(state.planoAtivoId, false);
+          return;
+        }
+        if (acao === 'data') {
+          if (info.combinado && !info.outroPassou) { fecharModal(); abrirNovaDataConcurso(info); }
+          else { marcarProvaAvisada(''); fecharModal(); abrirEditarProva(); }
+          return;
+        }
+      });
+    });
+  }
+
+  // Mini-editor de nova data para um concurso de um plano combinado (ex.: adiado
+  // ou próxima edição). Atualiza a data daquele concurso e a referência do plano.
+  function abrirNovaDataConcurso(info) {
+    const r = state.plano.combinado.rotulos;
+    const atualProva = info.rotulo === r.a ? r.provaA : r.provaB;
+    const m = abrirModal(
+      '<h3>Nova data de ' + esc(info.rotulo) + '</h3>' +
+      '<p class="sub">Se o concurso foi adiado ou você vai mirar a próxima edição, escolha o novo mês previsto.</p>' +
+      '<label>Mês previsto</label>' + seletorMesHtml('nd-prova', atualProva || hojeMesISO()) +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="nd-cancelar">Cancelar</button>' +
+      '<button type="button" id="nd-salvar">Salvar</button></div>'
+    );
+    ligarSeletoresMes(m);
+    m.querySelector('#nd-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#nd-salvar').addEventListener('click', function () {
+      const novo = m.querySelector('#nd-prova').value;
+      if (!novo) return;
+      if (info.rotulo === r.a) r.provaA = novo; else r.provaB = novo;
+      const futuras = [r.provaA, r.provaB].filter(Boolean).sort();
+      if (futuras.length) {
+        const prev = state.plano.radar || {};
+        state.plano.radar = Object.assign({}, prev, { janela_prova: [futuras[0], (prev.janela_prova && prev.janela_prova[1]) || futuras[futuras.length - 1]] });
+      }
+      if (state.plano.enfase && state.plano.enfase.secundario === info.rotulo) state.plano.enfase.provaSecundario = novo;
+      state.plano.provaAvisada = '';
+      salvar(); fecharModal(); render();
+      toast('Data de ' + info.rotulo + ' atualizada', 'sucesso');
+    });
   }
 
   function telaEdital() {
@@ -4196,6 +4487,29 @@
 
     html += '</div>'; // .ajustes-sync-grid
 
+    // Recuperação de dados: registros de estudo de planos excluídos continuam
+    // salvos (excluirPlano preserva sessões/simulados), mas ficam invisíveis
+    // porque as telas filtram pelo plano ativo. Este card os traz de volta, e
+    // permite recriar um plano combinado a partir do edital-artefato guardado.
+    const orfaos = registrosOrfaos();
+    const editaisRec = editaisCombinadosSemPlano();
+    if (orfaos.total > 0 || editaisRec.length > 0) {
+      html += '<div class="card"><h3>🩹 Recuperação de dados</h3>';
+      if (editaisRec.length > 0) {
+        html += '<p class="sub">O edital de um plano combinado excluído ainda está guardado. Dá para recriar o plano a partir dele:</p>';
+        editaisRec.forEach(function (e) {
+          html += '<div class="modal-acoes" style="justify-content:flex-start;margin-bottom:0.4rem">' +
+            '<button class="botao-secundario botao-mini" data-rec-edital="' + esc(e.id) + '">Recriar plano «' + esc(e.titulo || 'combinado') + '»</button></div>';
+        });
+      }
+      if (orfaos.total > 0) {
+        html += '<p class="sub">Há <strong>' + orfaos.total + '</strong> registro(s) de estudo (sessões, revisões, simulados, blocos de agenda ou flashcards) de plano(s) excluído(s). Eles continuam salvos — só não aparecem. Você pode trazê-los para o plano ativo.</p>' +
+          '<button class="botao-mini" id="rec-orfaos"' + (state.planoAtivoId ? '' : ' disabled') + '>Trazer para o plano ativo</button>' +
+          (state.planoAtivoId ? '' : '<p class="sub">Crie ou recrie um plano primeiro para poder vinculá-los.</p>');
+      }
+      html += '</div>';
+    }
+
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
       '<p class="sub">Apaga seus planos, sessões, revisões, simulados e agenda para recomeçar do zero. O catálogo de editais e suas configurações são mantidos.</p>' +
       '<button class="botao-perigo botao-mini" id="zr-limpar">Apagar meus dados de estudo</button></div>';
@@ -4753,12 +5067,15 @@
     const nt = contarTopicosEdital(e);
     const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
     const selComparar = comparacaoIds.indexOf(e.id) >= 0;
+    const calc = calculadoraDoEdital(e);
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     return '<div class="card catalogo-card catalogo-card-compacto' + (selComparar ? ' catalogo-card-comparando' : '') + '">' +
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
       '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) +
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</strong>' +
-      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</span>' +
+      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos' +
+      (calc ? ' <button type="button" class="catalogo-calc-mini" data-pl-calc="' + esc(e.id) + '" title="Estimar a remuneração do cargo">💰 Calculadora de salário</button>' : '') +
+      '</span>' +
       (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div></div>' +
       '<div class="catalogo-metricas">' +
@@ -5050,6 +5367,9 @@
     raiz.querySelectorAll('[data-pl-detalhes]').forEach(function (b) {
       b.addEventListener('click', function () { abrirDetalhesEdital(b.getAttribute('data-pl-detalhes')); });
     });
+    raiz.querySelectorAll('[data-pl-calc]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirCalculadoraRemuneracao(calculadoraDoEdital(editalPorId(b.getAttribute('data-pl-calc')))); });
+    });
     raiz.querySelectorAll('[data-pl-iniciar]').forEach(function (b) {
       b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-pl-iniciar')); });
     });
@@ -5071,6 +5391,7 @@
   function abrirDetalhesEdital(id) {
     const e = editalPorId(id);
     if (!e) return;
+    const calc = calculadoraDoEdital(e);
     // Disciplinas com tópicos · incidência · horas (antiga "tela 2", agora direto)
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
@@ -5098,11 +5419,13 @@
       (e.beneficios ? '<p class="sub" style="margin:0.1rem 0 0.5rem"><strong>Benefícios:</strong> ' + esc(e.beneficios) + '</p>' : '') +
       '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (incidência nas provas e horas estimadas).</p>' +
       '<div class="detalhe-discs">' + discHtml + '</div>' +
+      (calc ? '<button type="button" class="botao-secundario det-calc" id="det-calc" style="width:100%;margin:0.2rem 0 0.6rem">' + calc.rotulo + '</button>' : '') +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
       '<button id="det-iniciar">Iniciar plano</button></div>');
     m.classList.add('modal-amplo');
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
+    if (calc) m.querySelector('#det-calc').addEventListener('click', function () { abrirCalculadoraRemuneracao(calc); });
   }
 
   function vereditoConciliacaoHtml(res) {
@@ -5129,7 +5452,9 @@
       item('Carga semanal exigida', '~' + d.exigidaSemana + 'h') +
       item('Você tem por semana', '~' + d.horasSemana + 'h') +
       item('Até a prova mais próxima', d.provaDefinida ? 'aprox. ' + d.semanasDisponiveis + ' sem' : 'sem data') +
-      '</div></div>';
+      '</div>' +
+      '<p class="sub cmp-bagagem">📚 Esta estimativa é <strong>do zero</strong>. Na configuração do plano você marca o que já domina (sua bagagem) — e a carga e o tempo reais para terminar caem conforme isso.</p>' +
+      '</div>';
   }
 
   function abrirCompararPlanos(idA) {
@@ -5170,9 +5495,63 @@
     recalc();
   }
 
-  // Une dois editais conciliáveis num plano único e gera o cronograma adaptativo.
-  async function gerarPlanoCombinado(edA, edB) {
+  // Une dois editais conciliáveis num plano único. Antes de gerar, pergunta se o
+  // aluno quer dar ênfase a um dos concursos (priorizar o principal sem largar o
+  // outro) — depois gera o cronograma adaptativo.
+  function gerarPlanoCombinado(edA, edB) {
     const comb = D.combinarEditais(edA, edB);
+    abrirEscolhaEnfase(comb, edA, edB);
+  }
+
+  // Monta o objeto de ênfase a partir da escolha do aluno (ou null = igual).
+  function montarEnfase(comb, principalRotulo) {
+    if (!principalRotulo) return null;
+    const ehA = principalRotulo === comb.rotulos.a;
+    return {
+      principal: ehA ? comb.rotulos.a : comb.rotulos.b,
+      secundario: ehA ? comb.rotulos.b : comb.rotulos.a,
+      split: 0.7,
+      provaSecundario: ehA ? comb.rotulos.provaB : comb.rotulos.provaA
+    };
+  }
+
+  function abrirEscolhaEnfase(comb, edA, edB) {
+    const rA = comb.rotulos.a, rB = comb.rotulos.b;
+    const opcao = function (val, titulo, sub) {
+      return '<label class="enf-op"><input type="radio" name="enf-principal" value="' + esc(val) + '">' +
+        '<span class="enf-op-txt"><strong>' + esc(titulo) + '</strong><span class="sub">' + esc(sub) + '</span></span></label>';
+    };
+    const m = abrirModal(
+      '<h3>Combinar concursos</h3>' +
+      '<p class="sub">Quer dar ênfase a um deles? Útil quando um é o seu foco e o outro é uma oportunidade do momento — sem largar o principal.</p>' +
+      '<div class="enf-opcoes">' +
+      opcao('', 'Estudar os dois por igual', 'Tempo dividido por peso e incidência das matérias (padrão).') +
+      opcao(rA, 'Priorizar ' + rA, 'A maior parte do tempo vai para ' + rA + '.') +
+      opcao(rB, 'Priorizar ' + rB, 'A maior parte do tempo vai para ' + rB + '.') +
+      '</div>' +
+      '<div class="enf-split oculto" id="enf-split-box"><label>Quanto do tempo para o principal?' +
+      '<select id="enf-split"><option value="0.7">70% principal · 30% secundário</option>' +
+      '<option value="0.6">60% principal · 40% secundário</option>' +
+      '<option value="0.8">80% principal · 20% secundário</option></select></label>' +
+      '<p class="sub">O conteúdo em comum vale para os dois. Quando a prova do concurso secundário passar, o foco volta 100% ao principal.</p></div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="enf-cancelar">Cancelar</button>' +
+      '<button type="button" id="enf-gerar">Gerar plano combinado</button></div>'
+    );
+    const splitBox = m.querySelector('#enf-split-box');
+    m.querySelectorAll('input[name="enf-principal"]').forEach(function (r) {
+      r.addEventListener('change', function () { splitBox.classList.toggle('oculto', !r.value); });
+    });
+    m.querySelector('input[name="enf-principal"]').checked = true; // "igual" por padrão
+    m.querySelector('#enf-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#enf-gerar').addEventListener('click', function () {
+      const sel = m.querySelector('input[name="enf-principal"]:checked');
+      const enfase = montarEnfase(comb, sel ? sel.value : '');
+      if (enfase) enfase.split = parseFloat(m.querySelector('#enf-split').value) || 0.7;
+      executarPlanoCombinado(comb, edA, edB, enfase);
+    });
+  }
+
+  async function executarPlanoCombinado(comb, edA, edB, enfase) {
     gerarIdsEdital(comb.disciplinas);
     const reg = Object.assign(
       // ocultoNoCatalogo: o edital combinado é um artefato do plano do aluno, não
@@ -5194,8 +5573,10 @@
         fontes: [tituloCurto(edA.titulo), tituloCurto(edB.titulo)],
         pct: compat.detalhes.overlapPct,
         nivel: compat.nivel,
-        mensagem: compat.mensagem
+        mensagem: compat.mensagem,
+        rotulos: comb.rotulos // permite reabrir o ajuste de ênfase depois
       };
+      if (enfase) state.plano.enfase = enfase; else delete state.plano.enfase;
       salvar();
     }
   }
@@ -5703,6 +6084,16 @@
 
     ligarEditaisEsquematizados(raiz);
 
+    raiz.querySelectorAll('[data-rec-edital]').forEach(function (b) {
+      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-rec-edital')); });
+    });
+    const recOrfaos = raiz.querySelector('#rec-orfaos');
+    if (recOrfaos) recOrfaos.addEventListener('click', function () {
+      const n = vincularOrfaosAoPlanoAtivo();
+      render();
+      toast(n > 0 ? n + ' registro(s) recuperado(s) para o plano ativo' : 'Nada para recuperar', n > 0 ? 'sucesso' : 'erro');
+    });
+
     raiz.querySelector('#zr-limpar').addEventListener('click', function () {
       confirmar({ titulo: 'Recomeçar do zero?', mensagem: 'Seus planos, sessões, revisões, simulados e agenda serão apagados para você começar de novo. O catálogo de editais e suas configurações são mantidos. Esta ação não tem volta.', confirmar: 'Apagar meus dados', perigo: true, icone: '⚠️' }).then(function (ok) {
         if (!ok) return;
@@ -5870,6 +6261,17 @@
   // Revisões (repetição espaçada) pendentes de um dia — fonte única, refletida no
   // calendário; cada uma já descontou tempo do dia na geração da agenda.
   function revisoesDoDia(diaISO) { return D.revisoesPendentesNoDia(state, diaISO); }
+  // Simulados registrados num dia (do plano ativo) — marcados no calendário.
+  function simuladosDoDia(diaISO) {
+    return doAtivo(state.simulados).filter(function (s) { return s.data === diaISO; });
+  }
+  // Resumo curto de um simulado: nº de questões e % geral de acerto.
+  function resumoSimulado(s) {
+    let c = 0, q = 0;
+    (s.acertos || []).forEach(function (a) { c += a.certas || 0; q += a.total || 0; });
+    const pct = q > 0 ? Math.round((c / q) * 100) : null;
+    return { certas: c, total: q, pct: pct };
+  }
   function rotuloTipoRevisao(tipo) { return tipo === 'reforço' || tipo === 'manutenção' ? tipo : tipo; }
   // Chip de revisão para a grade semanal (não arrastável; clica para mover).
   function revisaoChipSemana(r) {
@@ -5881,6 +6283,20 @@
     return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + '">' +
       '<span class="agenda-bloco-rev-ic" aria-hidden="true">🔁</span>' +
       '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão</span>' +
+      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
+  }
+  // Chip de simulado para a grade semanal (clica para abrir os detalhes do dia).
+  function simuladoChipSemana(s) {
+    const r = resumoSimulado(s);
+    const tipoTxt = s.tipo === 'total' ? 'Simulado total' : s.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
+    const sub = (r.total > 0 ? r.certas + '/' + r.total + ' acertos' + (r.pct != null ? ' · ' + r.pct + '%' : '') : 'registrado') +
+      (s.duracaoMin ? ' · ' + D.formatarMin(s.duracaoMin) : '');
+    // Simulado é sempre um evento já concluído (registrado após ser feito), por
+    // isso entra com o visual de "feito" (esmaecido + riscado), como os blocos
+    // concluídos da agenda.
+    return '<div class="agenda-bloco agenda-bloco-simulado feito" data-dia-detalhe="' + esc(s.data) + '" role="button" tabindex="0" title="' + esc(tipoTxt + ' · ' + sub + ' · já realizado') + '">' +
+      '<span class="agenda-bloco-rev-ic" aria-hidden="true">📝</span>' +
+      '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Simulado ✓</span>' +
       '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
   }
   // Move uma revisão de dia (ajuste manual sobre o agendamento do motor). Re-reserva
@@ -5949,6 +6365,7 @@
     timerBlocoPendente = blocoAg.id;
     const restante = blocoRestanteMin(blocoAg);
     timerLimitePendente = restante > 0 ? restante : (blocoAg.duracaoMin || null);
+    timerAutoIniciar = true;
     location.hash = '#timer';
   }
 
@@ -6203,6 +6620,7 @@
       '</div>' +
       modoRetaFinalControleHtml() +
       modoAprofundamentoControleHtml() +
+      (state.plano.combinado ? enfaseBannerHtml() : '') +
       '</div>';
   }
 
@@ -6718,6 +7136,46 @@
     return item && (item.planoId === planoId || (!item.planoId && state.planoAtivoId === planoId));
   }
 
+  const LISTAS_COM_PLANO = ['sessoes', 'revisoes', 'simulados', 'agenda', 'flashcards'];
+
+  function planoExiste(planoId) {
+    return state.planos.some(function (p) { return p && p.id === planoId; });
+  }
+
+  // Registros de estudo que apontam para um plano que não existe mais (excluído
+  // aqui ou em outro aparelho). Eles seguem no estado, mas nenhuma tela os mostra.
+  function registrosOrfaos() {
+    let total = 0;
+    LISTAS_COM_PLANO.forEach(function (k) {
+      (state[k] || []).forEach(function (item) {
+        if (item && item.planoId && !planoExiste(item.planoId)) total++;
+      });
+    });
+    return { total };
+  }
+
+  // Editais-artefato de plano combinado (ocultos do catálogo) cujo plano foi
+  // excluído: servem de base para recriar o plano com os MESMOS ids de
+  // disciplinas/tópicos, o que faz sessões e simulados órfãos voltarem a casar.
+  function editaisCombinadosSemPlano() {
+    return (state.editais || []).filter(function (e) {
+      if (!e || !e.ocultoNoCatalogo) return false;
+      return !state.planos.some(function (p) { return p && p.plano && p.plano.origemEditalId === e.id; });
+    });
+  }
+
+  function vincularOrfaosAoPlanoAtivo() {
+    if (!state.planoAtivoId) return 0;
+    let n = 0;
+    LISTAS_COM_PLANO.forEach(function (k) {
+      (state[k] || []).forEach(function (item) {
+        if (item && item.planoId && !planoExiste(item.planoId)) { item.planoId = state.planoAtivoId; n++; }
+      });
+    });
+    if (n > 0) salvar();
+    return n;
+  }
+
   // Remove sessões, revisões, simulados e blocos de agenda vinculados a um plano.
   // Precisa rodar ENQUANTO o plano ainda é o ativo (pertenceAoPlano usa planoAtivoId
   // como fallback para itens antigos sem planoId), portanto chame antes de removê-lo.
@@ -6755,6 +7213,10 @@
     const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
     if (limparHistorico) limparDadosVinculados(planoId);
     window.Store.removerPlano(state, planoId);
+    // Lápide da exclusão: impede que um aparelho com cópia local antiga
+    // ressuscite este plano na próxima mescla (ver Store.mesclarEstados).
+    if (!state.config.planosExcluidos || typeof state.config.planosExcluidos !== 'object') state.config.planosExcluidos = {};
+    state.config.planosExcluidos[planoId] = new Date().toISOString();
     // Sem nenhum plano restante, marca a exclusão para que a nuvem não
     // ressuscite o plano apagado no próximo sync (ver firebase-sync.js).
     if (state.planos.length === 0) state.config.apagadoEm = new Date().toISOString();
@@ -7118,7 +7580,7 @@
     return semanasCron;
   }
 
-  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque, nomeRitmo) {
+  function aplicarPlanoDuracaoAoAtivo(meses, horasSemana, silencioso, ordemAtaque, nomeRitmo, preservarHistorico) {
     const entrada = entradaPlanoAtivo();
     if (!entrada || entrada.disciplinas.length === 0) {
       if (!silencioso) toast('Crie ou importe disciplinas antes de gerar o cronograma.', 'erro');
@@ -7140,25 +7602,55 @@
         if (!t.orfao && (t.status === 'teoria_concluida' || t.status === 'dominado')) concluidos.add(t.id);
       });
     });
-    entrada.cronogramas = {};
     entrada.plano.ritmos = entrada.plano.ritmos || {};
     const relCobertura = {};
-    entrada.cronogramas[chave] = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos, relatorio: relCobertura });
+    // ATUALIZAÇÃO preservando histórico: ao editar um plano que já rodou algumas
+    // semanas (nova carga/prazo), congelamos as semanas PASSADAS (o que já foi
+    // estudado) e só refazemos da semana atual em diante — em vez de zerar o
+    // calendário inteiro a partir desta segunda, que apagava o histórico. Espelha
+    // o recálculo adaptativo semanal.
+    const inicioAtual = D.segundaDaSemana(D.hojeISO());
+    const cronAntigo = (entrada.cronogramas && entrada.cronogramas[chave]) || [];
+    const inicioPlanoAnt = entrada.plano.gerado_em ? D.segundaDaSemana(entrada.plano.gerado_em) : inicioAtual;
+    const semanaBase = Math.max(0, Math.round(D.diffDias(inicioPlanoAnt, inicioAtual) / 7));
+    const preservar = !!preservarHistorico && cronAntigo.length > 0 && semanaBase > 0;
+    const passadas = preservar ? cronAntigo.filter(function (s) { return s.inicio < inicioAtual; }) : [];
+    const semanasFuturas = Math.max(1, semanas - semanaBase);
+    let cronNovo;
+    if (preservar) {
+      const futuras = gerarCronogramaHierarquico(entrada.disciplinas, semanasFuturas, {
+        horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos,
+        inicio: inicioAtual, semanaBase: semanaBase, relatorio: relCobertura
+      });
+      cronNovo = passadas.concat(futuras);
+    } else {
+      cronNovo = gerarCronogramaHierarquico(entrada.disciplinas, semanas, { horasSemana: hSemana, ordemAtaque: ordem, concluidos: concluidos, relatorio: relCobertura });
+    }
+    entrada.cronogramas = {};
+    entrada.cronogramas[chave] = cronNovo;
     entrada.plano.ritmos = {};
-    entrada.plano.ritmos[chave] = { meses: meses, semanas: semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
+    entrada.plano.ritmos[chave] = { meses: meses, semanas: preservar ? semanaBase + semanasFuturas : semanas, h_semana: hSemana, nomeRitmo: nomeRitmo || nomeRitmoPorMeses(entrada, meses) };
     entrada.plano.ritmoAtivo = chave;
     entrada.plano.modoPlanejamento = 'cronograma';
     entrada.plano.ciclo = { blocos: [], volta: 1 };
     // Âncora do cronograma = segunda da semana atual, igual ao calendário e ao
     // recálculo. Evita divergência de até 6 dias no burndown/projeção de término.
-    entrada.plano.gerado_em = D.segundaDaSemana(D.hojeISO());
-    entrada.plano.ultimaRecalcSemana = D.segundaDaSemana(D.hojeISO());
+    // Numa atualização preservando histórico mantemos a âncora original para não
+    // deslocar as semanas passadas.
+    if (!preservar) entrada.plano.gerado_em = inicioAtual;
+    entrada.plano.ultimaRecalcSemana = inicioAtual;
     window.Store.hidratar(state);
     // Revisões são a fonte única de "manutenção": tópicos já concluídos/dominados
     // (inclusive vindos do ponto de partida) ganham a curva de repetição espaçada
     // aqui — antes isso vinha de blocos "revisao" do cronograma, agora removidos.
     agendarRevisoesEmLote(Array.from(concluidos)); // retroativo: pula 24h e escalona a base
-    sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
+    if (preservar) {
+      // só refaz a agenda da semana atual em diante; as semanas passadas (o que já
+      // foi estudado) permanecem intactas no calendário.
+      cronNovo.forEach(function (sem) { if (sem.inicio >= inicioAtual) gerarBlocosSemanaAgenda(sem.inicio); });
+    } else {
+      sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
+    }
     salvar();
     // Falha A — cobertura: nesse prazo nem toda a teoria do edital coube no
     // cronograma. Em vez de descartar tópicos em silêncio, avisa quanto cobriu e
@@ -7324,6 +7816,11 @@
     const rotina = rotinaEstudosAtual();
     const totalAtual = totalMinutosRotina(rotina);
     const entrada = entradaPlanoAtivo();
+    // Edição de um plano que JÁ existe (vs. criar do zero pelo "Iniciar"). Quando
+    // verdadeiro, o botão final diz "Atualizar plano" e a regeneração preserva o
+    // histórico já estudado em vez de zerar o calendário.
+    const ehAtualizacao = !opcoes.novoPlanoId && !!(state.plano.ritmoAtivo ||
+      (state.plano.ciclo && state.plano.ciclo.blocos && state.plano.ciclo.blocos.length));
     // Ritmos com meses estimados a partir do tamanho do edital ativo.
     const ritmosCalc = ritmosEstimados(entrada);
     // Seleção inicial: ritmo do plano atual (mais próximo) ou o Equilibrado.
@@ -7481,7 +7978,7 @@
       '<button type="button" class="botao-quieto" id="gp-cancelar">Cancelar</button>' +
       '<button type="button" class="botao-quieto oculto" id="gp-voltar">← Voltar</button>' +
       '<button type="button" id="gp-proximo">Próximo →</button>' +
-      '<button type="submit" class="oculto" id="gp-gerar">Gerar plano</button>' +
+      '<button type="submit" class="oculto" id="gp-gerar">' + (ehAtualizacao ? 'Atualizar plano' : 'Gerar plano') + '</button>' +
       '</div></form></div>'
     );
     m.classList.add('modal-amplo');
@@ -7770,7 +8267,7 @@
         limparAgendaGeradaPlano(state.planoAtivoId);
         salvar();
       } else {
-        if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo)) return;
+        if (!aplicarPlanoDuracaoAoAtivo(meses, horas, true, ordemAtaque, nomeRitmo, ehAtualizacao)) return;
       }
       planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
       if (state.plano) delete state.plano.rascunho; // confirmado: não é mais rascunho
@@ -7779,7 +8276,7 @@
       agendaRef = modoPlano === 'ciclo' ? D.segundaDaSemana(D.hojeISO()) : (cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO()));
       agendaModo = 'semana';
       render();
-      toast('Plano ' + nomeRitmo + ' gerado — calendário preenchido', 'sucesso');
+      toast('Plano ' + nomeRitmo + (ehAtualizacao ? ' atualizado — histórico preservado' : ' gerado — calendário preenchido'), 'sucesso');
     });
 
     mostrarPasso(1);
@@ -7956,12 +8453,15 @@
         const data = D.addDias(agendaRef, i);
         const blocos = blocosDoDia(data);
         const revs = revisoesDoDia(data);
+        const sims = simuladosDoDia(data);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
+        const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
           (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
           revs.map(revisaoChipSemana).join('') +
+          sims.map(simuladoChipSemana).join('') +
           blocos.map(function (b) {
             const d = D.disciplinaPorId(state, b.disciplinaId);
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
@@ -7970,7 +8470,7 @@
             const tempoTxt = parcial
               ? 'faltam ' + D.formatarMin(blocoRestanteMin(b)) + ' de ' + D.formatarMin(b.duracaoMin || 0)
               : rotuloHorarioAgenda(b);
-            const sub = tempoTxt + (t ? ' · ' + esc(t.nome) : '') + (concluido ? ' · feito ✓' : '');
+            const sub = tempoTxt + (t ? ' · ' + esc(t.nome) : '') + (b.extra ? ' · extra' : '') + (concluido ? ' · feito ✓' : '');
             const pct = parcial ? Math.min(100, Math.round((blocoFeitoMin(b) / (b.duracaoMin || 1)) * 100)) : 0;
             const barra = parcial ? '<span class="agenda-bloco-prog"><span style="width:' + pct + '%"></span></span>' : '';
             // No modo compacto (telas estreitas) só o título aparece; o detalhe
@@ -8002,18 +8502,21 @@
           if (discsDia.indexOf(b.disciplinaId) < 0) discsDia.push(b.disciplinaId);
         });
         const revs = revisoesDoDia(cursor);
+        const sims = simuladosDoDia(cursor);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
+        const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
         const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
-        const temConteudo = blocos.length > 0 || revs.length > 0;
+        const temConteudo = blocos.length > 0 || revs.length > 0 || sims.length > 0;
         const pontos = discsDia.slice(0, 5).map(function (id) {
           const d = D.disciplinaPorId(state, id);
           return '<span class="mes-ponto" style="background:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc(d ? d.nome : id) + '"></span>';
         }).join('') + (discsDia.length > 5 ? '<span class="mes-ponto-mais">+' + (discsDia.length - 5) + '</span>' : '') +
-          (revs.length > 0 ? '<span class="mes-ponto-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '">🔁</span>' : '');
+          (revs.length > 0 ? '<span class="mes-ponto-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '">🔁</span>' : '') +
+          (sims.length > 0 ? '<span class="mes-ponto-sim" title="' + sims.length + ' simulado(s)">📝</span>' : '');
         html += '<div class="mes-celula mes-celula-pontos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
           (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
-          D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' : ' — sem blocos') + '">' +
+          D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' + (sims.length > 0 ? ', ' + sims.length + ' simulados' : '') : ' — sem blocos') + '">' +
           '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
           (temConteudo
             ? '<div class="mes-pontos">' + pontos + '</div>' +
@@ -8096,9 +8599,24 @@
   function abrirDetalhesDia(dataISO) {
     const blocos = blocosDoDia(dataISO);
     const revs = revisoesDoDia(dataISO);
+    const sims = simuladosDoDia(dataISO);
     const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
-    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin;
+    const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
     const feitos = blocos.filter(blocoAgendaConcluido).length;
+    const simsHtml = sims.length === 0 ? '' :
+      '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">📝 Simulados do dia</h4><div class="dia-detalhe-lista">' +
+      sims.map(function (s) {
+        const r = resumoSimulado(s);
+        const tipoTxt = s.tipo === 'total' ? 'Simulado total' : s.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
+        const sub = (r.total > 0 ? r.certas + '/' + r.total + ' acertos' + (r.pct != null ? ' · ' + r.pct + '%' : '') : 'registrado') +
+          (s.duracaoMin ? ' · ' + D.formatarMin(s.duracaoMin) : '');
+        return '<button type="button" class="dia-detalhe-item dia-detalhe-rev" data-dia-sim="' + esc(s.id) + '" style="--disc-cor:#3fcf8e">' +
+          '<span class="dia-detalhe-cor" style="background:#3fcf8e"></span>' +
+          '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + esc(tipoTxt) + '</span>' +
+          '<span class="dia-detalhe-sub">' + esc(sub) + '</span></span>' +
+          '<span class="dia-detalhe-seta">›</span></button>';
+      }).join('') + '</div></div>';
     const revsHtml = revs.length === 0 ? '' :
       '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">🔁 Revisões do dia</h4><div class="dia-detalhe-lista">' +
       revs.map(function (r) {
@@ -8131,13 +8649,16 @@
         }).join('') + '</div>';
     const m = abrirModal(
       '<div class="dia-detalhe-cab"><div><h3>' + D.formatarDataBR(dataISO) + '</h3>' +
-      '<p class="sub">' + diaSemana + (blocos.length || revs.length ? ' · ' + blocos.length + ' blocos · ' + revs.length + ' revisões · ' + D.formatarMin(totalMin) : ' · dia livre') + '</p></div></div>' +
-      listaHtml + revsHtml +
+      '<p class="sub">' + diaSemana + (blocos.length || revs.length || sims.length ? ' · ' + blocos.length + ' blocos · ' + revs.length + ' revisões' + (sims.length ? ' · ' + sims.length + ' simulados' : '') + ' · ' + D.formatarMin(totalMin) : ' · dia livre') + '</p></div></div>' +
+      listaHtml + revsHtml + simsHtml +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="dd-semana">Abrir semana</button>' +
       '<button type="button" class="botao" id="dd-add">+ Adicionar bloco</button></div>'
     );
     m.querySelectorAll('[data-dia-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { fecharModal(); abrirBlocoAgenda(el.getAttribute('data-dia-bloco')); });
+    });
+    m.querySelectorAll('[data-dia-sim]').forEach(function (el) {
+      el.addEventListener('click', function () { fecharModal(); location.hash = '#simulados'; });
     });
     m.querySelectorAll('[data-mover-rev]').forEach(function (el) {
       el.addEventListener('click', function () { fecharModal(); abrirMoverRevisao(el.getAttribute('data-mover-rev')); });
@@ -8221,6 +8742,9 @@
 
   function ligarPlanejamento(raiz) {
     setTimeout(talvezAlertarCobertura, 0);
+    setTimeout(talvezAvisarProvaPassada, 0);
+    const btnEnf = raiz.querySelector('#enf-ajustar');
+    if (btnEnf) btnEnf.addEventListener('click', abrirAjusteEnfase);
     // alternar método (cronograma ↔ ciclo)
     raiz.querySelectorAll('[data-modo-plan]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -8716,7 +9240,8 @@
     Object.keys(porDisc).forEach(function (id) {
       const d = D.disciplinaPorId(state, id);
       if (!d) return;
-      const w = (d.peso || 1) * multDificuldade(d) * (porDisc[id].teoria ? 1.6 : 0.6);
+      const w = (d.peso || 1) * multDificuldade(d) * (porDisc[id].teoria ? 1.6 : 0.6) *
+        D.fatorDisciplinaCombinada(state.plano, d, hoje);
       somaW += w;
       itens.push({ disciplina: d, w, teoria: porDisc[id].teoria, blocos: porDisc[id].blocos });
     });
@@ -9557,7 +10082,7 @@
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
     const tela = telas[rota];
-    if (rota !== 'timer') { pintarTimerAtual = null; timerBlocoPendente = null; timerLimitePendente = null; }
+    if (rota !== 'timer') { pintarTimerAtual = null; timerBlocoPendente = null; timerLimitePendente = null; timerAutoIniciar = false; }
     // À prova de falhas: um erro numa tela não pode mais congelar a navegação
     // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
     try {
@@ -9961,7 +10486,10 @@
   if (estadoInicialTimer && estadoInicialTimer.limiteAtingido) avisarLimiteTimer(estadoInicialTimer);
 
   // Cura planos antigos com a parede de revisões empilhadas (ponto de partida).
-  if (migrarRevisoesEmPilha() > 0) salvar();
+  // SEM marcar como alterado: carimbar atualizadoEm aqui faria uma cópia local
+  // ANTIGA (aparelho parado há semanas) parecer "mais nova" que a nuvem e vencer
+  // a reconciliação — foi assim que um plano velho engoliu o plano atual.
+  if (migrarRevisoesEmPilha() > 0) window.Store.salvar(state, { marcarAlterado: false });
 
   render();
 

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora — Técnico Petrobras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --petro-900:#06231f;--petro-800:#0a3330;--petro-700:#0e4842;--petro-600:#13635a;
+    --line:#1c5a52;--ink:#eaf3f0;--ink-dim:#9fc2ba;--ink-faint:#6f968d;
+    --amber:#f2a93b;--amber-soft:#f7c46e;--green:#3fcf8e;--red:#ff7a6c;
+    --jr:#3fcf8e;--pleno:#54b8e8;--senior:#b18cf0;--master:#f2a93b;
+    --panel:#0c3a35;--panel-2:#0a302c;--radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #14524a 0%, transparent 55%),
+      radial-gradient(900px 500px at -10% 110%, #0e4842 0%, transparent 50%),
+      var(--petro-900);
+    color:var(--ink);min-height:100vh;line-height:1.5;
+    padding:clamp(16px,4vw,48px) clamp(12px,4vw,32px);
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  header{margin-bottom:30px}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--amber)}
+  h1{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(28px,5.5vw,46px);
+    line-height:1.02;letter-spacing:-.02em}
+  h1 .accent{color:var(--amber)}
+  .sub{color:var(--ink-dim);max-width:62ch;margin-top:14px;font-size:15px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:20px;margin-top:28px}
+  @media(min-width:880px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}}
+  .card{background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);
+    border:1px solid var(--line);border-radius:var(--radius);padding:clamp(18px,3vw,26px)}
+  .card-title{font-family:'Sora',sans-serif;font-weight:600;font-size:13px;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--ink-dim);margin-bottom:20px;display:flex;align-items:center;gap:9px}
+  .card-title .dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}
+
+  .regimes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:24px}
+  .regime{cursor:pointer;text-align:center;padding:13px 6px;border-radius:11px;
+    border:1px solid var(--line);background:var(--panel-2);transition:.18s}
+  .regime:hover{border-color:var(--petro-600)}
+  .regime.active{border-color:var(--amber);background:rgba(242,169,59,.1)}
+  .regime .r-name{font-family:'Sora',sans-serif;font-weight:600;font-size:14px}
+  .regime .r-tag{font-size:11px;color:var(--ink-faint);margin-top:3px}
+  .regime.active .r-tag{color:var(--amber-soft)}
+
+  .field{margin-bottom:18px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  label{display:block;font-size:13px;color:var(--ink-dim);margin-bottom:7px;font-weight:500}
+  label .hint{color:var(--ink-faint);font-weight:400}
+  .input-money{position:relative}
+  .input-money::before{content:"R$";position:absolute;left:13px;top:50%;transform:translateY(-50%);
+    color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;font-size:13px}
+  input[type=number],select{width:100%;background:var(--petro-900);border:1px solid var(--line);
+    color:var(--ink);border-radius:10px;padding:12px 13px;font-size:15px;
+    font-family:'IBM Plex Mono',monospace;transition:.15s}
+  .input-money input{padding-left:38px}
+  input[type=number]:focus,select:focus{outline:none;border-color:var(--amber);background:#04201c}
+  select{font-family:'Inter',sans-serif;appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239fc2ba' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:34px}
+  .slider-head{display:flex;justify-content:space-between;align-items:baseline}
+  .slider-val{font-family:'IBM Plex Mono',monospace;color:var(--amber);font-weight:600;font-size:14px}
+  input[type=range]{width:100%;height:5px;-webkit-appearance:none;appearance:none;
+    background:var(--line);border-radius:3px;margin-top:12px;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    border-radius:50%;background:var(--amber);border:3px solid var(--petro-900);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
+    background:var(--amber);cursor:pointer;border:none}
+
+  .toggle{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 0;border-top:1px solid rgba(28,90,82,.5)}
+  .toggle:first-of-type{border-top:none}
+  .toggle-label{font-size:14px}
+  .toggle-label .meta{font-size:12px;color:var(--ink-faint);display:block;margin-top:2px}
+  .switch{position:relative;width:42px;height:24px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0}
+  .slider-sw{position:absolute;inset:0;background:var(--line);border-radius:24px;transition:.2s;cursor:pointer}
+  .slider-sw::before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;
+    background:var(--ink-dim);border-radius:50%;transition:.2s}
+  .switch input:checked+.slider-sw{background:var(--amber)}
+  .switch input:checked+.slider-sw::before{transform:translateX(18px);background:#04201c}
+
+  .hero-result{background:linear-gradient(135deg,var(--petro-700),var(--petro-600));
+    border:1px solid var(--amber);border-radius:var(--radius);padding:24px;margin-bottom:18px;
+    position:relative;overflow:hidden}
+  .hero-result::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;
+    background:radial-gradient(circle,rgba(242,169,59,.25),transparent 70%)}
+  .hero-label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber-soft);
+    font-family:'IBM Plex Mono',monospace}
+  .hero-value{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(34px,7vw,52px);
+    letter-spacing:-.02em;margin:6px 0 2px;line-height:1}
+  .hero-value .cents{color:var(--ink-dim);font-size:.55em;font-weight:600}
+  .hero-note{font-size:13px;color:var(--ink)}
+  .stat-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+  .stat{background:var(--petro-900);border:1px solid var(--line);border-radius:11px;padding:15px}
+  .stat .s-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);
+    font-family:'IBM Plex Mono',monospace}
+  .stat .s-value{font-family:'Sora',sans-serif;font-weight:700;font-size:21px;margin-top:5px}
+  .stat.green .s-value{color:var(--green)}
+  .stat.amber .s-value{color:var(--amber)}
+
+  .bd-title{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;margin:22px 0 10px}
+  .bd{font-family:'IBM Plex Mono',monospace;font-size:13.5px}
+  .bd-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(28,90,82,.4)}
+  .bd-row .bd-name{color:var(--ink-dim)}
+  .bd-row .bd-name .tiny{color:var(--ink-faint);font-size:11px;margin-left:6px}
+  .bd-row .bd-amt{font-weight:500}
+  .bd-row.add .bd-amt{color:var(--green)}
+  .bd-row.sub .bd-amt{color:var(--red)}
+  .bd-row.total{border-bottom:none;border-top:2px solid var(--line);margin-top:4px;padding-top:12px}
+  .bd-row.total .bd-name{color:var(--ink);font-family:'Sora';font-weight:600}
+  .bd-row.total .bd-amt{color:var(--amber);font-weight:700;font-size:16px}
+  .bd-group-label{font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;
+    margin-top:16px;margin-bottom:2px;font-family:'IBM Plex Mono',monospace}
+
+  .annual{background:var(--petro-900);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;margin-top:20px}
+  .annual-big{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .annual-big .v{font-family:'Sora';font-weight:800;font-size:clamp(26px,5vw,36px);color:var(--green)}
+  .annual-big .l{font-size:13px;color:var(--ink-dim)}
+  .annual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;
+    font-family:'IBM Plex Mono',monospace;font-size:13px}
+  .annual-grid .ag{display:flex;justify-content:space-between;padding:9px 12px;
+    background:var(--panel-2);border-radius:8px;border:1px solid var(--line)}
+  .annual-grid .ag .agl{color:var(--ink-faint)}
+  .annual-grid .ag .agv{color:var(--ink)}
+
+  .note{font-size:12.5px;color:var(--ink-faint);margin-top:18px;line-height:1.6;
+    border-left:2px solid var(--amber);padding-left:12px}
+  .note strong{color:var(--ink-dim)}
+
+  /* Career section */
+  .career{margin-top:20px}
+  .career-head{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+  .pace{display:flex;gap:8px}
+  .pace button{font-family:'Inter';font-size:13px;color:var(--ink-dim);background:var(--panel-2);
+    border:1px solid var(--line);border-radius:9px;padding:9px 14px;cursor:pointer;transition:.15s}
+  .pace button:hover{border-color:var(--petro-600)}
+  .pace button.active{border-color:var(--amber);color:var(--amber);background:rgba(242,169,59,.1)}
+  .chart-wrap{position:relative;width:100%;overflow:hidden;border-radius:11px;
+    background:var(--petro-900);border:1px solid var(--line);padding:16px 8px 8px}
+  svg{display:block;width:100%;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12.5px}
+  .legend .lg{display:flex;align-items:center;gap:7px;color:var(--ink-dim)}
+  .legend .sw{width:12px;height:12px;border-radius:3px}
+  .milestones{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:20px}
+  .ms{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:15px;
+    border-top:3px solid var(--line)}
+  .ms .ms-lvl{font-family:'Sora';font-weight:700;font-size:14px}
+  .ms .ms-yr{font-size:11px;color:var(--ink-faint);font-family:'IBM Plex Mono';margin-bottom:8px}
+  .ms .ms-val{font-family:'Sora';font-weight:800;font-size:22px;margin-bottom:2px}
+  .ms .ms-sub{font-size:11px;color:var(--ink-faint);font-family:'IBM Plex Mono'}
+
+  /* Ícone de informação */
+  .info-i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+    border-radius:50%;border:1px solid var(--amber);color:var(--amber);font-size:11px;font-weight:700;
+    font-family:'Sora';cursor:pointer;margin-left:6px;transition:.15s;vertical-align:middle;line-height:1;
+    font-style:normal;flex-shrink:0}
+  .info-i:hover{background:var(--amber);color:var(--petro-900)}
+  /* Chip "tem home office?" */
+  .ho-chip{display:inline-flex;align-items:center;gap:8px;margin-bottom:24px;padding:9px 14px;
+    background:rgba(177,140,240,.1);border:1px solid var(--senior);border-radius:20px;cursor:pointer;
+    font-size:13px;color:var(--ink);transition:.15s;width:100%;justify-content:center}
+  .ho-chip:hover{background:rgba(177,140,240,.2)}
+  .ho-chip .ho-ic{font-size:15px}
+  .ho-chip .ho-arrow{color:var(--senior);font-weight:700}
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(3,18,16,.78);backdrop-filter:blur(4px);
+    display:none;align-items:center;justify-content:center;z-index:100;padding:20px;opacity:0;transition:opacity .2s}
+  .modal-overlay.open{display:flex;opacity:1}
+  .modal{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);
+    border-radius:16px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;padding:26px;
+    transform:translateY(12px) scale(.98);transition:transform .2s;position:relative}
+  .modal-overlay.open .modal{transform:translateY(0) scale(1)}
+  .modal-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;
+    border:1px solid var(--line);background:var(--petro-900);color:var(--ink-dim);font-size:17px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:.15s}
+  .modal-close:hover{border-color:var(--amber);color:var(--amber)}
+  .modal h2{font-family:'Sora';font-weight:700;font-size:20px;margin-bottom:4px;padding-right:36px;
+    display:flex;align-items:center;gap:10px}
+  .modal .m-sub{font-size:12.5px;color:var(--ink-faint);font-family:'IBM Plex Mono';margin-bottom:18px}
+  .modal h4{font-family:'Sora';font-weight:600;font-size:13px;color:var(--amber);text-transform:uppercase;
+    letter-spacing:.04em;margin:18px 0 8px}
+  .modal p{font-size:13.5px;color:var(--ink-dim);line-height:1.6;margin-bottom:10px}
+  .modal p strong{color:var(--ink)}
+  .modal .m-table{width:100%;font-size:13px;font-family:'IBM Plex Mono';margin:10px 0;border-collapse:collapse}
+  .modal .m-table td{padding:8px 0;border-bottom:1px solid rgba(28,90,82,.4);color:var(--ink-dim)}
+  .modal .m-table td:last-child{text-align:right;color:var(--ink);font-weight:500}
+  .modal .m-warn{font-size:12.5px;color:var(--amber-soft);background:rgba(242,169,59,.08);
+    border-radius:9px;padding:12px 14px;line-height:1.55;margin-top:14px}
+  .modal .m-warn strong{color:var(--amber-soft)}
+  .modal .m-timeline{display:flex;gap:5px;margin:14px 0 6px}
+  .modal .m-seg{flex:1;height:9px;border-radius:4px}
+  .modal .m-seg.full{background:var(--red)}
+  .modal .m-seg.hybrid{background:var(--green)}
+  .modal .m-tl-lbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-faint);
+    font-family:'IBM Plex Mono';margin-bottom:6px}
+
+  footer{margin-top:36px;font-size:12px;color:var(--ink-faint);text-align:center;line-height:1.7}
+  footer a{color:var(--amber-soft)}
+  details{margin-top:14px}
+  summary{cursor:pointer;font-size:13px;color:var(--amber-soft);font-weight:500;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--amber)}
+  details[open] summary::before{content:"▾ "}
+  details p{font-size:12.5px;color:var(--ink-faint);margin-top:10px;line-height:1.65}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ACT 2025–2027 · Cesgranrio · Nível Técnico</div>
+    <h1>Quanto ganha um <span class="accent">Técnico</span><br>da Petrobras?</h1>
+    <p class="sub">Calibrada por holerites reais por regime e pelo Acordo Coletivo. Ajuste regime, adicionais, anuênio e benefícios — e veja o líquido na conta, o pacote anual completo (PLR, PPP, Abono) e a projeção de carreira de Júnior a Master ao longo de 30 anos.</p>
+  </header>
+
+  <div class="grid">
+    <!-- ENTRADAS -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Configuração</div>
+      <div class="regimes" id="regimes">
+        <div class="regime active" data-r="adm"><div class="r-name">Administrativo</div><div class="r-tag">8h · terra</div></div>
+        <div class="regime" data-r="turno"><div class="r-name">Turno 4x6</div><div class="r-tag">revezamento</div></div>
+        <div class="regime" data-r="embarque"><div class="r-name">Embarque</div><div class="r-tag">14x21 · offshore</div></div>
+      </div>
+
+      <div class="ho-chip" data-modal="home"><span class="ho-ic">🏠</span> Tem home office? Veja como funciona <span class="ho-arrow">→</span></div>
+
+      <div class="field">
+        <label>Bruto fixo do regime <span class="hint">(SB + adicionais + complemento RMNR)</span></label>
+        <div class="input-money"><input type="number" id="bruto" value="6638.64" step="0.01"></div>
+      </div>
+
+      <div class="field">
+        <div class="slider-head"><label style="margin:0">Anuênio (ATS) — Anexo III</label>
+          <span class="slider-val" id="anosVal">0 anos · +0%</span></div>
+        <input type="range" id="anos" min="0" max="30" value="0" step="1">
+      </div>
+
+      <div class="field-row">
+        <div class="field"><label>Filhos <span class="hint">(auxílio-ensino)</span><i class="info-i" data-modal="edu">i</i></label>
+          <input type="number" id="filhos" value="0" min="0" max="8" step="1"></div>
+        <div class="field"><label>Dependentes IRPF</label>
+          <input type="number" id="deps" value="0" min="0" max="8" step="1"></div>
+      </div>
+
+      <div class="field">
+        <div class="slider-head"><label style="margin:0">Petros — previdência complementar</label>
+          <span class="slider-val" id="petrosVal">8%</span></div>
+        <input type="range" id="petros" min="0" max="11" value="8" step="0.5">
+      </div>
+
+      <div class="field">
+        <label>Desconto AMS <span class="hint">(plano de saúde, ~30% do custo)</span><i class="info-i" data-modal="ams">i</i></label>
+        <div class="input-money"><input type="number" id="ams" value="160" step="10"></div>
+      </div>
+
+      <div style="margin-top:6px">
+        <div class="toggle"><div class="toggle-label">PLR garantida (R$ 52.000/ano)
+          <span class="meta">Piso do ACT; paga há 5+ anos seguidos</span></div>
+          <label class="switch"><input type="checkbox" id="plr" checked><span class="slider-sw"></span></label></div>
+        <div class="toggle"><div class="toggle-label">PPP — Prêmio por Performance (1,5× RMNR)
+          <span class="meta">Variável por meritocracia; não garantido</span></div>
+          <label class="switch"><input type="checkbox" id="ppp"><span class="slider-sw"></span></label></div>
+        <div class="toggle"><div class="toggle-label">Abono Pecuniário (piso R$ 15.000)
+          <span class="meta">Verba pontual do acordo 2025/2026</span></div>
+          <label class="switch"><input type="checkbox" id="abono"><span class="slider-sw"></span></label></div>
+        <div class="toggle"><div class="toggle-label">13º + Gratificação de Férias (3/3)
+          <span class="meta">Diluídos na média e no anual</span></div>
+          <label class="switch"><input type="checkbox" id="extras" checked><span class="slider-sw"></span></label></div>
+      </div>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Resultado mensal</div>
+      <div class="hero-result">
+        <div class="hero-label">Líquido mensal na conta</div>
+        <div class="hero-value" id="liquido">R$ 0</div>
+        <div class="hero-note" id="liquidoNote">salário + benefícios isentos − descontos</div>
+      </div>
+      <div class="stat-pair">
+        <div class="stat amber"><div class="s-label">Bruto tributável</div><div class="s-value" id="brutoTrib">R$ 0</div></div>
+        <div class="stat green"><div class="s-label">Média mensal c/ anuais</div><div class="s-value" id="mediaMensal">R$ 0</div></div>
+      </div>
+      <div class="bd-title">Composição mensal</div>
+      <div class="bd" id="breakdown"></div>
+      <div class="annual">
+        <div class="annual-big"><span class="v" id="anualLiq">R$ 0</span><span class="l">líquido estimado no ano</span></div>
+        <div class="annual-grid" id="anualGrid"></div>
+      </div>
+      <div class="note" id="note"></div>
+    </div>
+  </div>
+
+  <!-- CARREIRA -->
+  <div class="card career">
+    <div class="career-head">
+      <div>
+        <div class="card-title" style="margin-bottom:6px"><span class="dot"></span>Projeção de carreira · 30 anos</div>
+        <p style="font-size:13px;color:var(--ink-dim);max-width:54ch">Líquido mensal estimado conforme você sobe de Júnior a Master e acumula anuênio. A promoção não é automática — escolha um ritmo.</p>
+      </div>
+      <div class="pace" id="pace">
+        <button data-p="otimista">Otimista</button>
+        <button data-p="realista" class="active">Realista</button>
+        <button data-p="conservador">Conservador</button>
+      </div>
+    </div>
+    <div class="chart-wrap"><svg id="chart" viewBox="0 0 720 320" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="legend">
+      <div class="lg"><span class="sw" style="background:var(--jr)"></span>Júnior</div>
+      <div class="lg"><span class="sw" style="background:var(--pleno)"></span>Pleno</div>
+      <div class="lg"><span class="sw" style="background:var(--senior)"></span>Sênior</div>
+      <div class="lg"><span class="sw" style="background:var(--master)"></span>Master</div>
+    </div>
+    <div class="milestones" id="milestones"></div>
+    <div class="note" id="careerNote"></div>
+  </div>
+
+  <details>
+    <summary>Como a calculadora funciona e de onde vêm os números</summary>
+    <p><strong>Presets por regime</strong> — de holerites por regime (Administrativo R$ 6.638,64; Turno 4x6 ~R$ 10.309; Embarque 14x21 ~R$ 12.195 de proventos), coerentes com o "inicial técnico R$ 6.638,64" da Estratégia. O bruto fixo já embute Salário Básico + adicionais de regime (periculosidade, troca de turno, confinamento/ARC) + Complemento de RMNR. <strong>Anuênio:</strong> tabela exata do Anexo III do ACT (1%, 2%, 3%, 4,6%, 6,2%... até 45% em 30 anos) — progressiva, não linear.</p>
+    <p><strong>Pacote anual:</strong> PLR R$ 52.000 (piso, tributação exclusiva); PPP = 1,5× a RMNR (≈ bruto fixo), variável por performance; Abono Pecuniário com piso R$ 15.000 / teto R$ 42.000 (verba pontual do acordo); 13º (1 bruto) e Gratificação de Férias 3/3 (1 bruto extra). <strong>Benefícios isentos de IR:</strong> VR/alimentação (R$ 2.083,85), vale-mercado (R$ 400), auxílio-ensino (R$ 1.750/filho). <strong>Descontos:</strong> INSS progressivo (teto ~R$ 951/mês), IRPF tabela 2025 com dedução de dependentes e do Petros, Petros (% escolhido, empresa iguala) e AMS.</p>
+    <p><strong>Projeção de carreira:</strong> aplica multiplicadores de salário-base por nível (Pleno ~1,38×, Sênior ~1,85×, Master ~2,3× sobre o Júnior) combinados com o anuênio anual. As faixas de ano por nível mudam conforme o ritmo escolhido. <strong>Tudo é estimativa</strong> — promoções dependem de mérito, avaliação e necessidade da empresa; valores variam por região (RMNR), ênfase e escala. Use como ordem de grandeza.</p>
+  </details>
+
+  <!-- MODAIS -->
+  <div class="modal-overlay" id="modal-ams">
+    <div class="modal">
+      <button class="modal-close" data-close>×</button>
+      <h2>🩺 Plano de saúde (AMS)</h2>
+      <div class="m-sub">custeio 70% Petrobras / 30% você</div>
+      <p>A AMS é um dos melhores planos de saúde do país, mas <strong>não é gratuita</strong>. A partir de março de 2026, os 30% que cabem a você passam a incidir sobre o <strong>custo total do plano</strong> (assistencial + administrativo).</p>
+      <h4>Mensalidade por composição familiar</h4>
+      <table class="m-table">
+        <tr><td>Titular solteiro</td><td>~R$ 224/mês</td></tr>
+        <tr><td>Titular + 1 dependente</td><td>~R$ 450/mês</td></tr>
+        <tr><td>Titular + 2 dependentes</td><td>~R$ 620/mês</td></tr>
+        <tr><td>Família (4 pessoas)</td><td>R$ 775+/mês</td></tr>
+      </table>
+      <p>A mensalidade real depende da sua <strong>faixa salarial</strong> e das <strong>idades</strong> do grupo familiar. O exemplo oficial da Petrobras mostra titular com renda de R$ 10 mil pagando R$ 223,65 de mensalidade individual.</p>
+      <div class="m-warn"><strong>Além da mensalidade:</strong> há coparticipação em consultas e exames (pequeno risco) e o total de descontos respeita o teto de 15% da renda (margem consignável). Ajuste o campo "Desconto AMS" na calculadora conforme sua realidade — o líquido se recalcula.</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-edu">
+    <div class="modal">
+      <button class="modal-close" data-close>×</button>
+      <h2>🎓 Auxílio-ensino e creche</h2>
+      <div class="m-sub">da creche ao ensino médio · por reembolso</div>
+      <p>A Petrobras reembolsa despesas educacionais dos filhos, por comprovação, limitado à tabela interna da Companhia (reajustada em 6,17% em janeiro de 2026).</p>
+      <h4>O que é coberto</h4>
+      <table class="m-table">
+        <tr><td>Creche (até 36 meses)</td><td>integral até 6 meses</td></tr>
+        <tr><td>Pré-escola (37 meses–5a11m)</td><td>90% das despesas</td></tr>
+        <tr><td>Ensino fundamental e médio</td><td>reembolso pela tabela ACT</td></tr>
+        <tr><td>Material/uniforme escola pública</td><td>reembolso semestral</td></tr>
+      </table>
+      <p>Na calculadora, cada filho soma ~R$ 1.750/mês de benefício isento de IR (estimativa média) ao seu pacote. A pré-escola, por exemplo, reembolsa <strong>90% das mensalidades</strong>.</p>
+      <div class="m-warn"><strong>Para o seu caso:</strong> você não tem filhos hoje, então isso é potencial futuro. Mas é um benefício que pesa numa decisão de carreira de longo prazo — vira dinheiro real se a vida mudar.</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-home">
+    <div class="modal">
+      <button class="modal-close" data-close>×</button>
+      <h2>🏠 Home office na Petrobras</h2>
+      <div class="m-sub">só no administrativo onshore</div>
+      <p>O regime híbrido existe, mas com regras que reduzem bastante a flexibilidade — e que mudaram para pior recentemente.</p>
+      <div class="m-timeline">
+        <div class="m-seg full"></div><div class="m-seg full"></div><div class="m-seg full"></div><div class="m-seg hybrid"></div>
+      </div>
+      <div class="m-tl-lbl"><span>admissão</span><span>18 meses 5x presencial</span><span>híbrido</span></div>
+      <table class="m-table">
+        <tr><td>1º ano e meio (carência)</td><td>5x presencial</td></tr>
+        <tr><td>Depois da carência</td><td>2x home / 3x sede</td></tr>
+        <tr><td>Segunda ou sexta</td><td>obrigatório presencial</td></tr>
+      </table>
+      <p>O home office foi <strong>reduzido de 3 para 2 dias em 2025</strong> (gerou greve e revolta sindical), e o gestor pode revogar a qualquer momento.</p>
+      <div class="m-warn"><strong>Comparação dura:</strong> no CPII você já tem 3x home office + 6h presenciais. A Petrobras administrativa te dá <strong>menos</strong> qualidade de vida — ela compensa pelo salário, não pelo tempo livre. E nos regimes de turno e embarque, home office não existe.</div>
+    </div>
+  </div>
+
+  <footer>
+    Fontes: ACT Petrobras 2025–2027 (RMNR, periculosidade, sobreaviso, confinamento, Anexo III) · holerites e slides por regime · Estratégia, Gran, Folha Dirigida, Academia/Aprova Concursos.<br>
+    Estimativa para planejamento — não é documento oficial da Petrobras.
+  </footer>
+</div>
+
+<script>
+const PRESETS = {
+  adm:      { bruto:6638.64,  petros:8, ams:160, hint:"Administrativo — 8h/dia, terra" },
+  turno:    { bruto:10308.85, petros:8, ams:220, hint:"Turno 4x6 — adicional noturno + troca de turno" },
+  embarque: { bruto:12195.15, petros:9, ams:250, hint:"Embarque 14x21 — sobreaviso + confinamento (ARC)" }
+};
+// Anexo III — % anuênio por anos completos (índice 0 = 0 anos)
+const ANUENIO = [0,1,2,3,4.6,6.2,8,9.3,10.6,12,13.3,14.6,16,17.3,18.6,20,21.6,23.2,25,26.6,28.2,30,31.6,33.2,35,36.6,38.2,40,41.6,43.2,45];
+// Multiplicadores de salário-base por nível de carreira (relativo a Júnior)
+const LEVEL_MULT = { jr:1.0, pleno:1.38, senior:1.85, master:2.30 };
+// Ritmos: faixas de anos por nível
+const PACE = {
+  otimista:    { jr:[1,3],  pleno:[4,9],   senior:[10,20], master:[21,30] },
+  realista:    { jr:[1,5],  pleno:[6,13],  senior:[14,25], master:[26,30] },
+  conservador: { jr:[1,7],  pleno:[8,16],  senior:[17,28], master:[29,30] }
+};
+const LEVEL_COLOR = { jr:'var(--jr)', pleno:'var(--pleno)', senior:'var(--senior)', master:'var(--master)' };
+const LEVEL_NAME = { jr:'Júnior', pleno:'Pleno', senior:'Sênior', master:'Master' };
+
+const VR=2083.85, VALE_MERCADO=400, AUX_ENSINO=1750;
+const $=id=>document.getElementById(id);
+const brl=v=>"R$ "+v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const brlInt=v=>"R$ "+Math.round(v).toLocaleString("pt-BR");
+let regime="adm", pace="realista";
+
+function inss(base){
+  const f=[[1518,.075],[2793.88,.09],[4190.83,.12],[8157.41,.14]];
+  let prev=0,t=0;
+  for(const [lim,al] of f){ if(base>lim){t+=(lim-prev)*al;prev=lim;} else {t+=(base-prev)*al;return t;} }
+  return t;
+}
+function irpf(base,deps){
+  const b=base-deps*189.59;
+  const f=[[2428.80,0,0],[2826.65,.075,182.16],[3751.05,.15,394.16],[4664.68,.225,675.49],[Infinity,.275,908.73]];
+  for(const [lim,al,ded] of f){ if(b<=lim) return Math.max(0,b*al-ded); }
+  return 0;
+}
+// líquido mensal (com isentos) dado um bruto fixo + parâmetros
+function liquidoDe(brutoFixo, opts){
+  const {petrosPct,ams,filhos,deps}=opts;
+  const dInss=inss(brutoFixo);
+  const dPetros=brutoFixo*petrosPct/100;
+  const baseIr=brutoFixo-dInss-dPetros;
+  const dIrpf=irpf(baseIr,deps);
+  const isentos=VR+VALE_MERCADO+filhos*AUX_ENSINO;
+  const liquidoFixo=brutoFixo-(dInss+dPetros+dIrpf+ams);
+  return {liquido:liquidoFixo+isentos, liquidoFixo, dInss, dPetros, dIrpf, isentos};
+}
+
+function calc(){
+  const bruto=parseFloat($("bruto").value)||0;
+  const anos=parseInt($("anos").value)||0;
+  const filhos=parseInt($("filhos").value)||0;
+  const deps=parseInt($("deps").value)||0;
+  const petrosPct=parseFloat($("petros").value)||0;
+  const ams=parseFloat($("ams").value)||0;
+
+  const atsPct=ANUENIO[Math.min(anos,30)];
+  const ats=bruto*atsPct/100;
+  const brutoTrib=bruto+ats;
+  const opts={petrosPct,ams,filhos,deps};
+  const r=liquidoDe(brutoTrib,opts);
+
+  $("anosVal").textContent=anos+" ano"+(anos!==1?"s":"")+" · +"+atsPct+"%";
+  $("petrosVal").textContent=petrosPct+"%";
+
+  const [int,cent]=brl(r.liquido).split(",");
+  $("liquido").innerHTML=int+'<span class="cents">,'+cent+'</span>';
+  $("brutoTrib").textContent=brlInt(brutoTrib);
+  $("liquidoNote").textContent=PRESETS[regime].hint;
+
+  // Anuais
+  const temExtras=$("extras").checked, temPLR=$("plr").checked, temPPP=$("ppp").checked, temAbono=$("abono").checked;
+  const decimo=temExtras?brutoTrib:0, ferias=temExtras?brutoTrib:0;
+  const plr=temPLR?52000:0;
+  const ppp=temPPP?bruto*1.5:0;
+  const abono=temAbono?Math.min(42000,Math.max(15000,bruto*1.6)):0;
+  const ratioLiq=r.liquidoFixo/brutoTrib;
+  const extrasLiq=(decimo+ferias)*ratioLiq;
+  const bonusLiq=(plr+ppp)*0.9+abono; // abono é indenizatório (sem IR)
+  const anualLiq=r.liquido*12+extrasLiq+bonusLiq;
+  $("mediaMensal").textContent=brlInt(anualLiq/12);
+  $("anualLiq").textContent=brlInt(anualLiq);
+
+  // Breakdown mensal
+  let h="";
+  h+=`<div class="bd-group-label">Proventos</div>`;
+  h+=row("Bruto fixo do regime","",bruto,"add");
+  if(ats>0)h+=row("Anuênio (ATS)","+"+atsPct+"%",ats,"add");
+  h+=row("VR / Alimentação","isento IR",VR,"add");
+  h+=row("Vale-mercado","isento IR",VALE_MERCADO,"add");
+  if(filhos>0)h+=row("Auxílio-ensino",filhos+(filhos>1?" filhos":" filho"),filhos*AUX_ENSINO,"add");
+  h+=`<div class="bd-group-label">Descontos</div>`;
+  h+=row("INSS","progressivo",-r.dInss,"sub");
+  h+=row("IRPF","tabela 2025",-r.dIrpf,"sub");
+  h+=row("Petros",petrosPct+"% (empresa iguala)",-r.dPetros,"sub");
+  h+=row("AMS","plano de saúde",-ams,"sub");
+  h+=`<div class="bd-row total"><span class="bd-name">Líquido mensal</span><span class="bd-amt">${brl(r.liquido)}</span></div>`;
+  $("breakdown").innerHTML=h;
+
+  // Annual grid
+  let ag="";
+  ag+=agItem("Líquido × 12",brlInt(r.liquido*12));
+  if(temExtras){ag+=agItem("13º salário",brlInt(decimo));ag+=agItem("Férias 3/3",brlInt(ferias));}
+  if(temPLR)ag+=agItem("PLR",brlInt(plr));
+  if(temPPP)ag+=agItem("PPP (1,5×)",brlInt(ppp));
+  if(temAbono)ag+=agItem("Abono Pecuniário",brlInt(abono));
+  $("anualGrid").innerHTML=ag;
+
+  const totalMensal=brutoTrib+r.isentos;
+  const descTotal=r.dInss+r.dPetros+r.dIrpf+ams;
+  $("note").innerHTML=`<strong>Bruto total mensal:</strong> ${brl(totalMensal)} · `+
+    `<strong>desconto efetivo:</strong> ${((descTotal/totalMensal)*100).toFixed(0)}% · `+
+    `Petros é poupança de aposentadoria (empresa deposita igual), não gasto perdido.`;
+
+  drawCareer(bruto,opts);
+}
+
+function levelAtYear(y){
+  const p=PACE[pace];
+  for(const lvl of ['jr','pleno','senior','master']){
+    if(y>=p[lvl][0]&&y<=p[lvl][1])return lvl;
+  }
+  return 'master';
+}
+
+function drawCareer(baseJrBruto,opts){
+  const pts=[]; // {year, liquido, level}
+  for(let y=1;y<=30;y++){
+    const lvl=levelAtYear(y);
+    const brutoFixo=baseJrBruto*LEVEL_MULT[lvl]*(1+ANUENIO[Math.min(y,30)]/100);
+    const liq=liquidoDe(brutoFixo,opts).liquido;
+    pts.push({year:y,liquido:liq,level:lvl,bruto:brutoFixo});
+  }
+  // chart geometry
+  const W=720,H=320,padL=64,padR=18,padT=18,padB=34;
+  const maxV=Math.max(...pts.map(p=>p.liquido))*1.08;
+  const minV=0;
+  const x=y=>padL+((y-1)/29)*(W-padL-padR);
+  const yv=v=>H-padB-((v-minV)/(maxV-minV))*(H-padT-padB);
+
+  let svg="";
+  // grid + y labels
+  for(let i=0;i<=4;i++){
+    const val=maxV*i/4, yy=yv(val);
+    svg+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#1c5a52" stroke-width="1" opacity=".5"/>`;
+    svg+=`<text x="${padL-8}" y="${yy+4}" fill="#6f968d" font-size="11" font-family="IBM Plex Mono" text-anchor="end">${(val/1000).toFixed(0)}k</text>`;
+  }
+  // x labels (every 5y)
+  for(let yr=5;yr<=30;yr+=5){
+    svg+=`<text x="${x(yr)}" y="${H-12}" fill="#6f968d" font-size="11" font-family="IBM Plex Mono" text-anchor="middle">${yr}a</text>`;
+  }
+  // colored segments per level
+  const levels=['jr','pleno','senior','master'];
+  levels.forEach(lvl=>{
+    const seg=pts.filter(p=>p.level===lvl);
+    if(seg.length===0)return;
+    // include the transition point from previous for continuity
+    const firstIdx=pts.indexOf(seg[0]);
+    const segPts = firstIdx>0 ? [pts[firstIdx-1],...seg] : seg;
+    let d=segPts.map((p,i)=>(i===0?"M":"L")+x(p.year)+" "+yv(p.liquido)).join(" ");
+    svg+=`<path d="${d}" fill="none" stroke="${LEVEL_COLOR[lvl]}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  });
+  // dots at milestones
+  const seen={};
+  pts.forEach(p=>{
+    if(!seen[p.level]){ seen[p.level]=true;
+      svg+=`<circle cx="${x(p.year)}" cy="${yv(p.liquido)}" r="4.5" fill="${LEVEL_COLOR[p.level]}" stroke="#06231f" stroke-width="2"/>`;
+    }
+  });
+  // final dot
+  const last=pts[pts.length-1];
+  svg+=`<circle cx="${x(last.year)}" cy="${yv(last.liquido)}" r="4.5" fill="${LEVEL_COLOR[last.level]}" stroke="#06231f" stroke-width="2"/>`;
+  $("chart").innerHTML=svg;
+
+  // milestones cards: first year of each level + final
+  let ms="";
+  const order=['jr','pleno','senior','master'];
+  order.forEach(lvl=>{
+    const first=pts.find(p=>p.level===lvl);
+    if(!first)return;
+    const p=PACE[pace][lvl];
+    ms+=`<div class="ms" style="border-top-color:${LEVEL_COLOR[lvl]}">
+      <div class="ms-lvl" style="color:${LEVEL_COLOR[lvl]}">${LEVEL_NAME[lvl]}</div>
+      <div class="ms-yr">anos ${p[0]}–${p[1]}</div>
+      <div class="ms-val">${brlInt(first.liquido)}</div>
+      <div class="ms-sub">líquido/mês no início</div>
+    </div>`;
+  });
+  $("milestones").innerHTML=ms;
+
+  // career note: acumulado
+  const acumulado=pts.reduce((s,p)=>s+p.liquido*12,0);
+  $("careerNote").innerHTML=`<strong>Acumulado em 30 anos</strong> (só líquido mensal × 12, sem PLR/PPP/13º): ${brlInt(acumulado)}. `+
+    `Com PLR, prêmios e benefícios anuais o total real é bem maior. Promoções dependem de mérito e avaliação — ritmo "${pace}" é só um cenário.`;
+}
+
+function row(name,tiny,amt,cls){
+  const t=tiny?`<span class="tiny">${tiny}</span>`:"";
+  return `<div class="bd-row ${cls}"><span class="bd-name">${name}${t}</span><span class="bd-amt">${amt<0?"−":""}${brl(Math.abs(amt))}</span></div>`;
+}
+function agItem(l,v){return `<div class="ag"><span class="agl">${l}</span><span class="agv">${v}</span></div>`;}
+
+$("regimes").addEventListener("click",e=>{
+  const el=e.target.closest(".regime");if(!el)return;
+  document.querySelectorAll(".regime").forEach(r=>r.classList.remove("active"));
+  el.classList.add("active");regime=el.dataset.r;
+  const p=PRESETS[regime];$("bruto").value=p.bruto;$("petros").value=p.petros;$("ams").value=p.ams;calc();
+});
+$("pace").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll(".pace button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");pace=b.dataset.p;calc();
+});
+["bruto","anos","filhos","deps","petros","ams","plr","ppp","abono","extras"].forEach(id=>$(id).addEventListener("input",calc));
+
+// Modais
+function openModal(id){ const m=$("modal-"+id); if(m) m.classList.add("open"); }
+function closeModal(m){ m.classList.remove("open"); }
+document.querySelectorAll("[data-modal]").forEach(el=>{
+  el.addEventListener("click",e=>{ e.stopPropagation(); openModal(el.dataset.modal); });
+});
+document.querySelectorAll(".modal-overlay").forEach(ov=>{
+  ov.addEventListener("click",e=>{ if(e.target===ov || e.target.hasAttribute("data-close")) closeModal(ov); });
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".modal-overlay.open").forEach(closeModal); });
+
+calc();
+</script>
+</body>
+</html>

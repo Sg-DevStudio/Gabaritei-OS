@@ -294,7 +294,11 @@
     if (!state.config.metaAcertoDisc || typeof state.config.metaAcertoDisc !== 'object' || Array.isArray(state.config.metaAcertoDisc)) {
       state.config.metaAcertoDisc = {};
     }
-    if (state.config.onboardingNomeVisto === undefined) state.config.onboardingNomeVisto = !!state.config.nomeUsuario;
+    if (!state.config.onboardingNomeVisto) {
+      const temAtividade = (Array.isArray(state.planos) && state.planos.length > 0) ||
+                           (Array.isArray(state.sessoes) && state.sessoes.length > 0);
+      state.config.onboardingNomeVisto = !!state.config.nomeUsuario || temAtividade;
+    }
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
@@ -432,12 +436,12 @@
   }
 
   // Listas de registros de estudo que devem SOMAR entre dispositivos (e não ser
-  // substituídas por completo). Restrito DE PROPÓSITO ao que é irrecuperável e
-  // praticamente append-only: sessões (horas/questões) e simulados. `planos`,
-  // `revisoes`, `flashcards` e `agenda` ficam de fora porque têm ciclo de vida
-  // (são apagados/regenerados) — uni-los por id ressuscitaria o que o usuário
-  // apagou. Esses seguem o estado mais recente (base).
-  const LISTAS_ESTUDO = ['sessoes', 'simulados'];
+  // substituídas por completo). Cada item tem id estável. A união é segura contra
+  // ressurreição porque exclusões explícitas deixam tombstone (config.removidos
+  // para registros; config.planosExcluidos para planos). A `agenda` fica de fora
+  // de propósito: é regenerável (ganha ids novos a cada recálculo) e uni-la
+  // duplicaria blocos no calendário — as horas vivem nas `sessoes`, não nos blocos.
+  const LISTAS_ESTUDO = ['sessoes', 'revisoes', 'simulados', 'flashcards'];
 
   // Quantos registros de estudo um estado carrega (para detectar se a mesclagem
   // realmente recuperou itens que faltavam num dos lados).
@@ -461,7 +465,7 @@
 
   // Mescla dois estados sem perder registros de estudo: `base` (o mais recente)
   // define plano/config/disciplinas e vence empates de mesmo id; `outro` contribui
-  // apenas os registros (sessões/simulados) cujo id não existe em `base`. Resolve a
+  // apenas os registros cujo id não existe em `base`. Resolve a
   // perda multi-dispositivo do last-write-wins (um aparelho sobrescrevia as sessões
   // que só existiam no outro), SEM ressuscitar o que foi apagado: tombstones
   // (config.removidos) de qualquer lado são respeitados e propagados, e a exclusão
@@ -488,6 +492,43 @@
         if (item && item.id && !ids[item.id] && !tomb[item.id]) { baseLista.push(item); ids[item.id] = true; }
       });
     });
+    // Planos que só existem no outro lado também são recuperados (cada plano
+    // carrega seu próprio conteúdo; sessões órfãs sem plano não contam horas).
+    if (Array.isArray(outro.planos) && Array.isArray(merged.planos)) {
+      const idsP = {};
+      merged.planos.forEach(function (p) { if (p && p.id) idsP[p.id] = true; });
+      outro.planos.forEach(function (p) {
+        if (p && p.id && !idsP[p.id]) { merged.planos.push(p); idsP[p.id] = true; }
+      });
+    }
+    // Lápides de exclusão: um plano excluído num aparelho não pode ressuscitar
+    // quando outro aparelho traz uma cópia local antiga (anterior à exclusão).
+    // A lápide vale para planos criados ANTES dela — recriar um plano gera id
+    // novo, então nunca é bloqueado. As lápides dos dois lados se somam.
+    const tumbas = Object.assign(
+      {},
+      base && base.config && base.config.planosExcluidos,
+      outro && outro.config && outro.config.planosExcluidos
+    );
+    if (Object.keys(tumbas).length > 0) {
+      if (!merged.config) merged.config = {};
+      merged.config.planosExcluidos = Object.assign({}, merged.config.planosExcluidos, tumbas);
+      if (Array.isArray(merged.planos)) {
+        merged.planos = merged.planos.filter(function (p) {
+          if (!p || !p.id || !tumbas[p.id]) return true;
+          return !!(p.criadoEm && p.criadoEm > tumbas[p.id]);
+        });
+      }
+    }
+    // Flags de onboarding são "sticky": uma vez vistas, não devem regredir para
+    // false por causa de uma base remota mais antiga que não tinha o campo.
+    if (outro.config) {
+      if (outro.config.onboardingNomeVisto) merged.config.onboardingNomeVisto = true;
+      if (outro.config.onboardingGuiaVisto) merged.config.onboardingGuiaVisto = true;
+      if (outro.config.nomeUsuario && !merged.config.nomeUsuario) {
+        merged.config.nomeUsuario = outro.config.nomeUsuario;
+      }
+    }
     return migrar(merged);
   }
 

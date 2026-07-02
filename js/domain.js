@@ -271,6 +271,7 @@
     const discs = (state.disciplinas || []).filter(function (d) { return d && d.id !== 'ORF'; });
     if (discs.length === 0) return [];
 
+    const hojeCiclo = opcoes.hoje || hojeISO();
     const minutosSemana = opcoes.minutosSemana > 0 ? opcoes.minutosSemana : 600;
     const minBloco = Math.max(10, Math.round(Number(opcoes.minBloco) || 30));
     const maxBloco = Math.max(minBloco, Math.round(Number(opcoes.maxBloco) || 75));
@@ -313,7 +314,9 @@
       // matéria fraca (desempenho < 70%) ganha até +50% de tempo
       const pct = desempenhoDisciplina(state, d);
       const reforco = (pct !== null && pct < 70) ? 1 + (70 - pct) / 140 : 1;
-      return { disc: d, peso: base * reforco };
+      // plano combinado: ênfase manual + foco que migra quando uma prova passa
+      const enf = fatorDisciplinaCombinada(state.plano, d, hojeCiclo);
+      return { disc: d, peso: base * reforco * enf };
     });
     const somaPesos = pesos.reduce(function (s, p) { return s + p.peso; }, 0) || 1;
 
@@ -605,6 +608,17 @@
         qCertas += s.qCertas || 0;
       }
     }
+    // Simulados da semana também são questões resolvidas: entram na contagem e,
+    // sobretudo, na margem de acertos (qCertas/qFeitas) — antes só as sessões
+    // de estudo contavam e os simulados ficavam de fora desse cálculo.
+    for (const sim of doPlanoAtivo(state, state.simulados || [])) {
+      if (sim.data >= inicio && sim.data < fim) {
+        for (const a of (sim.acertos || [])) {
+          qFeitas += a.total || 0;
+          qCertas += a.certas || 0;
+        }
+      }
+    }
     let horasAlvo = 0;
     if (state.plano && state.plano.ritmos) {
       const r = state.plano.ritmos[state.plano.ritmoAtivo || 'sustentavel'];
@@ -695,8 +709,25 @@
     }, 0);
   }
 
+  function fatorBagagemTopico(t) {
+    if (!t) return 1;
+    if (t.bagagem === 'domino') return 0.15;
+    if (t.bagagem === 'estudei') return 0.5;
+    return 1;
+  }
+
+  function totalHorasTeoriaAjustada(disciplinas) {
+    if (!disciplinas) return 0;
+    return disciplinas.reduce(function (n, d) {
+      if (d.id === 'ORF') return n;
+      return n + (d.topicos || []).reduce(function (m, t) {
+        return t.orfao ? m : m + ((t.horas_estimadas || 2) * fatorBagagemTopico(t));
+      }, 0);
+    }, 0);
+  }
+
   function esforcoTotalHoras(state) {
-    return Math.round(totalHorasTeoria(state.disciplinas) * FATOR_ESFORCO);
+    return Math.round(totalHorasTeoriaAjustada(state.disciplinas) * FATOR_ESFORCO);
   }
 
   function horasRealizadas(state, desdeISO, ateISO) {
@@ -1070,15 +1101,23 @@
 
     // Conteúdo compartilhado torna a conciliação eficiente: estudar uma vez
     // aproveita nos dois. Por isso a sobreposição puxa o nível para cima:
-    //  • ≥50%  → sobe um nível (ex.: moderada → alta quando a carga cabe);
+    //  • ≥45%  → sobe um nível;
     //  • ≥75%  → sobe outro nível (editais quase iguais chegam a "alta");
     //  • ≥30%  → ao menos tira do "não recomendado" (vira meio-termo: baixa).
-    if (overlapPct >= 50) nivel = subirNivel(nivel);
+    if (overlapPct >= 45) nivel = subirNivel(nivel);
     if (overlapPct >= 75 && ratio <= 1.2) nivel = subirNivel(nivel);
     if (overlapPct >= 30 && nivel === 'nao_recomendado') nivel = 'baixa';
+    // Muito conteúdo em comum (≥45%) garante PELO MENOS "moderada", mesmo com
+    // carga apertada: estudar a interseção uma única vez é justamente o que
+    // viabiliza conciliar dois concursos parecidos (a carga real ainda cai
+    // quando o aluno marca a bagagem que já tem na configuração do plano).
+    // Exceção: prova muito próxima (< 8 semanas) é limite físico real e não
+    // pode ser mascarado pela sobreposição — aí o piso não se aplica.
+    const provaCritica = provaDefinida && semanasDisponiveis < 8;
+    if (overlapPct >= 45 && !provaCritica && ordem.indexOf(nivel) < ordem.indexOf('moderada')) nivel = 'moderada';
 
     // Provas muito próximas com carga acima da capacidade derrubam um nível.
-    if (provaDefinida && semanasDisponiveis < 8 && ratio > 1.1) nivel = descerNivel(nivel);
+    if (provaCritica && ratio > 1.1) nivel = descerNivel(nivel);
 
     const detalhes = {
       disciplinasComuns: disciplinasComuns, nDisciplinasComuns: disciplinasComuns.length,
@@ -1442,6 +1481,51 @@
     return add;
   }
 
+  // Ênfase do plano combinado: dá mais tempo a um concurso ("principal") sem
+  // largar o outro. Devolve um MULTIPLICADOR do peso de uma disciplina:
+  //  • disciplina compartilhada ou exclusiva do PRINCIPAL  → 1 (peso cheio);
+  //  • disciplina EXCLUSIVA do secundário                  → (1-split)/split;
+  //  • após a prova do secundário                          → ~0 (foco volta 100%
+  //    ao principal automaticamente).
+  // enfase = { principal, secundario, split (fração do principal), provaSecundario (AAAA-MM) }.
+  function fatorEnfase(enfase, disc, hoje) {
+    if (!enfase || !enfase.secundario || !enfase.split) return 1;
+    const origem = (disc && disc.origem) || '';
+    if (origem !== enfase.secundario) return 1; // só afeta exclusivas do secundário
+    hoje = hoje || hojeISO();
+    if (enfase.provaSecundario && hoje.slice(0, 7) > enfase.provaSecundario) return 0.12;
+    const s = enfase.split;
+    if (s <= 0 || s >= 1) return 1;
+    return Math.round(((1 - s) / s) * 100) / 100;
+  }
+
+  // Fator de peso de uma disciplina num PLANO (combinado ou não), juntando duas
+  // regras:
+  //  1) Qualquer concurso cuja PROVA JÁ PASSOU tem seu conteúdo EXCLUSIVO
+  //     esmaecido — vale em qualquer modo (com ou sem ênfase). É o que faz o
+  //     foco migrar sozinho para o concurso que ainda vem.
+  //  2) Ênfase manual (priorizar um concurso) — quando configurada.
+  // Precisa de plano.combinado.rotulos = { a, b, provaA, provaB } (AAAA-MM).
+  function fatorDisciplinaCombinada(plano, disc, hoje) {
+    if (!plano) return 1;
+    hoje = hoje || hojeISO();
+    const comb = plano.combinado;
+    if (comb && comb.rotulos) {
+      const origem = (disc && disc.origem) || '';
+      const r = comb.rotulos;
+      const enc = comb.encerrados || [];
+      const exclusivaA = origem === r.a && origem !== r.b;
+      const exclusivaB = origem === r.b && origem !== r.a;
+      // concurso que o aluno ENCERROU manualmente ("seguir só com o outro") → fora
+      if ((exclusivaA && enc.indexOf(r.a) >= 0) || (exclusivaB && enc.indexOf(r.b) >= 0)) return 0.04;
+      const passou = function (prova) { return prova && hoje.slice(0, 7) > prova; };
+      // conteúdo exclusivo de um concurso cuja prova já aconteceu → quase fora
+      if (exclusivaA && passou(r.provaA)) return 0.12;
+      if (exclusivaB && passou(r.provaB)) return 0.12;
+    }
+    return fatorEnfase(plano.enfase, disc, hoje);
+  }
+
   // ---------- Plano combinado: une dois editais conciliáveis num só ----------
   // Dedup de disciplinas/tópicos por nome normalizado ("reduzir blocos redundantes").
   // O tópico em comum vira um só, com a maior incidência, a maior prioridade
@@ -1490,7 +1574,14 @@
       notaCorte: Math.max(edA.notaCorte || 70, edB.notaCorte || 70),
       nivel: 'dificil',
       janelaProva: inis.length ? { inicio: inis[0], fim: '' } : { inicio: '', fim: '' },
-      disciplinas: disciplinas
+      disciplinas: disciplinas,
+      // rótulos exatos de cada origem (o mesmo texto gravado em disc.origem) +
+      // janela de prova de cada um — base para configurar a ênfase no plano.
+      rotulos: {
+        a: rotuloA, b: rotuloB,
+        provaA: (edA.janelaProva && edA.janelaProva.inicio) || '',
+        provaB: (edB.janelaProva && edB.janelaProva.inicio) || ''
+      }
     };
   }
 
@@ -1743,8 +1834,8 @@
     alertaCobertura, adicionarTopicosAoCiclo,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
-    totalHorasTeoria, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, conquistas,
+    totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
+    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel,
