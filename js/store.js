@@ -389,7 +389,14 @@
     // não duplica o plano ativo no JSON salvo: os slots são recriados no carregar()
     const copia = Object.assign({}, state);
     delete copia.plano; delete copia.disciplinas; delete copia.cronogramas; delete copia.links;
-    localStorage.setItem(CHAVE, JSON.stringify(copia));
+    try {
+      localStorage.setItem(CHAVE, JSON.stringify(copia));
+    } catch (e) {
+      // Quota estourada (estado grande, ex.: fotos de edital em data URL): não
+      // derruba a ação do usuário — o estado segue em memória e vai para a
+      // nuvem pelo sync; só o cache local deste aparelho fica defasado.
+      console.error('Não consegui salvar no localStorage (quota?). O estado segue em memória/na nuvem.', e);
+    }
   }
 
   function ativarPlano(state, planoId) {
