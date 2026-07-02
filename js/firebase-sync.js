@@ -65,6 +65,11 @@ let refEstado = null;
 let cancelarSnapshot = null;
 let envioPendente = null;
 let enviando = false;
+// true depois que esta sessão conseguiu LER a nuvem ao menos uma vez. Antes
+// disso, nenhum envio direto (agendarEnvio/flush) pode subir: um aparelho com
+// cópia local antiga que gravasse antes de reconciliar sobrescreveria (sem
+// mescla) o plano atual dos outros aparelhos.
+let reconciliadoOk = false;
 let aplicandoRemoto = false;
 let statusAtual = {
   // 'autenticando' = ainda nao sabemos se ha sessao salva; evita piscar a tela de login
@@ -159,6 +164,7 @@ async function reconciliarComRemoto(silencioso) {
   try {
     const local = opcoes.obterEstado();
     const snap = await getDoc(refEstado);
+    reconciliadoOk = true; // leu a nuvem: envios diretos liberados nesta sessão
     if (!snap.exists()) {
       if (temDados(local) || (local.config && local.config.apagadoEm)) await gravarRemoto(local);
       else definirStatus('sincronizado', 'Conectado ao Firebase');
@@ -252,6 +258,7 @@ function iniciar(novasOpcoes) {
   definirStatus('autenticando', 'Verificando sua sessão…');
   onAuthStateChanged(auth, function (user) {
     usuario = user;
+    reconciliadoOk = false; // nova sessão/usuário: exige nova leitura da nuvem
     if (cancelarSnapshot) { cancelarSnapshot(); cancelarSnapshot = null; }
     if (!user) {
       refEstado = null;
@@ -323,7 +330,13 @@ function agendarEnvio(state) {
   if (!usuario || !refEstado) return;
   clearTimeout(envioPendente);
   envioPendente = null;
-  envioPendente = setTimeout(function () { envioPendente = null; gravarRemoto(state); }, 650);
+  envioPendente = setTimeout(function () {
+    envioPendente = null;
+    // Ainda não leu a nuvem nesta sessão (reconciliação falhou/pendente):
+    // reconcilia em vez de gravar direto — a mescla decide e envia o resultado.
+    if (!reconciliadoOk) { reconciliarComRemoto(true); return; }
+    gravarRemoto(state);
+  }, 650);
 }
 
 // Garante que o último envio agendado (debounce de 650ms) saia ANTES de a aba
@@ -333,6 +346,7 @@ function flushEnvio() {
   if (!envioPendente) return;
   clearTimeout(envioPendente);
   envioPendente = null;
+  if (!reconciliadoOk) return; // nunca sobrescrever a nuvem sem tê-la lido antes
   if (opcoes && opcoes.obterEstado) gravarRemoto(opcoes.obterEstado());
 }
 

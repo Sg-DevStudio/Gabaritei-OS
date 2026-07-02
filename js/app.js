@@ -3565,7 +3565,9 @@
       corpo = '<div class="dialogo-icone" aria-hidden="true">' + (info.combinado ? '🏁' : '🎯') + '</div>' +
         '<h3>' + titulo + '</h3>' +
         '<p class="sub dialogo-msg">O que você quer fazer?</p>';
-      acoes = '<button type="button" data-pp="arquivar">Arquivar o plano</button>' +
+      // "Excluir", não "arquivar": a ação remove o plano de fato (excluirPlano) —
+      // o rótulo antigo sugeria algo reversível e induzia à perda do plano.
+      acoes = '<button type="button" data-pp="arquivar">Excluir o plano (estatísticas ficam guardadas)</button>' +
         '<button type="button" class="botao-secundario" data-pp="data">Mudar a data da prova</button>' +
         '<button type="button" class="botao-quieto" data-pp="manter">Manter como está</button>';
     }
@@ -4482,6 +4484,29 @@
       '</div></div>';
 
     html += '</div>'; // .ajustes-sync-grid
+
+    // Recuperação de dados: registros de estudo de planos excluídos continuam
+    // salvos (excluirPlano preserva sessões/simulados), mas ficam invisíveis
+    // porque as telas filtram pelo plano ativo. Este card os traz de volta, e
+    // permite recriar um plano combinado a partir do edital-artefato guardado.
+    const orfaos = registrosOrfaos();
+    const editaisRec = editaisCombinadosSemPlano();
+    if (orfaos.total > 0 || editaisRec.length > 0) {
+      html += '<div class="card"><h3>🩹 Recuperação de dados</h3>';
+      if (editaisRec.length > 0) {
+        html += '<p class="sub">O edital de um plano combinado excluído ainda está guardado. Dá para recriar o plano a partir dele:</p>';
+        editaisRec.forEach(function (e) {
+          html += '<div class="modal-acoes" style="justify-content:flex-start;margin-bottom:0.4rem">' +
+            '<button class="botao-secundario botao-mini" data-rec-edital="' + esc(e.id) + '">Recriar plano «' + esc(e.titulo || 'combinado') + '»</button></div>';
+        });
+      }
+      if (orfaos.total > 0) {
+        html += '<p class="sub">Há <strong>' + orfaos.total + '</strong> registro(s) de estudo (sessões, revisões, simulados, blocos de agenda ou flashcards) de plano(s) excluído(s). Eles continuam salvos — só não aparecem. Você pode trazê-los para o plano ativo.</p>' +
+          '<button class="botao-mini" id="rec-orfaos"' + (state.planoAtivoId ? '' : ' disabled') + '>Trazer para o plano ativo</button>' +
+          (state.planoAtivoId ? '' : '<p class="sub">Crie ou recrie um plano primeiro para poder vinculá-los.</p>');
+      }
+      html += '</div>';
+    }
 
     html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
       '<p class="sub">Apaga seus planos, sessões, revisões, simulados e agenda para recomeçar do zero. O catálogo de editais e suas configurações são mantidos.</p>' +
@@ -6057,6 +6082,16 @@
 
     ligarEditaisEsquematizados(raiz);
 
+    raiz.querySelectorAll('[data-rec-edital]').forEach(function (b) {
+      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-rec-edital')); });
+    });
+    const recOrfaos = raiz.querySelector('#rec-orfaos');
+    if (recOrfaos) recOrfaos.addEventListener('click', function () {
+      const n = vincularOrfaosAoPlanoAtivo();
+      render();
+      toast(n > 0 ? n + ' registro(s) recuperado(s) para o plano ativo' : 'Nada para recuperar', n > 0 ? 'sucesso' : 'erro');
+    });
+
     raiz.querySelector('#zr-limpar').addEventListener('click', function () {
       confirmar({ titulo: 'Recomeçar do zero?', mensagem: 'Seus planos, sessões, revisões, simulados e agenda serão apagados para você começar de novo. O catálogo de editais e suas configurações são mantidos. Esta ação não tem volta.', confirmar: 'Apagar meus dados', perigo: true, icone: '⚠️' }).then(function (ok) {
         if (!ok) return;
@@ -7099,6 +7134,46 @@
     return item && (item.planoId === planoId || (!item.planoId && state.planoAtivoId === planoId));
   }
 
+  const LISTAS_COM_PLANO = ['sessoes', 'revisoes', 'simulados', 'agenda', 'flashcards'];
+
+  function planoExiste(planoId) {
+    return state.planos.some(function (p) { return p && p.id === planoId; });
+  }
+
+  // Registros de estudo que apontam para um plano que não existe mais (excluído
+  // aqui ou em outro aparelho). Eles seguem no estado, mas nenhuma tela os mostra.
+  function registrosOrfaos() {
+    let total = 0;
+    LISTAS_COM_PLANO.forEach(function (k) {
+      (state[k] || []).forEach(function (item) {
+        if (item && item.planoId && !planoExiste(item.planoId)) total++;
+      });
+    });
+    return { total };
+  }
+
+  // Editais-artefato de plano combinado (ocultos do catálogo) cujo plano foi
+  // excluído: servem de base para recriar o plano com os MESMOS ids de
+  // disciplinas/tópicos, o que faz sessões e simulados órfãos voltarem a casar.
+  function editaisCombinadosSemPlano() {
+    return (state.editais || []).filter(function (e) {
+      if (!e || !e.ocultoNoCatalogo) return false;
+      return !state.planos.some(function (p) { return p && p.plano && p.plano.origemEditalId === e.id; });
+    });
+  }
+
+  function vincularOrfaosAoPlanoAtivo() {
+    if (!state.planoAtivoId) return 0;
+    let n = 0;
+    LISTAS_COM_PLANO.forEach(function (k) {
+      (state[k] || []).forEach(function (item) {
+        if (item && item.planoId && !planoExiste(item.planoId)) { item.planoId = state.planoAtivoId; n++; }
+      });
+    });
+    if (n > 0) salvar();
+    return n;
+  }
+
   // Remove sessões, revisões, simulados e blocos de agenda vinculados a um plano.
   // Precisa rodar ENQUANTO o plano ainda é o ativo (pertenceAoPlano usa planoAtivoId
   // como fallback para itens antigos sem planoId), portanto chame antes de removê-lo.
@@ -7136,6 +7211,10 @@
     const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
     if (limparHistorico) limparDadosVinculados(planoId);
     window.Store.removerPlano(state, planoId);
+    // Lápide da exclusão: impede que um aparelho com cópia local antiga
+    // ressuscite este plano na próxima mescla (ver Store.mesclarEstados).
+    if (!state.config.planosExcluidos || typeof state.config.planosExcluidos !== 'object') state.config.planosExcluidos = {};
+    state.config.planosExcluidos[planoId] = new Date().toISOString();
     // Sem nenhum plano restante, marca a exclusão para que a nuvem não
     // ressuscite o plano apagado no próximo sync (ver firebase-sync.js).
     if (state.planos.length === 0) state.config.apagadoEm = new Date().toISOString();
@@ -10405,7 +10484,10 @@
   if (estadoInicialTimer && estadoInicialTimer.limiteAtingido) avisarLimiteTimer(estadoInicialTimer);
 
   // Cura planos antigos com a parede de revisões empilhadas (ponto de partida).
-  if (migrarRevisoesEmPilha() > 0) salvar();
+  // SEM marcar como alterado: carimbar atualizadoEm aqui faria uma cópia local
+  // ANTIGA (aparelho parado há semanas) parecer "mais nova" que a nuvem e vencer
+  // a reconciliação — foi assim que um plano velho engoliu o plano atual.
+  if (migrarRevisoesEmPilha() > 0) window.Store.salvar(state, { marcarAlterado: false });
 
   render();
 
