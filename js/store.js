@@ -287,6 +287,7 @@
     // Tombstones: ids de registros de estudo excluídos de propósito. O merge
     // multi-dispositivo usa isso para NÃO ressuscitar o que o usuário apagou.
     if (!Array.isArray(state.config.removidos)) state.config.removidos = [];
+    if (!Number.isFinite(parseInt(state.config.rev, 10))) state.config.rev = 0;
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
     // Metas de acerto definidas pelo aluno: % geral (null = usa a nota de corte do
     // plano) e overrides por disciplina ({ disciplinaId: pct }).
@@ -375,7 +376,16 @@
   function salvar(state, opcoes) {
     opcoes = opcoes || {};
     migrar(state);
-    if (opcoes.marcarAlterado !== false) state.config.atualizadoEm = agoraISO();
+    if (opcoes.marcarAlterado !== false) {
+      state.config.atualizadoEm = agoraISO();
+      // Contador de revisão monotônico: desempata a escolha da "base" da mescla
+      // sem depender do relógio do aparelho (relógio errado não engana o sync).
+      state.config.rev = (parseInt(state.config.rev, 10) || 0) + 1;
+      // Carimbo por plano: a mescla escolhe a versão mais editada de CADA plano,
+      // em vez de o estado inteiro mais novo levar a estrutura de todos.
+      const ativo = state.planos.find(function (p) { return p && p.id === state.planoAtivoId; });
+      if (ativo) ativo.atualizadoEm = state.config.atualizadoEm;
+    }
     // não duplica o plano ativo no JSON salvo: os slots são recriados no carregar()
     const copia = Object.assign({}, state);
     delete copia.plano; delete copia.disciplinas; delete copia.cronogramas; delete copia.links;
@@ -494,13 +504,38 @@
     });
     // Planos que só existem no outro lado também são recuperados (cada plano
     // carrega seu próprio conteúdo; sessões órfãs sem plano não contam horas).
+    // Para planos presentes nos DOIS lados, vence a versão editada por último
+    // (carimbo por plano, gravado no salvar) — assim editar a estrutura/ciclo
+    // num aparelho não é desfeito por um estado "mais novo" que não a tocou.
     if (Array.isArray(outro.planos) && Array.isArray(merged.planos)) {
       const idsP = {};
-      merged.planos.forEach(function (p) { if (p && p.id) idsP[p.id] = true; });
+      merged.planos.forEach(function (p, i) { if (p && p.id) idsP[p.id] = i; });
       outro.planos.forEach(function (p) {
-        if (p && p.id && !idsP[p.id]) { merged.planos.push(p); idsP[p.id] = true; }
+        if (!p || !p.id) return;
+        if (idsP[p.id] === undefined) { idsP[p.id] = merged.planos.length; merged.planos.push(p); return; }
+        const atual = merged.planos[idsP[p.id]];
+        if ((p.atualizadoEm || '') > ((atual && atual.atualizadoEm) || '')) merged.planos[idsP[p.id]] = p;
       });
     }
+    // Progresso dos blocos da agenda: sem união (regenerável), mas blocos com o
+    // MESMO id nos dois lados somam o andamento — bloco riscado/parcial num
+    // aparelho não volta a "pendente" no outro.
+    if (Array.isArray(merged.agenda) && Array.isArray(outro.agenda)) {
+      const porId = {};
+      outro.agenda.forEach(function (a) { if (a && a.id) porId[a.id] = a; });
+      merged.agenda.forEach(function (a) {
+        const o = a && a.id ? porId[a.id] : null;
+        if (!o) return;
+        if (o.feito) a.feito = true;
+        if (typeof o.feitoMin === 'number' && (typeof a.feitoMin !== 'number' || o.feitoMin > a.feitoMin)) a.feitoMin = o.feitoMin;
+        if (o.registroRapidoId && !a.registroRapidoId) a.registroRapidoId = o.registroRapidoId;
+      });
+    }
+    // rev monotônico: o resultado da mescla nunca "anda para trás" em relação
+    // aos dois lados (ver salvar/firebase-sync).
+    const revBase = parseInt(base && base.config && base.config.rev, 10) || 0;
+    const revOutro = parseInt(outro && outro.config && outro.config.rev, 10) || 0;
+    merged.config.rev = Math.max(revBase, revOutro);
     // Lápides de exclusão: um plano excluído num aparelho não pode ressuscitar
     // quando outro aparelho traz uma cópia local antiga (anterior à exclusão).
     // A lápide vale para planos criados ANTES dela — recriar um plano gera id

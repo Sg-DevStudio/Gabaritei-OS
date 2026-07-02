@@ -9,7 +9,9 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email == "casar70@gmail.com";
     }
 
-    match /users/{userId}/state/current {
+    // Estado principal (current) + backups diários (backup-0..backup-6),
+    // todos privados do dono.
+    match /users/{userId}/state/{docId} {
       allow read, write: if signedIn() && request.auth.uid == userId;
     }
 
