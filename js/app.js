@@ -7216,6 +7216,11 @@
             if (cfg.planosExcluidos) Object.keys(cfg.planosExcluidos).forEach(function (id) { if (idsBackup[id]) delete cfg.planosExcluidos[id]; });
             if (Array.isArray(cfg.removidos)) cfg.removidos = cfg.removidos.filter(function (id) { return !idsBackup[id]; });
           });
+          // A escolha explícita do usuário vence a regra "versão mais editada
+          // por plano": sem este carimbo, a versão ATUAL do plano (a que
+          // motivou o restore) ganharia da versão do backup na mescla.
+          const agoraRestore = new Date().toISOString();
+          (backup.planos || []).forEach(function (p) { if (p) p.atualizadoEm = agoraRestore; });
           state = window.Store.mesclarEstados(backup, state);
           window.Store.salvar(state);
           if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
