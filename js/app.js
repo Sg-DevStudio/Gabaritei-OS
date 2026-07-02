@@ -1135,6 +1135,7 @@
       return;
     }
     state.sessoes = state.sessoes.filter(function (s) { return s.id !== sessao.id; });
+    window.Store.marcarRemovido(state, sessao.id); // desfazer também não pode ser ressuscitado pelo sync
     if (kind === 'concluir-agenda') {
       const b = state.agenda.find(function (a) { return a.id === id; });
       if (b) {
@@ -4443,6 +4444,7 @@
         confirmar({ titulo: 'Excluir sessão?', mensagem: 'Os percentuais de desempenho serão recalculados.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
           if (!ok) return;
           state.sessoes = state.sessoes.filter(function (s) { return s.id !== id; });
+          window.Store.marcarRemovido(state, id); // não deixa o sync ressuscitar
           salvar(); render();
           toast('Sessão excluída');
         });
