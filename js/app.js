@@ -886,8 +886,10 @@
 
   function saudacaoCompleta(saudacao) {
     if (modoDemo) return saudacao;
+    // esc: o nome é texto livre (perfil/ajustes ou displayName do Google) e vai
+    // direto para innerHTML no <h1> — sem escapar seria XSS armazenado/sincronizado.
     const nome = nomeUsuario();
-    return nome ? saudacao + ', ' + nome : saudacao;
+    return nome ? saudacao + ', ' + esc(nome) : saudacao;
   }
 
   function cortesDoPlanoAtivo() {
