@@ -6544,10 +6544,15 @@
     if (regras.length === 0) return '';
     const linhas = regras.map(function (r) {
       const de = D.disciplinaPorId(state, r.de);
-      const para = D.disciplinaPorId(state, r.para);
       const escopo = r.desde ? 'a partir de ' + D.formatarDataBR(r.desde) : 'todas as semanas';
-      return '<div class="regra-rec"><span class="regra-rec-txt">Toda <strong>' + esc(nomeDiaSemanaIdx(r.diaSemana)) + '</strong>: ' +
-        esc(de ? de.nome : r.de) + ' → <strong>' + esc(para ? para.nome : r.para) + '</strong> <span class="sub">(' + escopo + ')</span></span>' +
+      let corpo;
+      if (r.paraDia != null) {
+        corpo = esc(de ? de.nome : r.de) + ': <strong>' + esc(nomeDiaSemanaIdx(r.diaSemana)) + ' → ' + esc(nomeDiaSemanaIdx(r.paraDia)) + '</strong>';
+      } else {
+        const para = D.disciplinaPorId(state, r.para);
+        corpo = 'Toda <strong>' + esc(nomeDiaSemanaIdx(r.diaSemana)) + '</strong>: ' + esc(de ? de.nome : r.de) + ' → <strong>' + esc(para ? para.nome : r.para) + '</strong>';
+      }
+      return '<div class="regra-rec"><span class="regra-rec-txt">' + corpo + ' <span class="sub">(' + escopo + ')</span></span>' +
         '<button class="botao-mini botao-quieto" data-regra-remover="' + esc(r.id) + '" aria-label="Desfazer">Desfazer</button></div>';
     }).join('');
     return '<div class="card regras-rec-card"><h3 style="margin:0 0 0.4rem">🔁 Estudos recorrentes ajustados</h3>' +
@@ -9177,10 +9182,48 @@
   function moverOuCriarBlocoNoDia(dado, dia, alvoId) {
     if (!dado || !dia || alvoId === dado.slice(dado.indexOf('|') + 1)) return; // soltar sobre si mesmo
     const ehNova = dado.indexOf('nova|') === 0;
+    // Mover um bloco RECORRENTE (gerado) para outro DIA DA SEMANA: oferece o
+    // alcance recorrente (só esta semana / próximas / todas), como na troca de
+    // disciplina. Reordenar dentro do mesmo dia ou mover bloco manual segue direto.
+    if (!ehNova) {
+      const blocoMov = state.agenda.find(function (x) { return x.id === dado.slice(dado.indexOf('|') + 1); });
+      const mudaDiaSemana = blocoMov && blocoMov.gerado && !blocoMov.feito &&
+        D.diaSemanaISO(blocoMov.data) !== D.diaSemanaISO(dia);
+      if (mudaDiaSemana) {
+        const origem = blocoMov.data, discMov = blocoMov.disciplinaId;
+        abrirAlcanceRecorrente({ diaNome: nomeDiaSemana(origem) }, function (alc) {
+          if (alc === 'semana') {
+            if (reordenarBlocoNoDia(dado, dia, alvoId)) { salvar(); render(); toast('Bloco movido só nesta semana', 'sucesso'); }
+          } else {
+            criarRegraMoverRecorrente(origem, discMov, D.diaSemanaISO(dia), alc);
+          }
+        });
+        return;
+      }
+    }
     if (reordenarBlocoNoDia(dado, dia, alvoId)) {
       salvar(); render();
       toast(ehNova ? 'Bloco de 1h adicionado — toque nele para ajustar' : 'Bloco reposicionado', 'sucesso');
     }
+  }
+
+  // Cria/atualiza a regra de MOVER um estudo recorrente para outro dia da semana.
+  function criarRegraMoverRecorrente(dataOrigem, discId, paraDia, alc) {
+    if (!state.config.regrasAgenda) state.config.regrasAgenda = [];
+    const dia = D.diaSemanaISO(dataOrigem);
+    if (dia === paraDia) return;
+    const desde = alc === 'todos' ? null : D.segundaDaSemana(dataOrigem);
+    state.config.regrasAgenda = state.config.regrasAgenda.filter(function (r) {
+      return !(r.planoId === state.planoAtivoId && r.diaSemana === dia && r.de === discId && (r.desde || null) === (desde || null) && r.paraDia != null);
+    });
+    state.config.regrasAgenda.push({
+      id: window.Store.novoId('rga'), planoId: state.planoAtivoId,
+      diaSemana: dia, de: discId, paraDia: paraDia, desde: desde
+    });
+    regenerarAgendaFuturas();
+    salvar(); fecharModal(); render();
+    const d = D.disciplinaPorId(state, discId);
+    toast((d ? d.nome : discId) + ' movido de ' + nomeDiaSemanaIdx(dia) + ' para ' + nomeDiaSemanaIdx(paraDia), 'sucesso');
   }
 
   // ---- Ciclo de estudos: eventos e edição da fila ----

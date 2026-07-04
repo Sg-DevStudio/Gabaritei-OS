@@ -248,15 +248,20 @@
   }
 
   function regraAgendaAtiva(regra, semanaInicioISO, planoId) {
-    if (!regra || !regra.de || !regra.para) return false;
+    if (!regra || !regra.de) return false;
+    if (!regra.para && regra.paraDia == null) return false; // precisa de destino (disc ou dia)
     if (planoId && regra.planoId && regra.planoId !== planoId) return false;
     if (regra.desde && semanaInicioISO < segundaDaSemana(regra.desde)) return false;
     return true;
   }
 
-  // Aplica as regras de troca sobre os blocos de UMA semana (mutando disciplinaId/
-  // topicoId). `semanaInicioISO` é a segunda-feira da semana; `planoId` filtra.
-  // Devolve quantos blocos foram trocados.
+  // Aplica as regras sobre os blocos de UMA semana. Dois tipos de regra:
+  //   • troca de disciplina — a regra tem `para` (disciplinaId destino);
+  //   • mover de dia — a regra tem `paraDia` (0..6, dia da semana destino).
+  // Cada bloco recebe NO MÁXIMO uma regra (a última cadastrada que casa vence),
+  // com base no dia da semana ORIGINAL do bloco — assim mover não encadeia numa
+  // troca do dia de destino. `semanaInicioISO` é a segunda; `planoId` filtra.
+  // Devolve quantos blocos foram afetados.
   function aplicarRegrasAgenda(blocos, regras, semanaInicioISO, planoId) {
     if (!Array.isArray(blocos) || !Array.isArray(regras) || regras.length === 0) return 0;
     const ativas = regras.filter(function (r) { return regraAgendaAtiva(r, semanaInicioISO, planoId); });
@@ -265,16 +270,18 @@
     blocos.forEach(function (b) {
       if (!b || (planoId && b.planoId && b.planoId !== planoId)) return;
       const dia = diaSemanaISO(b.data);
-      // a última regra cadastrada que casa (dia + disciplina de origem) vence
       for (let i = ativas.length - 1; i >= 0; i--) {
         const r = ativas[i];
-        if (r.diaSemana === dia && r.de === b.disciplinaId) {
+        if (r.diaSemana !== dia || r.de !== b.disciplinaId) continue;
+        if (r.para) {                       // troca de disciplina
           b.disciplinaId = r.para;
-          b.topicoId = null; // tópico era da disciplina antiga
-          b.regraId = r.id;
-          n++;
-          break;
-        }
+          b.topicoId = null;                // tópico era da disciplina antiga
+        } else if (r.paraDia != null) {     // mover para outro dia da semana
+          b.data = addDias(semanaInicioISO, r.paraDia);
+        } else { continue; }
+        b.regraId = r.id;
+        n++;
+        break;
       }
     });
     return n;
