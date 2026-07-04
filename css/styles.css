@@ -2455,6 +2455,12 @@ td.num, th.num { text-align: right; }
 .rotina-feedback.ok { color: var(--caneta-forte); }
 .rotina-feedback.alerta { color: var(--errado); }
 
+.regras-rec-card { border-left: 3px solid var(--caneta); }
+.regra-rec { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.35rem 0; border-top: 1px solid var(--linha); }
+.regra-rec:first-of-type { border-top: 0; }
+.regra-rec-txt { font-size: 0.86rem; }
+.regra-rec-txt .sub { font-size: 0.76rem; }
+
 .agenda-toolbar {
   display: flex; align-items: center; justify-content: space-between;
   gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.9rem;

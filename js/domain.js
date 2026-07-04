@@ -234,6 +234,52 @@
     );
   }
 
+  // ---------- Regras de estudo recorrente (troca de disciplina por dia) ----------
+  // O calendário é regenerado semana a semana pelo motor. Para o aluno poder
+  // "trocar um estudo recorrente" (ex.: na terça, estudar Português no lugar de
+  // Direito) sem que a regeneração desfaça a escolha, guardamos REGRAS que o motor
+  // aplica sobre os blocos gerados. Cada regra:
+  //   { id, planoId, diaSemana: 0..6 (0=segunda), de: disciplinaId, para: disciplinaId,
+  //     desde: 'AAAA-MM-DD' | null }  (desde null = vale para todas as semanas)
+  // A regra é PURA sobre os blocos: troca a disciplina do bloco (e limpa o tópico,
+  // que é de outra disciplina). Empilhável — a última regra que casa vence.
+  function diaSemanaISO(dataISO) {
+    return diffDias(segundaDaSemana(dataISO), dataISO); // 0..6, 0=segunda
+  }
+
+  function regraAgendaAtiva(regra, semanaInicioISO, planoId) {
+    if (!regra || !regra.de || !regra.para) return false;
+    if (planoId && regra.planoId && regra.planoId !== planoId) return false;
+    if (regra.desde && semanaInicioISO < segundaDaSemana(regra.desde)) return false;
+    return true;
+  }
+
+  // Aplica as regras de troca sobre os blocos de UMA semana (mutando disciplinaId/
+  // topicoId). `semanaInicioISO` é a segunda-feira da semana; `planoId` filtra.
+  // Devolve quantos blocos foram trocados.
+  function aplicarRegrasAgenda(blocos, regras, semanaInicioISO, planoId) {
+    if (!Array.isArray(blocos) || !Array.isArray(regras) || regras.length === 0) return 0;
+    const ativas = regras.filter(function (r) { return regraAgendaAtiva(r, semanaInicioISO, planoId); });
+    if (ativas.length === 0) return 0;
+    let n = 0;
+    blocos.forEach(function (b) {
+      if (!b || (planoId && b.planoId && b.planoId !== planoId)) return;
+      const dia = diaSemanaISO(b.data);
+      // a última regra cadastrada que casa (dia + disciplina de origem) vence
+      for (let i = ativas.length - 1; i >= 0; i--) {
+        const r = ativas[i];
+        if (r.diaSemana === dia && r.de === b.disciplinaId) {
+          b.disciplinaId = r.para;
+          b.topicoId = null; // tópico era da disciplina antiga
+          b.regraId = r.id;
+          n++;
+          break;
+        }
+      }
+    });
+    return n;
+  }
+
   // ---------- Ciclo de estudos (alternativa ao cronograma fixo) ----------
   // Fila ponderada de matérias com meta de tempo por bloco; roda no ritmo do
   // aluno e, ao fechar a volta, recomeça. Tudo puro/testável (sem DOM).
@@ -1832,6 +1878,7 @@
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     alertaCobertura, adicionarTopicosAoCiclo,
+    diaSemanaISO, aplicarRegrasAgenda, regraAgendaAtiva,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,

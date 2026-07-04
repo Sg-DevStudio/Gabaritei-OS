@@ -6494,16 +6494,145 @@
       iniciarTimerDoBloco(a, topId);
       render();
     });
+    const discOriginal = a.disciplinaId;
     m.querySelector('#form-agd-ed').addEventListener('submit', function (e) {
       e.preventDefault();
-      a.data = m.querySelector('#agde-data').value;
-      a.duracaoMin = Math.max(5, parseInt(m.querySelector('#agde-dur').value, 10) || 60);
-      a.disciplinaId = selDisc.value;
-      a.topicoId = selTop.value || null;
-      a.obs = m.querySelector('#agde-obs').value.trim();
+      const novaData = m.querySelector('#agde-data').value;
+      const novaDur = Math.max(5, parseInt(m.querySelector('#agde-dur').value, 10) || 60);
+      const novaObs = m.querySelector('#agde-obs').value.trim();
+      const novaDisc = selDisc.value;
+      const novoTop = selTop.value || null;
+      function aplicarCampos() {
+        a.data = novaData; a.duracaoMin = novaDur; a.obs = novaObs;
+        a.disciplinaId = novaDisc; a.topicoId = novoTop;
+      }
+      // Trocou a disciplina de um bloco RECORRENTE (gerado pelo motor): pergunta se
+      // vale só para esta semana ou para as próximas (regra que sobrevive à
+      // regeneração). Mover/duração/anotação continuam sendo só deste bloco.
+      if (novaDisc !== discOriginal && a.gerado && !a.feito) {
+        abrirAlcanceRecorrente({ diaNome: nomeDiaSemana(a.data) }, function (alc) {
+          if (alc === 'semana') {
+            aplicarCampos();
+            salvar(); fecharModal(); render();
+            toast('Bloco atualizado só nesta semana', 'sucesso');
+          } else {
+            criarRegraTrocaRecorrente(a, discOriginal, novaDisc, alc);
+          }
+        });
+        return;
+      }
+      aplicarCampos();
       salvar(); fecharModal(); render();
       toast('Bloco atualizado', 'sucesso');
     });
+  }
+
+  const DIAS_LONGOS = ['segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado', 'domingo'];
+  function nomeDiaSemana(dataISO) { return DIAS_LONGOS[D.diaSemanaISO(dataISO)] || 'esse dia'; }
+  function nomeDiaSemanaIdx(i) { return DIAS_LONGOS[i] || 'esse dia'; }
+
+  function regrasAtivasPlano() {
+    return ((state.config && state.config.regrasAgenda) || []).filter(function (r) {
+      return !r.planoId || r.planoId === state.planoAtivoId;
+    });
+  }
+
+  // Card das trocas recorrentes ativas, com opção de desfazer cada uma. Só aparece
+  // quando há regras — mantém a tela limpa para quem não usou o recurso.
+  function regrasRecorrentesHtml() {
+    const regras = regrasAtivasPlano();
+    if (regras.length === 0) return '';
+    const linhas = regras.map(function (r) {
+      const de = D.disciplinaPorId(state, r.de);
+      const para = D.disciplinaPorId(state, r.para);
+      const escopo = r.desde ? 'a partir de ' + D.formatarDataBR(r.desde) : 'todas as semanas';
+      return '<div class="regra-rec"><span class="regra-rec-txt">Toda <strong>' + esc(nomeDiaSemanaIdx(r.diaSemana)) + '</strong>: ' +
+        esc(de ? de.nome : r.de) + ' → <strong>' + esc(para ? para.nome : r.para) + '</strong> <span class="sub">(' + escopo + ')</span></span>' +
+        '<button class="botao-mini botao-quieto" data-regra-remover="' + esc(r.id) + '" aria-label="Desfazer">Desfazer</button></div>';
+    }).join('');
+    return '<div class="card regras-rec-card"><h3 style="margin:0 0 0.4rem">🔁 Estudos recorrentes ajustados</h3>' +
+      '<p class="sub" style="margin:0 0 0.5rem">Trocas que valem para os próximos dias iguais. Desfazer volta ao plano original.</p>' +
+      linhas + '</div>';
+  }
+
+  function removerRegraRecorrente(id) {
+    if (!state.config || !Array.isArray(state.config.regrasAgenda)) return;
+    state.config.regrasAgenda = state.config.regrasAgenda.filter(function (r) { return r.id !== id; });
+    regenerarAgendaFuturas();
+    salvar(); render();
+    toast('Troca desfeita — plano original restaurado', 'sucesso');
+  }
+
+  // Modal "Editar estudo recorrente": pergunta o alcance da troca (esta semana /
+  // esta e as próximas / todas). onEscolha recebe 'semana' | 'futuras' | 'todos'.
+  function abrirAlcanceRecorrente(info, onEscolha) {
+    const op = function (val, titulo, sub, marcado) {
+      return '<label class="enf-op"><input type="radio" name="rec-alc" value="' + val + '"' + (marcado ? ' checked' : '') + '>' +
+        '<span class="enf-op-txt"><strong>' + titulo + '</strong><span class="sub">' + sub + '</span></span></label>';
+    };
+    const m = abrirModal(
+      '<h3>Editar estudo recorrente</h3>' +
+      '<p class="sub">Este estudo se repete toda <strong>' + esc(info.diaNome) + '</strong>. O que você quer alterar?</p>' +
+      '<div class="enf-opcoes">' +
+      op('semana', 'Apenas este estudo', 'Só o bloco desta ' + esc(info.diaNome) + ' desta semana.', true) +
+      op('futuras', 'Este e os próximos', 'Desta ' + esc(info.diaNome) + ' em diante.') +
+      op('todos', 'Todos os estudos', 'Todas as ' + esc(info.diaNome) + 's do plano (inclui as já passadas na visão).') +
+      '</div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="rec-cancelar">Cancelar</button>' +
+      '<button type="button" id="rec-ok">Aplicar</button></div>'
+    );
+    m.querySelector('#rec-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#rec-ok').addEventListener('click', function () {
+      const sel = m.querySelector('input[name="rec-alc"]:checked');
+      onEscolha(sel ? sel.value : 'semana');
+    });
+  }
+
+  // Regenera a agenda da semana atual em diante (preserva o passado). As regras de
+  // estudo recorrente são reaplicadas dentro de gerarBlocosSemanaAgenda.
+  function regenerarAgendaFuturas() {
+    const cron = D.cronogramaAtivo(state);
+    if (!cron || cron.length === 0) return 0;
+    const inicioAtual = D.segundaDaSemana(D.hojeISO());
+    let n = 0;
+    cron.forEach(function (sem) {
+      if (sem.inicio >= inicioAtual) { if (gerarBlocosSemanaAgenda(sem.inicio)) n++; }
+    });
+    return n;
+  }
+
+  // Aviso de cobertura: a disciplina trocada ainda tem tópicos pendentes mas ficou
+  // sem nenhum bloco futuro? Então o aluno precisa saber (rebalanceamento não deu
+  // conta sozinho) para não deixar conteúdo sem estudar até a prova.
+  function avisoCoberturaDisciplina(discId) {
+    const d = D.disciplinaPorId(state, discId);
+    if (!d) return '';
+    const pend = (d.topicos || []).some(function (t) { return !t.orfao && t.status !== 'dominado' && t.status !== 'teoria_concluida'; });
+    if (!pend) return '';
+    const hoje = D.hojeISO();
+    const temFuturo = doAtivo(state.agenda).some(function (x) { return x.disciplinaId === discId && x.data >= hoje; });
+    return temFuturo ? '' : d.nome + ' ficou sem tempo no calendário e ainda tem tópicos pendentes';
+  }
+
+  // Cria/atualiza a regra de troca recorrente e regenera as semanas afetadas.
+  function criarRegraTrocaRecorrente(bloco, discDe, discPara, alc) {
+    if (!state.config.regrasAgenda) state.config.regrasAgenda = [];
+    const dia = D.diaSemanaISO(bloco.data);
+    const desde = alc === 'todos' ? null : D.segundaDaSemana(bloco.data);
+    // não empilha regra idêntica (mesmo dia/origem/alcance): substitui o destino
+    state.config.regrasAgenda = state.config.regrasAgenda.filter(function (r) {
+      return !(r.planoId === state.planoAtivoId && r.diaSemana === dia && r.de === discDe && (r.desde || null) === (desde || null));
+    });
+    state.config.regrasAgenda.push({
+      id: window.Store.novoId('rga'), planoId: state.planoAtivoId,
+      diaSemana: dia, de: discDe, para: discPara, desde: desde
+    });
+    regenerarAgendaFuturas();
+    salvar(); fecharModal(); render();
+    const dPara = D.disciplinaPorId(state, discPara);
+    const aviso = avisoCoberturaDisciplina(discDe);
+    toast('Estudo de ' + nomeDiaSemana(bloco.data) + ' agora é ' + (dPara ? dPara.nome : discPara) +
+      (aviso ? ' · ⚠️ ' + aviso : ''), aviso ? 'erro' : 'sucesso');
   }
 
   function abrirNovaDisciplina() {
@@ -8514,6 +8643,7 @@
     const rotulo = agendaModo === 'semana'
       ? D.formatarDataBR(agendaRef).slice(0, 5) + ' – ' + D.formatarDataBR(D.addDias(agendaRef, 6)).slice(0, 5) + ' · ' + agendaRef.slice(0, 4)
       : D.formatarMesBR(mesRef);
+    html += regrasRecorrentesHtml();
     html += '<div class="agenda-toolbar">' +
       '<div class="agenda-nav">' +
       '<button class="botao-mini botao-quieto" id="pl-ant" aria-label="Anterior">‹</button>' +
@@ -8971,6 +9101,10 @@
       const aberto = paleta.classList.toggle('expandido');
       paletaVerMais.setAttribute('aria-expanded', aberto ? 'true' : 'false');
       paletaVerMais.textContent = aberto ? '−' : ('+' + paleta.querySelectorAll('.chip-disc-extra').length);
+    });
+
+    raiz.querySelectorAll('[data-regra-remover]').forEach(function (b) {
+      b.addEventListener('click', function () { removerRegraRecorrente(b.getAttribute('data-regra-remover')); });
     });
 
     // chips: arrastar para um dia ou tocar para agendar hoje
@@ -9549,6 +9683,16 @@
           slot.restante = 0;
         }
       });
+    }
+    // Regras de estudo recorrente: troca a disciplina dos blocos deste dia/semana
+    // conforme o aluno pediu ("trocar todos" ou "deste dia em diante"). Roda por
+    // último para valer sobre os blocos recém-gerados, sem o motor desfazer.
+    const regras = (state.config && state.config.regrasAgenda) || [];
+    if (regras.length > 0) {
+      const daSemana = state.agenda.filter(function (a) {
+        return a.gerado && a.data >= ini && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId);
+      });
+      D.aplicarRegrasAgenda(daSemana, regras, ini, state.planoAtivoId);
     }
     return { semana: dist.semana, inicio: ini, pendentes: pendentes, excedente: excedente };
   }
