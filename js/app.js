@@ -10703,31 +10703,40 @@
     else location.hash = destino;
   });
 
-  // ---- Menu lateral: recolher (desktop) / gaveta (celular) ----
+  // ---- Menu lateral: recolher com animação (desktop) / gaveta (celular) ----
+  // O ☰ da SIDEBAR esconde o menu (que desliza para fora) e a marca "migra" para
+  // o topbar; o ☰ do TOPBAR o traz de volta. No celular, o ☰ do topbar abre a
+  // gaveta e o da sidebar a fecha.
   const CHAVE_SIDEBAR_RECOLHIDA = 'estudos.sidebarRecolhida';
   const botaoMenu = document.getElementById('botao-menu');
+  const botaoMenuSb = document.getElementById('botao-menu-sb');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
   function ehLarguraMobile() { return window.matchMedia('(max-width: 760px)').matches; }
-  // Estado inicial: respeita a preferência de recolhido salva (só no desktop).
+  // Estado inicial: aplica a preferência salva SEM transição (classe sem-anim),
+  // senão a lateral "desliza" sozinha a cada abertura do app.
   if (localStorage.getItem(CHAVE_SIDEBAR_RECOLHIDA) === '1') {
+    document.body.classList.add('sem-anim');
     document.body.classList.add('sidebar-recolhida');
-    if (botaoMenu) botaoMenu.setAttribute('aria-expanded', 'false');
+    if (botaoMenu) botaoMenu.setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { document.body.classList.remove('sem-anim'); });
+    });
   }
   function fecharGaveta() {
     document.body.classList.remove('sidebar-aberta');
-    if (botaoMenu && ehLarguraMobile()) botaoMenu.setAttribute('aria-expanded', 'false');
   }
   function alternarMenu() {
     if (ehLarguraMobile()) {
-      const aberta = document.body.classList.toggle('sidebar-aberta');
-      if (botaoMenu) botaoMenu.setAttribute('aria-expanded', String(aberta));
+      document.body.classList.toggle('sidebar-aberta');
     } else {
       const recolhida = document.body.classList.toggle('sidebar-recolhida');
       localStorage.setItem(CHAVE_SIDEBAR_RECOLHIDA, recolhida ? '1' : '0');
-      if (botaoMenu) botaoMenu.setAttribute('aria-expanded', String(!recolhida));
+      // aria-expanded do ☰ do topbar = "há menu para mostrar?"
+      if (botaoMenu) botaoMenu.setAttribute('aria-expanded', String(recolhida));
     }
   }
   if (botaoMenu) botaoMenu.addEventListener('click', alternarMenu);
+  if (botaoMenuSb) botaoMenuSb.addEventListener('click', alternarMenu);
   if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', fecharGaveta);
   // Navegar pela gaveta a fecha; trocar para desktop também limpa o estado de gaveta.
   const sidebarEl = document.getElementById('sidebar');

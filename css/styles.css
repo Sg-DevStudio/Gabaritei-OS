@@ -270,19 +270,65 @@ html[data-tema="escuro"] #topbar {
 .topbar-botao.ativo { background: var(--sb-hover); border-color: var(--sb-linha); color: var(--sb-texto-forte); }
 .topbar-botao svg { width: 20px; height: 20px; }
 
-/* Hambúrguer: mostra/esconde o menu lateral. Fica à esquerda do topbar. */
+/* Hambúrguer: o do topbar reabre o menu recolhido; o da sidebar o esconde. */
 .topbar-menu svg { width: 22px; height: 22px; }
+.sidebar-menu { color: var(--sb-texto); flex-shrink: 0; width: 34px; height: 34px; min-height: 34px; margin-left: -0.35rem; }
+.sidebar-menu:hover { color: var(--sb-texto-forte); }
+
+/* Aplicação do estado salvo no carregamento: sem transição (evita a lateral
+   "deslizar" sozinha ao abrir o app já recolhido). */
+body.sem-anim #sidebar,
+body.sem-anim #topbar,
+body.sem-anim .topbar-esquerda { transition: none !important; }
+
+/* Marca no topbar (☰ + bolha + nome): entra quando a sidebar recolhe, como se a
+   marca "migrasse" da lateral para o menu superior. */
+.topbar-esquerda { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+.topbar-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--tinta);
+  white-space: nowrap;
+}
 
 /* Fundo do menu em gaveta (só aparece no celular com o menu aberto) */
 #sidebar-backdrop { display: none; }
 @keyframes sidebar-gaveta { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-/* Menu recolhido (desktop): esconde a sidebar; topbar e conteúdo ocupam tudo */
-body.sidebar-recolhida #sidebar { display: none; }
+/* Menu recolhido (desktop): a sidebar DESLIZA para fora (margin negativa, sem
+   display:none — a transição fica visível) e o topbar/conteúdo se expandem no
+   mesmo ritmo. A marca então aparece no topbar. */
 body.sidebar-recolhida #topbar { left: 0; }
 @media (min-width: 761px) {
+  #sidebar {
+    transition: margin-left 0.28s ease, opacity 0.28s ease;
+  }
+  #topbar { transition: left 0.28s ease; }
+  body.sidebar-recolhida #sidebar {
+    margin-left: calc(-1 * var(--sidebar-larg) - 24px);
+    opacity: 0;
+    box-shadow: none;
+    pointer-events: none;
+  }
   body.sidebar-recolhida #topbar { left: 12px; }
+  /* Com a sidebar visível, a marca do topbar fica oculta (ela vive na lateral);
+     ao recolher, entra em cena deslizando — continuação do movimento do menu. */
+  .topbar-esquerda {
+    opacity: 0;
+    transform: translateX(-14px);
+    pointer-events: none;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+  }
+  body.sidebar-recolhida .topbar-esquerda {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    transition-delay: 0.14s; /* entra quando a lateral já está quase fora */
+  }
 }
 
 /* Desktop: app em "painéis flutuantes" com cantos arredondados (sem pontas) */
