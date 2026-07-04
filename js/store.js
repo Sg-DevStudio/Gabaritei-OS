@@ -303,6 +303,9 @@
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     if (!state.config.tema) state.config.tema = 'claro';
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
+    // Regras de estudo recorrente (troca de disciplina por dia da semana), que o
+    // motor de geração da agenda respeita (ver domain.aplicarRegrasAgenda).
+    if (!Array.isArray(state.config.regrasAgenda)) state.config.regrasAgenda = [];
     if (!state.config.googleCalendar) state.config.googleCalendar = {};
     if (state.config.googleCalendar.clientId === undefined) state.config.googleCalendar.clientId = '';
     if (!state.config.googleCalendar.calendarId) state.config.googleCalendar.calendarId = 'primary';

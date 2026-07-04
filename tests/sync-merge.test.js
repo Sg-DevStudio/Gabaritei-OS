@@ -94,3 +94,62 @@ test('risco 4: progresso de bloco da agenda com mesmo id soma entre aparelhos', 
   // agenda continua sem união: bloco que só existe no outro lado não entra
   assert.equal(m.agenda.some(function (x) { return x.id === 'blc-3'; }), false);
 });
+
+// ---- Regras de estudo recorrente (troca de disciplina por dia da semana) ----
+const { loadDomain } = require('./helpers/load-domain');
+const Dom = loadDomain();
+
+function bloco(id, data, disc) { return { id: id, planoId: 'p1', data: data, disciplinaId: disc, topicoId: disc + '-01' }; }
+
+test('aplicarRegrasAgenda troca a disciplina no dia da semana da regra', () => {
+  // 2026-07-07 é uma terça-feira (diaSemana 1)
+  const blocos = [bloco('b1', '2026-07-07', 'DADM'), bloco('b2', '2026-07-08', 'DADM')];
+  const regras = [{ id: 'r1', planoId: 'p1', diaSemana: 1, de: 'DADM', para: 'LP', desde: null }];
+  const n = Dom.aplicarRegrasAgenda(blocos, regras, '2026-07-06', 'p1');
+  assert.equal(n, 1);
+  assert.equal(blocos[0].disciplinaId, 'LP'); // terça trocou
+  assert.equal(blocos[0].topicoId, null);      // tópico limpo
+  assert.equal(blocos[1].disciplinaId, 'DADM'); // quarta intacta
+});
+
+test('regra com desde no futuro não afeta semanas anteriores', () => {
+  const blocos = [bloco('b1', '2026-07-07', 'DADM')];
+  const regras = [{ id: 'r1', planoId: 'p1', diaSemana: 1, de: 'DADM', para: 'LP', desde: '2026-07-20' }];
+  const n = Dom.aplicarRegrasAgenda(blocos, regras, '2026-07-06', 'p1');
+  assert.equal(n, 0);
+  assert.equal(blocos[0].disciplinaId, 'DADM');
+});
+
+test('regra de outro plano não afeta o plano atual', () => {
+  const blocos = [bloco('b1', '2026-07-07', 'DADM')];
+  const regras = [{ id: 'r1', planoId: 'OUTRO', diaSemana: 1, de: 'DADM', para: 'LP', desde: null }];
+  assert.equal(Dom.aplicarRegrasAgenda(blocos, regras, '2026-07-06', 'p1'), 0);
+});
+
+test('diaSemanaISO: segunda=0 ... domingo=6', () => {
+  assert.equal(Dom.diaSemanaISO('2026-07-06'), 0); // segunda
+  assert.equal(Dom.diaSemanaISO('2026-07-07'), 1); // terça
+  assert.equal(Dom.diaSemanaISO('2026-07-12'), 6); // domingo
+});
+
+test('aplicarRegrasAgenda move o bloco para outro dia da semana (regra paraDia)', () => {
+  // 2026-07-07 terça (1) → mover para quarta (2) = 2026-07-08
+  const blocos = [bloco('b1', '2026-07-07', 'DADM')];
+  const regras = [{ id: 'r1', planoId: 'p1', diaSemana: 1, de: 'DADM', paraDia: 2, desde: null }];
+  const n = Dom.aplicarRegrasAgenda(blocos, regras, '2026-07-06', 'p1');
+  assert.equal(n, 1);
+  assert.equal(blocos[0].data, '2026-07-08');
+  assert.equal(blocos[0].disciplinaId, 'DADM'); // move não troca disciplina
+});
+
+test('regra de mover não encadeia numa troca do dia de destino', () => {
+  // move terça(1)→quarta(2) e troca na quarta(2): o bloco movido NÃO deve virar a troca
+  const blocos = [bloco('b1', '2026-07-07', 'DADM')];
+  const regras = [
+    { id: 'r1', planoId: 'p1', diaSemana: 1, de: 'DADM', paraDia: 2, desde: null },
+    { id: 'r2', planoId: 'p1', diaSemana: 2, de: 'DADM', para: 'LP', desde: null }
+  ];
+  Dom.aplicarRegrasAgenda(blocos, regras, '2026-07-06', 'p1');
+  assert.equal(blocos[0].data, '2026-07-08');
+  assert.equal(blocos[0].disciplinaId, 'DADM'); // continua DADM (não virou LP)
+});
