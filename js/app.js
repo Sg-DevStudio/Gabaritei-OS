@@ -6195,6 +6195,12 @@
     return D.formatarMin(bloco.duracaoMin || 0);
   }
 
+  // Fundo claro do chip mensal a partir da cor da disciplina (mistura com a
+  // superfície para o texto escuro ficar legível; no modo escuro, o CSS ajusta).
+  function corChipMes(cor) {
+    return 'color-mix(in srgb, ' + (cor || '#9A9DA3') + ' 22%, var(--vidro))';
+  }
+
   function blocoFeitoMin(b) { return Math.max(0, Math.round(b.feitoMin || 0)); }
   function blocoRestanteMin(b) { return Math.max(0, (b.duracaoMin || 0) - blocoFeitoMin(b)); }
   // Progresso parcial: o bloco tem tempo estudado mas ainda não fechou.
@@ -8557,20 +8563,28 @@
       }
       html += '</div>';
     } else {
-      // visão mensal estilo Google: bolinhas com a cor de cada disciplina do dia.
-      // Tocar num dia abre a tela de detalhes daquele dia.
+      // Visão mensal com RÓTULOS: cada disciplina do dia vira um chip com o nome
+      // (cor da disciplina), como um calendário de agenda. Tocar num dia abre os
+      // detalhes. Em telas estreitas a grade rola na horizontal (min-width por
+      // coluna) para os nomes continuarem legíveis.
+      const MAX_CHIPS_MES = 4;
       const primeiroDia = mesRef + '-01';
       const iniGrade = D.segundaDaSemana(primeiroDia);
-      html += '<div class="mes-grid mes-grid-pontos">' + DIAS_CURTOS.map(function (n) { return '<div class="mes-rotulo">' + n + '</div>'; }).join('');
+      html += '<div class="mes-scroll"><div class="mes-grid mes-grid-rotulos">' +
+        DIAS_CURTOS.map(function (n) { return '<div class="mes-rotulo">' + n + '</div>'; }).join('');
       let cursor = iniGrade;
       for (let c = 0; c < 42; c++) {
         const noMes = cursor.slice(0, 7) === mesRef;
         if (c >= 35 && !noMes) break;
-        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; });
-        // uma bolinha por disciplina presente no dia (cor da disciplina), na ordem de entrada
-        const discsDia = [];
+        const blocos = doAtivo(state.agenda).filter(function (a) { return a.data === cursor; }).sort(compararAgenda);
+        // agrupa por disciplina (um chip por disciplina, somando o tempo do dia)
+        const porDisc = [];
+        const idxDisc = {};
         blocos.forEach(function (b) {
-          if (discsDia.indexOf(b.disciplinaId) < 0) discsDia.push(b.disciplinaId);
+          if (idxDisc[b.disciplinaId] === undefined) { idxDisc[b.disciplinaId] = porDisc.length; porDisc.push({ id: b.disciplinaId, min: 0, feito: true }); }
+          const g = porDisc[idxDisc[b.disciplinaId]];
+          g.min += b.duracaoMin || 0;
+          if (!blocoAgendaConcluido(b)) g.feito = false;
         });
         const revs = revisoesDoDia(cursor);
         const sims = simuladosDoDia(cursor);
@@ -8579,24 +8593,29 @@
         const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
         const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
         const temConteudo = blocos.length > 0 || revs.length > 0 || sims.length > 0;
-        const pontos = discsDia.slice(0, 5).map(function (id) {
-          const d = D.disciplinaPorId(state, id);
-          return '<span class="mes-ponto" style="background:' + esc(d ? d.cor : '#9A9DA3') + '" title="' + esc(d ? d.nome : id) + '"></span>';
-        }).join('') + (discsDia.length > 5 ? '<span class="mes-ponto-mais">+' + (discsDia.length - 5) + '</span>' : '') +
-          (revs.length > 0 ? '<span class="mes-ponto-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '">🔁</span>' : '') +
-          (sims.length > 0 ? '<span class="mes-ponto-sim" title="' + sims.length + ' simulado(s)">📝</span>' : '');
-        html += '<div class="mes-celula mes-celula-pontos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
+
+        let chips = porDisc.slice(0, MAX_CHIPS_MES).map(function (g) {
+          const d = D.disciplinaPorId(state, g.id);
+          const cor = d ? d.cor : '#9A9DA3';
+          return '<span class="mes-evento' + (g.feito ? ' feito' : '') + '" style="--disc-cor:' + esc(cor) +
+            ';background:' + esc(corChipMes(cor)) + '" title="' + esc((d ? d.nome : g.id) + ' · ' + D.formatarMin(g.min)) + '">' +
+            '<span class="mes-evento-nome">' + esc(d ? d.nome : g.id) + '</span>' +
+            '<span class="mes-evento-hora">' + D.formatarMin(g.min) + '</span></span>';
+        }).join('');
+        if (porDisc.length > MAX_CHIPS_MES) chips += '<span class="mes-mais">+' + (porDisc.length - MAX_CHIPS_MES) + ' mais</span>';
+        if (revs.length > 0) chips += '<span class="mes-evento mes-evento-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '"><span class="mes-evento-nome">🔁 ' + revs.length + ' revisão' + (revs.length > 1 ? 'ões' : '') + '</span></span>';
+        if (sims.length > 0) chips += '<span class="mes-evento mes-evento-sim feito" title="' + sims.length + ' simulado(s)"><span class="mes-evento-nome">📝 Simulado</span></span>';
+
+        html += '<div class="mes-celula mes-celula-rotulos' + (noMes ? ' fora-mes' : '') + (cursor === hoje ? ' dia-hoje' : '') +
           (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
           D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' + (sims.length > 0 ? ', ' + sims.length + ' simulados' : '') : ' — sem blocos') + '">' +
-          '<span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
-          (temConteudo
-            ? '<div class="mes-pontos">' + pontos + '</div>' +
-              '<span class="mes-dia-total">' + D.formatarMin(totalMin) + '</span>'
-            : '') +
+          '<div class="mes-celula-cab"><span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
+          (totalMin > 0 ? '<span class="mes-dia-total">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
+          (temConteudo ? '<div class="mes-eventos">' + chips + '</div>' : '') +
           '</div>';
         cursor = D.addDias(cursor, 1);
       }
-      html += '</div><p style="font-size:0.78rem;color:var(--grafite);margin-top:0.5rem">Toque em um dia para ver os detalhes.</p>';
+      html += '</div></div><p style="font-size:0.78rem;color:var(--grafite);margin-top:0.5rem">Toque em um dia para ver os detalhes ou trocar os estudos.</p>';
     }
     return html;
   }
@@ -10496,6 +10515,38 @@
     if (location.hash === destino) render();
     else location.hash = destino;
   });
+
+  // ---- Menu lateral: recolher (desktop) / gaveta (celular) ----
+  const CHAVE_SIDEBAR_RECOLHIDA = 'estudos.sidebarRecolhida';
+  const botaoMenu = document.getElementById('botao-menu');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  function ehLarguraMobile() { return window.matchMedia('(max-width: 760px)').matches; }
+  // Estado inicial: respeita a preferência de recolhido salva (só no desktop).
+  if (localStorage.getItem(CHAVE_SIDEBAR_RECOLHIDA) === '1') {
+    document.body.classList.add('sidebar-recolhida');
+    if (botaoMenu) botaoMenu.setAttribute('aria-expanded', 'false');
+  }
+  function fecharGaveta() {
+    document.body.classList.remove('sidebar-aberta');
+    if (botaoMenu && ehLarguraMobile()) botaoMenu.setAttribute('aria-expanded', 'false');
+  }
+  function alternarMenu() {
+    if (ehLarguraMobile()) {
+      const aberta = document.body.classList.toggle('sidebar-aberta');
+      if (botaoMenu) botaoMenu.setAttribute('aria-expanded', String(aberta));
+    } else {
+      const recolhida = document.body.classList.toggle('sidebar-recolhida');
+      localStorage.setItem(CHAVE_SIDEBAR_RECOLHIDA, recolhida ? '1' : '0');
+      if (botaoMenu) botaoMenu.setAttribute('aria-expanded', String(!recolhida));
+    }
+  }
+  if (botaoMenu) botaoMenu.addEventListener('click', alternarMenu);
+  if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', fecharGaveta);
+  // Navegar pela gaveta a fecha; trocar para desktop também limpa o estado de gaveta.
+  const sidebarEl = document.getElementById('sidebar');
+  if (sidebarEl) sidebarEl.addEventListener('click', function (e) { if (e.target.closest('.nav-item')) fecharGaveta(); });
+  window.addEventListener('resize', function () { if (!ehLarguraMobile()) document.body.classList.remove('sidebar-aberta'); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharGaveta(); });
 
   const botaoTema = document.getElementById('botao-tema');
   if (botaoTema) botaoTema.addEventListener('click', alternarTema);

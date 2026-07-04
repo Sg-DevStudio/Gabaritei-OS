@@ -222,7 +222,7 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
   height: var(--topbar-alt);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 0 clamp(1.1rem, 3vw, 2.4rem);
   /* Translúcido (o conteúdo passa por baixo) com degradê azul: a cor mais
      forte fica à direita, onde estão perfil, tema e configurações. */
@@ -269,6 +269,21 @@ html[data-tema="escuro"] #topbar {
 .topbar-botao:hover { background: var(--sb-hover); border-color: var(--sb-linha); color: var(--sb-texto-forte); filter: none; }
 .topbar-botao.ativo { background: var(--sb-hover); border-color: var(--sb-linha); color: var(--sb-texto-forte); }
 .topbar-botao svg { width: 20px; height: 20px; }
+
+/* Hambúrguer: mostra/esconde o menu lateral. Fica à esquerda do topbar. */
+.topbar-menu svg { width: 22px; height: 22px; }
+
+/* Fundo do menu em gaveta (só aparece no celular com o menu aberto) */
+#sidebar-backdrop { display: none; }
+@keyframes sidebar-gaveta { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Menu recolhido (desktop): esconde a sidebar; topbar e conteúdo ocupam tudo */
+body.sidebar-recolhida #sidebar { display: none; }
+body.sidebar-recolhida #topbar { left: 0; }
+@media (min-width: 761px) {
+  body.sidebar-recolhida #topbar { left: 12px; }
+}
 
 /* Desktop: app em "painéis flutuantes" com cantos arredondados (sem pontas) */
 @media (min-width: 761px) {
@@ -534,6 +549,27 @@ html[data-tema="escuro"] .login-preview-grid span.ativo {
 
 @media (max-width: 760px) {
   #sidebar { display: none; }
+
+  /* Menu em gaveta (celular): o hambúrguer abre a sidebar por cima do conteúdo */
+  body.sidebar-aberta #sidebar {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    height: 100vh;
+    width: min(80vw, 300px);
+    z-index: 120;
+    border-radius: 0 18px 18px 0;
+    box-shadow: 10px 0 44px rgba(6, 9, 18, 0.45);
+    animation: sidebar-gaveta 0.22s ease;
+  }
+  body.sidebar-aberta #sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 10, 20, 0.5);
+    z-index: 110;
+    animation: fade-in 0.2s ease;
+  }
 
   #topbar {
     left: 0;
@@ -2578,7 +2614,36 @@ html[data-tema="escuro"] .mes-evento {
   text-decoration: underline;
 }
 
-/* Visão mensal estilo Google: bolinhas com a cor das disciplinas */
+/* Visão mensal com rótulos (nomes das disciplinas) */
+.mes-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.mes-grid-rotulos { min-width: 720px; }
+.mes-celula-rotulos {
+  display: flex;
+  flex-direction: column;
+  min-height: 116px;
+  gap: 4px;
+  padding: 0.3rem 0.35rem;
+}
+.mes-celula-cab { display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; }
+.mes-celula-rotulos .mes-dia-num { font-size: 0.8rem; }
+.mes-celula-rotulos.dia-hoje { border-color: var(--caneta); box-shadow: 0 0 0 2px var(--caneta-suave); }
+.mes-celula-rotulos.dia-hoje .mes-dia-num {
+  background: var(--caneta); color: #fff; border-radius: 999px;
+  width: 1.7em; height: 1.7em; display: inline-flex; align-items: center; justify-content: center;
+}
+.mes-celula-rotulos.dia-feito { background: color-mix(in srgb, var(--verde, #1F7A4D) 8%, var(--vidro)); }
+.mes-evento-rev { border-left-color: var(--grafite) !important; background: var(--fundo-suave, rgba(0,0,0,0.04)) !important; }
+.mes-evento-sim { border-left-color: #3fcf8e !important; background: rgba(63, 207, 142, 0.14) !important; }
+html[data-tema="escuro"] .mes-evento .mes-evento-nome,
+html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
+@media (max-width: 760px) {
+  .mes-celula-rotulos { min-height: 96px; }
+  .mes-evento { min-height: 32px; padding: 0.18rem 0.3rem; }
+  .mes-evento-nome { font-size: 0.64rem; }
+  .mes-evento-hora { font-size: 0.6rem; }
+}
+
+/* Visão mensal estilo Google: bolinhas com a cor das disciplinas (legado) */
 .mes-celula-pontos {
   display: flex;
   flex-direction: column;
