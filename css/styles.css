@@ -2611,8 +2611,8 @@ td.num, th.num { text-align: right; }
 }
 .agenda-add:hover { border-color: var(--caneta); color: var(--caneta); background: var(--caneta-suave); filter: none; transform: none; box-shadow: none; }
 
-/* visão mensal compacta */
-.mes-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+/* visão mensal compacta — minmax(0,1fr): conteúdo longo nunca alarga as colunas */
+.mes-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .mes-rotulo { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--grafite); text-align: center; }
 .mes-celula {
   background: var(--vidro);
@@ -2807,13 +2807,13 @@ html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
   .agenda-grid { grid-template-columns: 1fr; }
   .agenda-dia { min-height: 0; }
   .agenda-dia:empty { display: none; }
-  .mes-grid { grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  /* (as regras de .mes-evento/.mes-evento-nome do layout antigo de chips foram
+     removidas daqui: elas sobrescreviam as barrinhas compactas definidas acima
+     e o texto sem overflow estourava a largura das colunas no celular) */
+  .mes-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
   .mes-rotulo { font-size: 0.58rem; text-align: center; padding: 2px 0; }
   .mes-celula { min-height: 58px; padding: 0.15rem; }
   .mes-dia-num { font-size: 0.62rem; }
-  .mes-evento { padding: 1px 2px; font-size: 0.55rem; }
-  .mes-evento-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; display: block; }
-  .mes-evento-hora { display: none; }
   .mes-celula-pontos { min-height: 62px; gap: 3px; padding: 0.25rem 0.15rem; }
   .mes-celula-pontos .mes-dia-num { font-size: 0.66rem; width: 1.6em; height: 1.6em; }
   .mes-ponto { width: 6px; height: 6px; }
