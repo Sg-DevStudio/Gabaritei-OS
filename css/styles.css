@@ -596,6 +596,10 @@ html[data-tema="escuro"] .login-preview-grid span.ativo {
 @media (max-width: 760px) {
   #sidebar { display: none; }
 
+  /* No celular a navegação é o menu inferior (abas): o ☰ e a marca do topbar não
+     aparecem — não há menu lateral para mostrar/esconder aqui. */
+  .topbar-esquerda { display: none; }
+
   /* Menu em gaveta (celular): o hambúrguer abre a sidebar por cima do conteúdo */
   body.sidebar-aberta #sidebar {
     display: flex;
@@ -869,11 +873,8 @@ html[data-tema="escuro"] .ic-tema-sol { display: block; }
 @media (max-width: 760px) {
   .fab-rapido { bottom: calc(var(--abas-alt) + 1rem + env(safe-area-inset-bottom)); }
 }
-/* O FAB de atalhos é exclusivo do mobile: no desktop os mesmos atalhos já
-   vivem na sidebar/topbar, então o botão flutuante fica oculto. */
-@media (min-width: 761px) {
-  .fab-rapido { display: none; }
-}
+/* O FAB de atalhos (com o timer rápido) fica disponível também no desktop —
+   útil sobretudo com a sidebar recolhida, quando os atalhos dela somem. */
 /* o toggle deixa de ser fixo (o container já posiciona) */
 .fab-rapido .fab-toggle { position: static; right: auto; bottom: auto; top: auto; }
 .fab-toggle .fab-ic { transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1); }
@@ -2667,8 +2668,14 @@ html[data-tema="escuro"] .mes-evento {
 }
 
 /* Visão mensal com rótulos (nomes das disciplinas) */
-.mes-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.mes-grid-rotulos { min-width: 720px; }
+/* No desktop a grade cabe nas 7 colunas (sem rolagem). Só em telas estreitas
+   (celular) ela ganha largura mínima e rola na horizontal, para os nomes das
+   disciplinas continuarem legíveis. */
+.mes-scroll { overflow-x: visible; }
+@media (max-width: 620px) {
+  .mes-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mes-grid-rotulos { min-width: 620px; }
+}
 .mes-celula-rotulos {
   display: flex;
   flex-direction: column;
