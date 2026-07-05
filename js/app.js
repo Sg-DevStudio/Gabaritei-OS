@@ -6261,6 +6261,17 @@
     return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
   }
 
+  // A semana (a partir de inicioISO) já tem progresso do aluno? True se algum bloco
+  // gerado dela está concluído ou parcial — sinal de que regenerá-la apagaria
+  // trabalho já feito. Usado para o recálculo não destruir o dia em curso.
+  function semanaAgendaComProgresso(inicioISO) {
+    const fim = D.addDias(inicioISO, 7);
+    return doAtivo(state.agenda).some(function (a) {
+      return a.gerado && a.data >= inicioISO && a.data < fim &&
+        (a.feito || (a.feitoMin || 0) > 0 || blocoAgendaConcluido(a));
+    });
+  }
+
   // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
   function ordemAgenda(b) { return typeof b.ordem === 'number' ? b.ordem : 1e9; }
   function compararAgenda(a, b) {
@@ -6599,9 +6610,14 @@
     const cron = D.cronogramaAtivo(state);
     if (!cron || cron.length === 0) return 0;
     const inicioAtual = D.segundaDaSemana(D.hojeISO());
+    // Não regenera a semana atual se ela já tem progresso (apagar+recriar perderia
+    // os blocos já feitos hoje). O ajuste passa a valer da próxima semana.
+    const pularAtual = semanaAgendaComProgresso(inicioAtual);
     let n = 0;
     cron.forEach(function (sem) {
-      if (sem.inicio >= inicioAtual) { if (gerarBlocosSemanaAgenda(sem.inicio)) n++; }
+      if (sem.inicio < inicioAtual) return;
+      if (sem.inicio === inicioAtual && pularAtual) return;
+      if (gerarBlocosSemanaAgenda(sem.inicio)) n++;
     });
     return n;
   }
@@ -7856,9 +7872,17 @@
     // aqui — antes isso vinha de blocos "revisao" do cronograma, agora removidos.
     agendarRevisoesEmLote(Array.from(concluidos)); // retroativo: pula 24h e escalona a base
     if (preservar) {
-      // só refaz a agenda da semana atual em diante; as semanas passadas (o que já
-      // foi estudado) permanecem intactas no calendário.
-      cronNovo.forEach(function (sem) { if (sem.inicio >= inicioAtual) gerarBlocosSemanaAgenda(sem.inicio); });
+      // Refaz a agenda da semana atual em diante; as semanas passadas permanecem
+      // intactas. IMPORTANTE: se a SEMANA ATUAL já tem progresso (blocos feitos ou
+      // parciais — ex.: recálculo disparado ao concluir um tópico no meio do dia),
+      // NÃO a regenera: apagar+recriar destruiria os blocos que o aluno acabou de
+      // fechar. Nesse caso o ajuste vale só da próxima semana em diante.
+      const pularAtual = semanaAgendaComProgresso(inicioAtual);
+      cronNovo.forEach(function (sem) {
+        if (sem.inicio < inicioAtual) return;
+        if (sem.inicio === inicioAtual && pularAtual) return;
+        gerarBlocosSemanaAgenda(sem.inicio);
+      });
     } else {
       sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
     }
@@ -8741,7 +8765,7 @@
         if (revs.length > 0) chips += '<span class="mes-evento mes-evento-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '"><span class="mes-evento-nome">🔁 ' + revs.length + ' revisão' + (revs.length > 1 ? 'ões' : '') + '</span></span>';
         if (sims.length > 0) chips += '<span class="mes-evento mes-evento-sim feito" title="' + sims.length + ' simulado(s)"><span class="mes-evento-nome">📝 Simulado</span></span>';
 
-        html += '<div class="mes-celula mes-celula-rotulos' + (noMes ? ' fora-mes' : '') + (cursor === hoje ? ' dia-hoje' : '') +
+        html += '<div class="mes-celula mes-celula-rotulos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
           (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
           D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' + (sims.length > 0 ? ', ' + sims.length + ' simulados' : '') : ' — sem blocos') + '">' +
           '<div class="mes-celula-cab"><span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
