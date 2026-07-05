@@ -2672,11 +2672,9 @@ html[data-tema="escuro"] .mes-evento {
 /* No desktop a grade cabe nas 7 colunas (sem rolagem). Só em telas estreitas
    (celular) ela ganha largura mínima e rola na horizontal, para os nomes das
    disciplinas continuarem legíveis. */
+/* No celular não há rolagem horizontal: a grade cabe nas 7 colunas e os estudos
+   viram barrinhas compactas (regras no bloco @media abaixo). */
 .mes-scroll { overflow-x: visible; }
-@media (max-width: 620px) {
-  .mes-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mes-grid-rotulos { min-width: 620px; }
-}
 .mes-celula-rotulos {
   display: flex;
   flex-direction: column;
@@ -2696,11 +2694,26 @@ html[data-tema="escuro"] .mes-evento {
 .mes-evento-sim { border-left-color: #3fcf8e !important; background: rgba(63, 207, 142, 0.14) !important; }
 html[data-tema="escuro"] .mes-evento .mes-evento-nome,
 html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
+/* Celular: todos os dias do mês cabem na tela (sem rolagem). Como as células
+   ficam estreitas, os estudos viram barrinhas coloridas (cor da disciplina),
+   como num calendário nativo — o nome/tempo continua no toque (detalhes do dia). */
 @media (max-width: 760px) {
-  .mes-celula-rotulos { min-height: 96px; }
-  .mes-evento { min-height: 32px; padding: 0.18rem 0.3rem; }
-  .mes-evento-nome { font-size: 0.64rem; }
-  .mes-evento-hora { font-size: 0.6rem; }
+  .mes-grid-rotulos { min-width: 0; }
+  .mes-grid { gap: 3px; }
+  .mes-rotulo { font-size: 0.58rem; }
+  .mes-celula-rotulos { min-height: 56px; gap: 2px; padding: 3px 3px 5px; }
+  .mes-celula-rotulos .mes-dia-num { font-size: 0.66rem; }
+  .mes-celula-rotulos.dia-hoje .mes-dia-num { width: 1.5em; height: 1.5em; }
+  .mes-celula-cab .mes-dia-total { display: none; }
+  .mes-eventos { gap: 2px; margin-top: 1px; }
+  .mes-evento {
+    min-height: 0; height: 4px; padding: 0; border: 0; border-radius: 2px;
+    background: var(--disc-cor, var(--caneta)) !important;
+  }
+  .mes-evento-nome, .mes-evento-hora { display: none; }
+  .mes-evento-rev { background: var(--grafite) !important; }
+  .mes-evento-sim { background: #3fcf8e !important; }
+  .mes-mais { font-size: 0.5rem; line-height: 1.1; text-decoration: none; }
 }
 
 /* Visão mensal estilo Google: bolinhas com a cor das disciplinas (legado) */
