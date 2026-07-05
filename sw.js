@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v109-topbar-mobile';
+const CACHE = 'estudos-v110-mes-mobile';
 const ESTATICOS = [
   './',
   './index.html',
@@ -7,7 +7,7 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20260705c-topbar-mobile',
+  './css/styles.css?v=20260705d-mes-mobile',
   './js/domain.js?v=20260704c-mover',
   './js/store.js?v=20260704c-mover',
   './js/sync.js',
