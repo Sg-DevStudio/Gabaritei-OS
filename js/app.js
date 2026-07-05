@@ -1508,6 +1508,14 @@
       if (!blocoCred) { const bm = acharBlocoParaSessao(dados.topicoId, data, dados.tipo); if (bm) blocoCred = bm.id; }
       if (blocoCred) {
         const bl = creditarBlocoAgenda(blocoCred, dados.duracaoMin || 0);
+        // Reflete no calendário o que foi REALMENTE estudado: se o aluno trocou o
+        // tópico (ou a disciplina) no meio da sessão, atualiza o bloco creditado
+        // para o estudo real — em vez de deixar o bloco antigo e criar um extra.
+        if (bl && dados.tipo !== 'revisao' && dados.topicoId) {
+          const discS = D.disciplinaDoTopico(state, dados.topicoId);
+          if (discS && bl.disciplinaId !== discS.id) bl.disciplinaId = discS.id;
+          if (bl.topicoId && bl.topicoId !== dados.topicoId) bl.topicoId = dados.topicoId;
+        }
         if (bl && !dados.semRender) {
           if (bl.feito) toast('Bloco concluído ✓', 'sucesso');
           else toast('Faltam ' + D.formatarMin(blocoRestanteMin(bl)) + ' para fechar o bloco', 'sucesso');
@@ -6203,6 +6211,11 @@
 
   function blocoFeitoMin(b) { return Math.max(0, Math.round(b.feitoMin || 0)); }
   function blocoRestanteMin(b) { return Math.max(0, (b.duracaoMin || 0) - blocoFeitoMin(b)); }
+  // Minutos que o bloco contribui ao TOTAL do dia: o planejado, ou o realmente
+  // estudado quando este passa do planejado (estudar 2h num bloco de 1h soma 2h).
+  function blocoMinContado(b) { return Math.max(b.duracaoMin || 0, blocoFeitoMin(b)); }
+  // Quanto foi estudado ALÉM do planejado (0 se não excedeu).
+  function blocoExcedenteMin(b) { return Math.max(0, blocoFeitoMin(b) - (b.duracaoMin || 0)); }
   // Progresso parcial: o bloco tem tempo estudado mas ainda não fechou.
   function blocoParcial(b) {
     return !blocoAgendaConcluido(b) && blocoFeitoMin(b) > 0 && (b.duracaoMin || 0) > 0;
@@ -6213,8 +6226,10 @@
     const b = state.agenda.find(function (x) { return x.id === blocoId; });
     if (!b) return null;
     const plano = b.duracaoMin || 0;
+    // Não limita ao planejado: se estudou mais que o previsto, o excedente é
+    // guardado (aparece no total do dia e no rótulo do bloco). O progresso visual
+    // continua limitado a 100% pela própria barra.
     b.feitoMin = Math.max(0, (b.feitoMin || 0) + Math.max(0, minutos || 0));
-    if (plano > 0) b.feitoMin = Math.min(b.feitoMin, plano);
     if (plano > 0 && b.feitoMin >= plano - 0.5) b.feito = true; // margem p/ arredondamento
     return b;
   }
@@ -6236,8 +6251,13 @@
     const disc = D.disciplinaDoTopico(state, topicoId);
     const candidatos = doAtivo(state.agenda).filter(function (b) {
       if (b.data !== dataISO || blocoAgendaConcluido(b)) return false;
-      const mesmoTopico = b.topicoId === topicoId || (!b.topicoId && disc && b.disciplinaId === disc.id);
-      if (!mesmoTopico) return false;
+      // Aceita bloco do mesmo tópico OU da mesma disciplina (mesmo com outro
+      // tópico): assim, se o aluno troca o tópico no meio do estudo, o registro
+      // ainda credita o bloco planejado daquela disciplina no dia (em vez de
+      // criar um bloco solto). A ordenação abaixo prioriza o tópico exato.
+      const mesmaDisc = disc && b.disciplinaId === disc.id;
+      const mesmoTopico = b.topicoId === topicoId || (!b.topicoId && mesmaDisc);
+      if (!mesmoTopico && !mesmaDisc) return false;
       const bt = blocoTipo(b);
       return bt === null || !tipo || bt === tipo; // genérico, ou tipo igual ao da sessão
     });
@@ -8692,7 +8712,7 @@
         const sims = simuladosDoDia(data);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
         const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
+        const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + simsMin;
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
           (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
@@ -8703,9 +8723,13 @@
             const t = b.topicoId ? D.topicoPorId(state, b.topicoId) : null;
             const concluido = blocoAgendaConcluido(b);
             const parcial = blocoParcial(b);
+            const excedente = blocoExcedenteMin(b);
             const tempoTxt = parcial
               ? 'faltam ' + D.formatarMin(blocoRestanteMin(b)) + ' de ' + D.formatarMin(b.duracaoMin || 0)
-              : rotuloHorarioAgenda(b);
+              : (excedente > 0
+                // Estudou além do planejado: mostra o total real e o extra.
+                ? D.formatarMin(blocoFeitoMin(b)) + ' (+' + D.formatarMin(excedente) + ')'
+                : rotuloHorarioAgenda(b));
             const sub = tempoTxt + (t ? ' · ' + esc(t.nome) : '') + (b.extra ? ' · extra' : '') + (concluido ? ' · feito ✓' : '');
             const pct = parcial ? Math.min(100, Math.round((blocoFeitoMin(b) / (b.duracaoMin || 1)) * 100)) : 0;
             const barra = parcial ? '<span class="agenda-bloco-prog"><span style="width:' + pct + '%"></span></span>' : '';
@@ -8742,14 +8766,14 @@
         blocos.forEach(function (b) {
           if (idxDisc[b.disciplinaId] === undefined) { idxDisc[b.disciplinaId] = porDisc.length; porDisc.push({ id: b.disciplinaId, min: 0, feito: true }); }
           const g = porDisc[idxDisc[b.disciplinaId]];
-          g.min += b.duracaoMin || 0;
+          g.min += blocoMinContado(b);
           if (!blocoAgendaConcluido(b)) g.feito = false;
         });
         const revs = revisoesDoDia(cursor);
         const sims = simuladosDoDia(cursor);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
         const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
+        const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + simsMin;
         const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
         const temConteudo = blocos.length > 0 || revs.length > 0 || sims.length > 0;
 
@@ -8851,7 +8875,7 @@
     const sims = simuladosDoDia(dataISO);
     const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
     const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
-    const totalMin = blocos.reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0) + revsMin + simsMin;
+    const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + simsMin;
     const feitos = blocos.filter(blocoAgendaConcluido).length;
     const simsHtml = sims.length === 0 ? '' :
       '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">📝 Simulados do dia</h4><div class="dia-detalhe-lista">' +
