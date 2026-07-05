@@ -2427,6 +2427,23 @@ td.num, th.num { text-align: right; }
 .planejamento-disciplinas-card { margin-bottom: 1rem; }
 .planejamento-disciplinas-card .paleta-disc { margin: 0.65rem 0 0; }
 .paleta-disc-acoes { margin-left: auto; display: inline-flex; }
+/* Cabeçalho clicável do card "Personalize" (recolhe/expande, sobretudo no mobile) */
+.paleta-cabecalho {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  width: 100%; background: none; border: 0; padding: 0; cursor: pointer;
+  color: inherit; text-align: left;
+}
+.paleta-cabecalho h3 { margin: 0; }
+.paleta-chevron { color: var(--grafite); transition: transform 0.2s ease; display: none; }
+.planejamento-disciplinas-card.paleta-aberta .paleta-chevron { transform: rotate(180deg); }
+/* No desktop o corpo está sempre visível e o cabeçalho não é interativo. */
+.paleta-cabecalho { cursor: default; }
+@media (max-width: 760px) {
+  .paleta-cabecalho { cursor: pointer; }
+  .paleta-chevron { display: inline; }
+  .planejamento-disciplinas-card .paleta-corpo { display: none; }
+  .planejamento-disciplinas-card.paleta-aberta .paleta-corpo { display: block; }
+}
 .modal-amplo { max-width: 980px; }
 .modal-config-panel { margin-top: 1rem; }
 .plano-risco {
@@ -3025,6 +3042,8 @@ body.arrastando-toque .agenda-dia.drop-alvo { outline: 2px dashed var(--caneta);
 .planejamento-topo > .card { margin: 0; grid-row: auto; }
 .planejamento-col-direita { display: flex; flex-direction: column; gap: 0.85rem; min-width: 0; }
 .planejamento-col-direita > .card { margin: 0; }
+.planejamento-col-esquerda { display: flex; flex-direction: column; gap: 0.85rem; min-width: 0; }
+.planejamento-col-esquerda > .card { margin: 0; }
 /* meia largura: KPIs do check-in em 2 colunas para não espremer */
 .planejamento-topo .checkin-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin: 0.6rem 0 0.45rem; }
 /* versão compacta dos cards do topo */

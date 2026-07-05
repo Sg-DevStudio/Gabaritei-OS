@@ -59,6 +59,9 @@
   let ultimaRotaRender = null;
   let pulaRecalcSemanal = false; // evita recálculo/toast como efeito colateral (ex.: ao excluir um plano)
   let planejamentoConfigAberta = false;
+  // Paleta "Personalize seu plano" recolhida por padrão no celular (economiza
+  // espaço); no desktop o CSS a mostra sempre. Guarda a escolha na sessão.
+  let paletaExpandida = false;
   let disciplinaDetalheId = null;
   let catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
   let comparacaoIds = []; // editais selecionados p/ comparar na aba Planos (máx. 2)
@@ -8642,27 +8645,16 @@
         '<button class="botao-mini" id="pl-ajustar-rotina">Ajustar rotina</button></div>';
     }
 
-    // Check-in e plano atual lado a lado (inline) no desktop; empilhados no mobile.
-    // O ritmo ativo/geração ganham um card próprio logo abaixo do plano atual.
+    // Check-in e plano atual lado a lado no desktop; empilhados no mobile. O card
+    // do método (Cronograma/Ciclo) fica logo abaixo do check-in, na coluna
+    // esquerda, aproveitando o espaço ao lado do card de plano atual.
     const checkin = checkinSemanalHtml();
-    html += '<div class="planejamento-topo' + (checkin ? '' : ' planejamento-topo-solo') + '">' +
-      checkin +
-      '<div class="planejamento-col-direita">' + planoAtualHtml() + '</div>' +
-      '</div>';
-
-    if (state.disciplinas.length === 0) {
-      return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
-        '<strong>Nenhuma disciplina ainda</strong>Escolha seu concurso e o sistema gera o plano — ou crie uma disciplina manual.' +
-        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
-        '<p style="margin-top:0.6rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
-        '<button class="botao-secundario" id="pl-criar-disc">Criar disciplina</button>' +
-        '<button class="botao-quieto" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
-    }
-
+    const temDisc = state.disciplinas.length > 0;
     // Seletor de método: cronograma fixo (por semana) OU ciclo de estudos
     // (fila ponderada que roda no ritmo do aluno). A tela Hoje segue o ativo.
     const modoPlan = (state.plano && state.plano.modoPlanejamento) || 'cronograma';
-    html += '<div class="card modo-plan-card"><div class="modo-plan-toggle" role="tablist">' +
+    const modoPlanCard = !temDisc ? '' :
+      '<div class="card modo-plan-card"><div class="modo-plan-toggle" role="tablist">' +
       '<button type="button" class="modo-plan-op' + (modoPlan === 'cronograma' ? ' ativo' : '') + '" data-modo-plan="cronograma" role="tab" aria-selected="' + (modoPlan === 'cronograma') + '">📅 Cronograma</button>' +
       '<button type="button" class="modo-plan-op' + (modoPlan === 'ciclo' ? ' ativo' : '') + '" data-modo-plan="ciclo" role="tab" aria-selected="' + (modoPlan === 'ciclo') + '">🔄 Ciclo de estudos</button>' +
       '</div><p class="sub modo-plan-dica">' +
@@ -8671,12 +8663,31 @@
         : 'Calendário por semana: arraste matérias para os dias e siga o plano.') +
       '</p></div>';
 
+    html += '<div class="planejamento-topo' + (checkin || modoPlanCard ? '' : ' planejamento-topo-solo') + '">' +
+      '<div class="planejamento-col-esquerda">' + checkin + modoPlanCard + '</div>' +
+      '<div class="planejamento-col-direita">' + planoAtualHtml() + '</div>' +
+      '</div>';
+
+    if (!temDisc) {
+      return html + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
+        '<strong>Nenhuma disciplina ainda</strong>Escolha seu concurso e o sistema gera o plano — ou crie uma disciplina manual.' +
+        '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
+        '<p style="margin-top:0.6rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">' +
+        '<button class="botao-secundario" id="pl-criar-disc">Criar disciplina</button>' +
+        '<button class="botao-quieto" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
+    }
+
     if (modoPlan === 'ciclo') return html + cicloHtml();
 
     // paleta de disciplinas (arrastáveis) — no mobile mostra 1 linha (5) + "Ver mais"
     const discPaleta = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
     const chipsOcultos = Math.max(0, discPaleta.length - PALETA_LIMITE_MOBILE);
-    html += '<div class="card planejamento-disciplinas-card"><h3>Personalize seu plano de estudos</h3>' +
+    // No celular o card fica recolhido por padrão (só o título) para ganhar espaço;
+    // toca no título para abrir/fechar. No desktop o CSS mostra o corpo sempre.
+    html += '<div class="card planejamento-disciplinas-card' + (paletaExpandida ? ' paleta-aberta' : '') + '">' +
+      '<button type="button" class="paleta-cabecalho" data-paleta-toggle aria-expanded="' + (paletaExpandida ? 'true' : 'false') + '">' +
+      '<h3>Personalize seu plano de estudos</h3><span class="paleta-chevron" aria-hidden="true">▾</span></button>' +
+      '<div class="paleta-corpo">' +
       '<p class="sub">Arraste uma matéria para um dia do calendário ou toque nela para agendar hoje.</p>' +
       '<div class="paleta-disc">' +
       discPaleta.map(function (d, i) {
@@ -8684,7 +8695,7 @@
       }).join('') +
       (chipsOcultos > 0 ? '<button type="button" class="chip-disc-vermais botao-mini botao-quieto" data-paleta-vermais aria-expanded="false">+' + chipsOcultos + '</button>' : '') +
       '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
-      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
+      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div></div>';
 
     // Calendário: visão semanal (arrastar/soltar entre os dias, com toque) e
     // visão mensal planejada — o aluno enxerga o que vem pela frente e pode
@@ -9145,6 +9156,16 @@
     });
     raiz.querySelectorAll('[data-modo-ag]').forEach(function (b) {
       b.addEventListener('click', function () { agendaModo = b.getAttribute('data-modo-ag'); render(); });
+    });
+
+    // Recolher/expandir o card "Personalize" (relevante no celular). Alterna a
+    // classe direto no DOM (sem re-render) e guarda a escolha para o próximo render.
+    const paletaToggle = raiz.querySelector('[data-paleta-toggle]');
+    if (paletaToggle) paletaToggle.addEventListener('click', function () {
+      const card = paletaToggle.closest('.planejamento-disciplinas-card');
+      if (!card) return;
+      paletaExpandida = card.classList.toggle('paleta-aberta');
+      paletaToggle.setAttribute('aria-expanded', paletaExpandida ? 'true' : 'false');
     });
 
     const paletaVerMais = raiz.querySelector('[data-paleta-vermais]');
