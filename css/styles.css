@@ -596,9 +596,10 @@ html[data-tema="escuro"] .login-preview-grid span.ativo {
 @media (max-width: 760px) {
   #sidebar { display: none; }
 
-  /* No celular a navegação é o menu inferior (abas): o ☰ e a marca do topbar não
-     aparecem — não há menu lateral para mostrar/esconder aqui. */
-  .topbar-esquerda { display: none; }
+  /* No celular a navegação é o menu inferior (abas): esconde só o ☰ (não há menu
+     lateral para mostrar/esconder aqui), mas mantém o logo à esquerda e os ícones
+     à direita, como antes. */
+  #botao-menu { display: none; }
 
   /* Menu em gaveta (celular): o hambúrguer abre a sidebar por cima do conteúdo */
   body.sidebar-aberta #sidebar {
