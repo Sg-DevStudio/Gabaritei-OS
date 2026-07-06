@@ -84,21 +84,38 @@
   // massa (tópicos marcados como "já estudei": ponto de partida, modo aprofundar,
   // plano de exemplo) — como NÃO houve estudo no dia anterior, a 24h não se aplica
   // e a curva começa em 3d. A 24h fica reservada para o estudo real do dia.
+  const CURVA_REVISAO_PADRAO = [
+    { tipo: '24h', dias: 1 },
+    { tipo: '3d', dias: 3 },
+    { tipo: '7d', dias: 7 },
+    { tipo: '14d', dias: 14 },
+    { tipo: '30d', dias: 30 }
+  ];
+  // `opcoes.intervalos`: esquema PERSONALIZADO — lista de dias (ex.: [1,7,15,30,60])
+  // ou de {dias}. Substitui a curva padrão para "quem já tem lógica própria". Os
+  // tipos viram "Nd" e o ÚLTIMO ponto é marcado como ponta da curva (pontaCurva),
+  // para herdar o comportamento de dominar/manutenção que na curva padrão vem do 30d.
   function agendarRevisoes(topicoId, dataBaseISO, opcoes) {
     opcoes = opcoes || {};
-    let intervalos = [
-      { tipo: '24h', dias: 1 },
-      { tipo: '3d', dias: 3 },
-      { tipo: '7d', dias: 7 },
-      { tipo: '14d', dias: 14 },
-      { tipo: '30d', dias: 30 }
-    ];
-    if (opcoes.pular24h) intervalos = intervalos.filter(function (iv) { return iv.tipo !== '24h'; });
-    return intervalos.map(function (iv) {
-      return {
+    let intervalos;
+    if (opcoes.intervalos && opcoes.intervalos.length) {
+      intervalos = opcoes.intervalos.map(function (iv) {
+        const dias = typeof iv === 'number' ? iv : iv.dias;
+        return { tipo: dias + 'd', dias: dias };
+      }).filter(function (iv) { return iv.dias > 0; })
+        .sort(function (a, b) { return a.dias - b.dias; });
+    } else {
+      intervalos = CURVA_REVISAO_PADRAO.slice();
+    }
+    if (opcoes.pular24h) intervalos = intervalos.filter(function (iv) { return iv.dias > 1; });
+    const ultimo = intervalos.length - 1;
+    return intervalos.map(function (iv, i) {
+      const rev = {
         id: 'rev-' + topicoId + '-' + iv.tipo + '-' + dataBaseISO, topicoId: topicoId, tipo: iv.tipo,
         dataAgendada: addDias(dataBaseISO, iv.dias), dataConcluida: null, resultadoPct: null
       };
+      if (i === ultimo) rev.pontaCurva = true; // fecha a curva (dominar/manutenção)
+      return rev;
     });
   }
 
@@ -152,7 +169,7 @@
 
   // ---------- RN03 — Revisão de 30d com <70% reabre o tópico ----------
   function revisaoReabreTopico(revisao, resultadoPct) {
-    return revisao.tipo === '30d' && resultadoPct !== null && resultadoPct < 70;
+    return !!(revisao.tipo === '30d' || revisao.pontaCurva) && resultadoPct !== null && resultadoPct < 70;
   }
 
   // ---------- RN03b — Reforço: 3 desempenhos seguidos abaixo do limite sugerem
@@ -1207,10 +1224,11 @@
     const k = moduladorIncidencia(incidenciaPct);
     const reforcoDias = function (base) { return Math.round(base / k); }; // k=1→base; k=0,5→2×base
     if (resultadoPct < 50) { r.reabrir = true; r.subirPrioridade = true; r.revisaoExtraDias = reforcoDias(2); }
-    else if (resultadoPct < 70) { r.subirPrioridade = true; r.revisaoExtraDias = reforcoDias(3); if (revisao.tipo === '30d') r.reabrir = true; }
+    else if (resultadoPct < 70) { r.subirPrioridade = true; r.revisaoExtraDias = reforcoDias(3); if (revisao.tipo === '30d' || revisao.pontaCurva) r.reabrir = true; }
     else {
-      if (resultadoPct >= 85 && TIPOS_PONTA_CURVA[revisao.tipo] && (qFeitas == null || qFeitas >= MIN_Q_DOMINIO)) r.dominar = true;
-      if (TIPOS_PONTA_CURVA[revisao.tipo]) r.manutencaoDias = DIAS_MANUTENCAO; // ≥70% na ponta da curva → mantém aquecido
+      const ponta = TIPOS_PONTA_CURVA[revisao.tipo] || revisao.pontaCurva;
+      if (resultadoPct >= 85 && ponta && (qFeitas == null || qFeitas >= MIN_Q_DOMINIO)) r.dominar = true;
+      if (ponta) r.manutencaoDias = DIAS_MANUTENCAO; // ≥70% na ponta da curva → mantém aquecido
     }
     return r;
   }
@@ -1876,7 +1894,20 @@
     return itens.slice(0, n || 8);
   }
 
+  // Esquema de revisão em vigor (global, em state.config.revisaoEsquema). Retorna a
+  // lista de dias quando personalizada, ou null (= curva padrão 1·3·7·14·30).
+  const CURVA_REVISAO_PADRAO_DIAS = CURVA_REVISAO_PADRAO.map(function (iv) { return iv.dias; });
+  function intervalosRevisaoConfig(state) {
+    const e = state && state.config && state.config.revisaoEsquema;
+    if (e && e.modo === 'custom' && Array.isArray(e.dias) && e.dias.length) {
+      const dias = e.dias.filter(function (d) { return typeof d === 'number' && d > 0; });
+      if (dias.length) return dias.slice().sort(function (a, b) { return a - b; });
+    }
+    return null;
+  }
+
   window.Dominio = {
+    CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,

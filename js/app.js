@@ -1262,7 +1262,7 @@
   function agendarRevisoesSeNecessario(topicoId) {
     const tem = doAtivo(state.revisoes).some(function (r) { return r.topicoId === topicoId; });
     if (!tem) {
-      const novas = D.agendarRevisoes(topicoId, D.hojeISO());
+      const novas = D.agendarRevisoes(topicoId, D.hojeISO(), { intervalos: D.intervalosRevisaoConfig(state) });
       novas.forEach(function (r) { r.planoId = state.planoAtivoId; });
       state.revisoes = state.revisoes.concat(novas);
       return true;
@@ -1281,7 +1281,7 @@
     (topicoIds || []).forEach(function (id) {
       if (doAtivo(state.revisoes).some(function (r) { return r.topicoId === id; })) return;
       const base = D.addDias(D.hojeISO(), Math.floor(i / REVISOES_LOTE_POR_DIA));
-      const novas = D.agendarRevisoes(id, base, { pular24h: true });
+      const novas = D.agendarRevisoes(id, base, { pular24h: true, intervalos: D.intervalosRevisaoConfig(state) });
       novas.forEach(function (r) { r.planoId = state.planoAtivoId; });
       state.revisoes = state.revisoes.concat(novas);
       i++; agendou++;
@@ -3031,14 +3031,133 @@
     return html;
   }
 
+  // Rótulo curto de um intervalo de revisão (1 dia = 24h, senão "Nd").
+  function diaLabelRev(d) { return d === 1 ? '24h' : d + 'd'; }
+
+  // Esquema de revisões em vigor (global, em state.config.revisaoEsquema).
+  function esquemaRevisaoAtual() {
+    const dias = D.intervalosRevisaoConfig(state);
+    return dias ? { modo: 'custom', dias: dias } : { modo: 'padrao', dias: D.CURVA_REVISAO_PADRAO_DIAS.slice() };
+  }
+
+  // Um tópico é "estudado" quando foi marcado como bagagem ("já estudei/domino") na
+  // criação do plano OU teve a teoria concluída/dominada dentro da plataforma — ou
+  // ainda quando já tem alguma revisão registrada (curva em andamento).
+  function topicoEstudado(t, temRevisao) {
+    return !!(t.bagagem || t.status === 'teoria_concluida' || t.status === 'dominado' || temRevisao);
+  }
+
+  // Regenera as revisões PENDENTES dos tópicos estudados usando o esquema atual;
+  // preserva o que já foi concluído (histórico) e pula as etapas já cumpridas.
+  function reaplicarEsquemaRevisao() {
+    const intervalos = D.intervalosRevisaoConfig(state);
+    const hoje = D.hojeISO();
+    const porTop = {};
+    doAtivo(state.revisoes).forEach(function (r) { (porTop[r.topicoId] = porTop[r.topicoId] || []).push(r); });
+    let afetados = 0;
+    Object.keys(porTop).forEach(function (tid) {
+      if (!D.topicoPorId(state, tid)) return;
+      const revs = porTop[tid];
+      const concluidas = revs.filter(function (r) { return r.dataConcluida; });
+      const pendentes = revs.filter(function (r) { return !r.dataConcluida; });
+      if (pendentes.length === 0) return; // curva já fechada — nada a reagendar
+      const idsRemover = new Set(pendentes.map(function (r) { return r.id; }));
+      state.revisoes = state.revisoes.filter(function (r) { return !idsRemover.has(r.id); });
+      const novas = D.agendarRevisoes(tid, hoje, { pular24h: true, intervalos: intervalos });
+      const restantes = novas.slice(concluidas.length); // pula as etapas já cumpridas
+      restantes.forEach(function (r) { r.planoId = state.planoAtivoId; });
+      state.revisoes = state.revisoes.concat(restantes);
+      afetados++;
+    });
+    return afetados;
+  }
+
+  function estudadosRevisaoHtml() {
+    if (!state.plano) {
+      return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
+        '<strong>Sem plano ativo</strong>Ative um plano para ver os tópicos já estudados e configurar suas revisões.</div></div>';
+    }
+    const esq = esquemaRevisaoAtual();
+    const custom = esq.modo === 'custom';
+    const padraoTxt = D.CURVA_REVISAO_PADRAO_DIAS.map(diaLabelRev).join(' · ');
+
+    let html = '<div class="card rev-esquema-card">' +
+      '<h3>Esquema de revisões</h3>' +
+      '<p class="sub">Use a curva padrão (baseada em repetição espaçada) ou defina a sua própria sequência de dias — para quem já tem uma lógica de revisão própria.</p>' +
+      '<label class="rev-esq-opt"><input type="radio" name="rev-esq" value="padrao"' + (custom ? '' : ' checked') + '>' +
+      '<span>Padrão <em>' + padraoTxt + '</em></span></label>' +
+      '<label class="rev-esq-opt"><input type="radio" name="rev-esq" value="custom"' + (custom ? ' checked' : '') + '>' +
+      '<span>Personalizado</span></label>' +
+      '<div class="rev-esq-custom' + (custom ? '' : ' oculto') + '" id="rev-esq-custom">' +
+      '<label for="rev-esq-dias">Dias após concluir a teoria (separados por vírgula)</label>' +
+      '<input id="rev-esq-dias" type="text" inputmode="numeric" placeholder="1, 7, 15, 30, 60" value="' + esc(custom ? esq.dias.join(', ') : '') + '">' +
+      '<p class="sub" style="margin:0.3rem 0 0">Ex.: <code>1, 7, 15, 30, 60</code> agenda 5 revisões nesses intervalos. O último ponto fecha a curva (dominar/manutenção).</p>' +
+      '</div>' +
+      '<div class="rev-esq-acoes"><button class="botao" id="rev-esq-salvar">Salvar esquema</button></div>' +
+      '</div>';
+
+    // Índice de revisões por tópico (para origem e próxima revisão)
+    const revsPorTop = {};
+    doAtivo(state.revisoes).forEach(function (r) { (revsPorTop[r.topicoId] = revsPorTop[r.topicoId] || []).push(r); });
+    const hoje = D.hojeISO();
+
+    const discs = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    let totalEstudados = 0;
+    let listas = '';
+    discs.forEach(function (d) {
+      const tops = (d.topicos || []).filter(function (t) {
+        return !t.orfao && topicoEstudado(t, !!(revsPorTop[t.id] && revsPorTop[t.id].length));
+      });
+      if (tops.length === 0) return;
+      totalEstudados += tops.length;
+      let linhas = '';
+      tops.forEach(function (t) {
+        const revs = revsPorTop[t.id] || [];
+        const pendentes = revs.filter(function (r) { return !r.dataConcluida; })
+          .sort(function (a, b) { return a.dataAgendada.localeCompare(b.dataAgendada); });
+        const concluidas = revs.filter(function (r) { return r.dataConcluida; });
+        let est;
+        if (pendentes.length > 0) {
+          const p = pendentes[0];
+          const atraso = p.dataAgendada < hoje;
+          est = '<span class="rev-est-prox' + (atraso ? ' rev-est-atraso' : '') + '">próxima ' + esc(p.tipo) +
+            ' em ' + D.formatarDataBR(p.dataAgendada) + '</span>';
+        } else if (concluidas.length > 0) {
+          est = '<span class="rev-est-ok">curva concluída (' + concluidas.length + ')</span>';
+        } else {
+          est = '<button class="botao-mini botao-quieto" data-rev-agendar="' + esc(t.id) + '">Agendar revisões</button>';
+        }
+        const origem = t.bagagem
+          ? '<span class="etiqueta etiqueta-bagagem" title="Marcado como já estudado na criação do plano">🎒 bagagem</span>'
+          : '<span class="etiqueta etiqueta-feito" title="Teoria concluída dentro da plataforma">✓ concluído</span>';
+        linhas += '<div class="fila-item">' + bolha(t.status) +
+          '<div class="fila-info"><div class="fila-titulo">' + esc(t.nome) + '</div>' +
+          '<div class="fila-sub">' + est + '</div></div>' + origem + '</div>';
+      });
+      listas += '<div class="card"><h3>' + tagDisc(d) + ' ' + esc(nomeDiscCurto(d.nome)) +
+        ' <span style="color:var(--grafite);font-weight:400">(' + tops.length + ')</span></h3>' + linhas + '</div>';
+    });
+
+    if (totalEstudados === 0) {
+      html += '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
+        '<strong>Nenhum tópico estudado ainda</strong>Marque tópicos como "já estudei" na criação do plano (bagagem) ou conclua a teoria de um tópico para ele aparecer aqui.</div></div>';
+    } else {
+      html += '<p class="sub" style="margin:0.2rem 0 0.6rem">' + totalEstudados + ' tópico(s) já estudado(s) — bagagem + concluídos no plano.</p>' + listas;
+    }
+    return html;
+  }
+
   function telaRevisoes() {
     let html = '<div class="cab-pagina"><div><h1>Revisões</h1>' +
       '<p class="sub">Ciclo automático de teoria (24h · 3d · 7d · 14d · 30d) e seus flashcards de memorização.</p></div></div>';
     html += '<div class="rev-seg">' +
       '<button class="botao-mini ' + (revisoesAba === 'agendadas' ? '' : 'botao-quieto') + '" data-rev-aba="agendadas">Agendadas</button>' +
+      '<button class="botao-mini ' + (revisoesAba === 'estudados' ? '' : 'botao-quieto') + '" data-rev-aba="estudados">Estudados</button>' +
       '<button class="botao-mini ' + (revisoesAba === 'flashcards' ? '' : 'botao-quieto') + '" data-rev-aba="flashcards">Flashcards</button>' +
       '</div>';
-    html += revisoesAba === 'flashcards' ? flashcardsHtml() : revisoesAgendadasHtml();
+    html += revisoesAba === 'flashcards' ? flashcardsHtml()
+      : revisoesAba === 'estudados' ? estudadosRevisaoHtml()
+      : revisoesAgendadasHtml();
     return html;
   }
 
@@ -3389,6 +3508,40 @@
     });
     raiz.querySelectorAll('[data-rev]').forEach(function (b) {
       b.addEventListener('click', function () { abrirConcluirRevisao(b.getAttribute('data-rev')); });
+    });
+    // Esquema de revisões: alterna o campo personalizado e salva/reaplica.
+    raiz.querySelectorAll('input[name="rev-esq"]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        const box = raiz.querySelector('#rev-esq-custom');
+        if (box) box.classList.toggle('oculto', r.value !== 'custom');
+      });
+    });
+    const salvarEsq = raiz.querySelector('#rev-esq-salvar');
+    if (salvarEsq) salvarEsq.addEventListener('click', function () {
+      const sel = raiz.querySelector('input[name="rev-esq"]:checked');
+      const modo = sel ? sel.value : 'padrao';
+      state.config = state.config || {};
+      if (modo === 'custom') {
+        const bruto = (raiz.querySelector('#rev-esq-dias') || {}).value || '';
+        const dias = bruto.split(/[,;\s]+/).map(function (x) { return parseInt(x, 10); })
+          .filter(function (n) { return !isNaN(n) && n > 0; });
+        const unicos = Array.from(new Set(dias)).sort(function (a, b) { return a - b; });
+        if (unicos.length < 2) { toast('Informe pelo menos 2 dias (ex.: 1, 7, 30).', 'erro'); return; }
+        if (unicos.length > 8) { toast('Use no máximo 8 pontos de revisão.', 'erro'); return; }
+        state.config.revisaoEsquema = { modo: 'custom', dias: unicos };
+      } else {
+        delete state.config.revisaoEsquema;
+      }
+      const n = reaplicarEsquemaRevisao();
+      salvar(); render();
+      toast(modo === 'custom'
+        ? 'Esquema personalizado salvo' + (n ? ' — ' + n + ' tópico(s) reagendado(s).' : '.')
+        : 'Voltou para a curva padrão' + (n ? ' — ' + n + ' tópico(s) reagendado(s).' : '.'), 'sucesso');
+    });
+    raiz.querySelectorAll('[data-rev-agendar]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (agendarRevisoesSeNecessario(b.getAttribute('data-rev-agendar'))) { salvar(); render(); toast('Revisões agendadas.', 'sucesso'); }
+      });
     });
     const definirProva = raiz.querySelector('#rev-definir-prova');
     if (definirProva) definirProva.addEventListener('click', abrirEditarProva);

@@ -123,3 +123,29 @@ test('agendarRevisoes: pular24h gera curva retroativa 3-7-14-30 (sem 24h)', () =
   assert.deepEqual(retro.map(r => r.tipo), ['3d', '7d', '14d', '30d']);
   assert.equal(retro[0].dataAgendada, '2026-06-23'); // base + 3 dias
 });
+
+test('agendarRevisoes: esquema personalizado usa os dias informados, ordenados', () => {
+  const revs = D.agendarRevisoes('t1', '2026-06-01', { intervalos: [7, 1, 30, 15, 60] });
+  assert.deepEqual(revs.map(r => r.tipo), ['1d', '7d', '15d', '30d', '60d']);
+  assert.equal(revs[0].dataAgendada, '2026-06-02'); // +1
+  assert.equal(revs[4].dataAgendada, '2026-07-31'); // +60
+  // o último ponto fecha a curva (herda dominar/manutenção do 30d padrão)
+  assert.equal(revs[4].pontaCurva, true);
+  assert.ok(!revs[0].pontaCurva);
+});
+
+test('esquema personalizado: última etapa domina/mantém como a ponta da curva', () => {
+  const ponta = D.agendarRevisoes('t1', '2026-06-01', { intervalos: [1, 60] })[1];
+  assert.equal(D.ajustePosRevisao(ponta, 90, 10).dominar, true);
+  assert.equal(D.ajustePosRevisao(ponta, 75, 10).manutencaoDias, 30);
+  assert.equal(D.revisaoReabreTopico(ponta, 60), true);
+});
+
+test('intervalosRevisaoConfig: null no padrão, lista ordenada no custom', () => {
+  assert.equal(D.intervalosRevisaoConfig({ config: {} }), null);
+  assert.equal(D.intervalosRevisaoConfig({ config: { revisaoEsquema: { modo: 'padrao' } } }), null);
+  assert.deepEqual(
+    D.intervalosRevisaoConfig({ config: { revisaoEsquema: { modo: 'custom', dias: [30, 1, 7] } } }),
+    [1, 7, 30]
+  );
+});
