@@ -1994,7 +1994,7 @@
 
     const nRev = fila.filter(function (i) { return i.categoria === 'revisao'; }).length;
     const nCiclo = fila.filter(function (i) { return i.categoria === 'ciclo'; }).length;
-    const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !i.agenda.feito); }).length + nCiclo;
+    const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !blocoAgendaConcluido(i.agenda)); }).length + nCiclo;
     const pendentes = nRev + nBlocos + fila.filter(function (i) { return i.categoria === 'reaberto'; }).length;
     // "Meta do dia" concluída: tinha o que estudar hoje (agenda do dia) e está tudo
     // feito, sem revisões vencidas. Usado para o modal de parabéns (1x/dia).
@@ -2089,12 +2089,17 @@
         const tA = a.topicoId ? D.topicoPorId(state, a.topicoId) : null;
         const tituloATexto = tA ? tA.nome : (dA ? dA.nome : a.disciplinaId);
         const tituloA = (dA ? tagDisc(dA) + ' ' : '') + esc(tituloATexto);
-        return '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
-          checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
+        // "Feito" no Hoje segue a MESMA regra do calendário (blocoAgendaConcluido):
+        // conclusão por status do tópico ou por tempo estudado também conta — sem
+        // isso o Hoje mostrava "Registrar" num bloco já concluído e um novo registro
+        // duplicava a sessão do dia.
+        const feitoA = blocoAgendaConcluido(a);
+        return '<div class="fila-item fila-checklist' + (feitoA ? ' fila-feita' : '') + '">' +
+          checkEstudoHtml(feitoA, 'concluir-agenda', a.id, null, tituloATexto) +
           '<div class="fila-corpo">' +
           '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
           '<div class="fila-rodape">' +
-          (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
+          (feitoA ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
             (mostrarFogo && a.id === topUrgenteId ? '<span class="etiqueta etiqueta-alerta" title="Prioridade do dia: mais alta incidência × desempenho abaixo da meta (e/ou prova próxima). Ataque este primeiro.">🔥 prioridade</span>' : '') +
             '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
             (blocoParcial(a) ? '<span class="etiqueta etiqueta-parcial" title="Você já estudou parte deste bloco.">faltam ' + D.formatarMin(blocoRestanteMin(a)) + '</span>' : '') +
