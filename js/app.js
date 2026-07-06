@@ -7524,7 +7524,10 @@
       '<span class="checkin-rotulo">Conclusão estimada (ajusta ao seu ritmo)</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
-      '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular" title="' + esc(EXPLICACAO_RECALCULO) + '">↻ Recalcular plano agora</button></div>' +
+      // O recálculo é AUTOMÁTICO, uma vez por semana (virada de domingo→segunda à
+      // meia-noite). O botão manual foi removido: recálculos no meio da semana
+      // sob demanda causavam sobrecarga/regeneração acidental do dia.
+      '<p class="sub checkin-recalc-nota">↻ O plano se recalcula sozinho toda semana, na virada de domingo, com base no seu progresso.</p>' +
       '</div>';
   }
 
@@ -8311,11 +8314,13 @@
   function verificarRecalculoSemanal() {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos || !entrada.plano.ritmoAtivo) return;
-    // Vira a semana no domingo 21h (não na segunda 00h): o recálculo da semana
-    // que fechou já acontece na noite de domingo, junto com o check-in.
-    const inicioAtual = D.segundaDaSemana(hojeRefCheckin());
+    // Recálculo semanal na virada de MEIA-NOITE (domingo→segunda): usa a data real
+    // (D.hojeISO), então roda uma vez por semana quando o app é aberto na segunda
+    // em diante — não no meio da semana. É a única forma de recálculo agora (o
+    // botão manual foi removido para evitar recálculos acidentais no meio da semana).
+    const inicioAtual = D.segundaDaSemana(D.hojeISO());
     if (entrada.plano.ultimaRecalcSemana === inicioAtual) return; // já recalculado nesta semana
-    const r = recalcularPlanoAdaptativo(false, hojeRefCheckin());
+    const r = recalcularPlanoAdaptativo(false, D.hojeISO());
     if (!r) {
       // marca a semana mesmo sem recálculo aplicável, para não reavaliar a cada render
       entrada.plano.ultimaRecalcSemana = inicioAtual;
@@ -9433,14 +9438,6 @@
         if (ok) atualizarPlanoAtivoDoEdital();
       });
     });
-    const recalcular = raiz.querySelector('#pl-recalcular');
-    if (recalcular) recalcular.addEventListener('click', function () {
-      const r = recalcularPlanoAdaptativo(true);
-      if (r) render();
-      // A explicação some do card e só aparece aqui, quando o usuário toca no botão.
-      abrirExplicacaoRecalculo({ resultado: r ? { aplicado: true, estendido: r.estendido, meses: r.meses } : { aplicado: false } });
-    });
-
     // navegação do calendário (semana/mês)
     const ant = raiz.querySelector('#pl-ant');
     if (ant) ant.addEventListener('click', function () {
