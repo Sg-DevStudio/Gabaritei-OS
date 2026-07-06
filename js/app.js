@@ -8707,7 +8707,7 @@
       }).join('') +
       (chipsOcultos > 0 ? '<button type="button" class="chip-disc-vermais botao-mini botao-quieto" data-paleta-vermais aria-expanded="false">+' + chipsOcultos + '</button>' : '') +
       '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
-      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
+      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div></div>';
     html += '<div class="planejamento-metodo-paleta">' + modoPlanCard + paletaCard + '</div>';
 
     // Calendário: visão semanal (arrastar/soltar entre os dias, com toque) e

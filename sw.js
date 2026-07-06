@@ -15,7 +15,7 @@ const ESTATICOS = [
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260706-recalc-paleta',
+  './js/app.js?v=20260706b-agenda-largura',
   './icons/icone.svg'
 ];
 
