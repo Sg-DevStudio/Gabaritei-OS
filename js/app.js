@@ -7781,6 +7781,26 @@
     // horas_estimadas × 1.8 (teoria + questões + revisões), coerente com o cálculo
     // de esforço/semanas. O nº de disciplinas (limite) segue controlando a LARGURA
     // (frentes simultâneas); o orçamento controla a PROFUNDIDADE (tópicos/frente).
+    // Disciplinas com a TEORIA 100% concluída entram na FASE DE QUESTÕES sólidas:
+    // além das revisões espaçadas (manutenção), a matéria vencida passa a receber
+    // cards sólidos de "questões" toda semana — priorizando os tópicos de maior
+    // incidência e de pior desempenho —, em paralelo às matérias ainda em teoria.
+    const praticaDocs = [];
+    if (concluidos) {
+      const sessPratica = (typeof state !== 'undefined' && state) ? D.sessoesDoPlano(state) : [];
+      disciplinas.filter(function (d) { return d.id !== 'ORF'; }).forEach(function (d, idx) {
+        const naoOrfaos = d.topicos.filter(function (t) { return !t.orfao; });
+        if (naoOrfaos.length === 0) return;
+        if (!naoOrfaos.every(function (t) { return concluidos.has(t.id); })) return;
+        const tops = naoOrfaos.map(function (t) {
+          const dt = D.desempenhoTopico(sessPratica, t.id);
+          const pct = dt.pct == null ? 60 : dt.pct; // sem histórico ainda: desempenho neutro
+          const fraqueza = Math.max(0, 100 - pct);   // pior desempenho => mais prioridade
+          return { topico: t, peso: 1 + (t.incidencia_pct || 0) / 10 + fraqueza / 25, usos: 0 };
+        });
+        praticaDocs.push({ disciplina: d, idx: idx, tops: tops });
+      });
+    }
     let somaHorasTop = 0, nTop = 0;
     docs.forEach(function (d) { d.topicos.forEach(function (x) { somaHorasTop += (x.topico.horas_estimadas || 2); nTop++; }); });
     const avgHorasTop = nTop > 0 ? somaHorasTop / nTop : 2;
@@ -7825,6 +7845,18 @@
           if (d.cursor === d.topicos.length) semanasCron[s - 1].marcos.push(d.disciplina.nome + ': primeira passada concluída');
         }
       }
+      // Fase de questões das matérias já vencidas: um tópico por disciplina por
+      // semana (a agenda realiza um bloco de prática por disciplina/semana), em
+      // rodízio que dá mais frequência aos tópicos mais cobrados e de pior
+      // desempenho. Roda em TODAS as semanas, em paralelo à teoria das demais.
+      praticaDocs.forEach(function (pd) {
+        const escolhido = pd.tops.slice().sort(function (a, b) {
+          return (b.peso - b.usos) - (a.peso - a.usos);
+        })[0];
+        if (!escolhido) return;
+        escolhido.usos += 1;
+        semanasCron[s - 1].blocos.push({ disciplina: pd.disciplina.id, topico: escolhido.topico.id, tipo: 'questoes' });
+      });
       // As revisões NÃO entram mais como blocos do cronograma: a fonte única é o
       // sistema de repetição espaçada (state.revisoes), refletido no calendário e
       // que desconta do tempo do dia. Mantemos só o marco de manutenção como aviso.
