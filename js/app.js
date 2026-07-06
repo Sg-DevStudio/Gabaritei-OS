@@ -4525,16 +4525,20 @@
     if (m.sessoes.length === 0) {
       html += '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem registros nesta disciplina</strong>Use o botão Adicionar estudo para começar.</div>';
     } else {
-      html += '<div class="painel-scroll"><table><thead><tr><th>Data</th><th>Categoria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">%</th><th>Tópico</th></tr></thead><tbody>' +
-        m.sessoes.slice(0, 12).map(function (s) {
+      const HIST_LIMITE = 5;
+      html += '<div class="painel-scroll"><table class="hist-tabela hist-colapsada"><thead><tr><th>Data</th><th>Categoria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">%</th><th>Tópico</th></tr></thead><tbody>' +
+        m.sessoes.map(function (s, i) {
           const t = D.topicoPorId(state, s.topicoId);
           const pct = s.qFeitas > 0 ? Math.round((s.qCertas / s.qFeitas) * 100) : null;
-          return '<tr><td class="num">' + D.formatarDataBR(s.data) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
+          return '<tr' + (i >= HIST_LIMITE ? ' class="hist-linha-extra"' : '') + '><td class="num">' + D.formatarDataBR(s.data) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
             '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td><td class="num painel-acertos">' + (s.qCertas || 0) + '</td>' +
             '<td class="num painel-erros">' + Math.max(0, (s.qFeitas || 0) - (s.qCertas || 0)) + '</td>' +
             '<td class="num">' + (pct === null ? '0' : pct) + '</td><td>' + esc(t ? t.nome : s.topicoId) + '</td></tr>';
         }).join('') +
         '</tbody></table></div>';
+      if (m.sessoes.length > HIST_LIMITE) {
+        html += '<button type="button" class="botao-mini botao-quieto hist-mais" id="det-hist-mais" data-expandido="0">Mostrar mais (' + (m.sessoes.length - HIST_LIMITE) + ')</button>';
+      }
     }
     html += '</div>';
 
@@ -4567,6 +4571,16 @@
       const disc = D.disciplinaPorId(state, disciplinaDetalheId);
       const topico = disc && disc.topicos.find(function (t) { return !t.orfao; });
       abrirRegistro({ topicoId: topico ? topico.id : null });
+    });
+    const histMais = raiz.querySelector('#det-hist-mais');
+    if (histMais) histMais.addEventListener('click', function () {
+      const tabela = raiz.querySelector('.hist-tabela');
+      if (!tabela) return;
+      const expandido = histMais.getAttribute('data-expandido') === '1';
+      tabela.classList.toggle('hist-colapsada', expandido);
+      histMais.setAttribute('data-expandido', expandido ? '0' : '1');
+      const extras = tabela.querySelectorAll('.hist-linha-extra').length;
+      histMais.textContent = expandido ? 'Mostrar mais (' + extras + ')' : 'Mostrar menos';
     });
     raiz.querySelectorAll('[data-topico-check]').forEach(function (b) {
       b.addEventListener('click', function (e) {
@@ -6515,6 +6529,23 @@
     });
   }
 
+  // Minutos de estudo REGISTRADOS (sessões) num dia — fonte que não depende dos
+  // blocos do calendário (cobre estudo por timer sem bloco, ou blocos apagados/
+  // regenerados). Usado para saber se o dia já foi "cumprido".
+  function minutosEstudadosNoDia(diaISO) {
+    return D.sessoesDoPlano(state)
+      .filter(function (s) { return s.data === diaISO; })
+      .reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+  }
+  // O dia já teve QUALQUER estudo (sessão registrada ou bloco com progresso)?
+  // Um dia assim não pode ser regenerado sem apagar trabalho já feito.
+  function diaTeveEstudo(diaISO) {
+    if (minutosEstudadosNoDia(diaISO) > 0) return true;
+    return doAtivo(state.agenda).some(function (a) {
+      return a.data === diaISO && (a.feito || (a.feitoMin || 0) > 0 || blocoAgendaConcluido(a));
+    });
+  }
+
   // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
   function ordemAgenda(b) { return typeof b.ordem === 'number' ? b.ordem : 1e9; }
   function compararAgenda(a, b) {
@@ -7493,7 +7524,10 @@
       '<span class="checkin-rotulo">Conclusão estimada (ajusta ao seu ritmo)</span></div></div>' +
       semanaAtualLinha +
       checkLinha +
-      '<div class="compact-actions" style="margin-top:0.4rem"><button class="botao-mini botao-secundario" id="pl-recalcular" title="' + esc(EXPLICACAO_RECALCULO) + '">↻ Recalcular plano agora</button></div>' +
+      // O recálculo é AUTOMÁTICO, uma vez por semana (virada de domingo→segunda à
+      // meia-noite). O botão manual foi removido: recálculos no meio da semana
+      // sob demanda causavam sobrecarga/regeneração acidental do dia.
+      '<p class="sub checkin-recalc-nota">↻ O plano se recalcula sozinho toda semana, na virada de domingo, com base no seu progresso.</p>' +
       '</div>';
   }
 
@@ -8262,9 +8296,14 @@
     // no seu dia; as disciplinas dos OUTROS dias são recalculadas (o tópico já
     // concluído sai da fila), sem apagar o dia atual nem sobrecarregá-lo.
     const hojeRecalc = D.hojeISO();
-    const preservarAtual = semanaAgendaComProgresso(inicioAtual);
+    const ontem = D.addDias(hojeRecalc, -1);
+    // Regra do passado: na SEMANA ATUAL, dias que já passaram NUNCA são regenerados
+    // (não dá para voltar no tempo). E HOJE só é regenerado se ainda não teve estudo
+    // nenhum — se o aluno já estudou hoje (sessões OU blocos), o dia é preservado e
+    // o recálculo não empilha mais carga nele. Semanas futuras são refeitas normal.
+    const preservarDiaAtual = diaTeveEstudo(hojeRecalc) ? hojeRecalc : ontem;
     futuras.forEach(function (sem) {
-      const optsG = (sem.inicio === inicioAtual && preservarAtual) ? { preservarDia: hojeRecalc } : undefined;
+      const optsG = (sem.inicio === inicioAtual) ? { preservarDia: preservarDiaAtual } : undefined;
       gerarBlocosSemanaAgenda(sem.inicio, optsG);
     });
     salvar();
@@ -8275,11 +8314,13 @@
   function verificarRecalculoSemanal() {
     const entrada = entradaPlanoAtivo();
     if (!entrada || !entrada.plano || !entrada.plano.ritmos || !entrada.plano.ritmoAtivo) return;
-    // Vira a semana no domingo 21h (não na segunda 00h): o recálculo da semana
-    // que fechou já acontece na noite de domingo, junto com o check-in.
-    const inicioAtual = D.segundaDaSemana(hojeRefCheckin());
+    // Recálculo semanal na virada de MEIA-NOITE (domingo→segunda): usa a data real
+    // (D.hojeISO), então roda uma vez por semana quando o app é aberto na segunda
+    // em diante — não no meio da semana. É a única forma de recálculo agora (o
+    // botão manual foi removido para evitar recálculos acidentais no meio da semana).
+    const inicioAtual = D.segundaDaSemana(D.hojeISO());
     if (entrada.plano.ultimaRecalcSemana === inicioAtual) return; // já recalculado nesta semana
-    const r = recalcularPlanoAdaptativo(false, hojeRefCheckin());
+    const r = recalcularPlanoAdaptativo(false, D.hojeISO());
     if (!r) {
       // marca a semana mesmo sem recálculo aplicável, para não reavaliar a cada render
       entrada.plano.ultimaRecalcSemana = inicioAtual;
@@ -9397,14 +9438,6 @@
         if (ok) atualizarPlanoAtivoDoEdital();
       });
     });
-    const recalcular = raiz.querySelector('#pl-recalcular');
-    if (recalcular) recalcular.addEventListener('click', function () {
-      const r = recalcularPlanoAdaptativo(true);
-      if (r) render();
-      // A explicação some do card e só aparece aqui, quando o usuário toca no botão.
-      abrirExplicacaoRecalculo({ resultado: r ? { aplicado: true, estendido: r.estendido, meses: r.meses } : { aplicado: false } });
-    });
-
     // navegação do calendário (semana/mês)
     const ant = raiz.querySelector('#pl-ant');
     if (ant) ant.addEventListener('click', function () {
