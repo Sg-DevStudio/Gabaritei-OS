@@ -6529,6 +6529,23 @@
     });
   }
 
+  // Minutos de estudo REGISTRADOS (sessões) num dia — fonte que não depende dos
+  // blocos do calendário (cobre estudo por timer sem bloco, ou blocos apagados/
+  // regenerados). Usado para saber se o dia já foi "cumprido".
+  function minutosEstudadosNoDia(diaISO) {
+    return D.sessoesDoPlano(state)
+      .filter(function (s) { return s.data === diaISO; })
+      .reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
+  }
+  // O dia já teve QUALQUER estudo (sessão registrada ou bloco com progresso)?
+  // Um dia assim não pode ser regenerado sem apagar trabalho já feito.
+  function diaTeveEstudo(diaISO) {
+    if (minutosEstudadosNoDia(diaISO) > 0) return true;
+    return doAtivo(state.agenda).some(function (a) {
+      return a.data === diaISO && (a.feito || (a.feitoMin || 0) > 0 || blocoAgendaConcluido(a));
+    });
+  }
+
   // Ordem dos blocos dentro de um dia (permite reordenar manualmente)
   function ordemAgenda(b) { return typeof b.ordem === 'number' ? b.ordem : 1e9; }
   function compararAgenda(a, b) {
@@ -8276,9 +8293,14 @@
     // no seu dia; as disciplinas dos OUTROS dias são recalculadas (o tópico já
     // concluído sai da fila), sem apagar o dia atual nem sobrecarregá-lo.
     const hojeRecalc = D.hojeISO();
-    const preservarAtual = semanaAgendaComProgresso(inicioAtual);
+    const ontem = D.addDias(hojeRecalc, -1);
+    // Regra do passado: na SEMANA ATUAL, dias que já passaram NUNCA são regenerados
+    // (não dá para voltar no tempo). E HOJE só é regenerado se ainda não teve estudo
+    // nenhum — se o aluno já estudou hoje (sessões OU blocos), o dia é preservado e
+    // o recálculo não empilha mais carga nele. Semanas futuras são refeitas normal.
+    const preservarDiaAtual = diaTeveEstudo(hojeRecalc) ? hojeRecalc : ontem;
     futuras.forEach(function (sem) {
-      const optsG = (sem.inicio === inicioAtual && preservarAtual) ? { preservarDia: hojeRecalc } : undefined;
+      const optsG = (sem.inicio === inicioAtual) ? { preservarDia: preservarDiaAtual } : undefined;
       gerarBlocosSemanaAgenda(sem.inicio, optsG);
     });
     salvar();
