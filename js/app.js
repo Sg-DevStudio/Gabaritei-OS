@@ -1638,9 +1638,13 @@
 
   function heatmapHtml(nDias, comResumo) {
     const hoje = D.hojeISO();
-    const dias = D.heatmapDias(state.sessoes, hoje, nDias);
-    const st = D.streak(state.sessoes, hoje);
-    const recordeAnterior = recordeAntesDeHoje(state.sessoes, hoje);
+    // Constância = dias de estudo do PLANO ativo (igual às demais métricas). Sem
+    // isso, sessões de outros planos (ex.: órfãs de um plano excluído) inflavam o
+    // número aqui e divergiam da faixa/heatmap da tela de Desempenho.
+    const ses = D.sessoesDoPlano(state);
+    const dias = D.heatmapDias(ses, hoje, nDias);
+    const st = D.streak(ses, hoje);
+    const recordeAnterior = recordeAntesDeHoje(ses, hoje);
     const extras = emojisConstancia(st, recordeAnterior);
     let html = '<div class="heatmap-wrap">';
     if (comResumo) {
@@ -4160,7 +4164,7 @@
         '<span class="bolha bolha-pendente"></span><strong>Sem dados ainda</strong>' +
         'Registre a primeira sessão de estudo e os números aparecem aqui.</div></div>';
     }
-    const st = D.streak(state.sessoes, hoje);
+    const st = D.streak(D.sessoesDoPlano(state), hoje); // constância do plano ativo (consistente com a faixa/heatmap)
     const meta = D.metaSemanal(state, hoje);
     const prog = D.progressoEdital(state);
     const geral = D.desempenhoGeral(state);
@@ -4314,7 +4318,7 @@
         m.sessoes.slice(0, 12).map(function (s) {
           const t = D.topicoPorId(state, s.topicoId);
           const pct = s.qFeitas > 0 ? Math.round((s.qCertas / s.qFeitas) * 100) : null;
-          return '<tr><td class="num">' + D.formatarDataBR(s.data).slice(0, 8) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
+          return '<tr><td class="num">' + D.formatarDataBR(s.data) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
             '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td><td class="num painel-acertos">' + (s.qCertas || 0) + '</td>' +
             '<td class="num painel-erros">' + Math.max(0, (s.qFeitas || 0) - (s.qCertas || 0)) + '</td>' +
             '<td class="num">' + (pct === null ? '0' : pct) + '</td><td>' + esc(t ? t.nome : s.topicoId) + '</td></tr>';

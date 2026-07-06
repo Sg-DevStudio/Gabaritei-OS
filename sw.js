@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v116-recalc-preserva-dia';
+const CACHE = 'estudos-v117-constancia-data';
 const ESTATICOS = [
   './',
   './index.html',
@@ -15,7 +15,7 @@ const ESTATICOS = [
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260706c-recalc-preserva-dia',
+  './js/app.js?v=20260706d-constancia-data',
   './icons/icone.svg'
 ];
 
