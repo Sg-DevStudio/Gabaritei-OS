@@ -6280,6 +6280,11 @@
     // mesmo tópico em 2 blocos no mesmo dia (ex.: 1h15 + 45min), uma única sessão
     // riscaria os dois de uma vez — o que confundia (1 check riscava 2 blocos).
     if (bloco.feito) return true;
+    // Status do tópico (teoria concluída/dominado) só risca blocos de HOJE ou do
+    // passado. Sem isso, concluir a teoria de um tópico riscava também os blocos
+    // dele nos DIAS FUTUROS (dava a impressão de já ter estudado tudo) — esses
+    // dias devem ser recalculados, não riscados.
+    if (bloco.data && bloco.data > D.hojeISO()) return false;
     const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
     return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
   }
@@ -6633,14 +6638,15 @@
     const cron = D.cronogramaAtivo(state);
     if (!cron || cron.length === 0) return 0;
     const inicioAtual = D.segundaDaSemana(D.hojeISO());
-    // Não regenera a semana atual se ela já tem progresso (apagar+recriar perderia
-    // os blocos já feitos hoje). O ajuste passa a valer da próxima semana.
-    const pularAtual = semanaAgendaComProgresso(inicioAtual);
+    // Semana atual com progresso: preserva hoje (e o passado) e recalcula só os
+    // dias seguintes — não apaga o que já foi estudado nem pula a semana inteira.
+    const hoje = D.hojeISO();
+    const preservarAtual = semanaAgendaComProgresso(inicioAtual);
     let n = 0;
     cron.forEach(function (sem) {
       if (sem.inicio < inicioAtual) return;
-      if (sem.inicio === inicioAtual && pularAtual) return;
-      if (gerarBlocosSemanaAgenda(sem.inicio)) n++;
+      const opts = (sem.inicio === inicioAtual && preservarAtual) ? { preservarDia: hoje } : undefined;
+      if (gerarBlocosSemanaAgenda(sem.inicio, opts)) n++;
     });
     return n;
   }
@@ -7897,14 +7903,15 @@
     if (preservar) {
       // Refaz a agenda da semana atual em diante; as semanas passadas permanecem
       // intactas. IMPORTANTE: se a SEMANA ATUAL já tem progresso (blocos feitos ou
-      // parciais — ex.: recálculo disparado ao concluir um tópico no meio do dia),
-      // NÃO a regenera: apagar+recriar destruiria os blocos que o aluno acabou de
-      // fechar. Nesse caso o ajuste vale só da próxima semana em diante.
-      const pularAtual = semanaAgendaComProgresso(inicioAtual);
+      // parciais — ex.: recálculo ao concluir um tópico no meio do dia), preserva
+      // HOJE (e o passado) e recalcula só os dias seguintes: não apaga o que o
+      // aluno acabou de estudar nem repete o dia, mas os demais dias se ajustam.
+      const hojePreserva = D.hojeISO();
+      const preservarAtual = semanaAgendaComProgresso(inicioAtual);
       cronNovo.forEach(function (sem) {
         if (sem.inicio < inicioAtual) return;
-        if (sem.inicio === inicioAtual && pularAtual) return;
-        gerarBlocosSemanaAgenda(sem.inicio);
+        const optsG = (sem.inicio === inicioAtual && preservarAtual) ? { preservarDia: hojePreserva } : undefined;
+        gerarBlocosSemanaAgenda(sem.inicio, optsG);
       });
     } else {
       sincronizarAgendaComCronograma(); // o calendário do Planejamento já nasce preenchido
@@ -7993,16 +8000,16 @@
 
     window.Store.hidratar(state);
     // Regenera a agenda da semana atual em diante (preserva blocos manuais e o
-    // passado). MAS se a semana ATUAL já tem progresso (blocos feitos/parciais —
-    // ex.: recálculo disparado ao concluir a teoria depois de fechar as horas do
-    // dia), NÃO a regenera: apagar+recriar limparia a disciplina que o aluno acabou
-    // de estudar e encaixaria outra no mesmo dia (sobrecarga). O ajuste passa a
-    // valer da PRÓXIMA semana — "recalcula nos dias posteriores", sem mexer no que
-    // já foi feito.
-    const pularAtual = semanaAgendaComProgresso(inicioAtual);
+    // passado). Se a semana ATUAL já tem progresso (ex.: recálculo ao concluir a
+    // teoria depois de fechar as horas do dia), preserva HOJE (e o passado) e
+    // recalcula SÓ os dias seguintes: o que o aluno estudou hoje continua riscado
+    // no seu dia; as disciplinas dos OUTROS dias são recalculadas (o tópico já
+    // concluído sai da fila), sem apagar o dia atual nem sobrecarregá-lo.
+    const hojeRecalc = D.hojeISO();
+    const preservarAtual = semanaAgendaComProgresso(inicioAtual);
     futuras.forEach(function (sem) {
-      if (sem.inicio === inicioAtual && pularAtual) return;
-      gerarBlocosSemanaAgenda(sem.inicio);
+      const optsG = (sem.inicio === inicioAtual && preservarAtual) ? { preservarDia: hojeRecalc } : undefined;
+      gerarBlocosSemanaAgenda(sem.inicio, optsG);
     });
     salvar();
     return { estendido: estendido, semanasTotais: semanasTotaisNovas, meses: ritmo.meses, semanasDecorridas: semanasDecorridas };
@@ -9704,8 +9711,15 @@
 
     const ini = dist.semana.inicio;
     const fim = D.addDias(ini, 7);
+    // preservarDia (AAAA-MM-DD): mantém intactos os blocos até esse dia (hoje e o
+    // passado da semana) e regenera SÓ os dias seguintes. Usado no recálculo do
+    // meio da semana: preserva o que já foi estudado hoje e recalcula os demais
+    // dias — sem apagar o dia atual nem pular a semana inteira.
+    const preservarDia = (opts && opts.preservarDia) || null;
     state.agenda = state.agenda.filter(function (a) {
-      return !(a.gerado && a.data >= ini && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId));
+      if (!(a.gerado && a.data >= ini && a.data < fim && (!a.planoId || a.planoId === state.planoAtivoId))) return true;
+      if (preservarDia && a.data <= preservarDia) return true; // hoje e o passado ficam
+      return false;
     });
 
     const minBloco = Math.max(5, rotina.minBloco || 45);
@@ -9737,7 +9751,10 @@
     const slots = diasAtivos.map(function (d) {
       const cfg = rotina.dias[d.id];
       return { data: D.addDias(ini, d.offset), restante: cfg.minutos || 0 };
-    }).filter(function (s) { return incluirPassados || !ehSemanaAtual || s.data >= hojeRef; });
+    }).filter(function (s) {
+      if (preservarDia) return s.data > preservarDia; // só os dias APÓS o preservado
+      return incluirPassados || !ehSemanaAtual || s.data >= hojeRef;
+    });
     if (slots.length === 0) return 0;
     // As revisões do dia (repetição espaçada) consomem o tempo PRIMEIRO — são
     // sensíveis a prazo. O que sobra é o que teoria/questões podem ocupar.
