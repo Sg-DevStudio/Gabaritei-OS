@@ -1407,8 +1407,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
    ============================================================ */
 .rev-seg { display: flex; gap: 0.45rem; margin-bottom: 1rem; flex-wrap: wrap; }
 /* Esquema de revisões (padrão vs personalizado) */
-.rev-esquema-card .rev-esq-opt { display: flex; align-items: baseline; gap: 0.5rem; margin: 0.4rem 0; cursor: pointer; }
-.rev-esquema-card .rev-esq-opt em { color: var(--grafite); font-style: normal; font-size: 0.9em; }
+.rev-esquema-card .rev-esq-opt { display: flex; align-items: center; gap: 0.55rem; margin: 0.5rem 0; cursor: pointer; font-weight: 600; }
+/* a regra global input{width:100%} esticava o radio — aqui ele volta ao tamanho natural */
+.rev-esquema-card .rev-esq-opt input[type="radio"] { width: auto; flex: 0 0 auto; min-width: 0; margin: 0; padding: 0; border: 0; background: none; }
+.rev-esquema-card .rev-esq-opt > span { flex: 1 1 auto; min-width: 0; }
+.rev-esquema-card .rev-esq-opt em { color: var(--grafite); font-style: normal; font-weight: 400; font-size: 0.9em; }
 .rev-esq-custom { margin: 0.4rem 0 0.2rem; padding: 0.6rem 0.7rem; background: var(--fundo-suave, rgba(0,0,0,0.03)); border-radius: 8px; }
 .rev-esq-custom input { width: 100%; }
 .rev-esq-custom code { background: rgba(0,0,0,0.06); padding: 0.05rem 0.3rem; border-radius: 4px; }
