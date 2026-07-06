@@ -1420,6 +1420,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .rev-est-atraso { color: var(--errado); font-weight: 600; }
 .rev-est-ok { color: var(--correto); }
 .etiqueta-bagagem { background: var(--correto-suave); color: var(--correto); }
+.etiqueta-revisado { background: rgba(46, 134, 222, 0.15); color: #2E86DE; }
 .fc-topo { display: flex; flex-direction: column; gap: 0.5rem; }
 .fc-topo-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch; }
 .fc-topo-acoes > button { flex: 1 1 0; min-width: 0; white-space: nowrap; }

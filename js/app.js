@@ -3825,6 +3825,29 @@
     });
   }
 
+  // Selo de bagagem ADAPTATIVO no edital: mostra o nível que o aluno declarou na
+  // criação do plano ("já domino"/"já estudei") APENAS enquanto o tópico ainda vive
+  // só dessa bagagem — ou seja, sem progresso real na plataforma. Assim que ele
+  // começa a estudar aqui (status sai de pendente) ou registra questões, o selo
+  // some e quem conta a história passa a ser a bolha de status + a pizza de acertos.
+  // Evita o selo fixo virar informação velha/confusa depois.
+  function badgeBagagemTopico(t, dt) {
+    if (!t || !t.bagagem || t.orfao || t.reaberto) return '';
+    if (t.status !== 'pendente') return '';
+    if (dt && dt.feitas > 0) return '';
+    const txt = t.bagagem === 'domino' ? 'já domino' : 'já estudei';
+    return ' <span class="etiqueta etiqueta-bagagem" title="Você marcou este tópico como conhecimento prévio na criação do plano. O selo some assim que você começa a estudá-lo aqui.">🎒 ' + txt + '</span>';
+  }
+
+  // Selo "revisado": para assuntos já estudados, mostra que o tópico já passou por
+  // revisão de fato (nº de revisões concluídas). Complementa a bolha de status —
+  // "concluído" diz que a teoria fechou; "revisado" diz que já foi reforçado.
+  function badgeRevisadoTopico(nRevisado) {
+    if (!nRevisado) return '';
+    const titulo = nRevisado === 1 ? '1 revisão concluída deste tópico' : nRevisado + ' revisões concluídas deste tópico';
+    return ' <span class="etiqueta etiqueta-revisado" title="' + esc(titulo) + '">🔁 revisado' + (nRevisado > 1 ? ' ' + nRevisado + '×' : '') + '</span>';
+  }
+
   function telaEdital() {
     if (state.disciplinas.length === 0) {
       return '<h1>Edital</h1><div class="card"><div class="estado-vazio">' +
@@ -3838,6 +3861,12 @@
     const meta = state.plano.meta ? state.plano.meta.corte_pct : 70;
     let html = '<div class="cab-pagina"><div><h1>Edital verticalizado</h1>' +
       '<p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos com teoria concluída (' + prog.pct + '%) · % = incidência nas últimas provas</p></div></div>';
+
+    // Revisões concluídas por tópico (para o selo "revisado") — uma passada só.
+    const revisadoPorTopico = {};
+    doAtivo(state.revisoes).forEach(function (r) {
+      if (r.dataConcluida) revisadoPorTopico[r.topicoId] = (revisadoPorTopico[r.topicoId] || 0) + 1;
+    });
 
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
     state.disciplinas.forEach(function (d) {
@@ -3857,7 +3886,7 @@
           const erros = Math.max(0, dt.feitas - dt.certas);
           html += '<div class="topico-linha' + (t.orfao ? ' topico-orfao' : '') + '" data-topico="' + esc(t.id) + '" role="button" tabindex="0">' +
             bolha(t.status) +
-            '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(órfão — fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + '</span>' +
+            '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(órfão — fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + badgeBagagemTopico(t, dt) + badgeRevisadoTopico(revisadoPorTopico[t.id] || 0) + '</span>' +
             '<span class="topico-meta topico-meta-pizza">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) +
             tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</span></div>';
         });
