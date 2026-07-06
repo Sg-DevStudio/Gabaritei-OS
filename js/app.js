@@ -6489,26 +6489,19 @@
   }
 
   function blocoAgendaConcluido(bloco) {
-    // Cada bloco é concluído pela SUA própria marca (b.feito, posta no registro
-    // pela fila do Hoje ou pelo calendário) ou pelo tópico já estar concluído.
-    // NÃO usamos "existe sessão do tópico no dia": quando o cronograma divide o
-    // mesmo tópico em 2 blocos no mesmo dia (ex.: 1h15 + 45min), uma única sessão
-    // riscaria os dois de uma vez — o que confundia (1 check riscava 2 blocos).
+    // O calendário é um REGISTRO do que foi de fato estudado a cada dia: um bloco
+    // só conta como concluído (riscado) quando foi marcado feito (registro/fila do
+    // Hoje ou calendário) OU quando o tempo estudado NELE alcança sua duração.
+    //
+    // NÃO se risca por status GLOBAL do tópico (teoria concluída/dominado): isso
+    // riscava blocos que não foram estudados naquele dia/sessão — ex.: uma
+    // disciplina com todos os tópicos concluídos aparecia com todos os blocos
+    // riscados, mesmo os não estudados. O status do tópico vive na bolha do Edital,
+    // não no calendário. Também não usamos "existe sessão do tópico no dia" (com o
+    // tópico dividido em 2 blocos no mesmo dia, uma sessão riscaria os dois).
     if (bloco.feito) return true;
-    // Objetivo alcançado pelo TEMPO estudado. Cobre o caso de o aluno REDUZIR a
-    // meta do bloco depois de estudar menos que o planejado inicial: se o tempo já
-    // registrado alcança a duração ATUAL do bloco, ele está concluído — mesmo sem
-    // a marca b.feito (que só nasce no crédito, não numa edição da meta ou numa
-    // mescla entre aparelhos).
     const planoMin = bloco.duracaoMin || 0;
-    if (planoMin > 0 && blocoFeitoMin(bloco) >= planoMin - 0.5) return true;
-    // Status do tópico (teoria concluída/dominado) só risca blocos de HOJE ou do
-    // passado. Sem isso, concluir a teoria de um tópico riscava também os blocos
-    // dele nos DIAS FUTUROS (dava a impressão de já ter estudado tudo) — esses
-    // dias devem ser recalculados, não riscados.
-    if (bloco.data && bloco.data > D.hojeISO()) return false;
-    const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
-    return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
+    return planoMin > 0 && blocoFeitoMin(bloco) >= planoMin - 0.5;
   }
 
   // A semana (a partir de inicioISO) já tem progresso do aluno? True se algum bloco
