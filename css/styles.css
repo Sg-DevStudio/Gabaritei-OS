@@ -1405,7 +1405,18 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 /* ============================================================
    Flashcards (aba Revisões)
    ============================================================ */
-.rev-seg { display: flex; gap: 0.45rem; margin-bottom: 1rem; }
+.rev-seg { display: flex; gap: 0.45rem; margin-bottom: 1rem; flex-wrap: wrap; }
+/* Esquema de revisões (padrão vs personalizado) */
+.rev-esquema-card .rev-esq-opt { display: flex; align-items: baseline; gap: 0.5rem; margin: 0.4rem 0; cursor: pointer; }
+.rev-esquema-card .rev-esq-opt em { color: var(--grafite); font-style: normal; font-size: 0.9em; }
+.rev-esq-custom { margin: 0.4rem 0 0.2rem; padding: 0.6rem 0.7rem; background: var(--fundo-suave, rgba(0,0,0,0.03)); border-radius: 8px; }
+.rev-esq-custom input { width: 100%; }
+.rev-esq-custom code { background: rgba(0,0,0,0.06); padding: 0.05rem 0.3rem; border-radius: 4px; }
+.rev-esq-acoes { margin-top: 0.6rem; }
+.rev-est-prox { color: var(--grafite); }
+.rev-est-atraso { color: var(--errado); font-weight: 600; }
+.rev-est-ok { color: var(--correto); }
+.etiqueta-bagagem { background: var(--correto-suave); color: var(--correto); }
 .fc-topo { display: flex; flex-direction: column; gap: 0.5rem; }
 .fc-topo-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch; }
 .fc-topo-acoes > button { flex: 1 1 0; min-width: 0; white-space: nowrap; }
@@ -2901,7 +2912,7 @@ html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
 .modal-fundo-dialogo { z-index: 200; }
 .modal-dialogo { max-width: 420px; text-align: center; animation: dialogo-entra 0.18s ease; }
 .modal-dialogo h3 { margin: 0.2rem 0 0.4rem; }
-.modal-dialogo .dialogo-msg { margin: 0 auto; max-width: 34ch; }
+.modal-dialogo .dialogo-msg { margin: 0 auto; max-width: 40ch; white-space: pre-line; }
 .modal-dialogo .dialogo-icone {
   font-size: 2rem; line-height: 1; margin-bottom: 0.4rem;
 }
