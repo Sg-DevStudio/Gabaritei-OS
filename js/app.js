@@ -7992,8 +7992,18 @@
     entrada.plano.ultimaRecalcSemana = inicioAtual;
 
     window.Store.hidratar(state);
-    // regenera a agenda da semana atual em diante (preserva blocos manuais e o passado)
-    futuras.forEach(function (sem) { gerarBlocosSemanaAgenda(sem.inicio); });
+    // Regenera a agenda da semana atual em diante (preserva blocos manuais e o
+    // passado). MAS se a semana ATUAL já tem progresso (blocos feitos/parciais —
+    // ex.: recálculo disparado ao concluir a teoria depois de fechar as horas do
+    // dia), NÃO a regenera: apagar+recriar limparia a disciplina que o aluno acabou
+    // de estudar e encaixaria outra no mesmo dia (sobrecarga). O ajuste passa a
+    // valer da PRÓXIMA semana — "recalcula nos dias posteriores", sem mexer no que
+    // já foi feito.
+    const pularAtual = semanaAgendaComProgresso(inicioAtual);
+    futuras.forEach(function (sem) {
+      if (sem.inicio === inicioAtual && pularAtual) return;
+      gerarBlocosSemanaAgenda(sem.inicio);
+    });
     salvar();
     return { estendido: estendido, semanasTotais: semanasTotaisNovas, meses: ritmo.meses, semanasDecorridas: semanasDecorridas };
   }
@@ -8663,8 +8673,8 @@
         : 'Calendário por semana: arraste matérias para os dias e siga o plano.') +
       '</p></div>';
 
-    html += '<div class="planejamento-topo' + (checkin || modoPlanCard ? '' : ' planejamento-topo-solo') + '">' +
-      '<div class="planejamento-col-esquerda">' + checkin + modoPlanCard + '</div>' +
+    html += '<div class="planejamento-topo' + (checkin ? '' : ' planejamento-topo-solo') + '">' +
+      checkin +
       '<div class="planejamento-col-direita">' + planoAtualHtml() + '</div>' +
       '</div>';
 
@@ -8677,14 +8687,16 @@
         '<button class="botao-quieto" id="pl-em-branco-vazio">Plano manual</button></p></div></div>';
     }
 
-    if (modoPlan === 'ciclo') return html + cicloHtml();
+    // Modo ciclo: o método ocupa a largura toda (não há paleta ao lado).
+    if (modoPlan === 'ciclo') return html + '<div class="planejamento-metodo-paleta metodo-solo">' + modoPlanCard + '</div>' + cicloHtml();
 
+    // Cronograma: método (Cronograma/Ciclo) e a paleta "Personalize" lado a lado.
     // paleta de disciplinas (arrastáveis) — no mobile mostra 1 linha (5) + "Ver mais"
     const discPaleta = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
     const chipsOcultos = Math.max(0, discPaleta.length - PALETA_LIMITE_MOBILE);
     // No celular o card fica recolhido por padrão (só o título) para ganhar espaço;
     // toca no título para abrir/fechar. No desktop o CSS mostra o corpo sempre.
-    html += '<div class="card planejamento-disciplinas-card' + (paletaExpandida ? ' paleta-aberta' : '') + '">' +
+    const paletaCard = '<div class="card planejamento-disciplinas-card' + (paletaExpandida ? ' paleta-aberta' : '') + '">' +
       '<button type="button" class="paleta-cabecalho" data-paleta-toggle aria-expanded="' + (paletaExpandida ? 'true' : 'false') + '">' +
       '<h3>Personalize seu plano de estudos</h3><span class="paleta-chevron" aria-hidden="true">▾</span></button>' +
       '<div class="paleta-corpo">' +
@@ -8695,7 +8707,8 @@
       }).join('') +
       (chipsOcultos > 0 ? '<button type="button" class="chip-disc-vermais botao-mini botao-quieto" data-paleta-vermais aria-expanded="false">+' + chipsOcultos + '</button>' : '') +
       '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
-      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div></div>';
+      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div>';
+    html += '<div class="planejamento-metodo-paleta">' + modoPlanCard + paletaCard + '</div>';
 
     // Calendário: visão semanal (arrastar/soltar entre os dias, com toque) e
     // visão mensal planejada — o aluno enxerga o que vem pela frente e pode
