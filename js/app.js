@@ -6448,6 +6448,13 @@
     // mesmo tópico em 2 blocos no mesmo dia (ex.: 1h15 + 45min), uma única sessão
     // riscaria os dois de uma vez — o que confundia (1 check riscava 2 blocos).
     if (bloco.feito) return true;
+    // Objetivo alcançado pelo TEMPO estudado. Cobre o caso de o aluno REDUZIR a
+    // meta do bloco depois de estudar menos que o planejado inicial: se o tempo já
+    // registrado alcança a duração ATUAL do bloco, ele está concluído — mesmo sem
+    // a marca b.feito (que só nasce no crédito, não numa edição da meta ou numa
+    // mescla entre aparelhos).
+    const planoMin = bloco.duracaoMin || 0;
+    if (planoMin > 0 && blocoFeitoMin(bloco) >= planoMin - 0.5) return true;
     // Status do tópico (teoria concluída/dominado) só risca blocos de HOJE ou do
     // passado. Sem isso, concluir a teoria de um tópico riscava também os blocos
     // dele nos DIAS FUTUROS (dava a impressão de já ter estudado tudo) — esses
@@ -6539,9 +6546,18 @@
       const antiga = r.dataAgendada;
       r.dataAgendada = nova;
       const semanaAtual = D.segundaDaSemana(D.hojeISO());
+      const semanasFeitas = {};
       [antiga, nova].forEach(function (dt) {
         const ini = D.segundaDaSemana(dt);
-        if (ini >= semanaAtual) { try { gerarBlocosSemanaAgenda(ini); } catch (e) {} }
+        if (ini < semanaAtual || semanasFeitas[ini]) return;
+        semanasFeitas[ini] = true;
+        // Ao re-reservar o tempo da SEMANA ATUAL, preserva HOJE e o passado da
+        // semana (o que já foi estudado) e regenera só os dias seguintes — sem
+        // isso, mover uma revisão apagava os blocos concluídos do dia (perda de
+        // horas de estudo já registradas no calendário).
+        const opts = {};
+        if (ini === semanaAtual && semanaAgendaComProgresso(ini)) opts.preservarDia = D.hojeISO();
+        try { gerarBlocosSemanaAgenda(ini, opts); } catch (e) {}
       });
       salvar(); fecharModal(); render();
       toast('Revisão movida para ' + D.formatarDataBR(nova), 'sucesso');
