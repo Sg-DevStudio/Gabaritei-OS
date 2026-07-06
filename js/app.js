@@ -1747,9 +1747,22 @@
     toast('Próxima matéria trazida para hoje 👊', 'sucesso');
   }
 
+  // Meta do dia concluída — cálculo INDEPENDENTE da tela renderizada (antes só
+  // era avaliado dentro de telaHoje, então concluir um bloco no calendário não
+  // disparava o parabéns até abrir a aba Hoje). Tinha o que estudar hoje (agenda
+  // do dia), está tudo feito e não há revisões vencidas.
+  function metaDoDiaConcluida() {
+    if (!state.plano) return false;
+    const hoje = D.hojeISO();
+    const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
+    if (agendaHoje.length === 0) return false;
+    if (!agendaHoje.every(function (a) { return blocoAgendaConcluido(a); })) return false;
+    return D.filaHoje(state, hoje).filter(function (i) { return i.categoria === 'revisao'; }).length === 0;
+  }
+
   // Modal central de parabéns quando a meta do dia é concluída (1x por dia).
   function talvezComemorarDia() {
-    if (!hojeMetaConcluida) return;
+    if (!metaDoDiaConcluida()) return;
     const hoje = D.hojeISO();
     if (state.config && state.config.metaDiaEm === hoje) return; // já comemorou hoje
     state.config.metaDiaEm = hoje;
@@ -10692,6 +10705,9 @@
     atualizarSyncUi();
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
     setTimeout(abrirOnboardingNome, 0);
+    // Parabéns da meta do dia dispara ao CONCLUIR a meta, esteja o aluno em
+    // qualquer aba (não só ao abrir Hoje). Guardado por metaDiaEm (1x/dia).
+    if (!modoDemo) { try { talvezComemorarDia(); } catch (e) {} }
   }
 
   // Faixa fixa no topo do conteúdo durante o modo exemplo, com convite ao login.
