@@ -2306,6 +2306,10 @@ td.num, th.num { text-align: right; }
   .heatmap-celula:hover { transform: none; }
 }
 
+/* Histórico de registros: colapsa em 5 linhas com botão "Mostrar mais/menos" */
+.hist-tabela.hist-colapsada tbody tr.hist-linha-extra { display: none; }
+.hist-mais { margin-top: 0.6rem; }
+
 /* Cabeçalho de card com ação à direita (ex.: Histórico de registros + Adicionar) */
 .card-cab-acao {
   display: flex;

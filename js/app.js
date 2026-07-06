@@ -4525,16 +4525,20 @@
     if (m.sessoes.length === 0) {
       html += '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem registros nesta disciplina</strong>Use o botão Adicionar estudo para começar.</div>';
     } else {
-      html += '<div class="painel-scroll"><table><thead><tr><th>Data</th><th>Categoria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">%</th><th>Tópico</th></tr></thead><tbody>' +
-        m.sessoes.slice(0, 12).map(function (s) {
+      const HIST_LIMITE = 5;
+      html += '<div class="painel-scroll"><table class="hist-tabela hist-colapsada"><thead><tr><th>Data</th><th>Categoria</th><th class="num">Tempo</th><th class="num">✓</th><th class="num">×</th><th class="num">%</th><th>Tópico</th></tr></thead><tbody>' +
+        m.sessoes.map(function (s, i) {
           const t = D.topicoPorId(state, s.topicoId);
           const pct = s.qFeitas > 0 ? Math.round((s.qCertas / s.qFeitas) * 100) : null;
-          return '<tr><td class="num">' + D.formatarDataBR(s.data) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
+          return '<tr' + (i >= HIST_LIMITE ? ' class="hist-linha-extra"' : '') + '><td class="num">' + D.formatarDataBR(s.data) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
             '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td><td class="num painel-acertos">' + (s.qCertas || 0) + '</td>' +
             '<td class="num painel-erros">' + Math.max(0, (s.qFeitas || 0) - (s.qCertas || 0)) + '</td>' +
             '<td class="num">' + (pct === null ? '0' : pct) + '</td><td>' + esc(t ? t.nome : s.topicoId) + '</td></tr>';
         }).join('') +
         '</tbody></table></div>';
+      if (m.sessoes.length > HIST_LIMITE) {
+        html += '<button type="button" class="botao-mini botao-quieto hist-mais" id="det-hist-mais" data-expandido="0">Mostrar mais (' + (m.sessoes.length - HIST_LIMITE) + ')</button>';
+      }
     }
     html += '</div>';
 
@@ -4567,6 +4571,16 @@
       const disc = D.disciplinaPorId(state, disciplinaDetalheId);
       const topico = disc && disc.topicos.find(function (t) { return !t.orfao; });
       abrirRegistro({ topicoId: topico ? topico.id : null });
+    });
+    const histMais = raiz.querySelector('#det-hist-mais');
+    if (histMais) histMais.addEventListener('click', function () {
+      const tabela = raiz.querySelector('.hist-tabela');
+      if (!tabela) return;
+      const expandido = histMais.getAttribute('data-expandido') === '1';
+      tabela.classList.toggle('hist-colapsada', expandido);
+      histMais.setAttribute('data-expandido', expandido ? '0' : '1');
+      const extras = tabela.querySelectorAll('.hist-linha-extra').length;
+      histMais.textContent = expandido ? 'Mostrar mais (' + extras + ')' : 'Mostrar menos';
     });
     raiz.querySelectorAll('[data-topico-check]').forEach(function (b) {
       b.addEventListener('click', function (e) {
