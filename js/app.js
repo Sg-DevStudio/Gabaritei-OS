@@ -1994,7 +1994,7 @@
 
     const nRev = fila.filter(function (i) { return i.categoria === 'revisao'; }).length;
     const nCiclo = fila.filter(function (i) { return i.categoria === 'ciclo'; }).length;
-    const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !i.agenda.feito); }).length + nCiclo;
+    const nBlocos = fila.filter(function (i) { return (i.categoria === 'bloco' && !i.feito) || (i.categoria === 'agenda' && !blocoAgendaConcluido(i.agenda)); }).length + nCiclo;
     const pendentes = nRev + nBlocos + fila.filter(function (i) { return i.categoria === 'reaberto'; }).length;
     // "Meta do dia" concluída: tinha o que estudar hoje (agenda do dia) e está tudo
     // feito, sem revisões vencidas. Usado para o modal de parabéns (1x/dia).
@@ -2089,12 +2089,17 @@
         const tA = a.topicoId ? D.topicoPorId(state, a.topicoId) : null;
         const tituloATexto = tA ? tA.nome : (dA ? dA.nome : a.disciplinaId);
         const tituloA = (dA ? tagDisc(dA) + ' ' : '') + esc(tituloATexto);
-        return '<div class="fila-item fila-checklist' + (a.feito ? ' fila-feita' : '') + '">' +
-          checkEstudoHtml(a.feito, 'concluir-agenda', a.id, null, tituloATexto) +
+        // "Feito" no Hoje segue a MESMA regra do calendário (blocoAgendaConcluido):
+        // conclusão por status do tópico ou por tempo estudado também conta — sem
+        // isso o Hoje mostrava "Registrar" num bloco já concluído e um novo registro
+        // duplicava a sessão do dia.
+        const feitoA = blocoAgendaConcluido(a);
+        return '<div class="fila-item fila-checklist' + (feitoA ? ' fila-feita' : '') + '">' +
+          checkEstudoHtml(feitoA, 'concluir-agenda', a.id, null, tituloATexto) +
           '<div class="fila-corpo">' +
           '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
           '<div class="fila-rodape">' +
-          (a.feito ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
+          (feitoA ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>' :
             (mostrarFogo && a.id === topUrgenteId ? '<span class="etiqueta etiqueta-alerta" title="Prioridade do dia: mais alta incidência × desempenho abaixo da meta (e/ou prova próxima). Ataque este primeiro.">🔥 prioridade</span>' : '') +
             '<span class="etiqueta etiqueta-agenda">Agenda</span>' +
             (blocoParcial(a) ? '<span class="etiqueta etiqueta-parcial" title="Você já estudou parte deste bloco.">faltam ' + D.formatarMin(blocoRestanteMin(a)) + '</span>' : '') +
@@ -3825,6 +3830,29 @@
     });
   }
 
+  // Selo de bagagem ADAPTATIVO no edital: mostra o nível que o aluno declarou na
+  // criação do plano ("já domino"/"já estudei") APENAS enquanto o tópico ainda vive
+  // só dessa bagagem — ou seja, sem progresso real na plataforma. Assim que ele
+  // começa a estudar aqui (status sai de pendente) ou registra questões, o selo
+  // some e quem conta a história passa a ser a bolha de status + a pizza de acertos.
+  // Evita o selo fixo virar informação velha/confusa depois.
+  function badgeBagagemTopico(t, dt) {
+    if (!t || !t.bagagem || t.orfao || t.reaberto) return '';
+    if (t.status !== 'pendente') return '';
+    if (dt && dt.feitas > 0) return '';
+    const txt = t.bagagem === 'domino' ? 'já domino' : 'já estudei';
+    return ' <span class="etiqueta etiqueta-bagagem" title="Você marcou este tópico como conhecimento prévio na criação do plano. O selo some assim que você começa a estudá-lo aqui.">🎒 ' + txt + '</span>';
+  }
+
+  // Selo "revisado": para assuntos já estudados, mostra que o tópico já passou por
+  // revisão de fato (nº de revisões concluídas). Complementa a bolha de status —
+  // "concluído" diz que a teoria fechou; "revisado" diz que já foi reforçado.
+  function badgeRevisadoTopico(nRevisado) {
+    if (!nRevisado) return '';
+    const titulo = nRevisado === 1 ? '1 revisão concluída deste tópico' : nRevisado + ' revisões concluídas deste tópico';
+    return ' <span class="etiqueta etiqueta-revisado" title="' + esc(titulo) + '">🔁 revisado' + (nRevisado > 1 ? ' ' + nRevisado + '×' : '') + '</span>';
+  }
+
   function telaEdital() {
     if (state.disciplinas.length === 0) {
       return '<h1>Edital</h1><div class="card"><div class="estado-vazio">' +
@@ -3838,6 +3866,12 @@
     const meta = state.plano.meta ? state.plano.meta.corte_pct : 70;
     let html = '<div class="cab-pagina"><div><h1>Edital verticalizado</h1>' +
       '<p class="sub">' + prog.concluidos + ' de ' + prog.total + ' tópicos com teoria concluída (' + prog.pct + '%) · % = incidência nas últimas provas</p></div></div>';
+
+    // Revisões concluídas por tópico (para o selo "revisado") — uma passada só.
+    const revisadoPorTopico = {};
+    doAtivo(state.revisoes).forEach(function (r) {
+      if (r.dataConcluida) revisadoPorTopico[r.topicoId] = (revisadoPorTopico[r.topicoId] || 0) + 1;
+    });
 
     html += '<div class="card card-quieto" style="padding:0.5rem 1rem">';
     state.disciplinas.forEach(function (d) {
@@ -3857,7 +3891,7 @@
           const erros = Math.max(0, dt.feitas - dt.certas);
           html += '<div class="topico-linha' + (t.orfao ? ' topico-orfao' : '') + '" data-topico="' + esc(t.id) + '" role="button" tabindex="0">' +
             bolha(t.status) +
-            '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(órfão — fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + '</span>' +
+            '<span class="topico-nome">' + esc(t.nome) + (t.orfao ? ' <em>(órfão — fora do plano atual)</em>' : '') + (t.reaberto ? ' <span class="etiqueta etiqueta-reaberto">reaberto</span>' : '') + badgeBagagemTopico(t, dt) + badgeRevisadoTopico(revisadoPorTopico[t.id] || 0) + '</span>' +
             '<span class="topico-meta topico-meta-pizza">' + pizzaAcertosHtml(dt.certas, erros, { classe: 'pizza-xs', titulo: t.nome }) +
             tagIncidenciaHtml(t.incidencia_pct || 0, quentes.has(t.id)) + '</span></div>';
         });
@@ -6455,26 +6489,19 @@
   }
 
   function blocoAgendaConcluido(bloco) {
-    // Cada bloco é concluído pela SUA própria marca (b.feito, posta no registro
-    // pela fila do Hoje ou pelo calendário) ou pelo tópico já estar concluído.
-    // NÃO usamos "existe sessão do tópico no dia": quando o cronograma divide o
-    // mesmo tópico em 2 blocos no mesmo dia (ex.: 1h15 + 45min), uma única sessão
-    // riscaria os dois de uma vez — o que confundia (1 check riscava 2 blocos).
+    // O calendário é um REGISTRO do que foi de fato estudado a cada dia: um bloco
+    // só conta como concluído (riscado) quando foi marcado feito (registro/fila do
+    // Hoje ou calendário) OU quando o tempo estudado NELE alcança sua duração.
+    //
+    // NÃO se risca por status GLOBAL do tópico (teoria concluída/dominado): isso
+    // riscava blocos que não foram estudados naquele dia/sessão — ex.: uma
+    // disciplina com todos os tópicos concluídos aparecia com todos os blocos
+    // riscados, mesmo os não estudados. O status do tópico vive na bolha do Edital,
+    // não no calendário. Também não usamos "existe sessão do tópico no dia" (com o
+    // tópico dividido em 2 blocos no mesmo dia, uma sessão riscaria os dois).
     if (bloco.feito) return true;
-    // Objetivo alcançado pelo TEMPO estudado. Cobre o caso de o aluno REDUZIR a
-    // meta do bloco depois de estudar menos que o planejado inicial: se o tempo já
-    // registrado alcança a duração ATUAL do bloco, ele está concluído — mesmo sem
-    // a marca b.feito (que só nasce no crédito, não numa edição da meta ou numa
-    // mescla entre aparelhos).
     const planoMin = bloco.duracaoMin || 0;
-    if (planoMin > 0 && blocoFeitoMin(bloco) >= planoMin - 0.5) return true;
-    // Status do tópico (teoria concluída/dominado) só risca blocos de HOJE ou do
-    // passado. Sem isso, concluir a teoria de um tópico riscava também os blocos
-    // dele nos DIAS FUTUROS (dava a impressão de já ter estudado tudo) — esses
-    // dias devem ser recalculados, não riscados.
-    if (bloco.data && bloco.data > D.hojeISO()) return false;
-    const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
-    return !!(t && (t.status === 'teoria_concluida' || t.status === 'dominado'));
+    return planoMin > 0 && blocoFeitoMin(bloco) >= planoMin - 0.5;
   }
 
   // A semana (a partir de inicioISO) já tem progresso do aluno? True se algum bloco
