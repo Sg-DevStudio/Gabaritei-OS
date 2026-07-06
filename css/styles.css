@@ -2912,7 +2912,7 @@ html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
 .modal-fundo-dialogo { z-index: 200; }
 .modal-dialogo { max-width: 420px; text-align: center; animation: dialogo-entra 0.18s ease; }
 .modal-dialogo h3 { margin: 0.2rem 0 0.4rem; }
-.modal-dialogo .dialogo-msg { margin: 0 auto; max-width: 34ch; }
+.modal-dialogo .dialogo-msg { margin: 0 auto; max-width: 40ch; white-space: pre-line; }
 .modal-dialogo .dialogo-icone {
   font-size: 2rem; line-height: 1; margin-bottom: 0.4rem;
 }

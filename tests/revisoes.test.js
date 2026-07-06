@@ -141,6 +141,38 @@ test('esquema personalizado: última etapa domina/mantém como a ponta da curva'
   assert.equal(D.revisaoReabreTopico(ponta, 60), true);
 });
 
+test('validarEsquemaRevisao: bloqueia absurdos e normaliza', () => {
+  // menos de 2 pontos válidos
+  assert.equal(D.validarEsquemaRevisao([7]).ok, false);
+  assert.equal(D.validarEsquemaRevisao(['abc', -3, 0]).ok, false);
+  // valores irreais (> ~3 anos)
+  const irreal = D.validarEsquemaRevisao([1, 5000]);
+  assert.equal(irreal.ok, false);
+  assert.match(irreal.erros[0], /irrea/i);
+  // pontos demais (>8)
+  assert.equal(D.validarEsquemaRevisao([1, 2, 3, 4, 5, 6, 7, 8, 9]).ok, false);
+  // válido: normaliza (trunca, remove duplicatas, ordena)
+  const ok = D.validarEsquemaRevisao([30, 7, 7, 1.9]);
+  assert.equal(ok.ok, true);
+  assert.deepEqual(ok.dias, [1, 7, 30]);
+});
+
+test('validarEsquemaRevisao: avisa espaçamentos curtos/longos sem bloquear', () => {
+  // 1ª revisão muito tarde + salto grande
+  const tarde = D.validarEsquemaRevisao([15, 90]);
+  assert.equal(tarde.ok, true);
+  assert.ok(tarde.avisos.some(function (a) { return /1ª revisão/.test(a); }));
+  assert.ok(tarde.avisos.some(function (a) { return /Salto grande/.test(a); }));
+  // revisões coladas
+  const coladas = D.validarEsquemaRevisao([1, 2, 30]);
+  assert.ok(coladas.avisos.some(function (a) { return /muito próximas/.test(a); }));
+  // última além da prova
+  const posProva = D.validarEsquemaRevisao([1, 7, 60], { diasAteProva: 20 });
+  assert.ok(posProva.avisos.some(function (a) { return /depois da sua prova/.test(a); }));
+  // esquema saudável: sem avisos
+  assert.deepEqual(D.validarEsquemaRevisao([1, 3, 7, 14, 30]).avisos, []);
+});
+
 test('intervalosRevisaoConfig: null no padrão, lista ordenada no custom', () => {
   assert.equal(D.intervalosRevisaoConfig({ config: {} }), null);
   assert.equal(D.intervalosRevisaoConfig({ config: { revisaoEsquema: { modo: 'padrao' } } }), null);

@@ -1906,8 +1906,57 @@
     return null;
   }
 
+  // Validação do esquema PERSONALIZADO de revisões. Bloqueia absurdos (nada de
+  // válido, pontos demais, valores irreais) e devolve AVISOS não-bloqueantes para
+  // espaçamentos curtos/longos demais. `opcoes.diasAteProva` (opcional) alerta
+  // quando revisões caem depois da prova.
+  const REV_ESQUEMA_MIN_PONTOS = 2;
+  const REV_ESQUEMA_MAX_PONTOS = 8;
+  const REV_ESQUEMA_MAX_DIA = 1095; // ~3 anos — acima disso não é revisão de concurso
+  function validarEsquemaRevisao(dias, opcoes) {
+    opcoes = opcoes || {};
+    const erros = [], avisos = [];
+    const limpos = Array.from(new Set((dias || [])
+      .map(function (d) { return Math.trunc(Number(d)); })
+      .filter(function (d) { return isFinite(d) && d > 0; })
+    )).sort(function (a, b) { return a - b; });
+
+    const acima = limpos.filter(function (d) { return d > REV_ESQUEMA_MAX_DIA; });
+    if (limpos.length < REV_ESQUEMA_MIN_PONTOS) {
+      erros.push('Informe pelo menos ' + REV_ESQUEMA_MIN_PONTOS + ' dias válidos (números inteiros positivos, ex.: 1, 7, 30).');
+    }
+    if (limpos.length > REV_ESQUEMA_MAX_PONTOS) {
+      erros.push('Use no máximo ' + REV_ESQUEMA_MAX_PONTOS + ' pontos de revisão (você informou ' + limpos.length + ').');
+    }
+    if (acima.length) {
+      erros.push('Valores irreais (máx. ' + REV_ESQUEMA_MAX_DIA + ' dias ≈ 3 anos): ' + acima.join(', ') + '.');
+    }
+
+    if (erros.length === 0) {
+      if (limpos[0] > 7) {
+        avisos.push('A 1ª revisão só em ' + limpos[0] + ' dias: o esquecimento é mais forte nas primeiras 24–48h — considere começar com 1 ou 2 dias.');
+      }
+      for (let i = 1; i < limpos.length; i++) {
+        const ant = limpos[i - 1], at = limpos[i];
+        if (at - ant <= 1) {
+          avisos.push('Revisões muito próximas (' + ant + 'd e ' + at + 'd): espaçamento curto rende pouco reforço.');
+        } else if (at / ant >= 6) {
+          avisos.push('Salto grande entre ' + ant + 'd e ' + at + 'd: o intervalo pode ser longo demais para não esquecer.');
+        }
+      }
+      const ultimo = limpos[limpos.length - 1];
+      if (ultimo > 365) {
+        avisos.push('A última revisão cai em ' + ultimo + ' dias (mais de um ano) — muito longe para a maioria dos concursos.');
+      }
+      if (opcoes.diasAteProva != null && opcoes.diasAteProva > 0 && ultimo > opcoes.diasAteProva) {
+        avisos.push('Parte das revisões (até ' + ultimo + ' dias) cai depois da sua prova (em ~' + opcoes.diasAteProva + ' dias).');
+      }
+    }
+    return { ok: erros.length === 0, dias: limpos, erros: erros, avisos: avisos };
+  }
+
   window.Dominio = {
-    CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig,
+    CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig, validarEsquemaRevisao,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,

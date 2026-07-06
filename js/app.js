@@ -3520,23 +3520,34 @@
     if (salvarEsq) salvarEsq.addEventListener('click', function () {
       const sel = raiz.querySelector('input[name="rev-esq"]:checked');
       const modo = sel ? sel.value : 'padrao';
-      state.config = state.config || {};
-      if (modo === 'custom') {
-        const bruto = (raiz.querySelector('#rev-esq-dias') || {}).value || '';
-        const dias = bruto.split(/[,;\s]+/).map(function (x) { return parseInt(x, 10); })
-          .filter(function (n) { return !isNaN(n) && n > 0; });
-        const unicos = Array.from(new Set(dias)).sort(function (a, b) { return a - b; });
-        if (unicos.length < 2) { toast('Informe pelo menos 2 dias (ex.: 1, 7, 30).', 'erro'); return; }
-        if (unicos.length > 8) { toast('Use no máximo 8 pontos de revisão.', 'erro'); return; }
-        state.config.revisaoEsquema = { modo: 'custom', dias: unicos };
-      } else {
-        delete state.config.revisaoEsquema;
+
+      function aplicar(esquema, msg) {
+        state.config = state.config || {};
+        if (esquema) state.config.revisaoEsquema = esquema; else delete state.config.revisaoEsquema;
+        const n = reaplicarEsquemaRevisao();
+        salvar(); render();
+        toast(msg + (n ? ' — ' + n + ' tópico(s) reagendado(s).' : '.'), 'sucesso');
       }
-      const n = reaplicarEsquemaRevisao();
-      salvar(); render();
-      toast(modo === 'custom'
-        ? 'Esquema personalizado salvo' + (n ? ' — ' + n + ' tópico(s) reagendado(s).' : '.')
-        : 'Voltou para a curva padrão' + (n ? ' — ' + n + ' tópico(s) reagendado(s).' : '.'), 'sucesso');
+
+      if (modo !== 'custom') { aplicar(null, 'Voltou para a curva padrão'); return; }
+
+      const bruto = (raiz.querySelector('#rev-esq-dias') || {}).value || '';
+      // aceita vírgula, ponto-e-vírgula, espaço ou barra como separador
+      const dias = bruto.split(/[,;/\s]+/).map(function (x) { return parseInt(x, 10); });
+      const prazo = D.prazoProva(state);
+      const diasAteProva = prazo ? D.diffDias(D.hojeISO(), prazo) : null;
+      const v = D.validarEsquemaRevisao(dias, { diasAteProva: diasAteProva });
+      if (!v.ok) { toast(v.erros[0], 'erro'); return; }
+
+      const esquema = { modo: 'custom', dias: v.dias };
+      const salvarMsg = 'Esquema personalizado salvo (' + v.dias.map(diaLabelRev).join(' · ') + ')';
+      if (v.avisos.length === 0) { aplicar(esquema, salvarMsg); return; }
+      // avisos não bloqueiam — confirma antes de aplicar
+      confirmar({
+        icone: '⚠️', titulo: 'Revisar espaçamento?',
+        mensagem: '• ' + v.avisos.join('\n• ') + '\n\nQuer salvar assim mesmo?',
+        confirmar: 'Salvar assim mesmo', cancelar: 'Voltar e ajustar'
+      }).then(function (ok) { if (ok) aplicar(esquema, salvarMsg); });
     });
     raiz.querySelectorAll('[data-rev-agendar]').forEach(function (b) {
       b.addEventListener('click', function () {
