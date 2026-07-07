@@ -6561,7 +6561,17 @@
   }
   // Revisões (repetição espaçada) pendentes de um dia — fonte única, refletida no
   // calendário; cada uma já descontou tempo do dia na geração da agenda.
-  function revisoesDoDia(diaISO) { return D.revisoesPendentesNoDia(state, diaISO); }
+  function revisoesDoDia(diaISO) {
+    // Pendentes do dia + as JÁ CONCLUÍDAS agendadas para ele — estas ficam no
+    // calendário como registro (riscadas), como os blocos concluídos. É só a
+    // versão de EXIBIÇÃO; a reserva de tempo/fila do Hoje segue usando só as
+    // pendentes (D.revisoesPendentesNoDia).
+    const pend = D.revisoesPendentesNoDia(state, diaISO);
+    const feitas = doAtivo(state.revisoes || []).filter(function (r) {
+      return r && r.dataConcluida && r.dataAgendada === diaISO && D.topicoPorId(state, r.topicoId);
+    });
+    return pend.concat(feitas);
+  }
   // Simulados registrados num dia (do plano ativo) — marcados no calendário.
   function simuladosDoDia(diaISO) {
     return doAtivo(state.simulados).filter(function (s) { return s.data === diaISO; });
@@ -6581,6 +6591,14 @@
     const cor = d ? d.cor : '#9A9DA3';
     const dur = D.duracaoRevisaoMin(r.tipo);
     const sub = D.formatarMin(dur) + ' · ' + rotuloTipoRevisao(r.tipo) + (t ? ' · ' + t.nome : '');
+    // Revisão concluída fica como registro, RISCADA (classe feito), abrindo o
+    // detalhe do dia ao tocar — não o menu de concluir/mover.
+    if (r.dataConcluida) {
+      return '<div class="agenda-bloco agenda-bloco-revisao feito" data-dia-detalhe="' + esc(r.dataAgendada) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão concluída ✓ · ' + esc(sub) + '">' +
+        '<span class="agenda-bloco-rev-ic" aria-hidden="true">🔁</span>' +
+        '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão ✓</span>' +
+        '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
+    }
     return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + ' · toque para concluir ou mover">' +
       '<span class="agenda-bloco-rev-ic" aria-hidden="true">🔁</span>' +
       '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão</span>' +
@@ -9252,11 +9270,15 @@
         const t = D.topicoPorId(state, r.topicoId);
         const d = D.disciplinaDoTopico(state, r.topicoId);
         const cor = d ? d.cor : '#9A9DA3';
-        return '<div class="dia-detalhe-item dia-detalhe-rev" style="--disc-cor:' + esc(cor) + '">' +
+        const concluida = !!r.dataConcluida;
+        return '<div class="dia-detalhe-item dia-detalhe-rev' + (concluida ? ' feito' : '') + '" style="--disc-cor:' + esc(cor) + '">' +
           '<span class="dia-detalhe-cor" style="background:' + esc(cor) + '"></span>' +
           '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + (t ? esc(t.nome) : 'Revisão') + '</span>' +
           '<span class="dia-detalhe-sub">' + D.formatarMin(D.duracaoRevisaoMin(r.tipo)) + ' · revisão ' + esc(rotuloTipoRevisao(r.tipo)) + '</span></span>' +
-          '<button type="button" class="botao-mini botao-quieto" data-mover-rev="' + esc(r.id) + '">Mover</button></div>';
+          (concluida
+            ? '<span class="etiqueta etiqueta-feito">✓ feita</span>'
+            : '<button type="button" class="botao-mini botao-quieto" data-mover-rev="' + esc(r.id) + '">Mover</button>') +
+          '</div>';
       }).join('') + '</div></div>';
     const ymd = dataISO.split('-').map(Number);
     const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(ymd[0], ymd[1] - 1, ymd[2]).getDay()];
