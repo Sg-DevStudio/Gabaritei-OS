@@ -6577,15 +6577,34 @@
     const cor = d ? d.cor : '#9A9DA3';
     const dur = D.duracaoRevisaoMin(r.tipo);
     const sub = D.formatarMin(dur) + ' · ' + rotuloTipoRevisao(r.tipo) + (t ? ' · ' + t.nome : '');
-    // Revisão vencida ou de hoje pode ser concluída direto no card do calendário
-    // (mesma ação da aba Hoje) — sem precisar ir até a aba Hoje ou abrir "Mover".
-    const podeConcluir = r.dataAgendada <= D.hojeISO();
-    return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + ' · toque para mover">' +
+    return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + ' · toque para concluir ou mover">' +
       '<span class="agenda-bloco-rev-ic" aria-hidden="true">🔁</span>' +
       '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão</span>' +
-      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span>' +
-      (podeConcluir ? '<button type="button" class="agenda-rev-concluir" data-rev-concluir="' + esc(r.id) + '" title="Concluir revisão" aria-label="Concluir revisão">✓</button>' : '') +
-      '</div>';
+      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
+  }
+
+  // Menu de ações da revisão ao tocar no card do calendário: Concluir (se vencida
+  // ou de hoje) e Mover de dia. Substitui o antigo botão ✓ inline (que deformava
+  // no card estreito) por um diálogo claro.
+  function abrirAcoesRevisao(revId) {
+    const r = doAtivo(state.revisoes).find(function (x) { return x.id === revId; });
+    if (!r) return;
+    const t = D.topicoPorId(state, r.topicoId);
+    const podeConcluir = r.dataAgendada <= D.hojeISO();
+    const m = abrirModal(
+      '<h3>Revisão ' + esc(rotuloTipoRevisao(r.tipo)) + '</h3>' +
+      '<p class="sub">' + (t ? esc(t.nome) + ' · ' : '') + D.formatarMin(D.duracaoRevisaoMin(r.tipo)) +
+      ' · agendada para ' + D.formatarDataBR(r.dataAgendada) + '</p>' +
+      '<div class="modal-acoes modal-acoes-coluna">' +
+      (podeConcluir ? '<button type="button" id="rev-ac-concluir">✓ Concluir revisão</button>' : '') +
+      '<button type="button" class="botao-secundario" id="rev-ac-mover">Mover de dia</button>' +
+      '<button type="button" class="botao-quieto" id="rev-ac-cancelar">Cancelar</button>' +
+      '</div>'
+    );
+    m.querySelector('#rev-ac-cancelar').addEventListener('click', fecharModal);
+    const bc = m.querySelector('#rev-ac-concluir');
+    if (bc) bc.addEventListener('click', function () { fecharModal(); abrirConcluirRevisao(revId); });
+    m.querySelector('#rev-ac-mover').addEventListener('click', function () { fecharModal(); abrirMoverRevisao(revId); });
   }
   // Chip de simulado para a grade semanal (clica para abrir os detalhes do dia).
   function simuladoChipSemana(s) {
@@ -9509,16 +9528,9 @@
     // blocos existentes: clicar edita, arrastar move/reordena. Cada bloco também é
     // alvo de soltura: soltar sobre ele insere a disciplina ANTES dele (reordenar).
     raiz.querySelectorAll('[data-revisao]').forEach(function (el) {
-      const abrir = function () { abrirMoverRevisao(el.getAttribute('data-revisao')); };
+      const abrir = function () { abrirAcoesRevisao(el.getAttribute('data-revisao')); };
       el.addEventListener('click', abrir);
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
-    });
-    // Botão "Concluir" dentro do card de revisão do calendário (não abre o "Mover").
-    raiz.querySelectorAll('[data-rev-concluir]').forEach(function (b) {
-      b.addEventListener('click', function (e) {
-        e.stopPropagation();
-        abrirConcluirRevisao(b.getAttribute('data-rev-concluir'));
-      });
     });
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });
