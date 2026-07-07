@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v132-menu-acoes-revisao';
+const CACHE = 'estudos-v133-reabrir-limpa-revisoes';
 const ESTATICOS = [
   './',
   './index.html',
