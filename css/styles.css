@@ -2800,14 +2800,17 @@ html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
 /* Revisões no calendário (chip semanal + item no detalhe do dia) */
 .agenda-bloco-revisao { background: var(--fundo-suave, rgba(0,0,0,0.03)); border-style: dashed; cursor: pointer; }
 .agenda-bloco-revisao .agenda-bloco-rev-ic { margin-right: 0.2rem; }
-/* Botão "Concluir" (✓) dentro do card de revisão no calendário */
+/* Botão "Concluir" (✓) dentro do card de revisão no calendário.
+   Posicionado em absoluto no canto direito para não ser esticado pelo flex do
+   card (que fica alto quando o tópico ocupa várias linhas). */
+.agenda-bloco-revisao { padding-right: 1.9rem; }
 .agenda-rev-concluir {
-  flex: 0 0 auto; align-self: center;
-  width: 22px; height: 22px; padding: 0;
+  position: absolute; top: 50%; right: 5px; transform: translateY(-50%);
+  width: 22px; height: 22px; min-width: 22px; padding: 0; box-sizing: border-box;
   border: 1px solid var(--correto); border-radius: 50%;
   background: var(--correto-suave); color: var(--correto);
-  font-size: 0.78rem; line-height: 1; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; line-height: 1; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
 }
 .agenda-rev-concluir:hover { background: var(--correto); color: #fff; }
 /* Simulados no calendário: chip semanal verde, com a mesma estrutura das revisões */

@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v130-concluir-revisao-calendario';
+const CACHE = 'estudos-v131-botao-concluir-rev-ux';
 const ESTATICOS = [
   './',
   './index.html',
