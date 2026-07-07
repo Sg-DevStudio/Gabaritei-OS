@@ -4590,8 +4590,12 @@
         const feito = t.status === 'teoria_concluida' || t.status === 'dominado';
         if (feito) {
           t.status = 'em_curso';
+          // Reabrir desfaz a conclusão: as revisões que tinham sido agendadas ao
+          // concluir (e ainda não feitas) são eliminadas — senão ficavam órfãs no
+          // calendário mesmo depois de tirar o "concluído".
+          removerRevisoesPendentes(t.id);
           salvar(); render();
-          toast('Tópico reaberto', 'sucesso');
+          toast('Tópico reaberto — revisões agendadas removidas', 'sucesso');
         } else {
           const registrouTempo = concluirTopicoTeoria(t.id);
           render();
