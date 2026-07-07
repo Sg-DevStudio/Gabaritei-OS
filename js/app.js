@@ -6577,10 +6577,15 @@
     const cor = d ? d.cor : '#9A9DA3';
     const dur = D.duracaoRevisaoMin(r.tipo);
     const sub = D.formatarMin(dur) + ' · ' + rotuloTipoRevisao(r.tipo) + (t ? ' · ' + t.nome : '');
-    return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + '">' +
+    // Revisão vencida ou de hoje pode ser concluída direto no card do calendário
+    // (mesma ação da aba Hoje) — sem precisar ir até a aba Hoje ou abrir "Mover".
+    const podeConcluir = r.dataAgendada <= D.hojeISO();
+    return '<div class="agenda-bloco agenda-bloco-revisao" data-revisao="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão · ' + esc(sub) + ' · toque para mover">' +
       '<span class="agenda-bloco-rev-ic" aria-hidden="true">🔁</span>' +
       '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão</span>' +
-      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
+      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span>' +
+      (podeConcluir ? '<button type="button" class="agenda-rev-concluir" data-rev-concluir="' + esc(r.id) + '" title="Concluir revisão" aria-label="Concluir revisão">✓</button>' : '') +
+      '</div>';
   }
   // Chip de simulado para a grade semanal (clica para abrir os detalhes do dia).
   function simuladoChipSemana(s) {
@@ -9507,6 +9512,13 @@
       const abrir = function () { abrirMoverRevisao(el.getAttribute('data-revisao')); };
       el.addEventListener('click', abrir);
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
+    // Botão "Concluir" dentro do card de revisão do calendário (não abre o "Mover").
+    raiz.querySelectorAll('[data-rev-concluir]').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        abrirConcluirRevisao(b.getAttribute('data-rev-concluir'));
+      });
     });
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });

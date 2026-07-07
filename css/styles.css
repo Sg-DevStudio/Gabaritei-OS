@@ -2800,6 +2800,16 @@ html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
 /* Revisões no calendário (chip semanal + item no detalhe do dia) */
 .agenda-bloco-revisao { background: var(--fundo-suave, rgba(0,0,0,0.03)); border-style: dashed; cursor: pointer; }
 .agenda-bloco-revisao .agenda-bloco-rev-ic { margin-right: 0.2rem; }
+/* Botão "Concluir" (✓) dentro do card de revisão no calendário */
+.agenda-rev-concluir {
+  flex: 0 0 auto; align-self: center;
+  width: 22px; height: 22px; padding: 0;
+  border: 1px solid var(--correto); border-radius: 50%;
+  background: var(--correto-suave); color: var(--correto);
+  font-size: 0.78rem; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.agenda-rev-concluir:hover { background: var(--correto); color: #fff; }
 /* Simulados no calendário: chip semanal verde, com a mesma estrutura das revisões */
 .agenda-bloco-simulado { background: rgba(63, 207, 142, 0.1); border-color: #3fcf8e !important; cursor: pointer; }
 .agenda-bloco-simulado .agenda-bloco-rev-ic { margin-right: 0.2rem; }
