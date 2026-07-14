@@ -53,6 +53,7 @@
   let pintarTimerAtual = null;
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let timerBlocoPendente = null; // bloco da agenda a creditar no próximo timer iniciado
+  let timerRevisaoPendente = null; // revisão a concluir ao encerrar o próximo timer iniciado
   let timerLimitePendente = null; // tempo restante do bloco, pré-preenchido no timer
   let timerAutoIniciar = false;  // ao abrir a tela do timer, já dispara a contagem
   let audioCtx = null;
@@ -2115,7 +2116,8 @@
         const atraso = D.diffDias(item.revisao.dataAgendada, hoje);
         etiqueta = '<span class="etiqueta etiqueta-revisao">Revisão ' + esc(item.revisao.tipo) + '</span>' + badgeAdaptacaoRevisao(item.revisao);
         sub = atraso > 0 ? 'vencida há ' + atraso + (atraso === 1 ? ' dia' : ' dias') : 'vence hoje';
-        acoes = '<button class="botao-mini" data-acao="concluir-revisao" data-id="' + esc(item.revisao.id) + '">Concluir</button>';
+        acoes = '<button class="botao-mini botao-quieto" data-acao="timer-revisao" data-id="' + esc(item.revisao.id) + '">Timer</button>' +
+          '<button class="botao-mini" data-acao="concluir-revisao" data-id="' + esc(item.revisao.id) + '">Concluir</button>';
       } else if (item.categoria === 'bloco') {
         etiqueta = item.feito
           ? '<span class="etiqueta etiqueta-feito">Feito ✓</span>'
@@ -2408,6 +2410,9 @@
           vincularBlocoEstudado(el.getAttribute('data-id'), el.getAttribute('data-tipo') || 'teoria', el.getAttribute('data-inicio') || D.segundaDaSemana(D.hojeISO()));
         } else if (acao === 'concluir-revisao') {
           abrirConcluirRevisao(el.getAttribute('data-id'));
+        } else if (acao === 'timer-revisao') {
+          const rev = doAtivo(state.revisoes).find(function (x) { return x.id === el.getAttribute('data-id'); });
+          if (rev) iniciarTimerDaRevisao(rev);
         } else if (acao === 'concluir-agenda' || acao === 'timer-agenda') {
           const blocoAg = state.agenda.find(function (a) { return a.id === el.getAttribute('data-id'); });
           if (!blocoAg) return;
@@ -2671,9 +2676,10 @@
           }
           prepararAudio();
           pedirPermissaoNotificacao();
-          window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin, blocoId: timerBlocoPendente });
+          window.Timer.iniciar(selTop.value, modoEscolhido, { limiteMin, blocoId: timerBlocoPendente, revisaoId: timerRevisaoPendente });
           timerPreselecao = null;
           timerBlocoPendente = null;
+          timerRevisaoPendente = null;
           timerLimitePendente = null;
           render();
         };
@@ -2703,6 +2709,13 @@
         if (fim.topicoId === ID_SIM_TIMER) {
           render();
           abrirNovoSimulado({ duracaoMin: Math.max(1, fim.decorridoMin) });
+          return;
+        }
+        // Timer iniciado a partir de uma revisão: encerra caindo no modal de
+        // concluir a revisão, com o tempo cronometrado já preenchido.
+        if (fim.revisaoId && state.revisoes.some(function (r) { return r.id === fim.revisaoId && !r.dataConcluida; })) {
+          render();
+          abrirConcluirRevisao(fim.revisaoId, Math.max(1, fim.decorridoMin));
           return;
         }
         abrirRegistro({
@@ -2878,9 +2891,10 @@
   }
 
   // ---------------- TELA: Revisões (F4) ----------------
-  function abrirConcluirRevisao(revisaoId) {
+  function abrirConcluirRevisao(revisaoId, duracaoMin) {
     const rev = state.revisoes.find(function (r) { return r.id === revisaoId; });
     if (!rev) return;
+    const durIni = duracaoMin && duracaoMin > 0 ? Math.min(300, Math.round(duracaoMin)) : 15;
     const m = abrirModal(
       '<h3>Concluir revisão ' + esc(rev.tipo) + '</h3>' +
       '<p>' + esc(nomeTopicoCompleto(rev.topicoId)) + '</p>' +
@@ -2889,7 +2903,7 @@
       '<div><label for="rev-feitas">Questões feitas (opcional)</label><input id="rev-feitas" type="number" min="0" max="999" value="0"></div>' +
       '<div><label for="rev-certas">Acertos</label><input id="rev-certas" type="number" min="0" max="999" value="0"></div>' +
       '</div>' +
-      '<div class="grade-2"><div><label for="rev-dur">Tempo (min)</label><input id="rev-dur" type="number" min="1" max="300" value="15"></div></div>' +
+      '<div class="grade-2"><div><label for="rev-dur">Tempo (min)</label><input id="rev-dur" type="number" min="1" max="300" value="' + durIni + '"></div></div>' +
       '<div class="msg-erro oculto" id="rev-erro"></div>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="rev-cancelar">Cancelar</button>' +
@@ -3041,7 +3055,8 @@
           (aposProva ? '<span class="etiqueta etiqueta-alerta" title="Esta revisão cai depois do início da janela da prova">⚠ depois da prova</span>' : '') +
           badgeAdaptacaoRevisao(r) +
           '<span class="etiqueta ' + g.classe + '">' + esc(r.tipo) + '</span>' +
-          (podeConcluir ? '<button class="botao-mini" data-rev="' + esc(r.id) + '">Concluir</button>' : '') +
+          (podeConcluir ? '<button class="botao-mini botao-quieto" data-rev-timer="' + esc(r.id) + '">Timer</button>' +
+            '<button class="botao-mini" data-rev="' + esc(r.id) + '">Concluir</button>' : '') +
           '</div>';
       });
       html += '</div>';
@@ -3526,6 +3541,12 @@
     });
     raiz.querySelectorAll('[data-rev]').forEach(function (b) {
       b.addEventListener('click', function () { abrirConcluirRevisao(b.getAttribute('data-rev')); });
+    });
+    raiz.querySelectorAll('[data-rev-timer]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const rev = doAtivo(state.revisoes).find(function (x) { return x.id === b.getAttribute('data-rev-timer'); });
+        if (rev) iniciarTimerDaRevisao(rev);
+      });
     });
     // Esquema de revisões: alterna o campo personalizado e salva/reaplica.
     raiz.querySelectorAll('input[name="rev-esq"]').forEach(function (r) {
@@ -6562,6 +6583,14 @@
   // Revisões (repetição espaçada) pendentes de um dia — fonte única, refletida no
   // calendário; cada uma já descontou tempo do dia na geração da agenda.
   function revisoesDoDia(diaISO) { return D.revisoesPendentesNoDia(state, diaISO); }
+  // Revisões CONCLUÍDAS num dia (pela data em que foram feitas) — ficam no
+  // calendário riscadas, como registro de que o aluno cumpriu a revisão. Não
+  // entram na carga horária planejada do dia (já foram feitas).
+  function revisoesConcluidasNoDia(diaISO) {
+    return doAtivo(state.revisoes).filter(function (r) {
+      return r && r.dataConcluida === diaISO && D.topicoPorId(state, r.topicoId);
+    });
+  }
   // Simulados registrados num dia (do plano ativo) — marcados no calendário.
   function simuladosDoDia(diaISO) {
     return doAtivo(state.simulados).filter(function (s) { return s.data === diaISO; });
@@ -6586,6 +6615,19 @@
       '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão</span>' +
       '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
   }
+  // Chip de revisão JÁ CONCLUÍDA — riscado (visual "feito"), como registro no
+  // calendário de que a revisão foi cumprida naquele dia. Clica para rever.
+  function revisaoChipConcluida(r) {
+    const t = D.topicoPorId(state, r.topicoId);
+    const d = D.disciplinaDoTopico(state, r.topicoId);
+    const cor = d ? d.cor : '#9A9DA3';
+    const pctTxt = r.resultadoPct != null ? ' · ' + r.resultadoPct + '%' : '';
+    const sub = rotuloTipoRevisao(r.tipo) + (t ? ' · ' + t.nome : '') + pctTxt;
+    return '<div class="agenda-bloco agenda-bloco-revisao feito" data-revisao-feita="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão concluída · ' + esc(sub) + '">' +
+      '<span class="agenda-bloco-rev-ic" aria-hidden="true">✓</span>' +
+      '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão feita</span>' +
+      '<span class="agenda-bloco-sub">' + esc(sub) + '</span></span></div>';
+  }
 
   // Menu de ações da revisão ao tocar no card do calendário: Concluir (se vencida
   // ou de hoje) e Mover de dia. Substitui o antigo botão ✓ inline (que deformava
@@ -6601,6 +6643,7 @@
       ' · agendada para ' + D.formatarDataBR(r.dataAgendada) + '</p>' +
       '<div class="modal-acoes modal-acoes-coluna">' +
       (podeConcluir ? '<button type="button" id="rev-ac-concluir">✓ Concluir revisão</button>' : '') +
+      (podeConcluir ? '<button type="button" class="botao-secundario" id="rev-ac-timer">▶ Cronometrar</button>' : '') +
       '<button type="button" class="botao-secundario" id="rev-ac-mover">Mover de dia</button>' +
       '<button type="button" class="botao-quieto" id="rev-ac-cancelar">Cancelar</button>' +
       '</div>'
@@ -6608,7 +6651,23 @@
     m.querySelector('#rev-ac-cancelar').addEventListener('click', fecharModal);
     const bc = m.querySelector('#rev-ac-concluir');
     if (bc) bc.addEventListener('click', function () { fecharModal(); abrirConcluirRevisao(revId); });
+    const bt = m.querySelector('#rev-ac-timer');
+    if (bt) bt.addEventListener('click', function () { fecharModal(); iniciarTimerDaRevisao(r); });
     m.querySelector('#rev-ac-mover').addEventListener('click', function () { fecharModal(); abrirMoverRevisao(revId); });
+  }
+  // Visão de uma revisão já concluída (chip riscado do calendário): só leitura.
+  function abrirDetalhesRevisaoConcluida(revId) {
+    const r = doAtivo(state.revisoes).find(function (x) { return x.id === revId; });
+    if (!r) return;
+    const t = D.topicoPorId(state, r.topicoId);
+    const m = abrirModal(
+      '<h3>Revisão concluída ✓</h3>' +
+      '<p class="sub">' + (t ? esc(t.nome) + ' · ' : '') + 'revisão ' + esc(rotuloTipoRevisao(r.tipo)) + '</p>' +
+      '<p class="sub">Concluída em ' + D.formatarDataBR(r.dataConcluida) +
+      (r.resultadoPct != null ? ' · desempenho ' + r.resultadoPct + '%' : '') + '</p>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="revf-fechar">Fechar</button></div>'
+    );
+    m.querySelector('#revf-fechar').addEventListener('click', fecharModal);
   }
   // Chip de simulado para a grade semanal (clica para abrir os detalhes do dia).
   function simuladoChipSemana(s) {
@@ -6703,6 +6762,20 @@
     location.hash = '#timer';
   }
 
+  // Abre o timer já apontando para uma revisão: o tópico vem pré-selecionado, o
+  // limite pré-preenchido com a duração da revisão e, ao encerrar, cai direto no
+  // modal de concluir a revisão (com o tempo cronometrado já preenchido).
+  function iniciarTimerDaRevisao(rev) {
+    if (!rev) return;
+    if (!D.topicoPorId(state, rev.topicoId)) { toast('Tópico da revisão não encontrado.', 'erro'); return; }
+    timerPreselecao = rev.topicoId;
+    timerRevisaoPendente = rev.id;
+    timerBlocoPendente = null;
+    timerLimitePendente = D.duracaoRevisaoMin(rev.tipo);
+    timerAutoIniciar = true;
+    location.hash = '#timer';
+  }
+
   function registrarDeAgenda(blocoAg) {
     const disc = D.disciplinaPorId(state, blocoAg.disciplinaId);
     const topId = blocoAg.topicoId || (disc && disc.topicos.length > 0 ? disc.topicos[0].id : null);
@@ -6717,6 +6790,41 @@
       data: blocoAg.data,
       blocoId: blocoAg.id,
       aoSalvar: function () { salvar(); render(); }
+    });
+  }
+
+  // Opções de um <select> de tópicos: "disciplina inteira" + tópicos + a opção de
+  // criar um tópico novo na hora. Reutilizado nos modais de agenda e ciclo.
+  const OPT_NOVO_TOPICO = '__novo_topico__';
+  function opcoesTopicosSelect(disc, selecionadoId) {
+    return '<option value="">— disciplina inteira —</option>' +
+      (disc ? disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
+        return '<option value="' + esc(t.id) + '"' + (selecionadoId && t.id === selecionadoId ? ' selected' : '') + '>' +
+          esc(t.id + ' — ' + t.nome) + (t.adicionadoPeloUsuario ? ' (novo)' : '') + '</option>';
+      }).join('') : '') +
+      '<option value="' + OPT_NOVO_TOPICO + '">＋ criar novo tópico…</option>';
+  }
+  // Liga a opção "criar novo tópico" a um par (selDisc, selTop): ao escolhê-la,
+  // pede o nome, cria o tópico na disciplina e já o seleciona. Preserva a escolha
+  // anterior se o usuário cancelar.
+  function ligarCriarTopicoSelect(selDisc, selTop) {
+    selTop.dataset.prevTop = selTop.value;
+    selTop.addEventListener('change', function () {
+      if (selTop.value !== OPT_NOVO_TOPICO) { selTop.dataset.prevTop = selTop.value; return; }
+      const disc = D.disciplinaPorId(state, selDisc.value);
+      const prev = selTop.dataset.prevTop || '';
+      if (!disc) { selTop.value = prev; return; }
+      pedirTexto({
+        titulo: 'Novo tópico', mensagem: 'Novo tópico em ' + disc.nome,
+        placeholder: 'Ex.: Atos administrativos', confirmar: 'Criar', maxlength: 120
+      }).then(function (nome) {
+        if (!nome) { selTop.value = prev; return; }
+        const id = adicionarTopicoUsuario(disc.id, nome);
+        selTop.innerHTML = opcoesTopicosSelect(D.disciplinaPorId(state, selDisc.value), id);
+        selTop.value = id || prev;
+        selTop.dataset.prevTop = selTop.value;
+        if (id) toast('Tópico “' + nome + '” criado.', 'sucesso');
+      });
     });
   }
 
@@ -6741,13 +6849,12 @@
     const selTop = m.querySelector('#agd-topico');
     function preencher() {
       const d = D.disciplinaPorId(state, selDisc.value);
-      selTop.innerHTML = '<option value="">— disciplina inteira —</option>' +
-        (d ? d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
-          return '<option value="' + esc(t.id) + '">' + esc(t.id + ' — ' + t.nome) + '</option>';
-        }).join('') : '');
+      selTop.innerHTML = opcoesTopicosSelect(d, null);
+      selTop.dataset.prevTop = selTop.value;
     }
     preencher();
     selDisc.addEventListener('change', preencher);
+    ligarCriarTopicoSelect(selDisc, selTop);
     m.querySelector('#agd-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#form-agd').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -6794,13 +6901,12 @@
     const selTop = m.querySelector('#agde-topico');
     function preencher() {
       const d = D.disciplinaPorId(state, selDisc.value);
-      selTop.innerHTML = '<option value="">— disciplina inteira —</option>' +
-        (d ? d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
-          return '<option value="' + esc(t.id) + '"' + (t.id === a.topicoId ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
-        }).join('') : '');
+      selTop.innerHTML = opcoesTopicosSelect(d, a.topicoId);
+      selTop.dataset.prevTop = selTop.value;
     }
     preencher();
     selDisc.addEventListener('change', preencher);
+    ligarCriarTopicoSelect(selDisc, selTop);
     m.querySelector('#agde-excluir').addEventListener('click', function () {
       state.agenda = state.agenda.filter(function (x) { return x.id !== id; });
       salvar(); fecharModal(); render();
@@ -9065,6 +9171,7 @@
         const data = D.addDias(agendaRef, i);
         const blocos = blocosDoDia(data);
         const revs = revisoesDoDia(data);
+        const revsFeitas = revisoesConcluidasNoDia(data);
         const sims = simuladosDoDia(data);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
         const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
@@ -9073,6 +9180,7 @@
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
           (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
           revs.map(revisaoChipSemana).join('') +
+          revsFeitas.map(revisaoChipConcluida).join('') +
           sims.map(simuladoChipSemana).join('') +
           blocos.map(function (b) {
             const d = D.disciplinaPorId(state, b.disciplinaId);
@@ -9126,12 +9234,13 @@
           if (!blocoAgendaConcluido(b)) g.feito = false;
         });
         const revs = revisoesDoDia(cursor);
+        const revsFeitas = revisoesConcluidasNoDia(cursor);
         const sims = simuladosDoDia(cursor);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
         const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
         const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + simsMin;
         const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
-        const temConteudo = blocos.length > 0 || revs.length > 0 || sims.length > 0;
+        const temConteudo = blocos.length > 0 || revs.length > 0 || revsFeitas.length > 0 || sims.length > 0;
 
         let chips = porDisc.slice(0, MAX_CHIPS_MES).map(function (g) {
           const d = D.disciplinaPorId(state, g.id);
@@ -9143,6 +9252,7 @@
         }).join('');
         if (porDisc.length > MAX_CHIPS_MES) chips += '<span class="mes-mais">+' + (porDisc.length - MAX_CHIPS_MES) + ' mais</span>';
         if (revs.length > 0) chips += '<span class="mes-evento mes-evento-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '"><span class="mes-evento-nome">🔁 ' + revs.length + ' revisão' + (revs.length > 1 ? 'ões' : '') + '</span></span>';
+        if (revsFeitas.length > 0) chips += '<span class="mes-evento mes-evento-rev feito" title="' + revsFeitas.length + ' revisão(ões) concluída(s)"><span class="mes-evento-nome">✓ ' + revsFeitas.length + ' revisão' + (revsFeitas.length > 1 ? 'ões' : '') + '</span></span>';
         if (sims.length > 0) chips += '<span class="mes-evento mes-evento-sim feito" title="' + sims.length + ' simulado(s)"><span class="mes-evento-nome">📝 Simulado</span></span>';
 
         html += '<div class="mes-celula mes-celula-rotulos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
@@ -9228,6 +9338,7 @@
   function abrirDetalhesDia(dataISO) {
     const blocos = blocosDoDia(dataISO);
     const revs = revisoesDoDia(dataISO);
+    const revsFeitas = revisoesConcluidasNoDia(dataISO);
     const sims = simuladosDoDia(dataISO);
     const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
     const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
@@ -9258,6 +9369,18 @@
           '<span class="dia-detalhe-sub">' + D.formatarMin(D.duracaoRevisaoMin(r.tipo)) + ' · revisão ' + esc(rotuloTipoRevisao(r.tipo)) + '</span></span>' +
           '<button type="button" class="botao-mini botao-quieto" data-mover-rev="' + esc(r.id) + '">Mover</button></div>';
       }).join('') + '</div></div>';
+    const revsFeitasHtml = revsFeitas.length === 0 ? '' :
+      '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">✓ Revisões concluídas</h4><div class="dia-detalhe-lista">' +
+      revsFeitas.map(function (r) {
+        const t = D.topicoPorId(state, r.topicoId);
+        const d = D.disciplinaDoTopico(state, r.topicoId);
+        const cor = d ? d.cor : '#9A9DA3';
+        const pctTxt = r.resultadoPct != null ? ' · ' + r.resultadoPct + '%' : '';
+        return '<div class="dia-detalhe-item dia-detalhe-rev feito" style="--disc-cor:' + esc(cor) + '">' +
+          '<span class="dia-detalhe-cor" style="background:' + esc(cor) + '"></span>' +
+          '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + (t ? esc(t.nome) : 'Revisão') + ' ✓</span>' +
+          '<span class="dia-detalhe-sub">revisão ' + esc(rotuloTipoRevisao(r.tipo)) + ' concluída' + pctTxt + '</span></span></div>';
+      }).join('') + '</div></div>';
     const ymd = dataISO.split('-').map(Number);
     const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(ymd[0], ymd[1] - 1, ymd[2]).getDay()];
     const listaHtml = blocos.length === 0
@@ -9279,7 +9402,7 @@
     const m = abrirModal(
       '<div class="dia-detalhe-cab"><div><h3>' + D.formatarDataBR(dataISO) + '</h3>' +
       '<p class="sub">' + diaSemana + (blocos.length || revs.length || sims.length ? ' · ' + blocos.length + ' blocos · ' + revs.length + ' revisões' + (sims.length ? ' · ' + sims.length + ' simulados' : '') + ' · ' + D.formatarMin(totalMin) : ' · dia livre') + '</p></div></div>' +
-      listaHtml + revsHtml + simsHtml +
+      listaHtml + revsHtml + revsFeitasHtml + simsHtml +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="dd-semana">Abrir semana</button>' +
       '<button type="button" class="botao" id="dd-add">+ Adicionar bloco</button></div>'
     );
@@ -9536,6 +9659,11 @@
       el.addEventListener('click', abrir);
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
     });
+    raiz.querySelectorAll('[data-revisao-feita]').forEach(function (el) {
+      const abrir = function () { abrirDetalhesRevisaoConcluida(el.getAttribute('data-revisao-feita')); };
+      el.addEventListener('click', abrir);
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirBlocoAgenda(el.getAttribute('data-bloco')); } });
@@ -9761,13 +9889,12 @@
     const selTop = m.querySelector('#cic-topico');
     function preencher() {
       const d = D.disciplinaPorId(state, selDisc.value);
-      selTop.innerHTML = '<option value="">— disciplina inteira —</option>' +
-        (d ? d.topicos.filter(function (t) { return !t.orfao; }).map(function (t) {
-          return '<option value="' + esc(t.id) + '"' + (b && t.id === b.topicoId ? ' selected' : '') + '>' + esc(t.id + ' — ' + t.nome) + '</option>';
-        }).join('') : '');
+      selTop.innerHTML = opcoesTopicosSelect(d, b ? b.topicoId : null);
+      selTop.dataset.prevTop = selTop.value;
     }
     preencher();
     selDisc.addEventListener('change', preencher);
+    ligarCriarTopicoSelect(selDisc, selTop);
     m.querySelector('#cic-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#form-ciclo').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -10775,7 +10902,7 @@
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
     const tela = telas[rota];
-    if (rota !== 'timer') { pintarTimerAtual = null; timerBlocoPendente = null; timerLimitePendente = null; timerAutoIniciar = false; }
+    if (rota !== 'timer') { pintarTimerAtual = null; timerBlocoPendente = null; timerRevisaoPendente = null; timerLimitePendente = null; timerAutoIniciar = false; }
     // À prova de falhas: um erro numa tela não pode mais congelar a navegação
     // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
     try {

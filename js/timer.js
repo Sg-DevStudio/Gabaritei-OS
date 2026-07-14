@@ -32,6 +32,7 @@
     const e = {
       topicoId: interno.topicoId,
       blocoId: interno.blocoId || null,
+      revisaoId: interno.revisaoId || null,
       modo: interno.modo,
       rodando: interno.rodando,
       decorridoMs: ms,
@@ -87,6 +88,7 @@
     interno = {
       topicoId: topicoId || null,
       blocoId: opcoes.blocoId || null,
+      revisaoId: opcoes.revisaoId || null,
       modo: modo || 'cronometro',
       inicioEm: Date.now(),
       ultimoTickEm: Date.now(),
