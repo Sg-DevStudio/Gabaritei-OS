@@ -250,6 +250,20 @@
     return plano;
   }
 
+  // Estado de participação da disciplina no planejamento. O campo é opcional nos
+  // backups antigos; a migração o preenche sem alterar tópicos nem histórico.
+  function normalizarStatusDisciplinas(disciplinas) {
+    (disciplinas || []).forEach(function (d) {
+      if (!d || d.id === 'ORF') return;
+      const topicos = (d.topicos || []).filter(function (t) { return t && !t.orfao; });
+      const concluida = topicos.length > 0 && topicos.every(function (t) {
+        return t.status === 'teoria_concluida' || t.status === 'dominado';
+      });
+      if (d.planejamentoStatus === 'paused') return;
+      d.planejamentoStatus = concluida ? 'completed' : 'active';
+    });
+  }
+
   // Recupera horas perdidas: para cada bloco da agenda concluído cujo tópico não
   // era resolvível (b.topicoId nulo e a disciplina sem tópicos), o registro antigo
   // pela bolinha NÃO criava sessão. Aqui recriamos a sessão correspondente. Blocos
@@ -306,6 +320,8 @@
     // Regras de estudo recorrente (troca de disciplina por dia da semana), que o
     // motor de geração da agenda respeita (ver domain.aplicarRegrasAgenda).
     if (!Array.isArray(state.config.regrasAgenda)) state.config.regrasAgenda = [];
+    if (!Array.isArray(state.config.historicoAjustesAgenda)) state.config.historicoAjustesAgenda = [];
+    if (state.config.ultimoAjusteAgenda === undefined) state.config.ultimoAjusteAgenda = null;
     if (!state.config.googleCalendar) state.config.googleCalendar = {};
     if (state.config.googleCalendar.clientId === undefined) state.config.googleCalendar.clientId = '';
     if (!state.config.googleCalendar.calendarId) state.config.googleCalendar.calendarId = 'primary';
@@ -350,7 +366,11 @@
     }
     // Ciclo de estudos: cada plano ganha um modo ('cronograma' | 'ciclo') e um
     // ciclo (fila ponderada de blocos). Planos antigos ficam em 'cronograma'.
-    state.planos.forEach(function (p) { if (p && p.plano) normalizarCicloPlano(p.plano); });
+    state.planos.forEach(function (p) {
+      if (!p) return;
+      if (p.plano) normalizarCicloPlano(p.plano);
+      normalizarStatusDisciplinas(p.disciplinas);
+    });
     normalizarAcentosConteudo(state);
     // Backfill único: até a correção do registro pela bolinha, um bloco concluído
     // SEM tópico resolvível era riscado (feito) mas não gravava sessão — então as

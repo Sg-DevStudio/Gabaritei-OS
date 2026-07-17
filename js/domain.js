@@ -304,6 +304,311 @@
     return n;
   }
 
+  // ---------- Ajustes do cronograma: substituir / pausar disciplinas ----------
+  // O status vive na própria disciplina para continuar junto do plano quando ele
+  // sincroniza entre aparelhos. Planos antigos não têm o campo: nesses casos o
+  // estado é derivado dos tópicos, sem exigir migração destrutiva.
+  const STATUS_DISCIPLINA = {
+    ATIVA: 'active',
+    PAUSADA: 'paused',
+    CONCLUIDA: 'completed'
+  };
+
+  function statusDisciplinaPlanejamento(disciplina) {
+    if (!disciplina) return STATUS_DISCIPLINA.ATIVA;
+    if (disciplina.planejamentoStatus === STATUS_DISCIPLINA.PAUSADA) return STATUS_DISCIPLINA.PAUSADA;
+    const topicos = (disciplina.topicos || []).filter(function (t) { return t && !t.orfao; });
+    if (topicos.length > 0 && topicos.every(function (t) {
+      return t.status === 'teoria_concluida' || t.status === 'dominado';
+    })) return STATUS_DISCIPLINA.CONCLUIDA;
+    return STATUS_DISCIPLINA.ATIVA;
+  }
+
+  function disciplinaAtivaPlanejamento(disciplina) {
+    return !!disciplina && disciplina.id !== 'ORF' &&
+      statusDisciplinaPlanejamento(disciplina) === STATUS_DISCIPLINA.ATIVA;
+  }
+
+  function minutosPendentesDisciplina(disciplina) {
+    if (!disciplina || disciplina.id === 'ORF') return 0;
+    return Math.round((disciplina.topicos || []).reduce(function (total, t) {
+      if (!t || t.orfao || t.status === 'teoria_concluida' || t.status === 'dominado') return total;
+      return total + (Number(t.horas_estimadas) > 0 ? Number(t.horas_estimadas) : 2) * 60;
+    }, 0));
+  }
+
+  function blocoAgendaProtegido(bloco) {
+    if (!bloco) return true;
+    return !!bloco.feito || Number(bloco.feitoMin || 0) > 0 ||
+      ((bloco.duracaoMin || 0) > 0 && Number(bloco.feitoMin || 0) >= Number(bloco.duracaoMin || 0));
+  }
+
+  function topicoPendentePrioritario(disciplina) {
+    return (disciplina.topicos || []).filter(function (t) {
+      return t && !t.orfao && t.status !== 'teoria_concluida' && t.status !== 'dominado';
+    }).slice().sort(function (a, b) {
+      return (a.prioridade || 2) - (b.prioridade || 2) ||
+        (b.incidencia_pct || 0) - (a.incidencia_pct || 0) ||
+        (a.semana_sugerida || 9999) - (b.semana_sugerida || 9999);
+    })[0] || null;
+  }
+
+  function dificuldadePeso(disciplina) {
+    return disciplina && disciplina.dificuldade === 'dificil' ? 1.4
+      : disciplina && disciplina.dificuldade === 'facil' ? 0.8 : 1;
+  }
+
+  // Capacidade até a data final x conteúdo pendente. Uma disciplina pausada
+  // continua integralmente na dívida do edital, mas não consome capacidade
+  // enquanto permanecer pausada; por isso sua carga aparece como déficit.
+  function viabilidadeEdital(state, hoje, opcoes) {
+    opcoes = opcoes || {};
+    hoje = hoje || hojeISO();
+    const pausadasExtras = new Set(opcoes.disciplinasPausadas || []);
+    let pendenteMin = 0, pausadoMin = 0, ativoMin = 0;
+    (state.disciplinas || []).forEach(function (d) {
+      const min = minutosPendentesDisciplina(d);
+      pendenteMin += min;
+      const pausada = pausadasExtras.has(d.id) ||
+        statusDisciplinaPlanejamento(d) === STATUS_DISCIPLINA.PAUSADA;
+      if (pausada) pausadoMin += min;
+      else ativoMin += min;
+    });
+
+    let dataFinal = opcoes.dataFinal || prazoProva(state);
+    const cron = cronogramaAtivo(state);
+    if (!dataFinal && cron.length > 0) dataFinal = addDias(cron[cron.length - 1].inicio, 7);
+    if (!dataFinal && state.plano && state.plano.ritmos) {
+      const chave = state.plano.ritmoAtivo || 'sustentavel';
+      const r = state.plano.ritmos[chave];
+      if (r && r.semanas) dataFinal = addDias(segundaDaSemana(state.plano.gerado_em || hoje), r.semanas * 7);
+    }
+
+    const ritmo = state.plano && state.plano.ritmos &&
+      state.plano.ritmos[state.plano.ritmoAtivo || 'sustentavel'];
+    const minutosSemana = Math.max(0, Number(opcoes.minutosSemana) ||
+      (ritmo && Number(ritmo.h_semana) * 60) || 0);
+    const diasDisponiveis = dataFinal ? Math.max(0, diffDias(hoje, dataFinal)) : 0;
+    const capacidadeMin = Math.round(minutosSemana * diasDisponiveis / 7);
+    const deficitAtivo = Math.max(0, ativoMin - capacidadeMin);
+    const deficitMin = pausadoMin + deficitAtivo;
+    const semanasConclusao = minutosSemana > 0 ? ativoMin / minutosSemana : Infinity;
+    const conclusaoEstimada = isFinite(semanasConclusao)
+      ? addDias(hoje, Math.ceil(semanasConclusao * 7)) : null;
+    return {
+      conteudoPendenteMin: pendenteMin,
+      conteudoPausadoMin: pausadoMin,
+      conteudoAtivoMin: ativoMin,
+      capacidadeMin: capacidadeMin,
+      dataFinal: dataFinal,
+      conclusaoEstimada: conclusaoEstimada,
+      deficitMin: deficitMin,
+      viavel: !!dataFinal && minutosSemana > 0 && deficitMin <= 0
+    };
+  }
+
+  function disciplinasDestinoAjuste(state, origemId, idsPermitidos) {
+    const permitidos = Array.isArray(idsPermitidos) && idsPermitidos.length
+      ? new Set(idsPermitidos) : null;
+    return (state.disciplinas || []).filter(function (d) {
+      return d && d.id !== origemId && disciplinaAtivaPlanejamento(d) &&
+        minutosPendentesDisciplina(d) > 0 && (!permitidos || permitidos.has(d.id));
+    }).map(function (d) {
+      const pendenteMin = minutosPendentesDisciplina(d);
+      return {
+        disciplina: d,
+        pendenteMin: pendenteMin,
+        restanteMin: pendenteMin,
+        topico: topicoPendentePrioritario(d),
+        score: pendenteMin * Math.max(1, Number(d.peso) || 1) * dificuldadePeso(d)
+      };
+    });
+  }
+
+  // Produz uma prévia determinística e NÃO modifica `state`. O resultado contém
+  // mudanças por id de bloco e pode ser entregue diretamente a aplicarAjusteAgenda
+  // após a confirmação do usuário.
+  function simularAjusteAgenda(state, opcoes) {
+    opcoes = opcoes || {};
+    const hoje = opcoes.hoje || hojeISO();
+    const bloco = (state.agenda || []).find(function (b) { return b && b.id === opcoes.blocoId; });
+    if (!bloco) return { ok: false, erro: 'Bloco não encontrado.', mudancas: [] };
+    if (blocoAgendaProtegido(bloco)) {
+      return { ok: false, erro: 'Blocos concluídos ou já iniciados não podem ser alterados.', mudancas: [] };
+    }
+    const origem = disciplinaPorId(state, bloco.disciplinaId);
+    if (!origem) return { ok: false, erro: 'Disciplina do bloco não encontrada.', mudancas: [] };
+
+    const alcance = ['bloco', 'semana', 'futuro'].indexOf(opcoes.alcance) >= 0 ? opcoes.alcance : 'bloco';
+    const inicio = bloco.data < hoje ? hoje : bloco.data;
+    const fimSemana = addDias(segundaDaSemana(bloco.data), 7);
+    const afetados = doPlanoAtivo(state, state.agenda || []).filter(function (b) {
+      if (!b || b.disciplinaId !== origem.id || blocoAgendaProtegido(b)) return false;
+      if (alcance === 'bloco') return b.id === bloco.id;
+      if (b.data < inicio) return false;
+      return alcance === 'semana' ? b.data < fimSemana : true;
+    }).slice().sort(function (a, b) {
+      return String(a.data).localeCompare(String(b.data)) ||
+        Number(a.ordem || 0) - Number(b.ordem || 0) || String(a.id).localeCompare(String(b.id));
+    });
+    if (afetados.length === 0) {
+      return { ok: false, erro: 'Não há blocos futuros disponíveis nesse alcance.', mudancas: [] };
+    }
+
+    const candidatos = disciplinasDestinoAjuste(state, origem.id, opcoes.disciplinasDestino);
+    const porDestino = {};
+    const mudancas = [];
+    let totalLiberadoMin = 0, totalRedistribuidoMin = 0, naoAlocadoMin = 0;
+    afetados.forEach(function (original) {
+      let restante = Math.max(0, Number(original.duracaoMin) || 0);
+      totalLiberadoMin += restante;
+      const fragmentos = [];
+      while (restante > 0) {
+        const disponiveis = candidatos.filter(function (c) { return c.restanteMin > 0; });
+        if (disponiveis.length === 0) break;
+        disponiveis.sort(function (a, b) {
+          return b.restanteMin - a.restanteMin || b.score - a.score ||
+            String(a.disciplina.id).localeCompare(String(b.disciplina.id));
+        });
+        const c = disponiveis[0];
+        const duracao = Math.min(restante, c.restanteMin);
+        fragmentos.push({
+          disciplinaId: c.disciplina.id,
+          topicoId: c.topico ? c.topico.id : null,
+          duracaoMin: duracao
+        });
+        c.restanteMin -= duracao;
+        restante -= duracao;
+        totalRedistribuidoMin += duracao;
+        porDestino[c.disciplina.id] = (porDestino[c.disciplina.id] || 0) + duracao;
+      }
+      naoAlocadoMin += restante;
+      mudancas.push({
+        blocoId: original.id,
+        data: original.data,
+        duracaoOriginalMin: Number(original.duracaoMin) || 0,
+        fragmentos: fragmentos,
+        naoAlocadoMin: restante
+      });
+    });
+
+    const tipo = opcoes.tipo === 'substituir' ? 'substituir' : 'pausar';
+    const marcarPausada = alcance === 'futuro';
+    const destinatarios = Object.keys(porDestino).map(function (id) {
+      const d = disciplinaPorId(state, id);
+      return { disciplinaId: id, nome: d ? d.nome : id, minutos: porDestino[id] };
+    }).sort(function (a, b) { return b.minutos - a.minutos; });
+    const viabilidade = viabilidadeEdital(state, hoje, {
+      minutosSemana: opcoes.minutosSemana,
+      disciplinasPausadas: marcarPausada ? [origem.id] : []
+    });
+    const avisos = [];
+    if (candidatos.length === 0) avisos.push('Nenhuma disciplina ativa tem conteúdo pendente para receber as horas.');
+    if (naoAlocadoMin > 0) avisos.push(formatarMin(naoAlocadoMin) + ' ficarão livres porque não há conteúdo ativo suficiente.');
+    if (!viabilidade.viavel && viabilidade.dataFinal) {
+      avisos.push('Faltarão aproximadamente ' + formatarMin(viabilidade.deficitMin) + ' para concluir o edital até a data definida.');
+    }
+    return {
+      ok: true,
+      podeAplicar: tipo === 'pausar' || totalRedistribuidoMin > 0,
+      tipo: tipo,
+      alcance: alcance,
+      blocoId: bloco.id,
+      disciplinaId: origem.id,
+      disciplinaNome: origem.nome || origem.id,
+      inicio: inicio,
+      fim: alcance === 'semana' ? addDias(fimSemana, -1) : null,
+      marcarPausada: marcarPausada,
+      blocosAfetados: afetados.length,
+      totalLiberadoMin: totalLiberadoMin,
+      totalRedistribuidoMin: totalRedistribuidoMin,
+      naoAlocadoMin: naoAlocadoMin,
+      destinatarios: destinatarios,
+      mudancas: mudancas,
+      blocosRemovidos: mudancas.length,
+      blocosAdicionados: mudancas.reduce(function (n, m) { return n + m.fragmentos.length; }, 0),
+      blocosRedimensionados: mudancas.filter(function (m) {
+        return m.fragmentos.length !== 1 ||
+          (m.fragmentos[0] && m.fragmentos[0].duracaoMin !== m.duracaoOriginalMin);
+      }).length,
+      viabilidade: viabilidade,
+      avisos: avisos
+    };
+  }
+
+  function aplicarAjusteAgenda(state, previa, opcoes) {
+    opcoes = opcoes || {};
+    if (!previa || !previa.ok || !Array.isArray(previa.mudancas)) {
+      return { ok: false, erro: 'Prévia inválida.' };
+    }
+    const porId = {};
+    previa.mudancas.forEach(function (m) { porId[m.blocoId] = m; });
+    const idsUsados = new Set((state.agenda || []).map(function (b) { return b && b.id; }).filter(Boolean));
+    const criarId = typeof opcoes.criarId === 'function' ? opcoes.criarId : function () {
+      return 'agd-aj-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    };
+    const operacaoId = opcoes.operacaoId || ('op-agenda-' + Date.now().toString(36));
+    const novaAgenda = [];
+    (state.agenda || []).forEach(function (original) {
+      const mudanca = original && porId[original.id];
+      if (!mudanca) { novaAgenda.push(original); return; }
+      if (blocoAgendaProtegido(original)) { novaAgenda.push(original); return; }
+      mudanca.fragmentos.forEach(function (f, i) {
+        const novo = Object.assign({}, original, {
+          disciplinaId: f.disciplinaId,
+          topicoId: f.topicoId || null,
+          duracaoMin: f.duracaoMin,
+          feito: false,
+          feitoMin: 0,
+          // Um ajuste confirmado vira bloco fixo: recalcular a agenda preserva a
+          // decisão e usa somente a capacidade restante do dia.
+          gerado: false,
+          bloqueado: true,
+          origemAjusteId: operacaoId,
+          blocoOrigemId: original.id
+        });
+        if (i > 0) {
+          let id = criarId();
+          while (!id || idsUsados.has(id)) id = criarId();
+          novo.id = id;
+          idsUsados.add(id);
+          novo.ordem = (typeof original.ordem === 'number' ? original.ordem : 0) + i / 100;
+        }
+        novaAgenda.push(novo);
+      });
+    });
+    state.agenda = novaAgenda;
+    const origem = disciplinaPorId(state, previa.disciplinaId);
+    if (origem && previa.marcarPausada) {
+      origem.planejamentoStatus = STATUS_DISCIPLINA.PAUSADA;
+      origem.pausadaEm = opcoes.aplicadaEm || hojeISO();
+      origem.pausaOperacaoId = operacaoId;
+      origem.pausaAlcance = previa.alcance;
+      origem.pausaMotivo = opcoes.motivo || (previa.tipo === 'substituir' ? 'substituição de disciplina' : 'pausa de disciplina');
+    }
+    return {
+      ok: true,
+      operacaoId: operacaoId,
+      blocosAfetados: previa.blocosAfetados,
+      totalRedistribuidoMin: previa.totalRedistribuidoMin,
+      naoAlocadoMin: previa.naoAlocadoMin,
+      disciplinaPausada: !!(origem && previa.marcarPausada)
+    };
+  }
+
+  function reativarDisciplina(state, disciplinaId, opcoes) {
+    const d = disciplinaPorId(state, disciplinaId);
+    if (!d || statusDisciplinaPlanejamento(d) !== STATUS_DISCIPLINA.PAUSADA) return false;
+    d.planejamentoStatus = STATUS_DISCIPLINA.ATIVA;
+    d.reativadaEm = (opcoes && opcoes.data) || hojeISO();
+    d.retomadaModo = (opcoes && opcoes.modo) || 'automatic';
+    delete d.pausadaEm;
+    delete d.pausaOperacaoId;
+    delete d.pausaAlcance;
+    delete d.pausaMotivo;
+    return true;
+  }
+
   // ---------- Ciclo de estudos (alternativa ao cronograma fixo) ----------
   // Fila ponderada de matérias com meta de tempo por bloco; roda no ritmo do
   // aluno e, ao fechar a volta, recomeça. Tudo puro/testável (sem DOM).
@@ -338,7 +643,7 @@
   // pendentes, com leve reforço para matérias com desempenho baixo. Exclui ORF.
   function sugerirCiclo(state, opcoes) {
     opcoes = opcoes || {};
-    const discs = (state.disciplinas || []).filter(function (d) { return d && d.id !== 'ORF'; });
+    const discs = (state.disciplinas || []).filter(disciplinaAtivaPlanejamento);
     if (discs.length === 0) return [];
 
     const hojeCiclo = opcoes.hoje || hojeISO();
@@ -1966,6 +2271,9 @@
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     alertaCobertura, adicionarTopicosAoCiclo,
     diaSemanaISO, aplicarRegrasAgenda, regraAgendaAtiva,
+    STATUS_DISCIPLINA, statusDisciplinaPlanejamento, disciplinaAtivaPlanejamento,
+    minutosPendentesDisciplina, viabilidadeEdital, simularAjusteAgenda,
+    aplicarAjusteAgenda, reativarDisciplina,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,

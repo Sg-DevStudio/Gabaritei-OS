@@ -3901,10 +3901,13 @@
       const desemp = D.desempenhoDisciplina(state, d);
       const quentes = idsTopicosQuentes(d.topicos);
       const origem = (state.plano && state.plano.combinado && d.origem) ? d.origem : '';
+      const statusPlanejamento = D.statusDisciplinaPlanejamento(d);
       html += '<button class="disc-cab" data-disc="' + esc(d.id) + '" aria-expanded="' + aberta + '">' +
         '<span style="font-family:var(--fonte-mono);color:var(--grafite)">' + (aberta ? '▾' : '▸') + '</span>' +
         tagDisc(d) + ' ' + esc(nomeDiscCurto(d.nome)) +
         (origem ? '<span class="disc-origem" title="Origem da disciplina">' + esc(origem) + '</span>' : '') +
+        (statusPlanejamento === D.STATUS_DISCIPLINA.PAUSADA ? '<span class="etiqueta etiqueta-pausada">Pausada</span>' :
+          statusPlanejamento === D.STATUS_DISCIPLINA.CONCLUIDA ? '<span class="etiqueta etiqueta-concluida">Concluída</span>' : '') +
         '<span class="disc-prog">' + pd.concluidos + '/' + pd.total + ' · ' + semaforoHtml(desemp, meta) + '</span></button>';
       if (aberta) {
         d.topicos.forEach(function (t) {
@@ -6830,7 +6833,7 @@
 
   function abrirNovoBlocoAgenda(dataISO, discIni) {
     if (state.disciplinas.length === 0) { abrirNovaDisciplina(); return; }
-    const optsDisc = state.disciplinas.map(function (d) {
+    const optsDisc = state.disciplinas.filter(D.disciplinaAtivaPlanejamento).map(function (d) {
       return '<option value="' + esc(d.id) + '"' + (d.id === discIni ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
     }).join('');
     const m = abrirModal(
@@ -6875,7 +6878,23 @@
   function abrirBlocoAgenda(id) {
     const a = state.agenda.find(function (x) { return x.id === id; });
     if (!a) return;
-    const optsDisc = state.disciplinas.map(function (d) {
+    if (blocoAgendaConcluido(a)) {
+      const dFeito = D.disciplinaPorId(state, a.disciplinaId);
+      const tFeito = a.topicoId ? D.topicoPorId(state, a.topicoId) : null;
+      const mFeito = abrirModal(
+        '<h3>Bloco concluído ✓</h3>' +
+        '<p><strong>' + esc(dFeito ? dFeito.nome : a.disciplinaId) + '</strong></p>' +
+        '<p class="sub">' + D.formatarDataBR(a.data) + ' · ' + D.formatarMin(blocoFeitoMin(a) || a.duracaoMin || 0) +
+        (tFeito ? ' · ' + esc(tFeito.nome) : '') + '</p>' +
+        '<p class="ajuste-aviso">Este bloco faz parte do seu histórico e não pode ser alterado.</p>' +
+        '<div class="modal-acoes"><button type="button" class="botao-quieto" id="agde-fechar">Fechar</button></div>'
+      );
+      mFeito.querySelector('#agde-fechar').addEventListener('click', fecharModal);
+      return;
+    }
+    const optsDisc = state.disciplinas.filter(function (d) {
+      return d.id === a.disciplinaId || D.disciplinaAtivaPlanejamento(d);
+    }).map(function (d) {
       return '<option value="' + esc(d.id) + '"' + (d.id === a.disciplinaId ? ' selected' : '') + '>' + esc(d.id + ' — ' + d.nome) + '</option>';
     }).join('');
     const m = abrirModal(
@@ -7072,6 +7091,332 @@
     const aviso = avisoCoberturaDisciplina(discDe);
     toast('Estudo de ' + nomeDiaSemana(bloco.data) + ' agora é ' + (dPara ? dPara.nome : discPara) +
       (aviso ? ' · ⚠️ ' + aviso : ''), aviso ? 'erro' : 'sucesso');
+  }
+
+  function disciplinasPausadasPlano() {
+    return state.disciplinas.filter(function (d) {
+      return D.statusDisciplinaPlanejamento(d) === D.STATUS_DISCIPLINA.PAUSADA;
+    });
+  }
+
+  function snapshotAjusteAgenda() {
+    const entrada = entradaPlanoAtivo();
+    return {
+      agenda: clonarJson(doAtivo(state.agenda)),
+      cronogramas: clonarJson(entrada ? entrada.cronogramas : {}),
+      statusDisciplinas: state.disciplinas.map(function (d) {
+        return {
+          id: d.id,
+          planejamentoStatus: d.planejamentoStatus,
+          pausadaEm: d.pausadaEm,
+          pausaOperacaoId: d.pausaOperacaoId,
+          pausaAlcance: d.pausaAlcance,
+          pausaMotivo: d.pausaMotivo,
+          reativadaEm: d.reativadaEm,
+          retomadaModo: d.retomadaModo
+        };
+      }),
+      regrasAgenda: clonarJson((state.config && state.config.regrasAgenda) || [])
+    };
+  }
+
+  function registrarHistoricoAjuste(previa, resultado, snapshot) {
+    state.config = state.config || {};
+    const registro = {
+      id: resultado.operacaoId,
+      planoId: state.planoAtivoId,
+      aplicadoEm: new Date().toISOString(),
+      tipo: previa.tipo,
+      alcance: previa.alcance,
+      disciplinaId: previa.disciplinaId,
+      disciplinaNome: previa.disciplinaNome,
+      blocosAfetados: previa.blocosAfetados,
+      totalLiberadoMin: previa.totalLiberadoMin,
+      totalRedistribuidoMin: previa.totalRedistribuidoMin,
+      naoAlocadoMin: previa.naoAlocadoMin,
+      motivo: previa.tipo === 'substituir' ? 'substituição de disciplina' : 'pausa de disciplina'
+    };
+    if (!Array.isArray(state.config.historicoAjustesAgenda)) state.config.historicoAjustesAgenda = [];
+    state.config.historicoAjustesAgenda.push(registro);
+    state.config.historicoAjustesAgenda = state.config.historicoAjustesAgenda.slice(-50);
+    state.config.ultimoAjusteAgenda = {
+      planoId: state.planoAtivoId,
+      registro: registro,
+      snapshot: snapshot
+    };
+  }
+
+  function desfazerUltimoAjusteAgenda() {
+    const ultimo = state.config && state.config.ultimoAjusteAgenda;
+    if (!ultimo || ultimo.planoId !== state.planoAtivoId || !ultimo.snapshot) return;
+    confirmar({
+      titulo: 'Desfazer último ajuste?',
+      mensagem: 'O cronograma e os estados das disciplinas voltarão ao ponto anterior. Sessões e revisões não serão alteradas.',
+      confirmar: 'Desfazer'
+    }).then(function (ok) {
+      if (!ok) return;
+      const snap = ultimo.snapshot;
+      state.agenda = state.agenda.filter(function (a) {
+        return a.planoId && a.planoId !== state.planoAtivoId;
+      }).concat(clonarJson(snap.agenda || []));
+      const entrada = entradaPlanoAtivo();
+      if (entrada) entrada.cronogramas = clonarJson(snap.cronogramas || {});
+      const porId = {};
+      (snap.statusDisciplinas || []).forEach(function (s) { porId[s.id] = s; });
+      state.disciplinas.forEach(function (d) {
+        const s = porId[d.id];
+        if (!s) return;
+        ['planejamentoStatus', 'pausadaEm', 'pausaOperacaoId', 'pausaAlcance', 'pausaMotivo', 'reativadaEm', 'retomadaModo'].forEach(function (campo) {
+          if (s[campo] === undefined) delete d[campo]; else d[campo] = s[campo];
+        });
+      });
+      state.config.regrasAgenda = clonarJson(snap.regrasAgenda || []);
+      state.config.historicoAjustesAgenda.push({
+        id: window.Store.novoId('undo'),
+        planoId: state.planoAtivoId,
+        aplicadoEm: new Date().toISOString(),
+        tipo: 'undo',
+        desfazOperacaoId: ultimo.registro && ultimo.registro.id
+      });
+      state.config.historicoAjustesAgenda = state.config.historicoAjustesAgenda.slice(-50);
+      state.config.ultimoAjusteAgenda = null;
+      window.Store.hidratar(state);
+      salvar(); render();
+      toast('Ajuste desfeito. Sessões e revisões foram preservadas.', 'sucesso');
+    });
+  }
+
+  function ajustesAgendaHtml() {
+    const pausadas = disciplinasPausadasPlano();
+    const ultimo = state.config && state.config.ultimoAjusteAgenda;
+    if (pausadas.length === 0 && (!ultimo || ultimo.planoId !== state.planoAtivoId)) return '';
+    return '<div class="card ajustes-agenda-card">' +
+      '<div class="ajustes-agenda-info">' +
+      (pausadas.length > 0
+        ? '<strong>' + pausadas.length + ' disciplina' + (pausadas.length > 1 ? 's pausadas' : ' pausada') + '</strong>' +
+          '<span class="sub">O conteúdo pendente continua guardado e fora da distribuição.</span>'
+        : '<strong>Planejamento ajustado</strong><span class="sub">Você pode desfazer a última alteração.</span>') +
+      '</div><div class="ajustes-agenda-acoes">' +
+      (pausadas.length > 0 ? '<button type="button" class="botao-mini botao-secundario" id="pl-gerenciar-pausadas">Gerenciar</button>' : '') +
+      (ultimo && ultimo.planoId === state.planoAtivoId ? '<button type="button" class="botao-mini botao-quieto" id="pl-desfazer-ajuste">Desfazer</button>' : '') +
+      '</div></div>';
+  }
+
+  function abrirGerenciarDisciplinasPausadas() {
+    const pausadas = disciplinasPausadasPlano();
+    if (!pausadas.length) { toast('Não há disciplinas pausadas.'); return; }
+    const linhas = pausadas.map(function (d) {
+      return '<div class="pausada-linha"><span class="pausada-cor" style="background:' + esc(d.cor || '#9A9DA3') + '"></span>' +
+        '<div><strong>' + esc(d.nome) + '</strong><span class="sub">Pausada · ' + D.formatarMin(D.minutosPendentesDisciplina(d)) + ' pendentes</span></div>' +
+        '<button type="button" class="botao-mini botao-secundario" data-reativar-disc="' + esc(d.id) + '">Reativar</button></div>';
+    }).join('');
+    const m = abrirModal(
+      '<h3>Disciplinas pausadas</h3>' +
+      '<p class="sub">Ao reativar, o conteúdo ainda pendente volta automaticamente ao planejamento.</p>' +
+      '<div class="pausadas-lista">' + linhas + '</div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="pausadas-fechar">Fechar</button></div>'
+    );
+    m.querySelector('#pausadas-fechar').addEventListener('click', fecharModal);
+    m.querySelectorAll('[data-reativar-disc]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-reativar-disc');
+        const antes = D.disciplinaPorId(state, id);
+        const operacaoPausaId = antes && antes.pausaOperacaoId;
+        if (!D.reativarDisciplina(state, id, { modo: 'automatic', data: D.hojeISO() })) return;
+        if (operacaoPausaId) {
+          state.agenda = state.agenda.filter(function (b) {
+            return !(b && b.origemAjusteId === operacaoPausaId && b.data >= D.hojeISO() &&
+              !blocoAgendaConcluido(b) && blocoFeitoMin(b) === 0);
+          });
+        }
+        state.config.historicoAjustesAgenda.push({
+          id: window.Store.novoId('reativar'),
+          planoId: state.planoAtivoId,
+          aplicadoEm: new Date().toISOString(),
+          tipo: 'reativar',
+          disciplinaId: id,
+          modo: 'automatic'
+        });
+        state.config.historicoAjustesAgenda = state.config.historicoAjustesAgenda.slice(-50);
+        fecharModal();
+        const recalculado = recalcularPlanoAdaptativo(true);
+        if (!recalculado) { regenerarAgendaFuturas(); salvar(); }
+        render();
+        const d = D.disciplinaPorId(state, id);
+        toast((d ? d.nome : id) + ' reativada e reinserida no planejamento.', 'sucesso');
+      });
+    });
+  }
+
+  function abrirAjusteDisciplina(blocoId, tipo) {
+    const bloco = state.agenda.find(function (b) { return b.id === blocoId; });
+    if (!bloco || blocoAgendaConcluido(bloco) || blocoFeitoMin(bloco) > 0) {
+      toast('Blocos concluídos ou já iniciados não podem ser alterados.', 'erro');
+      return;
+    }
+    const origem = D.disciplinaPorId(state, bloco.disciplinaId);
+    if (!origem) return;
+    const candidatos = state.disciplinas.filter(function (d) {
+      return d.id !== origem.id && D.disciplinaAtivaPlanejamento(d) && D.minutosPendentesDisciplina(d) > 0;
+    });
+    const fluxo = { alcance: 'bloco', destino: 'automatico', destinos: [] };
+    const m = abrirModal('');
+    m.classList.add('modal-ajuste-agenda');
+
+    function opcaoRadio(nome, valor, titulo, sub, checked) {
+      return '<label class="enf-op"><input type="radio" name="' + nome + '" value="' + valor + '"' + (checked ? ' checked' : '') + '>' +
+        '<span class="enf-op-txt"><strong>' + titulo + '</strong><span class="sub">' + sub + '</span></span></label>';
+    }
+
+    function passo1() {
+      m.innerHTML =
+        '<div class="ajuste-etapa">Etapa 1 de 3 · Alcance</div>' +
+        '<h3>' + (tipo === 'substituir' ? 'Substituir' : 'Pausar') + ' ' + esc(origem.nome) + '</h3>' +
+        '<p class="sub">Blocos concluídos ou já iniciados ficam protegidos.</p>' +
+        '<div class="enf-opcoes">' +
+        opcaoRadio('aj-alc', 'bloco', 'Somente este bloco', D.formatarDataBR(bloco.data) + ' · ' + D.formatarMin(bloco.duracaoMin || 0), fluxo.alcance === 'bloco') +
+        opcaoRadio('aj-alc', 'semana', 'Restante desta semana', 'Deste bloco até domingo, sem tocar no que já foi estudado.', fluxo.alcance === 'semana') +
+        opcaoRadio('aj-alc', 'futuro', 'Todos os blocos futuros', 'A disciplina ficará pausada até ser reativada.', fluxo.alcance === 'futuro') +
+        '</div><div class="modal-acoes"><button type="button" class="botao-quieto" data-aj-cancelar>Cancelar</button>' +
+        '<button type="button" data-aj-proximo>Continuar</button></div>';
+      m.querySelector('[data-aj-cancelar]').addEventListener('click', fecharModal);
+      m.querySelector('[data-aj-proximo]').addEventListener('click', function () {
+        const sel = m.querySelector('input[name="aj-alc"]:checked');
+        fluxo.alcance = sel ? sel.value : 'bloco';
+        passo2();
+      });
+    }
+
+    function passo2() {
+      const opcoesDisc = candidatos.map(function (d) {
+        return '<option value="' + esc(d.id) + '">' + esc(d.nome) + ' · ' + D.formatarMin(D.minutosPendentesDisciplina(d)) + ' pendentes</option>';
+      }).join('');
+      const checks = candidatos.map(function (d) {
+        return '<label class="ajuste-check"><input type="checkbox" value="' + esc(d.id) + '" data-aj-multi> ' +
+          '<span><strong>' + esc(d.nome) + '</strong><span class="sub">' + D.formatarMin(D.minutosPendentesDisciplina(d)) + ' pendentes</span></span></label>';
+      }).join('');
+      m.innerHTML =
+        '<div class="ajuste-etapa">Etapa 2 de 3 · Destino das horas</div>' +
+        '<h3>Como redistribuir o tempo?</h3>' +
+        '<div class="enf-opcoes">' +
+        opcaoRadio('aj-dest', 'automatico', 'Redistribuição automática', 'Prioriza déficit, peso, dificuldade e conteúdo pendente.', fluxo.destino === 'automatico') +
+        opcaoRadio('aj-dest', 'disciplina', 'Escolher uma disciplina', 'Direciona o tempo até o limite da carga pendente.', fluxo.destino === 'disciplina') +
+        opcaoRadio('aj-dest', 'varias', 'Dividir entre disciplinas', 'Distribui apenas entre as matérias selecionadas.', fluxo.destino === 'varias') +
+        '</div>' +
+        (candidatos.length
+          ? '<div class="ajuste-destino-detalhe" data-aj-detalhe="disciplina"><label for="aj-disc">Disciplina substituta</label><select id="aj-disc">' + opcoesDisc + '</select></div>' +
+            '<div class="ajuste-destino-detalhe" data-aj-detalhe="varias"><span class="ajuste-label">Disciplinas receptoras</span><div class="ajuste-checks">' + checks + '</div></div>'
+          : '<div class="ajuste-aviso">Nenhuma disciplina ativa tem conteúdo pendente. O tempo poderá ficar livre, sem criar progresso artificial.</div>') +
+        '<div class="modal-acoes"><button type="button" class="botao-quieto" data-aj-voltar>Voltar</button>' +
+        '<button type="button" data-aj-previa>Revisar prévia</button></div>';
+      function pintarDestino() {
+        const sel = m.querySelector('input[name="aj-dest"]:checked');
+        fluxo.destino = sel ? sel.value : 'automatico';
+        m.querySelectorAll('[data-aj-detalhe]').forEach(function (el) {
+          el.hidden = el.getAttribute('data-aj-detalhe') !== fluxo.destino;
+        });
+      }
+      m.querySelectorAll('input[name="aj-dest"]').forEach(function (r) { r.addEventListener('change', pintarDestino); });
+      pintarDestino();
+      m.querySelector('[data-aj-voltar]').addEventListener('click', passo1);
+      m.querySelector('[data-aj-previa]').addEventListener('click', function () {
+        const sel = m.querySelector('input[name="aj-dest"]:checked');
+        fluxo.destino = sel ? sel.value : 'automatico';
+        if (fluxo.destino === 'disciplina') {
+          const disc = m.querySelector('#aj-disc');
+          fluxo.destinos = disc && disc.value ? [disc.value] : [];
+        } else if (fluxo.destino === 'varias') {
+          fluxo.destinos = Array.from(m.querySelectorAll('[data-aj-multi]:checked')).map(function (x) { return x.value; });
+          if (!fluxo.destinos.length) { toast('Selecione ao menos uma disciplina.', 'erro'); return; }
+        } else fluxo.destinos = [];
+        const previa = D.simularAjusteAgenda(state, {
+          blocoId: bloco.id,
+          tipo: tipo,
+          alcance: fluxo.alcance,
+          disciplinasDestino: fluxo.destinos,
+          hoje: D.hojeISO(),
+          minutosSemana: totalMinutosRotina(rotinaEstudosAtual())
+        });
+        passo3(previa);
+      });
+    }
+
+    function passo3(previa) {
+      if (!previa.ok) { toast(previa.erro || 'Não foi possível gerar a prévia.', 'erro'); passo1(); return; }
+      const destinos = previa.destinatarios.length
+        ? previa.destinatarios.map(function (d) {
+          return '<li><span>' + esc(d.nome) + '</span><strong>' + D.formatarMin(d.minutos) + '</strong></li>';
+        }).join('')
+        : '<li><span>Nenhuma disciplina</span><strong>tempo livre</strong></li>';
+      const v = previa.viabilidade;
+      const viabilidadeHtml = v.viavel
+        ? '<div class="ajuste-viabilidade ok">A conclusão prevista do edital foi mantida.</div>'
+        : '<div class="ajuste-viabilidade alerta">' +
+          (v.dataFinal
+            ? 'Com este ajuste, faltarão aproximadamente <strong>' + D.formatarMin(v.deficitMin) + '</strong> para concluir o edital até ' + D.formatarDataBR(v.dataFinal) + '.'
+            : 'Não há data final ou capacidade semanal suficiente para estimar a conclusão.') + '</div>';
+      m.innerHTML =
+        '<div class="ajuste-etapa">Etapa 3 de 3 · Prévia</div>' +
+        '<h3>Revise antes de confirmar</h3>' +
+        '<div class="ajuste-resumo">' +
+        '<div><span>Disciplina retirada</span><strong>' + esc(previa.disciplinaNome) + (previa.marcarPausada ? ' · será pausada' : '') + '</strong></div>' +
+        '<div><span>Blocos afetados</span><strong>' + previa.blocosAfetados + '</strong></div>' +
+        '<div><span>Horas liberadas</span><strong>' + D.formatarMin(previa.totalLiberadoMin) + '</strong></div>' +
+        '<div><span>Redistribuído</span><strong>' + D.formatarMin(previa.totalRedistribuidoMin) + '</strong></div>' +
+        '</div><h4>Quem recebe as horas</h4><ul class="ajuste-destinos">' + destinos + '</ul>' +
+        '<p class="sub ajuste-efeitos">Blocos: ' + previa.blocosRemovidos + ' substituídos/removidos · ' +
+        previa.blocosAdicionados + ' adicionados · ' + previa.blocosRedimensionados + ' redimensionados.</p>' +
+        (previa.naoAlocadoMin > 0 ? '<div class="ajuste-aviso">' + D.formatarMin(previa.naoAlocadoMin) + ' ficarão livres; não há conteúdo ativo suficiente para receber esse tempo.</div>' : '') +
+        viabilidadeHtml +
+        '<div class="modal-acoes"><button type="button" class="botao-quieto" data-aj-voltar>Voltar</button>' +
+        '<button type="button"' + (!previa.podeAplicar ? ' disabled' : '') + ' data-aj-confirmar>Confirmar ajuste</button></div>';
+      m.querySelector('[data-aj-voltar]').addEventListener('click', passo2);
+      m.querySelector('[data-aj-confirmar]').addEventListener('click', function () {
+        const snapshot = snapshotAjusteAgenda();
+        const resultado = D.aplicarAjusteAgenda(state, previa, {
+          criarId: function () { return window.Store.novoId('agd'); },
+          operacaoId: window.Store.novoId('ajp'),
+          aplicadaEm: D.hojeISO()
+        });
+        if (!resultado.ok) { toast(resultado.erro || 'Não foi possível aplicar o ajuste.', 'erro'); return; }
+        registrarHistoricoAjuste(previa, resultado, snapshot);
+        salvar(); fecharModal(); render();
+        toast(previa.disciplinaNome + (previa.marcarPausada ? ' pausada' : ' ajustada') +
+          ' · ' + D.formatarMin(previa.totalRedistribuidoMin) + ' redistribuídos.', 'sucesso');
+      });
+    }
+    passo1();
+  }
+
+  function abrirMenuAcoesBloco(blocoId) {
+    const bloco = state.agenda.find(function (b) { return b.id === blocoId; });
+    if (!bloco) return;
+    if (blocoAgendaConcluido(bloco) || blocoFeitoMin(bloco) > 0) {
+      toast('Este bloco já foi iniciado e está protegido.', 'erro');
+      return;
+    }
+    const d = D.disciplinaPorId(state, bloco.disciplinaId);
+    const m = abrirModal(
+      '<h3>' + esc(d ? d.nome : bloco.disciplinaId) + '</h3>' +
+      '<p class="sub">' + D.formatarDataBR(bloco.data) + ' · ' + D.formatarMin(bloco.duracaoMin || 0) + '</p>' +
+      '<div class="modal-acoes modal-acoes-coluna">' +
+      '<button type="button" id="bl-ac-substituir">Substituir disciplina</button>' +
+      '<button type="button" class="botao-secundario" id="bl-ac-pausar">Pausar disciplina</button>' +
+      '<button type="button" class="botao-quieto" id="bl-ac-mover">Mover ou editar bloco</button>' +
+      '<button type="button" class="botao-quieto" id="bl-ac-remover">Remover bloco</button>' +
+      '<button type="button" class="botao-quieto" id="bl-ac-cancelar">Cancelar</button></div>'
+    );
+    m.querySelector('#bl-ac-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#bl-ac-substituir').addEventListener('click', function () { fecharModal(); abrirAjusteDisciplina(blocoId, 'substituir'); });
+    m.querySelector('#bl-ac-pausar').addEventListener('click', function () { fecharModal(); abrirAjusteDisciplina(blocoId, 'pausar'); });
+    m.querySelector('#bl-ac-mover').addEventListener('click', function () { fecharModal(); abrirBlocoAgenda(blocoId); });
+    m.querySelector('#bl-ac-remover').addEventListener('click', function () {
+      confirmar({ titulo: 'Remover este bloco?', mensagem: 'Sessões e revisões existentes não serão apagadas.', confirmar: 'Remover', perigo: true }).then(function (ok) {
+        if (!ok) return;
+        state.agenda = state.agenda.filter(function (x) { return x.id !== blocoId; });
+        salvar(); fecharModal(); render(); toast('Bloco removido.');
+      });
+    });
   }
 
   function abrirNovaDisciplina() {
@@ -8074,6 +8419,9 @@
   //                   o chamador detectar se a teoria coube no prazo
   function gerarCronogramaHierarquico(disciplinas, semanas, opcoes) {
     opcoes = opcoes || {};
+    disciplinas = (disciplinas || []).filter(function (d) {
+      return d && (d.id === 'ORF' || D.disciplinaAtivaPlanejamento(d));
+    });
     const horasSemana = opcoes.horasSemana || 20;
     const porIncidencia = opcoes.ordemAtaque === 'incidencia'; // Regra 2 — 80/20
     const inicio = opcoes.inicio || D.segundaDaSemana(D.hojeISO());
@@ -9130,7 +9478,7 @@
 
     // Cronograma: método (Cronograma/Ciclo) e a paleta "Personalize" lado a lado.
     // paleta de disciplinas (arrastáveis) — no mobile mostra 1 linha (5) + "Ver mais"
-    const discPaleta = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; });
+    const discPaleta = state.disciplinas.filter(D.disciplinaAtivaPlanejamento);
     const chipsOcultos = Math.max(0, discPaleta.length - PALETA_LIMITE_MOBILE);
     // No celular o card fica recolhido por padrão (só o título) para ganhar espaço;
     // toca no título para abrir/fechar. No desktop o CSS mostra o corpo sempre.
@@ -9154,6 +9502,7 @@
     const rotulo = agendaModo === 'semana'
       ? D.formatarDataBR(agendaRef).slice(0, 5) + ' – ' + D.formatarDataBR(D.addDias(agendaRef, 6)).slice(0, 5) + ' · ' + agendaRef.slice(0, 4)
       : D.formatarMesBR(mesRef);
+    html += ajustesAgendaHtml();
     html += regrasRecorrentesHtml();
     html += '<div class="agenda-toolbar">' +
       '<div class="agenda-nav">' +
@@ -9204,7 +9553,9 @@
             return '<div class="agenda-bloco' + (concluido ? ' feito' : '') + (parcial ? ' parcial' : '') + '" draggable="true" data-bloco="' + esc(b.id) + '" data-pos-dia="' + esc(data) + '" style="border-color:' + esc(d ? d.cor : '#9A9DA3') + '" role="button" tabindex="0" title="' + esc(dica) + '">' +
               '<span class="agenda-bloco-arrasto" aria-hidden="true">⠿</span>' +
               '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">' + esc(d ? d.nome : b.disciplinaId) + '</span>' +
-              '<span class="agenda-bloco-sub">' + sub + '</span>' + barra + '</span></div>';
+              '<span class="agenda-bloco-sub">' + sub + '</span>' + barra + '</span>' +
+              (!concluido && !parcial ? '<button type="button" class="agenda-bloco-menu" data-bloco-menu="' + esc(b.id) + '" aria-label="Ações de ' + esc(d ? d.nome : b.disciplinaId) + '" title="Ações">•••</button>' : '') +
+              '</div>';
           }).join('') +
           '<button class="agenda-add" data-add-dia="' + esc(data) + '" aria-label="Adicionar bloco em ' + D.formatarDataBR(data) + '">+</button></div>';
       }
@@ -9640,6 +9991,10 @@
     raiz.querySelectorAll('[data-regra-remover]').forEach(function (b) {
       b.addEventListener('click', function () { removerRegraRecorrente(b.getAttribute('data-regra-remover')); });
     });
+    const gerenciarPausadas = raiz.querySelector('#pl-gerenciar-pausadas');
+    if (gerenciarPausadas) gerenciarPausadas.addEventListener('click', abrirGerenciarDisciplinasPausadas);
+    const desfazerAjuste = raiz.querySelector('#pl-desfazer-ajuste');
+    if (desfazerAjuste) desfazerAjuste.addEventListener('click', desfazerUltimoAjusteAgenda);
 
     // chips: arrastar para um dia ou tocar para agendar hoje
     raiz.querySelectorAll('[data-chip]').forEach(function (chip) {
@@ -9663,6 +10018,14 @@
       const abrir = function () { abrirDetalhesRevisaoConcluida(el.getAttribute('data-revisao-feita')); };
       el.addEventListener('click', abrir);
       el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+    });
+    raiz.querySelectorAll('[data-bloco-menu]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        abrirMenuAcoesBloco(btn.getAttribute('data-bloco-menu'));
+      });
+      btn.addEventListener('keydown', function (e) { e.stopPropagation(); });
     });
     raiz.querySelectorAll('[data-bloco]').forEach(function (el) {
       el.addEventListener('click', function () { abrirBlocoAgenda(el.getAttribute('data-bloco')); });
@@ -10031,6 +10394,8 @@
 
     const porDisc = {};
     sem.blocos.forEach(function (b) {
+      const disciplina = D.disciplinaPorId(state, b.disciplina);
+      if (!D.disciplinaAtivaPlanejamento(disciplina)) return;
       const e = porDisc[b.disciplina] = porDisc[b.disciplina] || { teoria: false, blocos: [] };
       if (b.tipo === 'teoria') e.teoria = true;
       e.blocos.push(b);
@@ -10200,6 +10565,15 @@
       return incluirPassados || !ehSemanaAtual || s.data >= hojeRef;
     });
     if (slots.length === 0) return 0;
+    // Blocos manuais e ajustes confirmados são fixos. Eles sobrevivem ao
+    // recálculo e consomem primeiro a disponibilidade do dia, evitando que o
+    // motor empilhe uma segunda carga por cima da decisão do usuário.
+    slots.forEach(function (s) {
+      const fixosMin = doAtivo(state.agenda).filter(function (b) {
+        return b && b.data === s.data && !b.gerado;
+      }).reduce(function (n, b) { return n + (b.duracaoMin || 0); }, 0);
+      s.restante = Math.max(0, s.restante - fixosMin);
+    });
     // As revisões do dia (repetição espaçada) consomem o tempo PRIMEIRO — são
     // sensíveis a prazo. O que sobra é o que teoria/questões podem ocupar.
     slots.forEach(function (s) { s.restante = Math.max(0, s.restante - D.minutosRevisaoNoDia(state, s.data)); });
