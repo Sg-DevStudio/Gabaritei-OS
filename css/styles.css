@@ -2673,6 +2673,20 @@ td.num, th.num { text-align: right; }
 }
 .modal-ajuste-agenda { max-width: 620px; }
 .modal-ajuste-agenda h4 { margin: 1rem 0 0.4rem; font-size: 0.86rem; }
+.ajuste-prazo {
+  margin-top: 0.8rem; padding: 0.75rem;
+  border: 1px solid var(--linha); border-radius: 10px; background: var(--papel-elevado);
+}
+.ajuste-prazo[hidden], .ajuste-prazo-campo[hidden] { display: none; }
+.ajuste-prazo h4 { margin-top: 0; }
+.ajuste-prazo-opcoes { gap: 0.4rem; }
+.ajuste-prazo-campo {
+  display: grid; grid-template-columns: minmax(150px, 0.7fr) minmax(170px, 1fr);
+  align-items: center; gap: 0.35rem 0.65rem; margin-top: 0.65rem;
+}
+.ajuste-prazo-campo label { margin: 0; }
+.ajuste-prazo-campo input { min-width: 0; }
+.ajuste-prazo-campo .sub { grid-column: 1 / -1; font-size: 0.75rem; }
 .ajuste-destino-detalhe { margin-top: 0.7rem; }
 .ajuste-destino-detalhe[hidden] { display: none; }
 .ajuste-label { display: block; margin-bottom: 0.35rem; font-size: 0.85rem; font-weight: 600; }
@@ -2720,6 +2734,8 @@ td.num, th.num { text-align: right; }
   .ajustes-agenda-card { align-items: flex-start; }
   .ajustes-agenda-acoes { flex-direction: column; align-items: stretch; }
   .ajuste-checks, .ajuste-resumo { grid-template-columns: 1fr; }
+  .ajuste-prazo-campo { grid-template-columns: 1fr; }
+  .ajuste-prazo-campo .sub { grid-column: auto; }
   .pausada-linha { grid-template-columns: auto 1fr; }
   .pausada-linha button { grid-column: 2; justify-self: start; }
 }

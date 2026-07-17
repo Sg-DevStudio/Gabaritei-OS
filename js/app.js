@@ -7112,6 +7112,9 @@
           pausaOperacaoId: d.pausaOperacaoId,
           pausaAlcance: d.pausaAlcance,
           pausaMotivo: d.pausaMotivo,
+          pausaModo: d.pausaModo,
+          pausaSemanas: d.pausaSemanas,
+          pausaReativarEm: d.pausaReativarEm,
           reativadaEm: d.reativadaEm,
           retomadaModo: d.retomadaModo
         };
@@ -7134,6 +7137,9 @@
       totalLiberadoMin: previa.totalLiberadoMin,
       totalRedistribuidoMin: previa.totalRedistribuidoMin,
       naoAlocadoMin: previa.naoAlocadoMin,
+      pausaModo: previa.pausaModo,
+      pausaSemanas: previa.pausaSemanas,
+      pausaReativarEm: previa.pausaReativarEm,
       motivo: previa.tipo === 'substituir' ? 'substituição de disciplina' : 'pausa de disciplina'
     };
     if (!Array.isArray(state.config.historicoAjustesAgenda)) state.config.historicoAjustesAgenda = [];
@@ -7166,7 +7172,8 @@
       state.disciplinas.forEach(function (d) {
         const s = porId[d.id];
         if (!s) return;
-        ['planejamentoStatus', 'pausadaEm', 'pausaOperacaoId', 'pausaAlcance', 'pausaMotivo', 'reativadaEm', 'retomadaModo'].forEach(function (campo) {
+        ['planejamentoStatus', 'pausadaEm', 'pausaOperacaoId', 'pausaAlcance', 'pausaMotivo',
+          'pausaModo', 'pausaSemanas', 'pausaReativarEm', 'reativadaEm', 'retomadaModo'].forEach(function (campo) {
           if (s[campo] === undefined) delete d[campo]; else d[campo] = s[campo];
         });
       });
@@ -7202,12 +7209,70 @@
       '</div></div>';
   }
 
+  function descricaoPrazoPausa(disciplina) {
+    if (disciplina && disciplina.pausaReativarEm) {
+      return 'Volta automaticamente em ' + D.formatarDataBR(disciplina.pausaReativarEm);
+    }
+    return 'Pausa manual';
+  }
+
+  function reativarDisciplinasPlanejamento(ids, modo) {
+    const hoje = D.hojeISO();
+    const reativadas = [];
+    (ids || []).forEach(function (id) {
+      const antes = D.disciplinaPorId(state, id);
+      if (!antes) return;
+      const operacaoPausaId = antes.pausaOperacaoId;
+      if (!D.reativarDisciplina(state, id, { modo: modo || 'manual', data: hoje })) return;
+      if (operacaoPausaId) {
+        state.agenda = state.agenda.filter(function (b) {
+          return !(b && b.origemAjusteId === operacaoPausaId && b.data >= hoje &&
+            !blocoAgendaConcluido(b) && blocoFeitoMin(b) === 0);
+        });
+      }
+      reativadas.push(id);
+      if (!Array.isArray(state.config.historicoAjustesAgenda)) state.config.historicoAjustesAgenda = [];
+      state.config.historicoAjustesAgenda.push({
+        id: window.Store.novoId('reativar'),
+        planoId: state.planoAtivoId,
+        aplicadoEm: new Date().toISOString(),
+        tipo: 'reativar',
+        disciplinaId: id,
+        modo: modo || 'manual'
+      });
+    });
+    if (!reativadas.length) return reativadas;
+    state.config.historicoAjustesAgenda = state.config.historicoAjustesAgenda.slice(-50);
+    const recalculado = recalcularPlanoAdaptativo(true);
+    if (!recalculado) {
+      regenerarAgendaFuturas();
+      salvar();
+    }
+    return reativadas;
+  }
+
+  function processarPausasVencidas() {
+    const hoje = D.hojeISO();
+    const vencidas = disciplinasPausadasPlano().filter(function (d) {
+      return D.pausaDisciplinaExpirada(d, hoje);
+    });
+    if (!vencidas.length) return [];
+    const nomes = vencidas.map(function (d) { return d.nome; });
+    const reativadas = reativarDisciplinasPlanejamento(vencidas.map(function (d) { return d.id; }), 'prazo');
+    if (reativadas.length) {
+      toast((reativadas.length === 1 ? nomes[0] : reativadas.length + ' disciplinas') +
+        ' voltou ao planejamento automaticamente.', 'sucesso');
+    }
+    return reativadas;
+  }
+
   function abrirGerenciarDisciplinasPausadas() {
     const pausadas = disciplinasPausadasPlano();
     if (!pausadas.length) { toast('Não há disciplinas pausadas.'); return; }
     const linhas = pausadas.map(function (d) {
       return '<div class="pausada-linha"><span class="pausada-cor" style="background:' + esc(d.cor || '#9A9DA3') + '"></span>' +
-        '<div><strong>' + esc(d.nome) + '</strong><span class="sub">Pausada · ' + D.formatarMin(D.minutosPendentesDisciplina(d)) + ' pendentes</span></div>' +
+        '<div><strong>' + esc(d.nome) + '</strong><span class="sub">Pausada · ' +
+        D.formatarMin(D.minutosPendentesDisciplina(d)) + ' pendentes · ' + esc(descricaoPrazoPausa(d)) + '</span></div>' +
         '<button type="button" class="botao-mini botao-secundario" data-reativar-disc="' + esc(d.id) + '">Reativar</button></div>';
     }).join('');
     const m = abrirModal(
@@ -7220,27 +7285,8 @@
     m.querySelectorAll('[data-reativar-disc]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         const id = btn.getAttribute('data-reativar-disc');
-        const antes = D.disciplinaPorId(state, id);
-        const operacaoPausaId = antes && antes.pausaOperacaoId;
-        if (!D.reativarDisciplina(state, id, { modo: 'automatic', data: D.hojeISO() })) return;
-        if (operacaoPausaId) {
-          state.agenda = state.agenda.filter(function (b) {
-            return !(b && b.origemAjusteId === operacaoPausaId && b.data >= D.hojeISO() &&
-              !blocoAgendaConcluido(b) && blocoFeitoMin(b) === 0);
-          });
-        }
-        state.config.historicoAjustesAgenda.push({
-          id: window.Store.novoId('reativar'),
-          planoId: state.planoAtivoId,
-          aplicadoEm: new Date().toISOString(),
-          tipo: 'reativar',
-          disciplinaId: id,
-          modo: 'automatic'
-        });
-        state.config.historicoAjustesAgenda = state.config.historicoAjustesAgenda.slice(-50);
+        if (!reativarDisciplinasPlanejamento([id], 'manual').length) return;
         fecharModal();
-        const recalculado = recalcularPlanoAdaptativo(true);
-        if (!recalculado) { regenerarAgendaFuturas(); salvar(); }
         render();
         const d = D.disciplinaPorId(state, id);
         toast((d ? d.nome : id) + ' reativada e reinserida no planejamento.', 'sucesso');
@@ -7259,7 +7305,15 @@
     const candidatos = state.disciplinas.filter(function (d) {
       return d.id !== origem.id && D.disciplinaAtivaPlanejamento(d) && D.minutosPendentesDisciplina(d) > 0;
     });
-    const fluxo = { alcance: 'bloco', destino: 'automatico', destinos: [] };
+    const inicioPausa = bloco.data > D.hojeISO() ? bloco.data : D.hojeISO();
+    const fluxo = {
+      alcance: 'bloco',
+      destino: 'automatico',
+      destinos: [],
+      pausaModo: 'semanas',
+      pausaSemanas: 2,
+      pausaAte: D.addDias(inicioPausa, 14)
+    };
     const m = abrirModal('');
     m.classList.add('modal-ajuste-agenda');
 
@@ -7276,13 +7330,51 @@
         '<div class="enf-opcoes">' +
         opcaoRadio('aj-alc', 'bloco', 'Somente este bloco', D.formatarDataBR(bloco.data) + ' · ' + D.formatarMin(bloco.duracaoMin || 0), fluxo.alcance === 'bloco') +
         opcaoRadio('aj-alc', 'semana', 'Restante desta semana', 'Deste bloco até domingo, sem tocar no que já foi estudado.', fluxo.alcance === 'semana') +
-        opcaoRadio('aj-alc', 'futuro', 'Todos os blocos futuros', 'A disciplina ficará pausada até ser reativada.', fluxo.alcance === 'futuro') +
-        '</div><div class="modal-acoes"><button type="button" class="botao-quieto" data-aj-cancelar>Cancelar</button>' +
+        opcaoRadio('aj-alc', 'futuro', 'Todos os blocos futuros', 'Retira os blocos futuros e permite definir quando a disciplina volta.', fluxo.alcance === 'futuro') +
+        '</div>' +
+        '<div class="ajuste-prazo" data-aj-prazo>' +
+        '<h4>Quando a disciplina deve voltar?</h4>' +
+        '<div class="enf-opcoes ajuste-prazo-opcoes">' +
+        opcaoRadio('aj-prazo', 'semanas', 'Após algumas semanas', 'O retorno e o recálculo serão automáticos.', fluxo.pausaModo === 'semanas') +
+        opcaoRadio('aj-prazo', 'data', 'Em uma data específica', 'A disciplina volta automaticamente na data escolhida.', fluxo.pausaModo === 'data') +
+        opcaoRadio('aj-prazo', 'manual', 'Somente quando eu reativar', 'Mantém o comportamento manual, sem prazo.', fluxo.pausaModo === 'manual') +
+        '</div>' +
+        '<div class="ajuste-prazo-campo" data-aj-prazo-campo="semanas"><label for="aj-pausa-semanas">Quantidade de semanas</label>' +
+        '<input id="aj-pausa-semanas" type="number" min="1" max="52" value="' + esc(fluxo.pausaSemanas) + '"></div>' +
+        '<div class="ajuste-prazo-campo" data-aj-prazo-campo="data"><label for="aj-pausa-data">Reativar em</label>' +
+        '<input id="aj-pausa-data" type="date" min="' + esc(D.addDias(inicioPausa, 1)) + '" value="' + esc(fluxo.pausaAte) + '">' +
+        '<span class="sub">O cronograma será recalculado automaticamente nesta data.</span></div>' +
+        '</div>' +
+        '<div class="modal-acoes"><button type="button" class="botao-quieto" data-aj-cancelar>Cancelar</button>' +
         '<button type="button" data-aj-proximo>Continuar</button></div>';
+      function atualizarPrazoVisivel() {
+        const alcance = m.querySelector('input[name="aj-alc"]:checked');
+        const prazo = m.querySelector('[data-aj-prazo]');
+        if (prazo) prazo.hidden = !alcance || alcance.value !== 'futuro';
+        const modo = m.querySelector('input[name="aj-prazo"]:checked');
+        m.querySelectorAll('[data-aj-prazo-campo]').forEach(function (el) {
+          el.hidden = !modo || el.getAttribute('data-aj-prazo-campo') !== modo.value;
+        });
+      }
+      m.querySelectorAll('input[name="aj-alc"], input[name="aj-prazo"]').forEach(function (r) {
+        r.addEventListener('change', atualizarPrazoVisivel);
+      });
+      atualizarPrazoVisivel();
       m.querySelector('[data-aj-cancelar]').addEventListener('click', fecharModal);
       m.querySelector('[data-aj-proximo]').addEventListener('click', function () {
         const sel = m.querySelector('input[name="aj-alc"]:checked');
         fluxo.alcance = sel ? sel.value : 'bloco';
+        if (fluxo.alcance === 'futuro') {
+          const prazoSel = m.querySelector('input[name="aj-prazo"]:checked');
+          fluxo.pausaModo = prazoSel ? prazoSel.value : 'semanas';
+          fluxo.pausaSemanas = Math.max(1, Math.min(52,
+            parseInt((m.querySelector('#aj-pausa-semanas') || {}).value, 10) || 1));
+          fluxo.pausaAte = (m.querySelector('#aj-pausa-data') || {}).value || '';
+          if (fluxo.pausaModo === 'data' && (!fluxo.pausaAte || fluxo.pausaAte <= inicioPausa)) {
+            toast('Escolha uma data de retorno posterior ao início da pausa.', 'erro');
+            return;
+          }
+        }
         passo2();
       });
     }
@@ -7335,7 +7427,10 @@
           alcance: fluxo.alcance,
           disciplinasDestino: fluxo.destinos,
           hoje: D.hojeISO(),
-          minutosSemana: totalMinutosRotina(rotinaEstudosAtual())
+          minutosSemana: totalMinutosRotina(rotinaEstudosAtual()),
+          pausaModo: fluxo.pausaModo,
+          pausaSemanas: fluxo.pausaSemanas,
+          pausaAte: fluxo.pausaAte
         });
         passo3(previa);
       });
@@ -7355,6 +7450,12 @@
           (v.dataFinal
             ? 'Com este ajuste, faltarão aproximadamente <strong>' + D.formatarMin(v.deficitMin) + '</strong> para concluir o edital até ' + D.formatarDataBR(v.dataFinal) + '.'
             : 'Não há data final ou capacidade semanal suficiente para estimar a conclusão.') + '</div>';
+      const retornoHtml = previa.marcarPausada
+        ? '<div><span>Retorno da disciplina</span><strong>' +
+          (previa.pausaReativarEm
+            ? 'Automático em ' + D.formatarDataBR(previa.pausaReativarEm)
+            : 'Somente por reativação manual') + '</strong></div>'
+        : '';
       m.innerHTML =
         '<div class="ajuste-etapa">Etapa 3 de 3 · Prévia</div>' +
         '<h3>Revise antes de confirmar</h3>' +
@@ -7363,6 +7464,7 @@
         '<div><span>Blocos afetados</span><strong>' + previa.blocosAfetados + '</strong></div>' +
         '<div><span>Horas liberadas</span><strong>' + D.formatarMin(previa.totalLiberadoMin) + '</strong></div>' +
         '<div><span>Redistribuído</span><strong>' + D.formatarMin(previa.totalRedistribuidoMin) + '</strong></div>' +
+        retornoHtml +
         '</div><h4>Quem recebe as horas</h4><ul class="ajuste-destinos">' + destinos + '</ul>' +
         '<p class="sub ajuste-efeitos">Blocos: ' + previa.blocosRemovidos + ' substituídos/removidos · ' +
         previa.blocosAdicionados + ' adicionados · ' + previa.blocosRedimensionados + ' redimensionados.</p>' +
@@ -7381,7 +7483,8 @@
         if (!resultado.ok) { toast(resultado.erro || 'Não foi possível aplicar o ajuste.', 'erro'); return; }
         registrarHistoricoAjuste(previa, resultado, snapshot);
         salvar(); fecharModal(); render();
-        toast(previa.disciplinaNome + (previa.marcarPausada ? ' pausada' : ' ajustada') +
+        const retorno = previa.pausaReativarEm ? ' até ' + D.formatarDataBR(previa.pausaReativarEm) : '';
+        toast(previa.disciplinaNome + (previa.marcarPausada ? ' pausada' + retorno : ' ajustada') +
           ' · ' + D.formatarMin(previa.totalRedistribuidoMin) + ' redistribuídos.', 'sucesso');
       });
     }
@@ -11271,6 +11374,7 @@
       return;
     }
     document.body.classList.remove('login-gate');
+    if (!modoDemo) processarPausasVencidas();
     if (!modoDemo && !pulaRecalcSemanal) verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
     const mudouRota = rota !== ultimaRotaRender;
@@ -11711,7 +11815,12 @@
   document.addEventListener('visibilitychange', function () {
     const e = window.Timer.estado();
     if (document.hidden) { if (e && e.rodando) mostrarNotificacaoTimer(e, true); }
-    else limparNotificacaoTimer();
+    else {
+      limparNotificacaoTimer();
+      if (usuarioLogado() && !modoDemo && disciplinasPausadasPlano().some(function (d) {
+        return D.pausaDisciplinaExpirada(d, D.hojeISO());
+      })) render();
+    }
   });
 
   const recuperado = window.Timer.recuperar();

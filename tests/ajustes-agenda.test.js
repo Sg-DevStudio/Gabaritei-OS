@@ -213,6 +213,9 @@ test('15. pausa e auditoria persistem após salvar e recarregar o estado', () =>
       nome: 'Origem',
       planejamentoStatus: 'paused',
       pausaAlcance: 'futuro',
+      pausaModo: 'semanas',
+      pausaSemanas: 2,
+      pausaReativarEm: '2026-07-28',
       topicos: [topico('A-1', 10)]
     }],
     cronogramas: {}
@@ -226,6 +229,95 @@ test('15. pausa e auditoria persistem após salvar e recarregar o estado', () =>
 
   assert.equal(disciplina.planejamentoStatus, 'paused');
   assert.equal(disciplina.pausaAlcance, 'futuro');
+  assert.equal(disciplina.pausaModo, 'semanas');
+  assert.equal(disciplina.pausaSemanas, 2);
+  assert.equal(disciplina.pausaReativarEm, '2026-07-28');
   assert.equal(recarregado.config.historicoAjustesAgenda[0].id, 'op-1');
   assert.equal(recarregado.config.ultimoAjusteAgenda.id, 'op-1');
+});
+
+test('16. pausa por semanas calcula e persiste a data de retorno', () => {
+  const st = estadoBase();
+  const p = previa(st, {
+    tipo: 'pausar',
+    alcance: 'futuro',
+    pausaModo: 'semanas',
+    pausaSemanas: 2
+  });
+
+  assert.equal(p.pausaReativarEm, '2026-07-28');
+  aplicar(st, p);
+  assert.equal(st.disciplinas[0].pausaModo, 'semanas');
+  assert.equal(st.disciplinas[0].pausaSemanas, 2);
+  assert.equal(st.disciplinas[0].pausaReativarEm, '2026-07-28');
+  assert.equal(D.pausaDisciplinaExpirada(st.disciplinas[0], '2026-07-27'), false);
+  assert.equal(D.pausaDisciplinaExpirada(st.disciplinas[0], '2026-07-28'), true);
+});
+
+test('17. pausa até uma data exige retorno posterior ao início', () => {
+  const st = estadoBase();
+  const valida = previa(st, {
+    tipo: 'pausar',
+    alcance: 'futuro',
+    pausaModo: 'data',
+    pausaAte: '2026-08-03'
+  });
+  const invalida = previa(st, {
+    tipo: 'pausar',
+    alcance: 'futuro',
+    pausaModo: 'data',
+    pausaAte: '2026-07-14'
+  });
+
+  assert.equal(valida.ok, true);
+  assert.equal(valida.pausaReativarEm, '2026-08-03');
+  assert.equal(invalida.ok, false);
+  assert.ok(invalida.erro.includes('posterior'));
+});
+
+test('18. pausa manual continua sem vencimento automático', () => {
+  const st = estadoBase();
+  const p = previa(st, { tipo: 'pausar', alcance: 'futuro', pausaModo: 'manual' });
+  aplicar(st, p);
+
+  assert.equal(st.disciplinas[0].pausaModo, 'manual');
+  assert.equal(st.disciplinas[0].pausaReativarEm, undefined);
+  assert.equal(D.pausaDisciplinaExpirada(st.disciplinas[0], '2030-01-01'), false);
+});
+
+test('19. reativação remove os metadados do prazo encerrado', () => {
+  const st = estadoBase();
+  aplicar(st, previa(st, {
+    tipo: 'pausar',
+    alcance: 'futuro',
+    pausaModo: 'semanas',
+    pausaSemanas: 1
+  }));
+
+  D.reativarDisciplina(st, 'A', { data: '2026-07-21', modo: 'prazo' });
+
+  assert.equal(st.disciplinas[0].planejamentoStatus, 'active');
+  assert.equal(st.disciplinas[0].pausaModo, undefined);
+  assert.equal(st.disciplinas[0].pausaSemanas, undefined);
+  assert.equal(st.disciplinas[0].pausaReativarEm, undefined);
+  assert.equal(st.disciplinas[0].retomadaModo, 'prazo');
+});
+
+test('20. viabilidade considera que uma pausa temporária devolve a disciplina ao plano', () => {
+  const st = estadoBase();
+  const manual = D.viabilidadeEdital(st, '2026-07-14', {
+    dataFinal: '2026-08-31',
+    minutosSemana: 600,
+    disciplinasPausadas: ['A']
+  });
+  const temporaria = D.viabilidadeEdital(st, '2026-07-14', {
+    dataFinal: '2026-08-31',
+    minutosSemana: 600,
+    disciplinasPausadas: ['A'],
+    pausasTemporarias: { A: '2026-07-28' }
+  });
+
+  assert.equal(manual.deficitMin, 600);
+  assert.equal(temporaria.deficitMin, 0);
+  assert.equal(temporaria.conteudoPausadoTemporarioMin, 600);
 });

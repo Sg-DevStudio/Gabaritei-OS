@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v135-pausar-disciplinas';
+const CACHE = 'estudos-v136-pausa-programada';
 const ESTATICOS = [
   './',
   './index.html',
@@ -7,15 +7,15 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20260717a-pausar-disciplinas',
-  './js/domain.js?v=20260717a-pausar-disciplinas',
-  './js/store.js?v=20260717a-pausar-disciplinas',
+  './css/styles.css?v=20260717b-pausa-programada',
+  './js/domain.js?v=20260717b-pausa-programada',
+  './js/store.js?v=20260717b-pausa-programada',
   './js/sync.js',
   './js/firebase-sync.js?v=20260702c-backups',
   './js/timer.js?v=20260619w-bloco',
   './js/charts.js',
   './data/catalogo-editais.js?v=20260616v-acentos',
-  './js/app.js?v=20260717a-pausar-disciplinas',
+  './js/app.js?v=20260717b-pausa-programada',
   './icons/icone.svg'
 ];
 

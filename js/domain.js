@@ -337,6 +337,24 @@
     }, 0));
   }
 
+  function calcularDataReativacaoPausa(inicio, modo, semanas, dataEscolhida) {
+    if (modo === 'semanas') {
+      const quantidade = Math.max(1, Math.min(52, Math.round(Number(semanas) || 1)));
+      return addDias(inicio, quantidade * 7);
+    }
+    if (modo === 'data' && /^\d{4}-\d{2}-\d{2}$/.test(String(dataEscolhida || '')) &&
+        diffDias(inicio, dataEscolhida) > 0) {
+      return dataEscolhida;
+    }
+    return null;
+  }
+
+  function pausaDisciplinaExpirada(disciplina, hoje) {
+    return statusDisciplinaPlanejamento(disciplina) === STATUS_DISCIPLINA.PAUSADA &&
+      /^\d{4}-\d{2}-\d{2}$/.test(String(disciplina.pausaReativarEm || '')) &&
+      disciplina.pausaReativarEm <= (hoje || hojeISO());
+  }
+
   function blocoAgendaProtegido(bloco) {
     if (!bloco) return true;
     return !!bloco.feito || Number(bloco.feitoMin || 0) > 0 ||
@@ -365,14 +383,24 @@
     opcoes = opcoes || {};
     hoje = hoje || hojeISO();
     const pausadasExtras = new Set(opcoes.disciplinasPausadas || []);
-    let pendenteMin = 0, pausadoMin = 0, ativoMin = 0;
+    const pausasTemporarias = opcoes.pausasTemporarias || {};
+    const temporarias = [];
+    let pendenteMin = 0, pausadoMin = 0, pausadoTemporarioMin = 0, ativoMin = 0;
     (state.disciplinas || []).forEach(function (d) {
       const min = minutosPendentesDisciplina(d);
       pendenteMin += min;
       const pausada = pausadasExtras.has(d.id) ||
         statusDisciplinaPlanejamento(d) === STATUS_DISCIPLINA.PAUSADA;
-      if (pausada) pausadoMin += min;
-      else ativoMin += min;
+      const retorno = pausasTemporarias[d.id] ||
+        (statusDisciplinaPlanejamento(d) === STATUS_DISCIPLINA.PAUSADA ? d.pausaReativarEm : null);
+      if (pausada && retorno) {
+        pausadoTemporarioMin += min;
+        temporarias.push({ minutos: min, reativarEm: retorno });
+      } else if (pausada) {
+        pausadoMin += min;
+      } else {
+        ativoMin += min;
+      }
     });
 
     let dataFinal = opcoes.dataFinal || prazoProva(state);
@@ -390,14 +418,21 @@
       (ritmo && Number(ritmo.h_semana) * 60) || 0);
     const diasDisponiveis = dataFinal ? Math.max(0, diffDias(hoje, dataFinal)) : 0;
     const capacidadeMin = Math.round(minutosSemana * diasDisponiveis / 7);
+    const deficitTotal = Math.max(0, pendenteMin - capacidadeMin);
+    const deficitTemporario = temporarias.reduce(function (maior, pausa) {
+      const diasAposRetorno = dataFinal ? Math.max(0, diffDias(pausa.reativarEm, dataFinal)) : 0;
+      const capacidadeAposRetorno = Math.round(minutosSemana * diasAposRetorno / 7);
+      return Math.max(maior, Math.max(0, pausa.minutos - capacidadeAposRetorno));
+    }, 0);
     const deficitAtivo = Math.max(0, ativoMin - capacidadeMin);
-    const deficitMin = pausadoMin + deficitAtivo;
-    const semanasConclusao = minutosSemana > 0 ? ativoMin / minutosSemana : Infinity;
+    const deficitMin = Math.max(deficitTotal, pausadoMin + deficitAtivo, deficitTemporario);
+    const semanasConclusao = minutosSemana > 0 ? (ativoMin + pausadoTemporarioMin) / minutosSemana : Infinity;
     const conclusaoEstimada = isFinite(semanasConclusao)
       ? addDias(hoje, Math.ceil(semanasConclusao * 7)) : null;
     return {
       conteudoPendenteMin: pendenteMin,
       conteudoPausadoMin: pausadoMin,
+      conteudoPausadoTemporarioMin: pausadoTemporarioMin,
       conteudoAtivoMin: ativoMin,
       capacidadeMin: capacidadeMin,
       dataFinal: dataFinal,
@@ -494,13 +529,25 @@
 
     const tipo = opcoes.tipo === 'substituir' ? 'substituir' : 'pausar';
     const marcarPausada = alcance === 'futuro';
+    const pausaModo = marcarPausada && ['manual', 'semanas', 'data'].indexOf(opcoes.pausaModo) >= 0
+      ? opcoes.pausaModo : 'manual';
+    const pausaSemanas = pausaModo === 'semanas'
+      ? Math.max(1, Math.min(52, Math.round(Number(opcoes.pausaSemanas) || 1))) : null;
+    const pausaReativarEm = marcarPausada
+      ? calcularDataReativacaoPausa(inicio, pausaModo, pausaSemanas, opcoes.pausaAte) : null;
+    if (marcarPausada && pausaModo !== 'manual' && !pausaReativarEm) {
+      return { ok: false, erro: 'Escolha uma data de retorno posterior ao início da pausa.', mudancas: [] };
+    }
     const destinatarios = Object.keys(porDestino).map(function (id) {
       const d = disciplinaPorId(state, id);
       return { disciplinaId: id, nome: d ? d.nome : id, minutos: porDestino[id] };
     }).sort(function (a, b) { return b.minutos - a.minutos; });
+    const pausasTemporarias = {};
+    if (marcarPausada && pausaReativarEm) pausasTemporarias[origem.id] = pausaReativarEm;
     const viabilidade = viabilidadeEdital(state, hoje, {
       minutosSemana: opcoes.minutosSemana,
-      disciplinasPausadas: marcarPausada ? [origem.id] : []
+      disciplinasPausadas: marcarPausada ? [origem.id] : [],
+      pausasTemporarias: pausasTemporarias
     });
     const avisos = [];
     if (candidatos.length === 0) avisos.push('Nenhuma disciplina ativa tem conteúdo pendente para receber as horas.');
@@ -519,6 +566,9 @@
       inicio: inicio,
       fim: alcance === 'semana' ? addDias(fimSemana, -1) : null,
       marcarPausada: marcarPausada,
+      pausaModo: marcarPausada ? pausaModo : null,
+      pausaSemanas: pausaSemanas,
+      pausaReativarEm: pausaReativarEm,
       blocosAfetados: afetados.length,
       totalLiberadoMin: totalLiberadoMin,
       totalRedistribuidoMin: totalRedistribuidoMin,
@@ -585,6 +635,11 @@
       origem.pausaOperacaoId = operacaoId;
       origem.pausaAlcance = previa.alcance;
       origem.pausaMotivo = opcoes.motivo || (previa.tipo === 'substituir' ? 'substituição de disciplina' : 'pausa de disciplina');
+      origem.pausaModo = previa.pausaModo || 'manual';
+      if (previa.pausaSemanas) origem.pausaSemanas = previa.pausaSemanas;
+      else delete origem.pausaSemanas;
+      if (previa.pausaReativarEm) origem.pausaReativarEm = previa.pausaReativarEm;
+      else delete origem.pausaReativarEm;
     }
     return {
       ok: true,
@@ -606,6 +661,9 @@
     delete d.pausaOperacaoId;
     delete d.pausaAlcance;
     delete d.pausaMotivo;
+    delete d.pausaModo;
+    delete d.pausaSemanas;
+    delete d.pausaReativarEm;
     return true;
   }
 
@@ -2272,7 +2330,8 @@
     alertaCobertura, adicionarTopicosAoCiclo,
     diaSemanaISO, aplicarRegrasAgenda, regraAgendaAtiva,
     STATUS_DISCIPLINA, statusDisciplinaPlanejamento, disciplinaAtivaPlanejamento,
-    minutosPendentesDisciplina, viabilidadeEdital, simularAjusteAgenda,
+    minutosPendentesDisciplina, calcularDataReativacaoPausa, pausaDisciplinaExpirada,
+    viabilidadeEdital, simularAjusteAgenda,
     aplicarAjusteAgenda, reativarDisciplina,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
