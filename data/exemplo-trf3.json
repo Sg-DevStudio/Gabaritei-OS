@@ -9714,22 +9714,22 @@
         },
         {
           "disciplinaId": "CON",
-          "certas": 14,
+          "certas": 12,
           "total": 13
         },
         {
           "disciplinaId": "LEG",
-          "certas": 15,
+          "certas": 14,
           "total": 14
         },
         {
           "disciplinaId": "APU",
-          "certas": 16,
+          "certas": 15,
           "total": 15
         },
         {
           "disciplinaId": "AFO",
-          "certas": 17,
+          "certas": 16,
           "total": 16
         }
       ]
@@ -9762,22 +9762,22 @@
         },
         {
           "disciplinaId": "CON",
-          "certas": 15,
+          "certas": 14,
           "total": 14
         },
         {
           "disciplinaId": "LEG",
-          "certas": 16,
+          "certas": 15,
           "total": 15
         },
         {
           "disciplinaId": "APU",
-          "certas": 17,
+          "certas": 16,
           "total": 16
         },
         {
           "disciplinaId": "AFO",
-          "certas": 18,
+          "certas": 17,
           "total": 17
         }
       ]

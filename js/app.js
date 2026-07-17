@@ -401,13 +401,14 @@
     const m = abrirModal('<h3>Pedir um edital</h3>' +
       '<p class="sub">Descreva o concurso/cargo que você quer ver no catálogo. O pedido vai para o painel do administrador.</p>' +
       '<label for="pedido-edital-txt">Edital desejado</label>' +
-      '<textarea id="pedido-edital-txt" placeholder="Ex.: TJSP Escrevente 2026, banca Vunesp, SP">' + esc(sugestao) + '</textarea>' +
+      '<textarea id="pedido-edital-txt" maxlength="500" placeholder="Ex.: TJSP Escrevente 2026, banca Vunesp, SP">' + esc(sugestao) + '</textarea>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="pedido-cancelar">Cancelar</button>' +
       '<button id="pedido-enviar">Enviar pedido</button></div>');
     m.querySelector('#pedido-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#pedido-enviar').addEventListener('click', function () {
       const txt = (m.querySelector('#pedido-edital-txt').value || '').trim();
       if (!txt) { toast('Descreva o edital que você quer pedir.', 'erro'); return; }
+      if (txt.length > 500) { toast('O pedido deve ter no máximo 500 caracteres.', 'erro'); return; }
       if (window.FirebaseSync && window.FirebaseSync.enviarPedidoEdital) {
         m.querySelector('#pedido-enviar').disabled = true;
         window.FirebaseSync.enviarPedidoEdital({ texto: txt }).then(function () {
@@ -10856,6 +10857,27 @@
     return '/calendars/' + calId + '/events' + (sufixo || '');
   }
 
+  async function buscarEventoGoogleCalendar(token, item) {
+    const props = item && item.payload && item.payload.extendedProperties &&
+      item.payload.extendedProperties.private;
+    if (!props || !props.localId) return null;
+    const filtros = [
+      'gabaritei=1',
+      'tipo=' + (props.tipo || item.tipo || ''),
+      'planoId=' + (props.planoId || item.planoId || ''),
+      'localId=' + props.localId
+    ];
+    const query = filtros.map(function (valor) {
+      return 'privateExtendedProperty=' + encodeURIComponent(valor);
+    });
+    query.push('showDeleted=false', 'singleEvents=true', 'maxResults=10');
+    const dados = await googleCalendarRequest(token, calendarPathEventos('?' + query.join('&')), { method: 'GET' });
+    const itens = dados && Array.isArray(dados.items) ? dados.items : [];
+    return itens.find(function (evento) {
+      return evento && evento.id && evento.status !== 'cancelled';
+    }) || null;
+  }
+
   function intervaloBlocoCalendar(bloco, cursores) {
     const dur = Math.max(5, bloco.duracaoMin || 60);
     let iniMin;
@@ -10956,6 +10978,19 @@
         salvo = await atualizarEventoGoogleCalendar(token, existente.eventId, item);
       } catch (e) {
         if (e.status !== 404 && e.status !== 410) throw e;
+      }
+    }
+    // Se o mapa local foi apagado/restaurado, recupera o evento remoto pelas
+    // propriedades privadas antes de inserir. Assim uma nova sincronização não
+    // duplica eventos que já existem no Calendar.
+    if (!salvo) {
+      const remoto = await buscarEventoGoogleCalendar(token, item);
+      if (remoto) {
+        try {
+          salvo = await atualizarEventoGoogleCalendar(token, remoto.id, item);
+        } catch (e) {
+          if (e.status !== 404 && e.status !== 410) throw e;
+        }
       }
     }
     if (!salvo) salvo = await inserirEventoGoogleCalendar(token, item);

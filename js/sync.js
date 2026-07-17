@@ -13,6 +13,7 @@
   let opcoes = null;
   let endpoint = null;
   let envioPendente = null;
+  let intervaloId = null;
   let verificacaoEmCurso = false;
   let envioEmCurso = false;
   let statusAtual = { estado: 'verificando', texto: 'Verificando sincronizacao', ultima: null, endpoint: null };
@@ -55,15 +56,40 @@
     return { state: dados, updatedAt: atualizadoEm(dados), clientId: null };
   }
 
+  function erroIndisponivel() {
+    const erro = new Error('sync indisponivel');
+    erro.syncIndisponivel = true;
+    return erro;
+  }
+
+  function desativarEndpoint() {
+    if (intervaloId != null) {
+      clearInterval(intervaloId);
+      intervaloId = null;
+    }
+    if (envioPendente != null) {
+      clearTimeout(envioPendente);
+      envioPendente = null;
+    }
+    endpoint = null;
+    definirStatus('local', 'Somente neste navegador');
+  }
+
   async function lerRemoto() {
     const resp = await fetch(endpoint, {
       method: 'GET',
       cache: 'no-store',
       headers: { Accept: 'application/json' }
     });
-    if (resp.status === 404) throw new Error('sync indisponivel');
+    if (resp.status === 404 || resp.status === 405 || resp.status === 501) throw erroIndisponivel();
     if (!resp.ok) throw new Error('falha ao ler sync: ' + resp.status);
-    return normalizarEnvelope(await resp.json());
+    try {
+      return normalizarEnvelope(await resp.json());
+    } catch (e) {
+      // Hospedagens estáticas às vezes reescrevem /api/sync para index.html com
+      // status 200. Isso não é uma API compatível e não deve continuar em polling.
+      throw erroIndisponivel();
+    }
   }
 
   async function gravarRemoto(state) {
@@ -128,7 +154,8 @@
       }
     } catch (e) {
       envioEmCurso = false;
-      definirStatus('local', 'Somente neste navegador');
+      if (e && e.syncIndisponivel) desativarEndpoint();
+      else definirStatus('local', 'Somente neste navegador');
     } finally {
       verificacaoEmCurso = false;
     }
@@ -153,7 +180,8 @@
     endpoint = location.origin + '/api/sync';
     definirStatus('verificando', 'Verificando sincronizacao');
     sincronizarAgora({ silencioso: true });
-    setInterval(function () { sincronizarAgora({ silencioso: true }); }, INTERVALO_MS);
+    if (intervaloId != null) clearInterval(intervaloId);
+    intervaloId = setInterval(function () { sincronizarAgora({ silencioso: true }); }, INTERVALO_MS);
     window.addEventListener('online', function () { sincronizarAgora({ silencioso: true }); });
     window.addEventListener('focus', function () { sincronizarAgora({ silencioso: true }); });
     document.addEventListener('visibilitychange', function () {

@@ -9,6 +9,27 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email == "casar70@gmail.com";
     }
 
+    function pedidoEditalValido(pedidoId) {
+      return signedIn()
+        && pedidoId == request.auth.uid
+        && request.resource.data.keys().hasOnly(["texto", "status", "criadoEm", "usuario", "savedAt"])
+        && request.resource.data.texto is string
+        && request.resource.data.texto.size() >= 3
+        && request.resource.data.texto.size() <= 500
+        && request.resource.data.status == "novo"
+        && request.resource.data.criadoEm is string
+        && request.resource.data.criadoEm.size() >= 10
+        && request.resource.data.criadoEm.size() <= 40
+        && request.resource.data.usuario is map
+        && request.resource.data.usuario.keys().hasOnly(["uid", "email", "nome"])
+        && request.resource.data.usuario.uid == request.auth.uid
+        && request.resource.data.usuario.email is string
+        && request.resource.data.usuario.email.size() <= 254
+        && request.resource.data.usuario.nome is string
+        && request.resource.data.usuario.nome.size() <= 120
+        && request.resource.data.savedAt is timestamp;
+    }
+
     // Estado principal (current) + backups diários (backup-0..backup-6),
     // todos privados do dono.
     match /users/{userId}/state/{docId} {
@@ -29,10 +50,11 @@ service cloud.firestore {
     }
 
     match /pedidosEdital/{pedidoId} {
-      allow create: if signedIn()
-        && request.resource.data.status == "novo"
-        && request.resource.data.usuario.uid == request.auth.uid;
-      allow read, update, delete: if isAdmin();
+      // Um documento por usuário evita crescimento ilimitado/spam da coleção.
+      // Um novo pedido substitui o anterior do próprio usuário; o admin continua
+      // podendo marcar como atendido ou excluir.
+      allow create, update: if isAdmin() || pedidoEditalValido(pedidoId);
+      allow read, delete: if isAdmin();
     }
   }
 }

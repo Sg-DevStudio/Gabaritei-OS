@@ -11,7 +11,6 @@ import {
   signOut
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -462,7 +461,8 @@ async function enviarPedidoEdital(pedido) {
   if (!usuario) throw new Error('Entre para pedir um edital.');
   const texto = String((pedido && pedido.texto) || '').trim();
   if (!texto) throw new Error('Descreva o edital desejado.');
-  await addDoc(pedidosCollection, {
+  if (texto.length > 500) throw new Error('O pedido deve ter no máximo 500 caracteres.');
+  await setDoc(doc(db, 'pedidosEdital', usuario.uid), {
     texto,
     status: 'novo',
     criadoEm: new Date().toISOString(),

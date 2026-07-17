@@ -890,24 +890,58 @@
     if (!json.plano || typeof json.plano !== 'object') erros.push('Campo "plano" ausente ou inválido.');
     else {
       if (!json.plano.concurso) erros.push('Campo "plano.concurso" é obrigatório.');
-      if (!json.plano.meta || typeof json.plano.meta.corte_pct !== 'number') erros.push('Campo "plano.meta.corte_pct" deve ser um número.');
+      if (!json.plano.meta || typeof json.plano.meta.corte_pct !== 'number' || !Number.isFinite(json.plano.meta.corte_pct)) {
+        erros.push('Campo "plano.meta.corte_pct" deve ser um número finito.');
+      } else if (json.plano.meta.corte_pct < 0 || json.plano.meta.corte_pct > 100) {
+        erros.push('Campo "plano.meta.corte_pct" deve estar entre 0 e 100.');
+      }
     }
+    const idsDisciplinas = new Set();
     if (!Array.isArray(json.disciplinas) || json.disciplinas.length === 0) {
       erros.push('Campo "disciplinas" deve ser uma lista com ao menos 1 disciplina.');
     } else {
       const idsTopicos = new Set();
       json.disciplinas.forEach(function (d, i) {
         const ref = 'disciplinas[' + i + ']';
+        if (!d || typeof d !== 'object') {
+          erros.push(ref + ' deve ser um objeto.');
+          return;
+        }
         if (!d.id) erros.push(ref + '.id é obrigatório.');
+        else if (idsDisciplinas.has(d.id)) erros.push(ref + '.id duplicado: ' + d.id);
+        else idsDisciplinas.add(d.id);
         if (!d.nome) erros.push(ref + '.nome é obrigatório.');
+        if (d.peso != null && (typeof d.peso !== 'number' || !Number.isFinite(d.peso) || d.peso <= 0)) {
+          erros.push(ref + '.peso deve ser um número finito maior que zero.');
+        }
+        if (d.nota_minima_pct != null && (typeof d.nota_minima_pct !== 'number' || !Number.isFinite(d.nota_minima_pct) || d.nota_minima_pct < 0 || d.nota_minima_pct > 100)) {
+          erros.push(ref + '.nota_minima_pct deve estar entre 0 e 100.');
+        }
+        if (d.dificuldade != null && !['facil', 'media', 'dificil'].includes(d.dificuldade)) {
+          erros.push(ref + '.dificuldade deve ser "facil", "media" ou "dificil".');
+        }
         if (!Array.isArray(d.topicos) || d.topicos.length === 0) erros.push(ref + '.topicos deve ter ao menos 1 tópico.');
         else d.topicos.forEach(function (t, j) {
           const refT = ref + '.topicos[' + j + ']';
+          if (!t || typeof t !== 'object') {
+            erros.push(refT + ' deve ser um objeto.');
+            return;
+          }
           if (!t.id) erros.push(refT + '.id é obrigatório.');
           else if (idsTopicos.has(t.id)) erros.push(refT + '.id duplicado: ' + t.id);
           else idsTopicos.add(t.id);
           if (!t.nome) erros.push(refT + '.nome é obrigatório.');
-          if (typeof t.incidencia_pct !== 'number') erros.push(refT + '.incidencia_pct deve ser um número.');
+          if (typeof t.incidencia_pct !== 'number' || !Number.isFinite(t.incidencia_pct)) {
+            erros.push(refT + '.incidencia_pct deve ser um número finito.');
+          } else if (t.incidencia_pct < 0 || t.incidencia_pct > 100) {
+            erros.push(refT + '.incidencia_pct deve estar entre 0 e 100.');
+          }
+          if (t.horas_estimadas != null && (typeof t.horas_estimadas !== 'number' || !Number.isFinite(t.horas_estimadas) || t.horas_estimadas <= 0)) {
+            erros.push(refT + '.horas_estimadas deve ser um número finito maior que zero.');
+          }
+          if (t.prioridade != null && (!Number.isInteger(t.prioridade) || t.prioridade < 1 || t.prioridade > 3)) {
+            erros.push(refT + '.prioridade deve ser um inteiro entre 1 e 3.');
+          }
         });
       });
       if (json.cronograma) {
@@ -922,8 +956,49 @@
         });
       }
     }
+    if (json.simulados != null) {
+      if (!Array.isArray(json.simulados)) {
+        erros.push('Campo "simulados" deve ser uma lista.');
+      } else {
+        json.simulados.forEach(function (sim, i) {
+          const ref = 'simulados[' + i + ']';
+          if (!sim || typeof sim !== 'object') {
+            erros.push(ref + ' deve ser um objeto.');
+            return;
+          }
+          if (typeof sim.data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(sim.data)) {
+            erros.push(ref + '.data deve usar o formato AAAA-MM-DD.');
+          }
+          if (!Array.isArray(sim.acertos) || sim.acertos.length === 0) {
+            erros.push(ref + '.acertos deve ter ao menos uma disciplina.');
+            return;
+          }
+          const disciplinasNoSimulado = new Set();
+          sim.acertos.forEach(function (a, j) {
+            const refA = ref + '.acertos[' + j + ']';
+            if (!a || typeof a !== 'object') {
+              erros.push(refA + ' deve ser um objeto.');
+              return;
+            }
+            if (!a.disciplinaId) erros.push(refA + '.disciplinaId é obrigatório.');
+            else {
+              if (!idsDisciplinas.has(a.disciplinaId)) erros.push(refA + '.disciplinaId não existe em disciplinas: ' + a.disciplinaId);
+              if (disciplinasNoSimulado.has(a.disciplinaId)) erros.push(refA + '.disciplinaId duplicado no simulado: ' + a.disciplinaId);
+              disciplinasNoSimulado.add(a.disciplinaId);
+            }
+            if (!Number.isInteger(a.total) || a.total <= 0) erros.push(refA + '.total deve ser um inteiro maior que zero.');
+            if (!Number.isInteger(a.certas) || a.certas < 0) erros.push(refA + '.certas deve ser um inteiro maior ou igual a zero.');
+            if (Number.isInteger(a.certas) && Number.isInteger(a.total) && a.certas > a.total) {
+              erros.push(refA + '.certas não pode ser maior que .total.');
+            }
+          });
+        });
+      }
+    }
     const totalTopicos = Array.isArray(json.disciplinas)
-      ? json.disciplinas.reduce(function (n, d) { return n + ((d.topicos || []).length); }, 0) : 0;
+      ? json.disciplinas.reduce(function (n, d) {
+        return n + (d && Array.isArray(d.topicos) ? d.topicos.length : 0);
+      }, 0) : 0;
     return {
       ok: erros.length === 0,
       erros,
