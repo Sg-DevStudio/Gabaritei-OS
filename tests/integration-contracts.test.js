@@ -9,6 +9,8 @@ const regras = fs.readFileSync(path.join(raiz, 'firestore.rules'), 'utf8');
 const firebaseSync = fs.readFileSync(path.join(raiz, 'js', 'firebase-sync.js'), 'utf8');
 const app = fs.readFileSync(path.join(raiz, 'js', 'app.js'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(raiz, 'index.html'), 'utf8');
+const serviceWorker = fs.readFileSync(path.join(raiz, 'sw.js'), 'utf8');
+const functionsIndex = fs.readFileSync(path.join(raiz, 'functions', 'index.js'), 'utf8');
 
 test('pedidos de edital usam um documento limitado por usuário e campos validados', () => {
   assert.match(regras, /pedidoId == request\.auth\.uid/);
@@ -58,4 +60,23 @@ test('pedido de edital copia a mensagem antes de abrir o Direct e mantém o regi
   assert.match(app, /id="pedido-abrir-direct"/);
   assert.match(app, /copiarTextoParaTransferencia\(mensagem\)/);
   assert.match(app, /FirebaseSync\.enviarPedidoEdital\(\{ texto: txt \}\)/);
+});
+
+test('push reutiliza o service worker principal sem substituir o cache da PWA', () => {
+  assert.doesNotMatch(firebaseSync, /serviceWorker\.register\('firebase-messaging-sw\.js'\)/);
+  assert.match(firebaseSync, /navigator\.serviceWorker\.ready/);
+  assert.match(serviceWorker, /firebase\.messaging\(\)\.onBackgroundMessage/);
+  assert.match(functionsIndex, /https:\/\/sg-devstudio\.github\.io\/Gabaritei-OS\//);
+});
+
+test('notificação do timer usa o service worker compatível com navegadores móveis', () => {
+  assert.doesNotMatch(app, /new Notification\(/);
+  assert.match(app, /mostrarNotificacaoTimer\(e, true\)/);
+  assert.match(app, /reg\.showNotification/);
+});
+
+test('gravação remota remove o espelho hidratado e protege o limite do Firestore', () => {
+  assert.match(firebaseSync, /window\.Store\.paraPersistencia/);
+  assert.match(firebaseSync, /LIMITE_ESTADO_REMOTO_BYTES/);
+  assert.match(firebaseSync, /validarTamanhoRemoto\(limpo, 'Seu estado'\)/);
 });

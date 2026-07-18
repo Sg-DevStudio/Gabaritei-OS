@@ -17,6 +17,7 @@ import {
   getDocs,
   getFirestore,
   onSnapshot,
+  deleteField,
   serverTimestamp,
   setDoc,
   updateDoc
@@ -28,6 +29,7 @@ import {
 import {
   getMessaging,
   getToken,
+  deleteToken,
   isSupported as isMessagingSupported
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
 
@@ -43,6 +45,8 @@ const firebaseConfig = {
 
 const CHAVE_DISPOSITIVO = 'estudos.firebase.dispositivo';
 const FOLGA_RELOGIO_MS = 1000;
+const LIMITE_ESTADO_REMOTO_BYTES = 850 * 1024;
+const FUSO_APP = 'America/Sao_Paulo';
 
 // Chave VAPID do Web Push (Firebase Console → Cloud Messaging → "Web Push
 // certificates"). Enquanto estiver vazia, os lembretes push ficam DESLIGADOS
@@ -64,6 +68,13 @@ let refEstado = null;
 let cancelarSnapshot = null;
 let envioPendente = null;
 let enviando = false;
+let estadoPendenteGravacao = null;
+let promessaGravacao = null;
+let snapshotPendenteDuranteEnvio = false;
+let reconciliando = false;
+let reconciliarDepois = false;
+let tokenPushAtual = null;
+let tokenPushUid = null;
 // true depois que esta sessão conseguiu LER a nuvem ao menos uma vez. Antes
 // disso, nenhum envio direto (agendarEnvio/flush) pode subir: um aparelho com
 // cópia local antiga que gravasse antes de reconciliar sobrescreveria (sem
@@ -150,37 +161,87 @@ function aplicarRemoto(remoteState, silencioso) {
   }
 }
 
-async function gravarRemoto(state) {
-  if (!refEstado || !usuario || aplicandoRemoto) return;
+function tamanhoUtf8(valor) {
+  const texto = JSON.stringify(valor);
+  if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(texto).length;
+  return unescape(encodeURIComponent(texto)).length;
+}
+
+function validarTamanhoRemoto(valor, rotulo) {
+  const bytes = tamanhoUtf8(valor);
+  if (bytes > LIMITE_ESTADO_REMOTO_BYTES) {
+    throw new Error((rotulo || 'Dados') + ' ocupam ' + Math.ceil(bytes / 1024) +
+      ' KB e ultrapassam o limite seguro de sincronização. Remova imagens grandes ou exporte um backup.');
+  }
+  return bytes;
+}
+
+function prepararEstadoRemoto(state) {
+  const limpo = window.Store.paraPersistencia
+    ? window.Store.paraPersistencia(state)
+    : JSON.parse(JSON.stringify(window.Store.normalizar(state)));
+  delete limpo.plano;
+  delete limpo.disciplinas;
+  delete limpo.cronogramas;
+  delete limpo.links;
+  validarTamanhoRemoto(limpo, 'Seu estado');
+  return limpo;
+}
+
+function gravarRemoto(state) {
+  if (!refEstado || !usuario || aplicandoRemoto) return Promise.resolve();
   // Salvaguarda contra perda de dados multi-dispositivo: um estado local SEM
   // dados (recém-carregado/cache limpo tem atualizadoEm = agora, logo "mais
   // novo" que a nuvem) NÃO pode sobrescrever uma nuvem que tem dados. A única
   // exceção é uma exclusão explícita do usuário, marcada por config.apagadoEm
   // — aí o vazio deve mesmo propagar. Sem isso, um aparelho zerado apagava o
   // plano de todos os outros.
-  if (!temDados(state) && !temLapides(state)) return;
-  enviando = true;
-  definirStatus('enviando', 'Enviando para a nuvem');
-  try {
-    const stateLimpo = JSON.parse(JSON.stringify(window.Store.normalizar(state)));
-    await setDoc(refEstado, {
-      state: stateLimpo,
-      updatedAt: atualizadoEm(stateLimpo) || new Date().toISOString(),
-      clientId: idDispositivo(),
-      savedAt: serverTimestamp()
-    });
-    definirStatus('sincronizado', 'Sincronizado com Firebase');
-    talvezSnapshotDiario(stateLimpo); // fire-and-forget: nunca atrasa nem quebra o save
-  } catch (e) {
-    console.error('Falha ao salvar no Firebase.', e);
-    definirStatus('erro', 'Falha ao salvar no Firebase');
-  } finally {
-    enviando = false;
-  }
+  if (!temDados(state) && !temLapides(state)) return Promise.resolve();
+  // Coalesce gravações concorrentes: enquanto uma está em voo, guardamos somente
+  // o estado mais recente para o próximo ciclo. Isso impede uma requisição antiga,
+  // mais lenta, de terminar por último e regredir o documento inteiro.
+  estadoPendenteGravacao = state;
+  if (promessaGravacao) return promessaGravacao;
+  promessaGravacao = (async function () {
+    enviando = true;
+    definirStatus('enviando', 'Enviando para a nuvem');
+    try {
+      while (estadoPendenteGravacao) {
+        const proximo = estadoPendenteGravacao;
+        estadoPendenteGravacao = null;
+        const stateLimpo = prepararEstadoRemoto(proximo);
+        await setDoc(refEstado, {
+          state: stateLimpo,
+          updatedAt: atualizadoEm(stateLimpo) || new Date().toISOString(),
+          clientId: idDispositivo(),
+          savedAt: serverTimestamp()
+        });
+        talvezSnapshotDiario(stateLimpo); // fire-and-forget: nunca atrasa nem quebra o save
+      }
+      definirStatus('sincronizado', 'Sincronizado com Firebase');
+    } catch (e) {
+      estadoPendenteGravacao = null;
+      console.error('Falha ao salvar no Firebase.', e);
+      definirStatus('erro', e && e.message ? e.message : 'Falha ao salvar no Firebase');
+    } finally {
+      enviando = false;
+      promessaGravacao = null;
+      if (snapshotPendenteDuranteEnvio) {
+        snapshotPendenteDuranteEnvio = false;
+        setTimeout(function () { reconciliarComRemoto(true); }, 0);
+      }
+    }
+  })();
+  return promessaGravacao;
 }
 
 async function reconciliarComRemoto(silencioso) {
   if (!refEstado || !opcoes) return;
+  if (reconciliando) {
+    reconciliarDepois = true;
+    return;
+  }
+  reconciliando = true;
   definirStatus('sincronizando', 'Sincronizando com Firebase');
   try {
     const local = opcoes.obterEstado();
@@ -229,9 +290,10 @@ async function reconciliarComRemoto(silencioso) {
       const base = remotoGanha ? remoto.state : local;
       const outro = remotoGanha ? local : remoto.state;
       const merged = window.Store.mesclarEstados(base, outro);
-      const recuperou = window.Store.contarRegistros(merged) > window.Store.contarRegistros(base);
-      if (remotoGanha || recuperou) aplicarRemoto(merged, silencioso);
-      if (recuperou || !remotoGanha) await gravarRemoto(merged);
+      const mudouLocal = !window.Store.estadosEquivalentes(merged, local);
+      const mudouRemoto = !window.Store.estadosEquivalentes(merged, remoto.state);
+      if (remotoGanha || mudouLocal) aplicarRemoto(merged, silencioso);
+      if (mudouRemoto) await gravarRemoto(merged);
       definirStatus('sincronizado', 'Sincronizado com Firebase');
     } else if (localMs > remotoMs + FOLGA_RELOGIO_MS) {
       await gravarRemoto(local);
@@ -244,13 +306,24 @@ async function reconciliarComRemoto(silencioso) {
   } catch (e) {
     console.error('Falha ao sincronizar com Firebase.', e);
     definirStatus('erro', 'Verifique Auth, Firestore e regras');
+  } finally {
+    reconciliando = false;
+    if (reconciliarDepois) {
+      reconciliarDepois = false;
+      setTimeout(function () { reconciliarComRemoto(true); }, 0);
+    }
   }
 }
 
 function observarMudancas() {
   if (cancelarSnapshot) cancelarSnapshot();
   cancelarSnapshot = onSnapshot(refEstado, function (snap) {
-    if (!snap.exists() || enviando || !opcoes) return;
+    if (!snap.exists() || !opcoes) return;
+    if (enviando) {
+      const duranteEnvio = snap.data() || {};
+      if (duranteEnvio.clientId !== idDispositivo()) snapshotPendenteDuranteEnvio = true;
+      return;
+    }
     const remoto = normalizarRemoto(snap.data());
     if (!remoto || remoto.clientId === idDispositivo()) return;
     const local = opcoes.obterEstado();
@@ -278,7 +351,7 @@ function observarMudancas() {
       // mescla (remoto como base) para não perdê-los e reenvia se recuperou algo.
       const merged = window.Store.mesclarEstados(remoto.state, local);
       aplicarRemoto(merged, true);
-      if (window.Store.contarRegistros(merged) > window.Store.contarRegistros(remoto.state)) gravarRemoto(merged);
+      if (!window.Store.estadosEquivalentes(merged, remoto.state)) gravarRemoto(merged);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
     } else if (remotoNovo) {
       aplicarRemoto(remoto.state, true);
@@ -349,10 +422,14 @@ async function registrarPush(user) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     if (!(await isMessagingSupported().catch(function () { return false; }))) return;
 
-    const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+    // Reutiliza o service worker principal. Registrar outro worker no mesmo escopo
+    // raiz substituiria o cache/offline da PWA.
+    const reg = await navigator.serviceWorker.ready;
     const messaging = getMessaging(app);
     const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
     if (!token) return;
+    tokenPushAtual = token;
+    tokenPushUid = user.uid;
 
     await setDoc(doc(db, 'users', user.uid, 'push', 'tokens'), {
       [token]: {
@@ -362,6 +439,28 @@ async function registrarPush(user) {
     }, { merge: true });
   } catch (e) {
     console.warn('Push não ativado (lembretes):', e && e.message ? e.message : e);
+  }
+}
+
+async function removerPushAtual() {
+  const uid = tokenPushUid || (usuario && usuario.uid);
+  const token = tokenPushAtual;
+  tokenPushAtual = null;
+  tokenPushUid = null;
+  if (!uid || !token) return;
+  try {
+    await setDoc(doc(db, 'users', uid, 'push', 'tokens'), {
+      [token]: deleteField()
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Não consegui remover o token push do perfil:', e && e.message ? e.message : e);
+  }
+  try {
+    if (await isMessagingSupported().catch(function () { return false; })) {
+      await deleteToken(getMessaging(app));
+    }
+  } catch (e) {
+    console.warn('Não consegui remover o token push deste navegador:', e && e.message ? e.message : e);
   }
 }
 
@@ -376,9 +475,17 @@ const CHAVE_SNAPSHOT_DIA = 'estudos.firebase.snapshotDia';
 async function talvezSnapshotDiario(stateLimpo) {
   try {
     if (!usuario || !temDados(stateLimpo)) return;
-    const hoje = new Date().toISOString().slice(0, 10);
+    const agora = new Date();
+    const partes = new Intl.DateTimeFormat('en-CA', {
+      timeZone: FUSO_APP, year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short'
+    }).formatToParts(agora).reduce(function (acc, parte) {
+      acc[parte.type] = parte.value;
+      return acc;
+    }, {});
+    const hoje = partes.year + '-' + partes.month + '-' + partes.day;
     if (localStorage.getItem(CHAVE_SNAPSHOT_DIA) === hoje) return;
-    const slot = 'backup-' + new Date().getDay();
+    const diaSemana = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
+    const slot = 'backup-' + (diaSemana[partes.weekday] == null ? 0 : diaSemana[partes.weekday]);
     await setDoc(doc(db, 'users', usuario.uid, 'state', slot), {
       state: stateLimpo,
       criadoEm: new Date().toISOString(),
@@ -431,9 +538,9 @@ function agendarEnvio(state) {
   }, 650);
 }
 
-// Garante que o último envio agendado (debounce de 650ms) saia ANTES de a aba
-// ser congelada/fechada. Sem isso, registrar estudo e fechar o app logo em
-// seguida (típico no fim de uma sessão) podia perder a última gravação na nuvem.
+// Antecipa, em melhor esforço, o último envio agendado antes de a aba ser
+// congelada/fechada. O dado já está seguro no localStorage; se o navegador não
+// der tempo ao Firestore, ele será reconciliado na próxima abertura.
 function flushEnvio() {
   if (!envioPendente) return;
   clearTimeout(envioPendente);
@@ -452,7 +559,7 @@ function login() {
 }
 
 function logout() {
-  return signOut(auth);
+  return removerPushAtual().finally(function () { return signOut(auth); });
 }
 
 function status() { return statusAtual; }
@@ -469,12 +576,15 @@ async function publicarCatalogoGlobal(editais) {
   if (!usuario || String(usuario.email || '').toLowerCase() !== 'casar70@gmail.com') {
     throw new Error('Apenas o administrador pode publicar o catálogo global.');
   }
-  await setDoc(refCatalogo, {
+  const catalogo = {
     editais: Array.isArray(editais) ? editais : [],
     atualizadoEm: new Date().toISOString(),
-    atualizadoPor: usuario.email,
+    atualizadoPor: usuario.email
+  };
+  validarTamanhoRemoto(catalogo, 'O catálogo');
+  await setDoc(refCatalogo, Object.assign(catalogo, {
     savedAt: serverTimestamp()
-  }, { merge: true });
+  }), { merge: true });
 }
 
 async function enviarPedidoEdital(pedido) {

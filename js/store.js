@@ -19,6 +19,64 @@
     return prefixo + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
   }
 
+  function clonarJson(valor) {
+    return valor == null ? valor : JSON.parse(JSON.stringify(valor));
+  }
+
+  function ordenarChaves(valor) {
+    if (Array.isArray(valor)) return valor.map(ordenarChaves);
+    if (!valor || typeof valor !== 'object') return valor;
+    const ordenado = {};
+    Object.keys(valor).sort().forEach(function (chave) {
+      ordenado[chave] = ordenarChaves(valor[chave]);
+    });
+    return ordenado;
+  }
+
+  function stringifyEstavel(valor) {
+    return JSON.stringify(ordenarChaves(valor));
+  }
+
+  function assinaturaSemCampos(obj, campos) {
+    if (!obj || typeof obj !== 'object') return JSON.stringify(obj);
+    const copia = clonarJson(obj);
+    (campos || []).forEach(function (campo) { delete copia[campo]; });
+    return stringifyEstavel(copia);
+  }
+
+  function assinaturaPlano(plano) {
+    return assinaturaSemCampos(plano, [
+      'atualizadoEm', 'estruturaAtualizadaEm', 'estruturaRev', 'estruturaHash'
+    ]);
+  }
+
+  function assinaturaItem(item) {
+    return assinaturaSemCampos(item, ['atualizadoEm']);
+  }
+
+  function hashTexto(texto) {
+    let hash = 2166136261;
+    const s = String(texto || '');
+    for (let i = 0; i < s.length; i++) {
+      hash ^= s.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  function idLink(link) {
+    if (!link) return '';
+    return String(link.id || link.url || ('hash-' + hashTexto(JSON.stringify(link))));
+  }
+
+  function chaveEntidade(tipo, planoId, id) {
+    return tipo + ':' + String(planoId || '') + ':' + encodeURIComponent(String(id || ''));
+  }
+
+  function agendaPersistente(item) {
+    return !!(item && (item.gerado === false || item.extra || item.bloqueado));
+  }
+
   const LETRAS_PT = 'A-Za-zÀ-ÖØ-öø-ÿ';
   const REGRAS_ACENTOS_PT = [
     ['Nao', 'Não'], ['nao', 'não'], ['Voce', 'Você'], ['voce', 'você'],
@@ -302,6 +360,9 @@
     // Tombstones: ids de registros de estudo excluídos de propósito. O merge
     // multi-dispositivo usa isso para NÃO ressuscitar o que o usuário apagou.
     if (!Array.isArray(state.config.removidos)) state.config.removidos = [];
+    if (!state.config.entidadesExcluidas || typeof state.config.entidadesExcluidas !== 'object' || Array.isArray(state.config.entidadesExcluidas)) {
+      state.config.entidadesExcluidas = {};
+    }
     if (!Number.isFinite(parseInt(state.config.rev, 10))) state.config.rev = 0;
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
     // Metas de acerto definidas pelo aluno: % geral (null = usa a nota de corte do
@@ -332,6 +393,21 @@
     if (!state.sessoes) state.sessoes = [];
     if (!state.revisoes) state.revisoes = [];
     if (!state.simulados) state.simulados = [];
+    state.sessoes.forEach(function (s) {
+      if (!s) return;
+      const feitas = Math.max(0, Math.round(Number(s.qFeitas) || 0));
+      const certas = Math.max(0, Math.round(Number(s.qCertas) || 0));
+      s.qFeitas = feitas;
+      s.qCertas = Math.min(feitas, certas);
+    });
+    state.simulados.forEach(function (sim) {
+      (sim && sim.acertos || []).forEach(function (a) {
+        const total = Math.max(0, Math.round(Number(a.total) || 0));
+        const certas = Math.max(0, Math.round(Number(a.certas) || 0));
+        a.total = total;
+        a.certas = Math.min(total, certas);
+      });
+    });
     if (!state.agenda) state.agenda = [];
     // Progresso parcial dos blocos: minutos já estudados (acumulados pelo timer/
     // registro). Blocos antigos marcados como feitos contam o tempo planejado.
@@ -371,6 +447,9 @@
       if (!p) return;
       if (p.plano) normalizarCicloPlano(p.plano);
       normalizarStatusDisciplinas(p.disciplinas);
+      if (!p.estruturaAtualizadaEm) p.estruturaAtualizadaEm = p.atualizadoEm || p.criadoEm || state.config.criadoEm;
+      if (!Number.isFinite(parseInt(p.estruturaRev, 10))) p.estruturaRev = 0;
+      if (!p.estruturaHash) p.estruturaHash = assinaturaPlano(p);
     });
     normalizarAcentosConteudo(state);
     // Backfill único: até a correção do registro pela bolinha, um bloco concluído
@@ -397,22 +476,146 @@
     }
   }
 
+  function lerPersistidoCru() {
+    try {
+      const bruto = localStorage.getItem(CHAVE);
+      return bruto ? JSON.parse(bruto) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function mapaPorId(lista) {
+    const mapa = {};
+    (Array.isArray(lista) ? lista : []).forEach(function (item) {
+      if (item && item.id) mapa[item.id] = item;
+    });
+    return mapa;
+  }
+
+  function carimbarItensAlterados(state, anterior, agora) {
+    ['sessoes', 'revisoes', 'simulados', 'flashcards'].forEach(function (nome) {
+      const antigos = mapaPorId(anterior && anterior[nome]);
+      (state[nome] || []).forEach(function (item) {
+        if (!item || !item.id) return;
+        const antigo = antigos[item.id];
+        if (!antigo || assinaturaItem(item) !== assinaturaItem(antigo)) item.atualizadoEm = agora;
+      });
+    });
+
+    const agendasAntigas = mapaPorId(anterior && anterior.agenda);
+    (state.agenda || []).forEach(function (item) {
+      if (!agendaPersistente(item) || !item.id) return;
+      const antigo = agendasAntigas[item.id];
+      if (!antigo || assinaturaItem(item) !== assinaturaItem(antigo)) item.atualizadoEm = agora;
+    });
+
+    const decksAntigos = mapaPorId(anterior && anterior.flashcards);
+    (state.flashcards || []).forEach(function (deck) {
+      if (!deck || !deck.id) return;
+      const cardsAntigos = mapaPorId(decksAntigos[deck.id] && decksAntigos[deck.id].cards);
+      (deck.cards || []).forEach(function (card) {
+        if (!card || !card.id) return;
+        const antigo = cardsAntigos[card.id];
+        if (!antigo || assinaturaItem(card) !== assinaturaItem(antigo)) card.atualizadoEm = agora;
+      });
+    });
+  }
+
+  function entidadesDoEstado(state) {
+    const entidades = {};
+    (state && state.planos || []).forEach(function (p) {
+      if (!p || !p.id) return;
+      (p.disciplinas || []).forEach(function (d) {
+        if (!d || !d.id) return;
+        entidades[chaveEntidade('disc', p.id, d.id)] = true;
+        (d.topicos || []).forEach(function (t) {
+          if (t && t.id) entidades[chaveEntidade('top', p.id, t.id)] = true;
+        });
+      });
+      (p.links || []).forEach(function (link) {
+        const id = idLink(link);
+        if (id) entidades[chaveEntidade('link', p.id, id)] = true;
+      });
+    });
+    (state && state.agenda || []).forEach(function (item) {
+      if (agendaPersistente(item) && item.id) entidades[chaveEntidade('agenda', item.planoId, item.id)] = true;
+    });
+    (state && state.flashcards || []).forEach(function (deck) {
+      (deck && deck.cards || []).forEach(function (card) {
+        if (card && card.id) entidades[chaveEntidade('card', deck.id, card.id)] = true;
+      });
+    });
+    return entidades;
+  }
+
+  function registrarEntidadesExcluidas(state, anterior, agora) {
+    if (!anterior) return;
+    const antes = entidadesDoEstado(anterior);
+    const agoraExistentes = entidadesDoEstado(state);
+    const lapides = state.config.entidadesExcluidas;
+    Object.keys(antes).forEach(function (chave) {
+      if (!agoraExistentes[chave]) lapides[chave] = agora;
+    });
+    // Recriações explícitas com o mesmo id neste aparelho voltam a ser válidas.
+    Object.keys(agoraExistentes).forEach(function (chave) {
+      if (!antes[chave] && lapides[chave]) delete lapides[chave];
+    });
+  }
+
+  function carimbarEstruturasAlteradas(state, agora) {
+    (state.planos || []).forEach(function (plano) {
+      if (!plano) return;
+      const assinatura = assinaturaPlano(plano);
+      if (plano.estruturaHash && plano.estruturaHash !== assinatura) {
+        plano.estruturaAtualizadaEm = agora;
+        plano.atualizadoEm = agora; // compatibilidade com versões antigas do app
+        plano.estruturaRev = (parseInt(plano.estruturaRev, 10) || 0) + 1;
+      }
+      plano.estruturaHash = assinaturaPlano(plano);
+    });
+  }
+
+  function paraPersistencia(state) {
+    const copia = clonarJson(state || estadoVazio());
+    migrar(copia);
+    delete copia.plano;
+    delete copia.disciplinas;
+    delete copia.cronogramas;
+    delete copia.links;
+    return copia;
+  }
+
+  function estadosEquivalentes(a, b) {
+    return stringifyEstavel(paraPersistencia(a)) === stringifyEstavel(paraPersistencia(b));
+  }
+
+  function limparLapidesDeEntidadesPresentes(state, restaurado) {
+    const presentes = entidadesDoEstado(restaurado);
+    [state && state.config, restaurado && restaurado.config].forEach(function (config) {
+      if (!config || !config.entidadesExcluidas) return;
+      Object.keys(presentes).forEach(function (chave) {
+        if (config.entidadesExcluidas[chave]) delete config.entidadesExcluidas[chave];
+      });
+    });
+  }
+
   function salvar(state, opcoes) {
     opcoes = opcoes || {};
+    const anterior = lerPersistidoCru();
     migrar(state);
     if (opcoes.marcarAlterado !== false) {
-      state.config.atualizadoEm = agoraISO();
+      const agora = agoraISO();
+      registrarEntidadesExcluidas(state, anterior, agora);
+      carimbarItensAlterados(state, anterior, agora);
+      carimbarEstruturasAlteradas(state, agora);
+      state.config.atualizadoEm = agora;
       // Contador de revisão monotônico: desempata a escolha da "base" da mescla
       // sem depender do relógio do aparelho (relógio errado não engana o sync).
       state.config.rev = (parseInt(state.config.rev, 10) || 0) + 1;
-      // Carimbo por plano: a mescla escolhe a versão mais editada de CADA plano,
-      // em vez de o estado inteiro mais novo levar a estrutura de todos.
-      const ativo = state.planos.find(function (p) { return p && p.id === state.planoAtivoId; });
-      if (ativo) ativo.atualizadoEm = state.config.atualizadoEm;
     }
-    // não duplica o plano ativo no JSON salvo: os slots são recriados no carregar()
-    const copia = Object.assign({}, state);
-    delete copia.plano; delete copia.disciplinas; delete copia.cronogramas; delete copia.links;
+    // Não duplica o plano ativo no JSON salvo: os slots são recriados no carregar().
+    const copia = paraPersistencia(state);
     try {
       localStorage.setItem(CHAVE, JSON.stringify(copia));
       return { ok: true };
@@ -515,33 +718,103 @@
     lista.forEach(function (i) { if (i && !set[i]) { state.config.removidos.push(i); set[i] = true; } });
   }
 
+  function itemMaisNovo(preferido, complementar, tipo) {
+    if (!preferido) return clonarJson(complementar);
+    if (!complementar) return preferido;
+    const dataP = preferido.atualizadoEm || '';
+    const dataC = complementar.atualizadoEm || '';
+    if (dataC > dataP) return clonarJson(complementar);
+    if (dataP > dataC) return preferido;
+    // Backups antigos não tinham carimbo por registro. Neles, uma conclusão não
+    // pode voltar a pendente só porque o estado pendente foi escolhido como base.
+    if (tipo === 'revisoes' && complementar.dataConcluida && !preferido.dataConcluida) {
+      return clonarJson(complementar);
+    }
+    if (tipo === 'card') {
+      const revisaoP = preferido.sr && preferido.sr.ultimaRevisao || '';
+      const revisaoC = complementar.sr && complementar.sr.ultimaRevisao || '';
+      if (revisaoC > revisaoP) return clonarJson(complementar);
+    }
+    return preferido;
+  }
+
+  function mesclarDeckFlashcards(preferido, complementar, lapidesEntidades) {
+    const resultado = itemMaisNovo(preferido, complementar, 'flashcards');
+    const outro = resultado === preferido ? complementar : preferido;
+    resultado.cards = Array.isArray(resultado.cards) ? resultado.cards : [];
+    const porId = {};
+    resultado.cards.forEach(function (card, i) { if (card && card.id) porId[card.id] = i; });
+    (outro && outro.cards || []).forEach(function (card) {
+      if (!card || !card.id) return;
+      const chave = chaveEntidade('card', resultado.id, card.id);
+      if (lapidesEntidades[chave]) return;
+      if (porId[card.id] === undefined) {
+        porId[card.id] = resultado.cards.length;
+        resultado.cards.push(clonarJson(card));
+      } else {
+        resultado.cards[porId[card.id]] = itemMaisNovo(resultado.cards[porId[card.id]], card, 'card');
+      }
+    });
+    resultado.cards = resultado.cards.filter(function (card) {
+      return !card || !card.id || !lapidesEntidades[chaveEntidade('card', resultado.id, card.id)];
+    });
+    return resultado;
+  }
+
   function unirItensPorId(preferidos, complementares) {
     const resultado = Array.isArray(preferidos) ? preferidos : [];
     const ids = {};
     resultado.forEach(function (item) { if (item && item.id) ids[item.id] = true; });
     (Array.isArray(complementares) ? complementares : []).forEach(function (item) {
-      if (item && item.id && !ids[item.id]) { resultado.push(item); ids[item.id] = true; }
+      if (item && item.id && !ids[item.id]) { resultado.push(clonarJson(item)); ids[item.id] = true; }
     });
     return resultado;
+  }
+
+  function entidadeExcluida(lapides, tipo, planoId, id) {
+    return !!lapides[chaveEntidade(tipo, planoId, id)];
+  }
+
+  function filtrarEstruturaPlano(plano, lapides) {
+    if (!plano) return plano;
+    plano.disciplinas = (plano.disciplinas || []).filter(function (d) {
+      return !d || !d.id || !entidadeExcluida(lapides, 'disc', plano.id, d.id);
+    });
+    plano.disciplinas.forEach(function (d) {
+      d.topicos = (d.topicos || []).filter(function (t) {
+        return !t || !t.id || !entidadeExcluida(lapides, 'top', plano.id, t.id);
+      });
+    });
+    plano.links = (plano.links || []).filter(function (link) {
+      const id = idLink(link);
+      return !id || !entidadeExcluida(lapides, 'link', plano.id, id);
+    });
+    return plano;
   }
 
   // Resolve edições estruturais concorrentes sem trocar o plano inteiro. Campos
   // escalares e cronogramas seguem a versão mais nova; disciplinas/tópicos/links
   // adicionados no outro aparelho são preservados por id.
-  function mesclarEstruturaPlano(preferido, complementar) {
+  function mesclarEstruturaPlano(preferido, complementar, lapides) {
     if (!preferido || !complementar) return preferido || complementar;
+    filtrarEstruturaPlano(preferido, lapides);
+    filtrarEstruturaPlano(complementar, lapides);
     preferido.disciplinas = Array.isArray(preferido.disciplinas) ? preferido.disciplinas : [];
     const discPorId = {};
     preferido.disciplinas.forEach(function (d) { if (d && d.id) discPorId[d.id] = d; });
     (complementar.disciplinas || []).forEach(function (d) {
       if (!d || !d.id) return;
+      if (entidadeExcluida(lapides, 'disc', preferido.id, d.id)) return;
       if (!discPorId[d.id]) {
-        preferido.disciplinas.push(d);
-        discPorId[d.id] = d;
+        const copia = clonarJson(d);
+        preferido.disciplinas.push(copia);
+        discPorId[d.id] = copia;
         return;
       }
       const disc = discPorId[d.id];
-      disc.topicos = unirItensPorId(disc.topicos, d.topicos);
+      disc.topicos = unirItensPorId(disc.topicos, (d.topicos || []).filter(function (t) {
+        return !t || !t.id || !entidadeExcluida(lapides, 'top', preferido.id, t.id);
+      }));
     });
 
     preferido.links = Array.isArray(preferido.links) ? preferido.links : [];
@@ -552,9 +825,10 @@
     (complementar.links || []).forEach(function (l) {
       if (!l) return;
       const chave = l.id || l.url || JSON.stringify(l);
-      if (!chavesLink[chave]) { preferido.links.push(l); chavesLink[chave] = true; }
+      if (entidadeExcluida(lapides, 'link', preferido.id, idLink(l))) return;
+      if (!chavesLink[chave]) { preferido.links.push(clonarJson(l)); chavesLink[chave] = true; }
     });
-    return preferido;
+    return filtrarEstruturaPlano(preferido, lapides);
   }
 
   // Mescla dois estados sem perder registros de estudo: `base` (o mais recente)
@@ -575,16 +849,35 @@
       r.forEach(function (id) { tomb[id] = true; });
     });
     merged.config.removidos = Object.keys(tomb);
+    const tombEntidades = Object.assign(
+      {},
+      base && base.config && base.config.entidadesExcluidas,
+      outro && outro.config && outro.config.entidadesExcluidas
+    );
+    merged.config.entidadesExcluidas = tombEntidades;
     LISTAS_ESTUDO.forEach(function (k) {
       let baseLista = Array.isArray(merged[k]) ? merged[k] : (merged[k] = []);
       const outroLista = Array.isArray(outro[k]) ? outro[k] : [];
       // tira do resultado o que foi apagado em QUALQUER dispositivo (deleção vence)
       baseLista = merged[k] = baseLista.filter(function (item) { return !item || !tomb[item.id]; });
       const ids = {};
-      baseLista.forEach(function (item) { if (item && item.id) ids[item.id] = true; });
+      baseLista.forEach(function (item, i) { if (item && item.id) ids[item.id] = i; });
       outroLista.forEach(function (item) {
-        if (item && item.id && !ids[item.id] && !tomb[item.id]) { baseLista.push(item); ids[item.id] = true; }
+        if (!item || !item.id || tomb[item.id]) return;
+        if (ids[item.id] === undefined) {
+          ids[item.id] = baseLista.length;
+          baseLista.push(clonarJson(item));
+        } else if (k === 'flashcards') {
+          baseLista[ids[item.id]] = mesclarDeckFlashcards(baseLista[ids[item.id]], item, tombEntidades);
+        } else {
+          baseLista[ids[item.id]] = itemMaisNovo(baseLista[ids[item.id]], item, k);
+        }
       });
+      if (k === 'flashcards') {
+        baseLista.forEach(function (deck, i) {
+          baseLista[i] = mesclarDeckFlashcards(deck, null, tombEntidades);
+        });
+      }
     });
     // Planos que só existem no outro lado também são recuperados (cada plano
     // carrega seu próprio conteúdo; sessões órfãs sem plano não contam horas).
@@ -599,11 +892,14 @@
         const copiaOutroPlano = JSON.parse(JSON.stringify(p));
         if (idsP[p.id] === undefined) { idsP[p.id] = merged.planos.length; merged.planos.push(copiaOutroPlano); return; }
         const atual = merged.planos[idsP[p.id]];
-        const pMaisNovo = (p.atualizadoEm || '') > ((atual && atual.atualizadoEm) || '');
+        const dataP = p.estruturaAtualizadaEm || p.atualizadoEm || '';
+        const dataAtual = (atual && (atual.estruturaAtualizadaEm || atual.atualizadoEm)) || '';
+        const pMaisNovo = dataP > dataAtual;
         const preferido = pMaisNovo ? copiaOutroPlano : atual;
         const complementar = pMaisNovo ? atual : copiaOutroPlano;
-        merged.planos[idsP[p.id]] = mesclarEstruturaPlano(preferido, complementar);
+        merged.planos[idsP[p.id]] = mesclarEstruturaPlano(preferido, complementar, tombEntidades);
       });
+      merged.planos.forEach(function (p) { filtrarEstruturaPlano(p, tombEntidades); });
     }
     // Progresso dos blocos da agenda: sem união (regenerável), mas blocos com o
     // MESMO id nos dois lados somam o andamento — bloco riscado/parcial num
@@ -611,12 +907,32 @@
     if (Array.isArray(merged.agenda) && Array.isArray(outro.agenda)) {
       const porId = {};
       outro.agenda.forEach(function (a) { if (a && a.id) porId[a.id] = a; });
-      merged.agenda.forEach(function (a) {
+      merged.agenda.forEach(function (a, i) {
         const o = a && a.id ? porId[a.id] : null;
         if (!o) return;
-        if (o.feito) a.feito = true;
-        if (typeof o.feitoMin === 'number' && (typeof a.feitoMin !== 'number' || o.feitoMin > a.feitoMin)) a.feitoMin = o.feitoMin;
-        if (o.registroRapidoId && !a.registroRapidoId) a.registroRapidoId = o.registroRapidoId;
+        const escolhido = agendaPersistente(a) || agendaPersistente(o)
+          ? itemMaisNovo(a, o, 'agenda')
+          : a;
+        if (a.feito || o.feito) escolhido.feito = true;
+        const feitoMinA = typeof a.feitoMin === 'number' ? a.feitoMin : 0;
+        const feitoMinO = typeof o.feitoMin === 'number' ? o.feitoMin : 0;
+        escolhido.feitoMin = Math.max(feitoMinA, feitoMinO);
+        if (!escolhido.registroRapidoId) escolhido.registroRapidoId = a.registroRapidoId || o.registroRapidoId;
+        merged.agenda[i] = escolhido;
+      });
+      // Blocos manuais, extras ou fixados não são regeneráveis: eles precisam ser
+      // unidos entre aparelhos. Blocos automáticos exclusivos do outro lado seguem
+      // fora para não duplicar uma agenda que o motor pode recalcular.
+      const idsAgenda = {};
+      merged.agenda.forEach(function (a) { if (a && a.id) idsAgenda[a.id] = true; });
+      outro.agenda.forEach(function (a) {
+        if (!agendaPersistente(a) || !a.id || idsAgenda[a.id]) return;
+        if (entidadeExcluida(tombEntidades, 'agenda', a.planoId, a.id)) return;
+        merged.agenda.push(clonarJson(a));
+        idsAgenda[a.id] = true;
+      });
+      merged.agenda = merged.agenda.filter(function (a) {
+        return !a || !a.id || !entidadeExcluida(tombEntidades, 'agenda', a.planoId, a.id);
       });
     }
     // rev monotônico: o resultado da mescla nunca "anda para trás" em relação
@@ -662,7 +978,8 @@
   window.Store = {
     carregar, salvar, estadoVazio, normalizar: migrar, hidratar, novoId,
     ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados,
-    mesclarEstados, contarRegistros, marcarRemovido,
+    mesclarEstados, contarRegistros, marcarRemovido, paraPersistencia, estadosEquivalentes,
+    limparLapidesDeEntidadesPresentes,
     corrigirAcentosTexto, normalizarAcentosEdital, normalizarAcentosConteudo
   };
 })();

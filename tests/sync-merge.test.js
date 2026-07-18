@@ -128,10 +128,10 @@ test('risco 3: salvar incrementa config.rev e a mescla mantém o maior', () => {
 
 test('risco 4: progresso de bloco da agenda com mesmo id soma entre aparelhos', () => {
   const a = estadoCom(function (st) {
-    st.agenda = [{ id: 'blc-1', feito: false, feitoMin: 10 }, { id: 'blc-2', feito: false, feitoMin: 0 }];
+    st.agenda = [{ id: 'blc-1', feito: false, feitoMin: 10, gerado: true }, { id: 'blc-2', feito: false, feitoMin: 0, gerado: true }];
   });
   const b = estadoCom(function (st) {
-    st.agenda = [{ id: 'blc-1', feito: true, feitoMin: 45, registroRapidoId: 'ses-9' }, { id: 'blc-3', feito: true, feitoMin: 30 }];
+    st.agenda = [{ id: 'blc-1', feito: true, feitoMin: 45, registroRapidoId: 'ses-9', gerado: true }, { id: 'blc-3', feito: true, feitoMin: 30, gerado: true }];
   });
   const m = S.mesclarEstados(a, b);
   const b1 = m.agenda.find(function (x) { return x.id === 'blc-1'; });
@@ -140,6 +140,123 @@ test('risco 4: progresso de bloco da agenda com mesmo id soma entre aparelhos', 
   assert.equal(b1.registroRapidoId, 'ses-9');
   // agenda continua sem união: bloco que só existe no outro lado não entra
   assert.equal(m.agenda.some(function (x) { return x.id === 'blc-3'; }), false);
+});
+
+test('bloco manual exclusivo de outro aparelho é preservado na mescla', () => {
+  const a = estadoCom(function (st) { st.agenda = []; });
+  const b = estadoCom(function (st) {
+    st.agenda = [{ id: 'manual-1', planoId: 'p1', data: '2026-07-20', gerado: false, extra: true, duracaoMin: 45 }];
+  });
+  const m = S.mesclarEstados(a, b);
+  assert.equal(m.agenda.length, 1);
+  assert.equal(m.agenda[0].id, 'manual-1');
+});
+
+test('exclusões de disciplina, tópico e link geram lápides e não ressuscitam', () => {
+  localStorage.removeItem('estudos.v1');
+  const atual = estadoCom(function (st) {
+    const p = plano('p1', '2026-07-01T00:00:00Z', 'Plano');
+    p.disciplinas = [
+      { id: 'D1', nome: 'Direito', topicos: [{ id: 'T1', nome: 'Antigo' }, { id: 'T2', nome: 'Atual' }] },
+      { id: 'D2', nome: 'Português', topicos: [] }
+    ];
+    p.links = [{ id: 'L1', url: 'https://example.com' }];
+    st.planos = [p];
+    st.planoAtivoId = 'p1';
+  });
+  S.normalizar(atual);
+  S.salvar(atual);
+  const velha = S.normalizar(JSON.parse(JSON.stringify(S.paraPersistencia(atual))));
+
+  atual.planos[0].disciplinas = [{
+    id: 'D1', nome: 'Direito', topicos: [{ id: 'T2', nome: 'Atual' }]
+  }];
+  atual.planos[0].links = [];
+  S.hidratar(atual);
+  S.salvar(atual);
+
+  const m = S.mesclarEstados(velha, atual);
+  assert.deepEqual(m.planos[0].disciplinas.map(function (d) { return d.id; }), ['D1']);
+  assert.deepEqual(m.planos[0].disciplinas[0].topicos.map(function (t) { return t.id; }), ['T2']);
+  assert.equal(m.planos[0].links.length, 0);
+});
+
+test('exclusão de bloco manual não é desfeita por cópia antiga', () => {
+  localStorage.removeItem('estudos.v1');
+  const atual = estadoCom(function (st) {
+    st.agenda = [{ id: 'manual-1', planoId: 'p1', data: '2026-07-20', gerado: false, duracaoMin: 30 }];
+  });
+  S.salvar(atual);
+  const velha = S.normalizar(JSON.parse(JSON.stringify(S.paraPersistencia(atual))));
+  atual.agenda = [];
+  S.salvar(atual);
+  assert.equal(S.mesclarEstados(velha, atual).agenda.length, 0);
+});
+
+test('registrar sessão em plano desatualizado não sobrescreve estrutura editada', () => {
+  localStorage.removeItem('estudos.v1');
+  const atual = estadoCom(function (st) {
+    st.planos = [plano('p1', '2026-07-01T00:00:00Z', 'ANTIGO')];
+    st.planoAtivoId = 'p1';
+  });
+  S.normalizar(atual);
+  S.salvar(atual);
+  const aparelhoAntigo = S.normalizar(JSON.parse(JSON.stringify(S.paraPersistencia(atual))));
+
+  atual.planos[0].plano.concurso = 'EDITADO';
+  S.salvar(atual);
+  const carimboEstruturaNova = atual.planos[0].estruturaAtualizadaEm;
+
+  const carimboEstruturaAntiga = aparelhoAntigo.planos[0].estruturaAtualizadaEm;
+  aparelhoAntigo.sessoes.push({ id: 's-nova', planoId: 'p1', data: '2026-07-18' });
+  S.salvar(aparelhoAntigo);
+  assert.equal(aparelhoAntigo.planos[0].estruturaAtualizadaEm, carimboEstruturaAntiga);
+
+  const m = S.mesclarEstados(aparelhoAntigo, atual);
+  assert.equal(m.planos[0].plano.concurso, 'EDITADO');
+  assert.equal(m.planos[0].estruturaAtualizadaEm, carimboEstruturaNova);
+  assert.ok(m.sessoes.some(function (s) { return s.id === 's-nova'; }));
+});
+
+test('revisão concluída e repetição de flashcard não regridem no mesmo id', () => {
+  const pendente = estadoCom(function (st) {
+    st.revisoes = [{ id: 'r1', dataConcluida: null }];
+    st.flashcards = [{
+      id: 'deck-1', cards: [{ id: 'card-1', sr: { intervalo: 1, ultimaRevisao: '2026-07-10' } }]
+    }];
+  });
+  const concluido = estadoCom(function (st) {
+    st.revisoes = [{ id: 'r1', dataConcluida: '2026-07-18', resultadoPct: 90 }];
+    st.flashcards = [{
+      id: 'deck-1', cards: [{ id: 'card-1', sr: { intervalo: 10, ultimaRevisao: '2026-07-18' } }]
+    }];
+  });
+  const m = S.mesclarEstados(pendente, concluido);
+  assert.equal(m.revisoes[0].dataConcluida, '2026-07-18');
+  assert.equal(m.flashcards[0].cards[0].sr.intervalo, 10);
+});
+
+test('estado de persistência remota não duplica os slots hidratados do plano ativo', () => {
+  const st = estadoCom(function (s) {
+    s.planos = [plano('p1', '2026-07-01T00:00:00Z', 'Plano')];
+    s.planoAtivoId = 'p1';
+  });
+  S.normalizar(st);
+  const limpo = S.paraPersistencia(st);
+  assert.equal(Object.prototype.hasOwnProperty.call(limpo, 'plano'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(limpo, 'disciplinas'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(limpo, 'cronogramas'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(limpo, 'links'), false);
+});
+
+test('migração corrige acertos impossíveis de cache antigo', () => {
+  const st = estadoCom(function (s) {
+    s.sessoes = [{ id: 's1', qFeitas: 14, qCertas: 15 }];
+    s.simulados = [{ id: 'm1', acertos: [{ disciplinaId: 'D1', total: 17, certas: 18 }] }];
+  });
+  S.normalizar(st);
+  assert.equal(st.sessoes[0].qCertas, 14);
+  assert.equal(st.simulados[0].acertos[0].certas, 17);
 });
 
 // ---- Regras de estudo recorrente (troca de disciplina por dia da semana) ----

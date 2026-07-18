@@ -25,7 +25,7 @@ test('service worker pré-carrega as mesmas versões locais usadas pelo HTML', (
 
 test('service worker mantém disponíveis offline o plano de exemplo e os ícones do manifesto', () => {
   [
-    './data/exemplo-trf3.json',
+    './data/exemplo-trf3.json?v=20260718g-integridade-sync',
     './icons/icone.svg',
     './icons/icone-192.png',
     './icons/icone-512.png'

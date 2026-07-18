@@ -866,12 +866,9 @@
   function avisarLimiteTimer(e) {
     tocarAlarme(5);
     toast('Tempo máximo atingido: ' + e.limiteMin + ' min.', 'sucesso');
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Tempo máximo atingido', {
-        body: nomeTopicoCompleto(e.topicoId),
-        icon: 'icons/icone-192.png'
-      });
-    }
+    // O construtor direto da API de notificações lança TypeError na maioria dos navegadores móveis.
+    // O helper usa ServiceWorkerRegistration.showNotification(), suportado em PWA.
+    mostrarNotificacaoTimer(e, true);
   }
 
   function tratarTickTimer(e) {
@@ -2635,7 +2632,7 @@
 
   function telaTimer() {
     if (state.disciplinas.length === 0) {
-      return '<section class="timer-page"><div class="card"><div class="estado-vazio">' +
+      return '<section class="timer-page"><h1 class="sr-only">Timer</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Nenhum plano ainda</strong>' +
         'Escolha seu concurso para montar o plano e cronometrar seus estudos.' +
         '<p style="margin-top:1rem"><a class="botao" href="#planos">📚 Escolher meu concurso</a></p>' +
@@ -2672,7 +2669,7 @@
     }
 
     const tempoIni = ativo ? window.Timer.formatar(ativo.modo === 'pomodoro' ? ativo.pomoRestanteMs : ativo.decorridoMs) : '00:00';
-    return '<section class="timer-page"><div class="tela-timer"><div class="timer-conteudo">' +
+    return '<section class="timer-page"><h1 class="sr-only">Timer</h1><div class="tela-timer"><div class="timer-conteudo">' +
       selecao +
       '<div class="timer-relogio-frame">' +
       '<svg class="timer-clock-svg" viewBox="0 0 300 300" aria-hidden="true">' +
@@ -4419,6 +4416,12 @@
     return lista.slice(0, limite);
   }
 
+  function canvasGraficoHtml(id, descricao) {
+    const texto = String(descricao || 'Gráfico de desempenho');
+    return '<canvas class="grafico" id="' + esc(id) + '" role="img" aria-label="' +
+      esc(texto) + '">' + esc(texto) + '</canvas>';
+  }
+
   function controlesTopicosDesempenhoHtml() {
     const disciplinasComQuestoes = new Set();
     D.sessoesDoPlano(state).forEach(function (s) {
@@ -4571,6 +4574,17 @@
 
     const horasDisc = dadosHorasPorDisciplina();
     const topicosDesempenho = dadosTopicosDesempenho(statsTopicosFiltro);
+    const resumoDisciplinas = state.disciplinas.filter(function (d) { return d.id !== 'ORF'; }).map(function (d) {
+      const pct = D.desempenhoDisciplina(state, d);
+      return nomeDiscCurto(d.nome) + ': ' + (pct == null ? 'sem questões' : pct + '%');
+    }).join('; ') || 'sem disciplinas com questões';
+    const resumoSemanas = D.serieSemanal(state, hoje, 8).map(function (s) {
+      return (s.inicio || 'semana') + ': ' + (s.horas || 0) + 'h';
+    }).join('; ') || 'sem semanas registradas';
+    const resumoTopicos = topicosDesempenho.map(function (t) {
+      return t.topico + ': ' + t.pct + '% em ' + t.qFeitas + ' questões';
+    }).join('; ') || 'sem questões por tópico';
+    const resumoHoras = horasDisc.map(function (d) { return d.nome + ': ' + d.rotulo; }).join('; ') || 'sem horas registradas';
     const hDisc = statsMobile ? 340 : 380;
     const hTop = statsMobile ? 360 : Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
@@ -4578,21 +4592,21 @@
     // "Evolução semanal" sai no celular — pedido do usuário) e o gráfico de
     // tópicos vira o de pontos por período (ver topicosDesempenhoMobileHtml).
     if (statsMobile) {
-      html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>';
+      html += '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box">' + canvasGraficoHtml('graf-meta', 'Desempenho por disciplina. ' + resumoDisciplinas) + '</div></div>';
     } else {
       html += '<div class="stats-linha-graficos">' +
-        '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box"><canvas class="grafico" id="graf-meta"></canvas></div></div>' +
-        '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box"><canvas class="grafico" id="graf-evolucao"></canvas></div></div>' +
+        '<div class="card"><h3>Desempenho por disciplina</h3><div class="grafico-box">' + canvasGraficoHtml('graf-meta', 'Desempenho por disciplina. ' + resumoDisciplinas) + '</div></div>' +
+        '<div class="card"><h3>Evolução semanal</h3><div class="grafico-box">' + canvasGraficoHtml('graf-evolucao', 'Evolução semanal. ' + resumoSemanas) + '</div></div>' +
         '</div>';
     }
     html += '<div class="card"><h3>Tópicos × desempenho</h3>' +
       (topicosDesempenho.length > 0
         ? controlesTopicosDesempenhoHtml() + '<div id="stats-topicos-corpo">' + (statsMobile
           ? topicosDesempenhoMobileHtml(topicosDesempenho)
-          : '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px"><canvas class="grafico" id="graf-topicos"></canvas></div>') + '</div>'
+          : '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px">' + canvasGraficoHtml('graf-topicos', 'Desempenho por tópico. ' + resumoTopicos) + '</div>') + '</div>'
         : '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem questões por tópico</strong>Registre questões nas sessões para ver o gráfico.</div>') +
       '</div>';
-    html += '<div class="card stats-horas-disc-card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px"><canvas class="grafico" id="graf-horas-disc"></canvas></div></div>';
+    html += '<div class="card stats-horas-disc-card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px">' + canvasGraficoHtml('graf-horas-disc', 'Horas de estudo por disciplina. ' + resumoHoras) + '</div></div>';
     if (!window.Graficos.disponivel()) {
       html += '<div class="aviso aviso-info">Os gráficos precisam de internet na primeira carga (Chart.js via CDN). Os demais números continuam funcionando offline.</div>';
     }
@@ -4876,7 +4890,7 @@
     // meta de questões da semana é editada na Hoje; o ritmo do cronograma é
     // definido ao criar o plano (aba Planos), após escolher o edital.
     const u = usuarioAtual();
-    let html = '';
+    let html = '<h1 class="sr-only">Configurações</h1>';
     if (usuarioAdmin()) {
       html += editaisEsquematizadosHtml();
     } else {
@@ -5776,6 +5790,20 @@
       const aplicarBusca = function () { catalogoFiltro.busca = busca.value; render(); };
       busca.addEventListener('change', aplicarBusca);
       busca.addEventListener('keydown', function (e) { if (e.key === 'Enter') aplicarBusca(); });
+      let buscaPendente = null;
+      busca.addEventListener('input', function () {
+        clearTimeout(buscaPendente);
+        const valor = busca.value;
+        buscaPendente = setTimeout(function () {
+          catalogoFiltro.busca = valor;
+          render();
+          const novoCampo = document.querySelector('#cat-busca');
+          if (novoCampo) {
+            novoCampo.focus();
+            novoCampo.setSelectionRange(novoCampo.value.length, novoCampo.value.length);
+          }
+        }, 180);
+      });
     }
     raiz.querySelectorAll('[data-cat-filtro]').forEach(function (sel) {
       sel.addEventListener('change', function () {
@@ -8475,11 +8503,19 @@
             if (cfg.planosExcluidos) Object.keys(cfg.planosExcluidos).forEach(function (id) { if (idsBackup[id]) delete cfg.planosExcluidos[id]; });
             if (Array.isArray(cfg.removidos)) cfg.removidos = cfg.removidos.filter(function (id) { return !idsBackup[id]; });
           });
+          if (window.Store.limparLapidesDeEntidadesPresentes) {
+            window.Store.limparLapidesDeEntidadesPresentes(state, backup);
+          }
           // A escolha explícita do usuário vence a regra "versão mais editada
           // por plano": sem este carimbo, a versão ATUAL do plano (a que
           // motivou o restore) ganharia da versão do backup na mescla.
           const agoraRestore = new Date().toISOString();
-          (backup.planos || []).forEach(function (p) { if (p) p.atualizadoEm = agoraRestore; });
+          (backup.planos || []).forEach(function (p) {
+            if (!p) return;
+            p.atualizadoEm = agoraRestore;
+            p.estruturaAtualizadaEm = agoraRestore;
+            p.estruturaRev = (parseInt(p.estruturaRev, 10) || 0) + 1;
+          });
           state = window.Store.mesclarEstados(backup, state);
           window.Store.salvar(state);
           if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
@@ -9940,13 +9976,13 @@
             '<span class="mes-evento-hora">' + D.formatarMin(g.min) + '</span></span>';
         }).join('');
         if (porDisc.length > MAX_CHIPS_MES) chips += '<span class="mes-mais">+' + (porDisc.length - MAX_CHIPS_MES) + ' mais</span>';
-        if (revs.length > 0) chips += '<span class="mes-evento mes-evento-rev" title="' + revs.length + ' revisão(ões) · ' + D.formatarMin(revsMin) + '"><span class="mes-evento-nome">🔁 ' + revs.length + ' revisão' + (revs.length > 1 ? 'ões' : '') + '</span></span>';
-        if (revsFeitas.length > 0) chips += '<span class="mes-evento mes-evento-rev feito" title="' + revsFeitas.length + ' revisão(ões) concluída(s)"><span class="mes-evento-nome">✓ ' + revsFeitas.length + ' revisão' + (revsFeitas.length > 1 ? 'ões' : '') + '</span></span>';
-        if (sims.length > 0) chips += '<span class="mes-evento mes-evento-sim feito" title="' + sims.length + ' simulado(s)"><span class="mes-evento-nome">📝 Simulado</span></span>';
+        if (revs.length > 0) chips += '<span class="mes-evento mes-evento-rev" title="' + revs.length + (revs.length === 1 ? ' revisão' : ' revisões') + ' · ' + D.formatarMin(revsMin) + '"><span class="mes-evento-nome">🔁 ' + revs.length + (revs.length === 1 ? ' revisão' : ' revisões') + '</span></span>';
+        if (revsFeitas.length > 0) chips += '<span class="mes-evento mes-evento-rev feito" title="' + revsFeitas.length + (revsFeitas.length === 1 ? ' revisão concluída' : ' revisões concluídas') + '"><span class="mes-evento-nome">✓ ' + revsFeitas.length + (revsFeitas.length === 1 ? ' revisão' : ' revisões') + '</span></span>';
+        if (sims.length > 0) chips += '<span class="mes-evento mes-evento-sim feito" title="' + sims.length + (sims.length === 1 ? ' simulado' : ' simulados') + '"><span class="mes-evento-nome">📝 Simulado</span></span>';
 
         html += '<div class="mes-celula mes-celula-rotulos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
           (todoFeito ? ' dia-feito' : '') + '" data-dia-detalhe="' + esc(cursor) + '" role="button" tabindex="0" aria-label="' +
-          D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + ' blocos, ' + revs.length + ' revisões' + (sims.length > 0 ? ', ' + sims.length + ' simulados' : '') : ' — sem blocos') + '">' +
+          D.formatarDataBR(cursor) + (temConteudo ? ' — ' + blocos.length + (blocos.length === 1 ? ' bloco, ' : ' blocos, ') + revs.length + (revs.length === 1 ? ' revisão' : ' revisões') + (sims.length > 0 ? ', ' + sims.length + (sims.length === 1 ? ' simulado' : ' simulados') : '') : ' — sem blocos') + '">' +
           '<div class="mes-celula-cab"><span class="mes-dia-num">' + cursor.slice(8, 10) + '</span>' +
           (totalMin > 0 ? '<span class="mes-dia-total">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
           (temConteudo ? '<div class="mes-eventos">' + chips + '</div>' : '') +
@@ -11465,7 +11501,7 @@
       ['#timer', 'Timer'],
       ['#ajustes', 'Configurações']
     ];
-    return '<div class="card card-quieto mais-menu mais-menu-anima">' +
+    return '<h1 class="sr-only">Mais opções</h1><div class="card card-quieto mais-menu mais-menu-anima">' +
       itens.map(function (i) {
         return '<a class="mais-item" href="' + i[0] + '">' +
           '<span class="mais-item-nome">' + i[1] + '</span>' +
@@ -11781,12 +11817,15 @@
     opcoes = opcoes || {};
     if (modoDemo) { if (opcoes.aoConcluir) opcoes.aoConcluir(); return; }
     if (btn) btn.disabled = true;
-    fetch('data/exemplo-trf3.json')
+    fetch('data/exemplo-trf3.json?v=20260718g-integridade-sync')
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (json) {
         modoDemo = true;            // antes de adicionarPlano: salvar() vira no-op
         state = window.Store.estadoVazio();
         adicionarPlano(json);
+        // O modo demo não chama Store.salvar(); normalize explicitamente para aplicar
+        // migrações e corrigir sementes antigas/caches com acertos acima do total.
+        window.Store.normalizar(state);
         state.config.nomeUsuario = '';
         state.config.onboardingNomeVisto = true;
         // garante o plano ativo mesmo se houver corrida com o status do Firebase

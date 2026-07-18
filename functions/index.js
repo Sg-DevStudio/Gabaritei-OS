@@ -181,7 +181,7 @@ exports.gerarFlashcards = onCall({ secrets: [GEMINI_API_KEY] }, async (request) 
    do estado). A data do app é o fuso de Brasília.
    ============================================================ */
 const FUSO_APP = 'America/Sao_Paulo';
-const APP_URL = 'https://samuelgomes01.github.io/App_Gestao_Estudos/';
+const APP_URL = 'https://sg-devstudio.github.io/Gabaritei-OS/';
 
 // Mensagens para quem ficou um dia sem estudar (tom leve, no estilo do app).
 const MENSAGENS_LEMBRETE = [
@@ -190,7 +190,7 @@ const MENSAGENS_LEMBRETE = [
   { title: 'A vaga não espera 🏁', body: 'Quem estuda hoje agradece amanhã. Bora pra cima!' },
   { title: 'Cadê você? 👀', body: 'Seu cronograma sentiu falta. 15 minutinhos já contam.' },
   { title: 'Constância vence talento 💪', body: 'Não precisa ser muito, precisa ser hoje.' },
-  { title: 'Faltou um dia 📅', body: 'Não deixa virar dois. Abre o app e mata um tópico.' },
+  { title: 'Ainda dá tempo hoje 📅', body: 'Uma sessão curta já mantém sua constância. Abre o app e mata um tópico.' },
   { title: 'Sua aprovação tá te chamando 🎯', body: 'Um bloquinho de questões e o dia já valeu.' },
   { title: 'Disciplina > motivação 🔥', body: 'Senta, abre o material e começa. O resto vem.' },
   { title: 'Hoje é dia de avançar 🚀', body: 'Cada sessão te deixa mais perto da nomeação.' },
@@ -220,7 +220,9 @@ function ultimaSessaoISO(state) {
 }
 
 exports.lembreteEstudo = onSchedule(
-  { schedule: 'every day 09:00', timeZone: FUSO_APP, maxInstances: 1 },
+  // No fim do dia: às 09h o aluno que estuda à tarde/noite recebia um falso
+  // aviso de ausência antes mesmo de ter sua rotina normal de estudo.
+  { schedule: 'every day 21:00', timeZone: FUSO_APP, maxInstances: 1 },
   async () => {
     const db = admin.firestore();
     const hoje = hojeISO();
@@ -243,9 +245,13 @@ exports.lembreteEstudo = onSchedule(
         const msg = escolherMensagem();
         const resp = await admin.messaging().sendEachForMulticast({
           tokens,
-          notification: { title: msg.title, body: msg.body },
+          data: {
+            title: msg.title,
+            body: msg.body,
+            icon: APP_URL + 'icons/icone.svg',
+            link: APP_URL
+          },
           webpush: {
-            notification: { icon: APP_URL + 'icons/icone.svg', tag: 'lembrete-estudo' },
             fcmOptions: { link: APP_URL }
           }
         });
