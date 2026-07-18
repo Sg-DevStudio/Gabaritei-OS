@@ -189,7 +189,12 @@
     });
   }
 
+  function parar() {
+    desativarEndpoint();
+    opcoes = null;
+  }
+
   function status() { return statusAtual; }
 
-  window.Sync = { iniciar, agendarEnvio, sincronizarAgora, status };
+  window.Sync = { iniciar, parar, agendarEnvio, sincronizarAgora, status };
 })();

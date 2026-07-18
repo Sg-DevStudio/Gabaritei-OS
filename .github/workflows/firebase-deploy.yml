@@ -1,0 +1,38 @@
+name: firebase deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_functions:
+        description: "Publicar Functions também (exige secrets da IA/push já configurados)"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: regras e functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar ferramentas
+        run: npm ci
+      - name: Instalar dependências das Functions
+        if: ${{ inputs.deploy_functions }}
+        run: npm ci --prefix functions
+      - name: Autenticar no Firebase
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Publicar regras
+        run: npx firebase deploy --project app-gestao-estudos --only firestore:rules --non-interactive
+      - name: Publicar Functions
+        if: ${{ inputs.deploy_functions }}
+        run: npx firebase deploy --project app-gestao-estudos --only functions --non-interactive

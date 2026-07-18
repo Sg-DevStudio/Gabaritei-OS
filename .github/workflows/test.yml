@@ -7,19 +7,32 @@ on:
 
 jobs:
   test:
-    name: domínio (node --test)
+    name: domínio, integração e regras
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      # Gate de sintaxe para scripts do navegador, service workers e Functions.
-      - name: Checar sintaxe (node --check)
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependências
         run: |
-          for f in js/app.js js/domain.js js/store.js js/sync.js js/timer.js js/charts.js js/frases.js js/firebase-sync.js sw.js functions/index.js; do
+          npm ci
+          npm ci --prefix functions
+      - name: Checar sintaxe
+        run: |
+          for f in js/app.js js/domain.js js/store.js js/sync.js js/timer.js js/charts.js js/frases.js js/remote-state.js js/firebase-sync.js sw.js functions/index.js; do
             node --check "$f"
           done
-      # Sem dependências: a suíte usa só o test runner nativo do Node.
       - name: Rodar testes
         run: npm test
+      - name: Validar Functions e dependências de produção
+        run: |
+          node -e "const f=require('./functions/index.js'); if(!f.gerarFlashcards || !f.lembreteEstudo) process.exit(1)"
+          npm audit --omit=dev --prefix functions
+      - name: Validar regras reais do Firestore
+        run: npm run test:rules

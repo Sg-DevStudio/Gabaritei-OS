@@ -20,7 +20,8 @@ import {
   deleteField,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 import {
   getFunctions,
@@ -45,7 +46,7 @@ const firebaseConfig = {
 
 const CHAVE_DISPOSITIVO = 'estudos.firebase.dispositivo';
 const FOLGA_RELOGIO_MS = 1000;
-const LIMITE_ESTADO_REMOTO_BYTES = 850 * 1024;
+const LIMITE_DOCUMENTO_REMOTO_BYTES = 850 * 1024;
 const FUSO_APP = 'America/Sao_Paulo';
 
 // Chave VAPID do Web Push (Firebase Console → Cloud Messaging → "Web Push
@@ -75,6 +76,8 @@ let reconciliando = false;
 let reconciliarDepois = false;
 let tokenPushAtual = null;
 let tokenPushUid = null;
+let numeroChunksAtuais = 0;
+let ultimoErroGravacao = null;
 // true depois que esta sessão conseguiu LER a nuvem ao menos uma vez. Antes
 // disso, nenhum envio direto (agendarEnvio/flush) pode subir: um aparelho com
 // cópia local antiga que gravasse antes de reconciliar sobrescreveria (sem
@@ -143,11 +146,45 @@ function definirStatus(estado, texto, extra) {
   if (opcoes && opcoes.aoStatus) opcoes.aoStatus(statusAtual);
 }
 
-function normalizarRemoto(dados) {
-  if (!dados || !dados.state) return null;
+function codecRemoto() {
+  if (!window.RemoteStateCodec) throw new Error('Codec de sincronização não carregado.');
+  return window.RemoteStateCodec;
+}
+
+function refParteEstado(prefixo, indice) {
+  return doc(db, 'users', usuario.uid, 'state', codecRemoto().idParte(prefixo, indice));
+}
+
+async function lerEstadoDoDocumento(dados, prefixo) {
+  if (!dados) return null;
+  if (dados.formato === codecRemoto().FORMATO) {
+    const quantidade = parseInt(dados.chunks, 10);
+    if (!Number.isFinite(quantidade) || quantidade < 1 || quantidade > codecRemoto().MAX_PARTES) {
+      throw new Error('Metadados do estado remoto são inválidos.');
+    }
+    const snaps = await Promise.all(Array.from({ length: quantidade }, function (_, indice) {
+      return getDoc(refParteEstado(prefixo, indice));
+    }));
+    const partes = snaps.map(function (snap, indice) {
+      const parte = snap.exists() ? (snap.data() || {}) : {};
+      if (typeof parte.payload !== 'string' ||
+          parseInt(parte.index, 10) !== indice ||
+          parseInt(parte.rev, 10) !== parseInt(dados.rev, 10)) {
+        throw new Error('Uma parte do estado remoto está ausente ou corrompida.');
+      }
+      return parte.payload;
+    });
+    return codecRemoto().decodificar(partes);
+  }
+  return dados.state || null; // formato legado (documento único)
+}
+
+async function normalizarRemoto(dados, prefixo) {
+  const estado = await lerEstadoDoDocumento(dados, prefixo || 'current');
+  if (!estado) return null;
   return {
-    state: window.Store.normalizar(dados.state),
-    updatedAt: dados.updatedAt || atualizadoEm(dados.state),
+    state: window.Store.normalizar(estado),
+    updatedAt: dados.updatedAt || atualizadoEm(estado),
     clientId: dados.clientId || null
   };
 }
@@ -169,7 +206,7 @@ function tamanhoUtf8(valor) {
 
 function validarTamanhoRemoto(valor, rotulo) {
   const bytes = tamanhoUtf8(valor);
-  if (bytes > LIMITE_ESTADO_REMOTO_BYTES) {
+  if (bytes > LIMITE_DOCUMENTO_REMOTO_BYTES) {
     throw new Error((rotulo || 'Dados') + ' ocupam ' + Math.ceil(bytes / 1024) +
       ' KB e ultrapassam o limite seguro de sincronização. Remova imagens grandes ou exporte um backup.');
   }
@@ -184,8 +221,34 @@ function prepararEstadoRemoto(state) {
   delete limpo.disciplinas;
   delete limpo.cronogramas;
   delete limpo.links;
-  validarTamanhoRemoto(limpo, 'Seu estado');
   return limpo;
+}
+
+function resumoEstado(state) {
+  return {
+    registros: window.Store.contarRegistros(state),
+    planos: Array.isArray(state && state.planos) ? state.planos.length : 0
+  };
+}
+
+function gravarPartesNoLote(lote, prefixo, estadoLimpo, apagarAte) {
+  const codificado = codecRemoto().codificar(estadoLimpo);
+  codificado.partes.forEach(function (payload, indice) {
+    lote.set(refParteEstado(prefixo, indice), {
+      payload,
+      index: indice,
+      rev: revDe(estadoLimpo),
+      savedAt: serverTimestamp()
+    });
+  });
+  const limiteLimpeza = Math.min(
+    codecRemoto().MAX_PARTES,
+    Math.max(codificado.partes.length, parseInt(apagarAte, 10) || 0)
+  );
+  for (let indice = codificado.partes.length; indice < limiteLimpeza; indice++) {
+    lote.delete(refParteEstado(prefixo, indice));
+  }
+  return codificado;
 }
 
 function gravarRemoto(state) {
@@ -204,23 +267,32 @@ function gravarRemoto(state) {
   if (promessaGravacao) return promessaGravacao;
   promessaGravacao = (async function () {
     enviando = true;
+    ultimoErroGravacao = null;
     definirStatus('enviando', 'Enviando para a nuvem');
     try {
       while (estadoPendenteGravacao) {
         const proximo = estadoPendenteGravacao;
         estadoPendenteGravacao = null;
         const stateLimpo = prepararEstadoRemoto(proximo);
-        await setDoc(refEstado, {
-          state: stateLimpo,
+        const lote = writeBatch(db);
+        const codificado = gravarPartesNoLote(lote, 'current', stateLimpo, numeroChunksAtuais);
+        lote.set(refEstado, {
+          formato: codificado.formato,
+          chunks: codificado.partes.length,
           updatedAt: atualizadoEm(stateLimpo) || new Date().toISOString(),
           clientId: idDispositivo(),
+          rev: revDe(stateLimpo),
+          resumo: resumoEstado(stateLimpo),
           savedAt: serverTimestamp()
         });
+        await lote.commit();
+        numeroChunksAtuais = codificado.partes.length;
         talvezSnapshotDiario(stateLimpo); // fire-and-forget: nunca atrasa nem quebra o save
       }
       definirStatus('sincronizado', 'Sincronizado com Firebase');
     } catch (e) {
       estadoPendenteGravacao = null;
+      ultimoErroGravacao = e;
       console.error('Falha ao salvar no Firebase.', e);
       definirStatus('erro', e && e.message ? e.message : 'Falha ao salvar no Firebase');
     } finally {
@@ -246,14 +318,22 @@ async function reconciliarComRemoto(silencioso) {
   try {
     const local = opcoes.obterEstado();
     const snap = await getDoc(refEstado);
-    reconciliadoOk = true; // leu a nuvem: envios diretos liberados nesta sessão
     if (!snap.exists()) {
+      reconciliadoOk = true; // confirmou que não há cópia remota
+      numeroChunksAtuais = 0;
       if (temDados(local) || (local.config && local.config.apagadoEm)) await gravarRemoto(local);
       else definirStatus('sincronizado', 'Conectado ao Firebase');
       return;
     }
 
-    const remoto = normalizarRemoto(snap.data());
+    const dadosRemotos = snap.data() || {};
+    numeroChunksAtuais = dadosRemotos.formato === codecRemoto().FORMATO
+      ? (parseInt(dadosRemotos.chunks, 10) || 0)
+      : 0;
+    const remoto = await normalizarRemoto(dadosRemotos, 'current');
+    // Só libera envios depois de ler também todas as partes. Metadados sem um
+    // chunk íntegro não contam como reconciliação concluída.
+    reconciliadoOk = true;
     if (!remoto) {
       await gravarRemoto(local);
       return;
@@ -319,44 +399,16 @@ function observarMudancas() {
   if (cancelarSnapshot) cancelarSnapshot();
   cancelarSnapshot = onSnapshot(refEstado, function (snap) {
     if (!snap.exists() || !opcoes) return;
+    const dados = snap.data() || {};
     if (enviando) {
-      const duranteEnvio = snap.data() || {};
-      if (duranteEnvio.clientId !== idDispositivo()) snapshotPendenteDuranteEnvio = true;
+      if (dados.clientId !== idDispositivo()) snapshotPendenteDuranteEnvio = true;
       return;
     }
-    const remoto = normalizarRemoto(snap.data());
-    if (!remoto || remoto.clientId === idDispositivo()) return;
-    const local = opcoes.obterEstado();
-    const remotoMs = dataMs(atualizadoEm(remoto.state) || remoto.updatedAt);
-    const localMs = dataMs(atualizadoEm(local));
-    const apagouLocal = local.config && local.config.apagadoEm &&
-      dataMs(local.config.apagadoEm) > remotoMs + FOLGA_RELOGIO_MS;
-    // Local sem dados (ex.: recém-aberto, atualizadoEm = agora) não deve "ganhar"
-    // da nuvem por timestamp — adota o remoto que tem dados, como na reconciliação.
-    const localVazioRemotoCheio = !temDados(local) && temDados(remoto.state) && !apagouLocal;
-    if (apagouLocal) return;
-    // rev decide (imune a relógio); com revs iguais, o timestamp com folga.
-    const rR = revDe(remoto.state), rL = revDe(local);
-    const remotoNovo = rR !== rL ? rR > rL : remotoMs > localMs + FOLGA_RELOGIO_MS;
-    if (localVazioRemotoCheio && temLapides(local)) {
-      const merged = window.Store.mesclarEstados(remoto.state, local);
-      aplicarRemoto(merged, true);
-      gravarRemoto(merged);
-      definirStatus('sincronizado', 'Atualizado pela nuvem');
-    } else if (localVazioRemotoCheio) {
-      aplicarRemoto(remoto.state, true);
-      definirStatus('sincronizado', 'Atualizado pela nuvem');
-    } else if (remotoNovo && temDados(local)) {
-      // Remoto mais novo, mas o local pode ter registros ainda não sincronizados:
-      // mescla (remoto como base) para não perdê-los e reenvia se recuperou algo.
-      const merged = window.Store.mesclarEstados(remoto.state, local);
-      aplicarRemoto(merged, true);
-      if (!window.Store.estadosEquivalentes(merged, remoto.state)) gravarRemoto(merged);
-      definirStatus('sincronizado', 'Atualizado pela nuvem');
-    } else if (remotoNovo) {
-      aplicarRemoto(remoto.state, true);
-      definirStatus('sincronizado', 'Atualizado pela nuvem');
-    }
+    if (dados.clientId === idDispositivo()) return;
+    // O documento principal é apenas o gatilho/metadado no formato particionado.
+    // A reconciliação central lê todas as partes atomicamente e reaproveita as
+    // mesmas regras de mescla usadas no foco, reconexão e abertura do app.
+    reconciliarComRemoto(true);
   }, function (e) {
     console.error('Snapshot Firebase falhou.', e);
     definirStatus('erro', 'Verifique as regras do Firestore');
@@ -371,6 +423,7 @@ function iniciar(novasOpcoes) {
   onAuthStateChanged(auth, function (user) {
     usuario = user;
     reconciliadoOk = false; // nova sessão/usuário: exige nova leitura da nuvem
+    numeroChunksAtuais = 0;
     if (cancelarSnapshot) { cancelarSnapshot(); cancelarSnapshot = null; }
     if (!user) {
       refEstado = null;
@@ -419,6 +472,8 @@ async function registrarPush(user) {
     user = user || usuario;
     if (!VAPID_KEY) return;                                   // push não configurado
     if (!user || !('serviceWorker' in navigator)) return;
+    const estado = opcoes && opcoes.obterEstado ? opcoes.obterEstado() : null;
+    if (!(estado && estado.config && estado.config.lembretesPush === true)) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     if (!(await isMessagingSupported().catch(function () { return false; }))) return;
 
@@ -440,6 +495,14 @@ async function registrarPush(user) {
   } catch (e) {
     console.warn('Push não ativado (lembretes):', e && e.message ? e.message : e);
   }
+}
+
+function pushConfigurado() {
+  return !!VAPID_KEY;
+}
+
+async function desativarPushAtual() {
+  await removerPushAtual();
 }
 
 async function removerPushAtual() {
@@ -472,6 +535,10 @@ async function removerPushAtual() {
 // publicada) apenas loga e segue.
 const CHAVE_SNAPSHOT_DIA = 'estudos.firebase.snapshotDia';
 
+function chaveSnapshotUsuario(uid) {
+  return CHAVE_SNAPSHOT_DIA + '.' + String(uid || '');
+}
+
 async function talvezSnapshotDiario(stateLimpo) {
   try {
     if (!usuario || !temDados(stateLimpo)) return;
@@ -483,16 +550,26 @@ async function talvezSnapshotDiario(stateLimpo) {
       return acc;
     }, {});
     const hoje = partes.year + '-' + partes.month + '-' + partes.day;
-    if (localStorage.getItem(CHAVE_SNAPSHOT_DIA) === hoje) return;
+    const chaveSnapshot = chaveSnapshotUsuario(usuario.uid);
+    if (localStorage.getItem(chaveSnapshot) === hoje) return;
     const diaSemana = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
     const slot = 'backup-' + (diaSemana[partes.weekday] == null ? 0 : diaSemana[partes.weekday]);
-    await setDoc(doc(db, 'users', usuario.uid, 'state', slot), {
-      state: stateLimpo,
+    const slotRef = doc(db, 'users', usuario.uid, 'state', slot);
+    const anterior = await getDoc(slotRef);
+    const dadosAnteriores = anterior.exists() ? (anterior.data() || {}) : {};
+    const lote = writeBatch(db);
+    const codificado = gravarPartesNoLote(lote, slot, stateLimpo, dadosAnteriores.chunks);
+    lote.set(slotRef, {
+      formato: codificado.formato,
+      chunks: codificado.partes.length,
       criadoEm: new Date().toISOString(),
       clientId: idDispositivo(),
+      rev: revDe(stateLimpo),
+      resumo: resumoEstado(stateLimpo),
       savedAt: serverTimestamp()
     });
-    localStorage.setItem(CHAVE_SNAPSHOT_DIA, hoje);
+    await lote.commit();
+    localStorage.setItem(chaveSnapshot, hoje);
   } catch (e) {
     console.warn('Backup diário na nuvem não gravado:', e && e.message ? e.message : e);
   }
@@ -501,16 +578,26 @@ async function talvezSnapshotDiario(stateLimpo) {
 // Lista os backups diários existentes (id, data e nº de registros de estudo).
 async function listarBackupsNuvem() {
   if (!usuario) throw new Error('Entre para ver os backups na nuvem.');
-  const snap = await getDocs(collection(db, 'users', usuario.uid, 'state'));
+  const snaps = await Promise.all(Array.from({ length: 7 }, function (_, dia) {
+    const id = 'backup-' + dia;
+    return getDoc(doc(db, 'users', usuario.uid, 'state', id)).then(function (snap) {
+      return { id, snap };
+    });
+  }));
   const lista = [];
-  snap.forEach(function (d) {
-    if (d.id.indexOf('backup-') !== 0) return;
-    const dados = d.data() || {};
+  snaps.forEach(function (item) {
+    if (!item.snap.exists()) return;
+    const dados = item.snap.data() || {};
+    const resumo = dados.resumo || {};
     lista.push({
-      id: d.id,
+      id: item.id,
       criadoEm: dados.criadoEm || '',
-      registros: dados.state ? window.Store.contarRegistros(dados.state) : 0,
-      planos: dados.state && Array.isArray(dados.state.planos) ? dados.state.planos.length : 0
+      registros: Number.isFinite(resumo.registros)
+        ? resumo.registros
+        : (dados.state ? window.Store.contarRegistros(dados.state) : 0),
+      planos: Number.isFinite(resumo.planos)
+        ? resumo.planos
+        : (dados.state && Array.isArray(dados.state.planos) ? dados.state.planos.length : 0)
     });
   });
   return lista.sort(function (a, b) { return String(b.criadoEm).localeCompare(String(a.criadoEm)); });
@@ -519,10 +606,12 @@ async function listarBackupsNuvem() {
 // Devolve o estado salvo num backup diário (normalizado), para o app mesclar.
 async function lerBackupNuvem(id) {
   if (!usuario) throw new Error('Entre para restaurar backups.');
-  if (String(id).indexOf('backup-') !== 0) throw new Error('Backup inválido.');
+  if (!/^backup-[0-6]$/.test(String(id))) throw new Error('Backup inválido.');
   const snap = await getDoc(doc(db, 'users', usuario.uid, 'state', String(id)));
-  if (!snap.exists() || !snap.data().state) throw new Error('Backup não encontrado.');
-  return window.Store.normalizar(JSON.parse(JSON.stringify(snap.data().state)));
+  if (!snap.exists()) throw new Error('Backup não encontrado.');
+  const estado = await lerEstadoDoDocumento(snap.data() || {}, String(id));
+  if (!estado) throw new Error('Backup não encontrado.');
+  return window.Store.normalizar(JSON.parse(JSON.stringify(estado)));
 }
 
 function agendarEnvio(state) {
@@ -558,8 +647,32 @@ function login() {
   return signInWithPopup(auth, provider);
 }
 
-function logout() {
-  return removerPushAtual().finally(function () { return signOut(auth); });
+async function logout(opcoesLogout) {
+  opcoesLogout = opcoesLogout || {};
+  if (opcoesLogout.sincronizarAntes !== false && usuario) {
+    if (!reconciliadoOk) await reconciliarComRemoto(true);
+    if (!reconciliadoOk || statusAtual.estado === 'erro') {
+      throw new Error('Não foi possível confirmar a sincronização. Conecte-se à internet antes de sair.');
+    }
+    if (envioPendente) {
+      clearTimeout(envioPendente);
+      envioPendente = null;
+    }
+    ultimoErroGravacao = null;
+    if (opcoes && opcoes.obterEstado) await gravarRemoto(opcoes.obterEstado());
+    if (ultimoErroGravacao) {
+      throw new Error('Não foi possível salvar as alterações antes de sair. Tente novamente.');
+    }
+  }
+  await removerPushAtual();
+  if (usuario) localStorage.removeItem(chaveSnapshotUsuario(usuario.uid));
+  // A aplicação limpa estado e timer neste ponto: depois da última gravação
+  // confirmada, mas antes de o Auth anunciar a sessão como deslogada.
+  if (typeof opcoesLogout.antesDeSair === 'function') {
+    await opcoesLogout.antesDeSair();
+  }
+  await signOut(auth);
+  return { sincronizado: true };
 }
 
 function status() { return statusAtual; }
@@ -642,6 +755,7 @@ window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo,
   carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
   carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush,
+  desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
 };
 window.dispatchEvent(new CustomEvent('firebase-sync-ready'));

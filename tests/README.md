@@ -1,18 +1,20 @@
 # Testes
 
-Suíte das regras de domínio puras (`js/domain.js`), sem dependências externas —
-usa só o test runner nativo do Node (`node --test`).
+Suíte das regras de domínio, contratos de integração, codec de sincronização e
+segurança do Firestore. Os testes JavaScript usam o runner nativo do Node; as
+regras usam o emulador oficial.
 
 ```bash
-npm test            # roda tudo
-node --test tests/desempenho.test.js   # um arquivo só
+npm test
+npm run test:rules
+node --test tests/desempenho.test.js
 ```
 
-- `helpers/load-domain.js` carrega `js/domain.js` (que faz `window.Dominio = {...}`)
-  num `window` global e devolve o objeto `Dominio`.
-- Cada arquivo `*.test.js` cobre um eixo: datas, revisões/curva, desempenho,
-  plano/burndown, urgência da fila, análise de erros de simulado, gamificação.
-- Roda em cada Pull Request e push no `main` via `.github/workflows/test.yml`.
+- `helpers/load-domain.js` carrega `js/domain.js` em um `window` global de teste.
+- Cada arquivo cobre um eixo: datas, revisões, desempenho, planejamento,
+  sincronização, integrações críticas ou permissões.
+- A suíte roda em Pull Requests e em pushes para `main` por
+  `.github/workflows/test.yml`.
 
-Por que só `domain.js`? É puro (sem DOM/rede), então dá cobertura alta e barata —
-as regras que decidem cronograma, revisões, semáforo e prioridade ficam blindadas.
+As regras puras continuam concentradas em `domain.js`; os testes de contrato
+blindam integrações críticas sem precisar simular toda a interface.

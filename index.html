@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20260718g-integridade-sync">
+  <link rel="stylesheet" href="css/styles.css?v=20260718h-seguranca-escala">
 </head>
 <body>
   <!-- Ícones compartilhados da navegação -->
@@ -125,18 +125,23 @@
   <div id="modal-raiz"></div>
   <div id="toast-raiz" aria-live="polite"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"
+    integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ"
+    crossorigin="anonymous" defer></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
+    integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"
+    crossorigin="anonymous" defer></script>
   <script src="js/frases.js"></script>
   <script src="js/domain.js?v=20260718a-integridade"></script>
-  <script src="js/store.js?v=20260718g-integridade-sync"></script>
-  <script src="js/sync.js?v=20260717a-auditoria"></script>
-  <script type="module" src="js/firebase-sync.js?v=20260718g-integridade-sync"></script>
+  <script src="js/store.js?v=20260718h-seguranca-escala"></script>
+  <script src="js/sync.js?v=20260718h-seguranca-escala"></script>
+  <script src="js/remote-state.js?v=20260718h-seguranca-escala"></script>
+  <script type="module" src="js/firebase-sync.js?v=20260718h-seguranca-escala"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="js/timer.js?v=20260718a-integridade"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
   <script src="data/catalogo-editais.js?v=20260629-provapassou1"></script>
-  <script src="js/app.js?v=20260718g-integridade-sync"></script>
+  <script src="js/app.js?v=20260718h-seguranca-escala"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

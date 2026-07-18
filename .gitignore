@@ -1,5 +1,9 @@
 data/sync/
 node_modules/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 # scripts de teste/rascunho — nunca versionar
 _*.js
 _*.cjs

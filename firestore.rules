@@ -9,6 +9,106 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email == "casar70@gmail.com";
     }
 
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isStateMetadataId(docId) {
+      return docId == "current" || docId.matches("^backup-[0-6]$");
+    }
+
+    function isStateChunkId(docId) {
+      return docId.matches("^(current|backup-[0-6])-chunk-(0[0-9]|1[0-9]|2[0-3])$");
+    }
+
+    function validSummary(summary) {
+      return summary is map
+        && summary.keys().hasOnly(["registros", "planos"])
+        && summary.registros is int
+        && summary.registros >= 0
+        && summary.planos is int
+        && summary.planos >= 0;
+    }
+
+    function validCurrentMetadata() {
+      return request.resource.data.keys().hasOnly([
+          "formato", "chunks", "updatedAt", "clientId", "rev", "resumo", "savedAt"
+        ])
+        && request.resource.data.formato == 2
+        && request.resource.data.chunks is int
+        && request.resource.data.chunks >= 1
+        && request.resource.data.chunks <= 24
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedAt.size() <= 40
+        && request.resource.data.clientId is string
+        && request.resource.data.clientId.size() <= 120
+        && request.resource.data.rev is int
+        && request.resource.data.rev >= 0
+        && validSummary(request.resource.data.resumo)
+        && request.resource.data.savedAt is timestamp;
+    }
+
+    function validBackupMetadata() {
+      return request.resource.data.keys().hasOnly([
+          "formato", "chunks", "criadoEm", "clientId", "rev", "resumo", "savedAt"
+        ])
+        && request.resource.data.formato == 2
+        && request.resource.data.chunks is int
+        && request.resource.data.chunks >= 1
+        && request.resource.data.chunks <= 24
+        && request.resource.data.criadoEm is string
+        && request.resource.data.criadoEm.size() <= 40
+        && request.resource.data.clientId is string
+        && request.resource.data.clientId.size() <= 120
+        && request.resource.data.rev is int
+        && request.resource.data.rev >= 0
+        && validSummary(request.resource.data.resumo)
+        && request.resource.data.savedAt is timestamp;
+    }
+
+    // Compatibilidade durante a migração do documento único para o formato 2.
+    function validLegacyCurrent() {
+      return request.resource.data.keys().hasOnly([
+          "state", "updatedAt", "clientId", "savedAt"
+        ])
+        && request.resource.data.state is map
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedAt.size() <= 40
+        && request.resource.data.clientId is string
+        && request.resource.data.clientId.size() <= 120
+        && request.resource.data.savedAt is timestamp;
+    }
+
+    function validLegacyBackup() {
+      return request.resource.data.keys().hasOnly([
+          "state", "criadoEm", "clientId", "savedAt"
+        ])
+        && request.resource.data.state is map
+        && request.resource.data.criadoEm is string
+        && request.resource.data.criadoEm.size() <= 40
+        && request.resource.data.clientId is string
+        && request.resource.data.clientId.size() <= 120
+        && request.resource.data.savedAt is timestamp;
+    }
+
+    function validStateMetadata(docId) {
+      return docId == "current"
+        ? (validCurrentMetadata() || validLegacyCurrent())
+        : (docId.matches("^backup-[0-6]$") && (validBackupMetadata() || validLegacyBackup()));
+    }
+
+    function validStateChunk() {
+      return request.resource.data.keys().hasOnly(["payload", "index", "rev", "savedAt"])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() <= 180000
+        && request.resource.data.index is int
+        && request.resource.data.index >= 0
+        && request.resource.data.index < 24
+        && request.resource.data.rev is int
+        && request.resource.data.rev >= 0
+        && request.resource.data.savedAt is timestamp;
+    }
+
     function pedidoEditalValido(pedidoId) {
       return signedIn()
         && pedidoId == request.auth.uid
@@ -30,20 +130,30 @@ service cloud.firestore {
         && request.resource.data.savedAt is timestamp;
     }
 
-    // Estado principal (current) + backups diários (backup-0..backup-6),
-    // todos privados do dono.
+    // Estado principal, sete backups e até 24 partes por estado. IDs arbitrários
+    // são negados para impedir que uma conta crie documentos ilimitados.
     match /users/{userId}/state/{docId} {
-      allow read, write: if signedIn() && request.auth.uid == userId;
+      allow read: if isOwner(userId) &&
+        (isStateMetadataId(docId) || isStateChunkId(docId));
+      allow create, update: if isOwner(userId) &&
+        ((isStateMetadataId(docId) && validStateMetadata(docId)) ||
+         (isStateChunkId(docId) && validStateChunk()));
+      allow delete: if isOwner(userId) &&
+        (isStateMetadataId(docId) || isStateChunkId(docId));
     }
 
-    // Tokens de push (lembretes de estudo). O dono escreve; o Cloud Function (admin) lê.
+    // Um único documento e no máximo 20 dispositivos por conta. O Admin SDK da
+    // Cloud Function ignora estas regras e continua podendo enviar lembretes.
     match /users/{userId}/push/{docId} {
-      allow read, write: if signedIn() && request.auth.uid == userId;
+      allow read: if isOwner(userId) && docId == "tokens";
+      allow create, update: if isOwner(userId)
+        && docId == "tokens"
+        && request.resource.data is map
+        && request.resource.data.size() <= 20;
+      allow delete: if isOwner(userId) && docId == "tokens";
     }
 
-    // Catálogo de editais: leitura pública (vitrine/demo para visitantes não
-    // logados); somente o admin publica/edita. Contém apenas metadados e capas
-    // de editais — nada sensível.
+    // Catálogo de editais: leitura pública; somente o administrador publica.
     match /public/catalogo {
       allow read: if true;
       allow write: if isAdmin();
@@ -51,8 +161,6 @@ service cloud.firestore {
 
     match /pedidosEdital/{pedidoId} {
       // Um documento por usuário evita crescimento ilimitado/spam da coleção.
-      // Um novo pedido substitui o anterior do próprio usuário; o admin continua
-      // podendo marcar como atendido ou excluir.
       allow create, update: if isAdmin() || pedidoEditalValido(pedidoId);
       allow read, delete: if isAdmin();
     }

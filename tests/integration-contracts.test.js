@@ -11,6 +11,8 @@ const app = fs.readFileSync(path.join(raiz, 'js', 'app.js'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(raiz, 'index.html'), 'utf8');
 const serviceWorker = fs.readFileSync(path.join(raiz, 'sw.js'), 'utf8');
 const functionsIndex = fs.readFileSync(path.join(raiz, 'functions', 'index.js'), 'utf8');
+const store = fs.readFileSync(path.join(raiz, 'js', 'store.js'), 'utf8');
+const sync = fs.readFileSync(path.join(raiz, 'js', 'sync.js'), 'utf8');
 
 test('pedidos de edital usam um documento limitado por usuário e campos validados', () => {
   assert.match(regras, /pedidoId == request\.auth\.uid/);
@@ -75,8 +77,55 @@ test('notificação do timer usa o service worker compatível com navegadores m�
   assert.match(app, /reg\.showNotification/);
 });
 
-test('gravação remota remove o espelho hidratado e protege o limite do Firestore', () => {
+test('gravação remota remove o espelho hidratado e particiona estados grandes', () => {
   assert.match(firebaseSync, /window\.Store\.paraPersistencia/);
-  assert.match(firebaseSync, /LIMITE_ESTADO_REMOTO_BYTES/);
-  assert.match(firebaseSync, /validarTamanhoRemoto\(limpo, 'Seu estado'\)/);
+  assert.match(firebaseSync, /window\.RemoteStateCodec/);
+  assert.match(firebaseSync, /writeBatch\(db\)/);
+  assert.match(firebaseSync, /formato: codificado\.formato/);
+  assert.match(firebaseSync, /chunks: codificado\.partes\.length/);
+  assert.match(indexHtml, /js\/remote-state\.js/);
+});
+
+test('logout confirma a nuvem e limpa dados pessoais deste aparelho', () => {
+  assert.match(firebaseSync, /opcoesLogout\.antesDeSair/);
+  assert.match(app, /sincronizarAntes: true/);
+  assert.match(app, /window\.Store\.limparLocal\(\)/);
+  assert.match(app, /localStorage\.removeItem\(CHAVE_ULTIMO_USUARIO\)/);
+  assert.match(store, /function limparLocal\(\)/);
+  assert.match(app, /window\.Sync\.parar\(\)/);
+});
+
+test('lembretes push exigem consentimento separado da notificação do timer', () => {
+  const inicio = app.indexOf('function pedirPermissaoNotificacao');
+  const fim = app.indexOf('const TAG_NOTIF_TIMER', inicio);
+  const corpoPermissaoTimer = app.slice(inicio, fim);
+  assert.doesNotMatch(corpoPermissaoTimer, /registrarPush/);
+  assert.match(app, /id="pf-lembretes-push"/);
+  assert.match(firebaseSync, /config\.lembretesPush === true/);
+});
+
+test('regras limitam ids de estado, partes e documento de push', () => {
+  assert.match(regras, /isStateChunkId/);
+  assert.match(regras, /current\|backup-\[0-6\]/);
+  assert.match(regras, /request\.resource\.data\.payload\.size\(\) <= 180000/);
+  assert.match(regras, /docId == "tokens"/);
+  assert.match(regras, /request\.resource\.data\.size\(\) <= 20/);
+});
+
+test('importação XLSX usa versão corrigida e integridade do arquivo externo', () => {
+  assert.doesNotMatch(indexHtml, /xlsx@0\.18\.5/);
+  assert.match(indexHtml, /xlsx-0\.20\.3/);
+  assert.match(indexHtml, /integrity="sha384-[^"]+"/);
+  assert.match(indexHtml, /crossorigin="anonymous"/);
+});
+
+test('gráficos usam Chart.js atual e com integridade do arquivo externo', () => {
+  assert.match(indexHtml, /chart\.js@4\.5\.1/);
+  assert.match(indexHtml, /chart\.umd\.min\.js"[\s\S]*?integrity="sha384-[^"]+"/);
+});
+
+test('sync local sem autenticação exige opt-in e pode ser interrompido', () => {
+  assert.match(app, /get\('syncLocal'\) === '1'/);
+  assert.match(sync, /function parar\(\)/);
+  assert.match(sync, /window\.Sync = \{ iniciar, parar,/);
 });

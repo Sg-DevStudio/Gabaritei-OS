@@ -60,6 +60,9 @@ em [`CLAUDE.md`](CLAUDE.md).
    medir-se contra a nota de corte.
 6. **Backup**: o Firebase mantém os aparelhos alinhados, mas o `.json` exportado em
    *Configurações* continua sendo a cópia de segurança.
+7. **Sair com privacidade**: a saída confirma a última sincronização e remove
+   plano, histórico e timer deste aparelho. Sem internet, o app pede conexão antes
+   de sair para não descartar uma alteração ainda não enviada.
 
 ## Regras de negócio e técnicas de estudo (`js/domain.js`)
 
@@ -87,14 +90,14 @@ SM-2**, **conciliação/combinação** de editais, **reta final** automática
 
 ```
 index.html            shell único (SPA por hash)
-manifest.json, sw.js, icons/   PWA (instalável, offline)
-firebase-messaging-sw.js       service worker de push
+manifest.json, sw.js, icons/   PWA, cache offline e push no mesmo service worker
 css/styles.css        tokens visuais (papel/tinta/caneta, IBM Plex)
 js/domain.js          regras de negócio puras (window.Dominio) — testáveis sem DOM
 js/app.js             roteamento + telas + interações
 js/store.js           localStorage: schema, migrations, export/import
-js/sync.js            sync PC/celular via /api/sync (servidor local)
+js/sync.js            sync legado via /api/sync (opt-in local com ?syncLocal=1)
 js/firebase-sync.js   sync PC/celular via Firebase Auth + Firestore
+js/remote-state.js    particionamento seguro do estado para o Firestore
 js/timer.js           cronômetro/pomodoro com recuperação e alerta de limite
 js/charts.js          gráficos (Chart.js via CDN)
 js/frases.js          frase do dia (determinística por data)
@@ -123,8 +126,12 @@ Para a sincronização funcionar no GitHub Pages:
 3. **Firestore Database**: crie o banco em modo produção.
 4. **Rules**: publique [`firestore.rules`](firestore.rules). Elas prendem cada
    conta ao próprio perfil, liberam a leitura do catálogo global para usuários
-   logados e permitem que **apenas o admin** publique o catálogo e gerencie os
-   pedidos de edital.
+   inclusive visitantes e permitem que **apenas o admin** publique o catálogo e
+   gerencie os pedidos de edital.
+
+O estado remoto usa metadados + partes menores, gravadas no mesmo lote atômico.
+Isso evita o limite de 1 MiB por documento do Firestore e continua lendo o
+formato antigo para migrá-lo sem perder dados.
 
 ## Lembretes de estudo (push)
 
@@ -137,14 +144,34 @@ elas. Para ativar:
    chaves e copie a **chave pública (VAPID)**.
 3. Cole-a em `js/firebase-sync.js`, na constante `VAPID_KEY`.
 4. Publique as regras (`firestore.rules`) — já incluem `users/{uid}/push`.
-5. `firebase deploy --only functions` sobe a função agendada `lembreteEstudo`
-   (roda 09:00, fuso de Brasília). As mensagens ficam em `functions/index.js`.
+5. `firebase deploy --only firestore:rules,functions` publica as proteções e sobe
+   a função agendada `lembreteEstudo` (roda 21:00, fuso de Brasília). As mensagens
+   ficam em `functions/index.js`.
 
-O dispositivo registra o token de push após o login e a concessão da permissão.
+O dispositivo só registra o token depois que a pessoa ativa **Lembretes diários**
+no Perfil e concede a permissão. A permissão usada pelo timer, sozinha, não ativa
+lembretes.
+
+## Publicação do backend
+
+O GitHub Pages publica apenas a parte estática. Regras e Functions podem ser
+publicadas manualmente pela ação **firebase deploy**:
+
+1. Crie no repositório o secret `FIREBASE_SERVICE_ACCOUNT` com o JSON de uma conta
+   de serviço autorizada no projeto.
+2. Abra **Actions → firebase deploy → Run workflow**. Por padrão ela publica
+   apenas as regras; marque **deploy_functions** somente depois de configurar os
+   secrets usados pelas Functions.
+
+Sem esse secret, publique localmente as regras com
+`firebase deploy --only firestore:rules`. Quando IA/push estiverem configurados,
+use `firebase deploy --only functions`.
 
 ## Desenvolvimento
 
 - App estático: edite os arquivos e recarregue — não há passo de build.
+- `npm test` roda domínio, integração e o codec do estado remoto.
+- `npm run test:rules` inicia o emulador e valida permissões reais do Firestore.
 - **Testes rápidos** com jsdom: escreva o script **fora do repo** (ex.: `/tmp`) ou
   nomeie `_t_*.cjs` e **remova antes de commitar** — nada disso é versionado.
 - Mantenha as regras de negócio em `js/domain.js` (puras) e a UI em `js/app.js`.

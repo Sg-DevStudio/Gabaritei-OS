@@ -267,6 +267,7 @@
         metaQuestoesSemana: 100,
         onboardingNomeVisto: false,
         onboardingGuiaVisto: false,
+        lembretesPush: false,
         tema: 'claro',
         criadoEm: agora,
         atualizadoEm: agora,
@@ -377,6 +378,7 @@
       state.config.onboardingNomeVisto = !!state.config.nomeUsuario || temAtividade;
     }
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
+    state.config.lembretesPush = state.config.lembretesPush === true;
     if (!state.config.tema) state.config.tema = 'claro';
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
     // Regras de estudo recorrente (troca de disciplina por dia da semana), que o
@@ -474,6 +476,12 @@
       console.error('Falha ao ler o estado salvo; iniciando vazio.', e);
       return estadoVazio();
     }
+  }
+
+  // Remove apenas os dados pessoais do app. Preferências visuais e o id técnico
+  // do dispositivo ficam em chaves separadas e não expõem o plano do aluno.
+  function limparLocal() {
+    localStorage.removeItem(CHAVE);
   }
 
   function lerPersistidoCru() {
@@ -976,7 +984,7 @@
   }
 
   window.Store = {
-    carregar, salvar, estadoVazio, normalizar: migrar, hidratar, novoId,
+    carregar, salvar, limparLocal, estadoVazio, normalizar: migrar, hidratar, novoId,
     ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados,
     mesclarEstados, contarRegistros, marcarRemovido, paraPersistencia, estadosEquivalentes,
     limparLapidesDeEntidadesPresentes,

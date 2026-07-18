@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v144-integridade-sync-push';
+const CACHE = 'estudos-v146-seguranca-escala';
 
 /* Toque na notificação: timer abre a tela do cronômetro; lembrete abre o app. */
 self.addEventListener('notificationclick', (e) => {
@@ -59,16 +59,17 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20260718g-integridade-sync',
+  './css/styles.css?v=20260718h-seguranca-escala',
   './js/domain.js?v=20260718a-integridade',
-  './js/store.js?v=20260718g-integridade-sync',
-  './js/sync.js?v=20260717a-auditoria',
-  './js/firebase-sync.js?v=20260718g-integridade-sync',
+  './js/store.js?v=20260718h-seguranca-escala',
+  './js/sync.js?v=20260718h-seguranca-escala',
+  './js/remote-state.js?v=20260718h-seguranca-escala',
+  './js/firebase-sync.js?v=20260718h-seguranca-escala',
   './js/timer.js?v=20260718a-integridade',
   './js/charts.js?v=20260615v-green-performance',
   './data/catalogo-editais.js?v=20260629-provapassou1',
   './data/exemplo-trf3.json?v=20260718g-integridade-sync',
-  './js/app.js?v=20260718g-integridade-sync',
+  './js/app.js?v=20260718h-seguranca-escala',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

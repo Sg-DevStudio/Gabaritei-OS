@@ -787,12 +787,9 @@
   // permite o contador aparecer na bandeja quando o app vai para segundo plano.
   function pedirPermissaoNotificacao() {
     if (!('Notification' in window) || Notification.permission !== 'default') return;
-    Notification.requestPermission().then(function (p) {
-      // Permissão recém-concedida: registra o token de lembretes de estudo.
-      if (p === 'granted' && window.FirebaseSync && window.FirebaseSync.registrarPush) {
-        window.FirebaseSync.registrarPush();
-      }
-    }).catch(function () {});
+    // Esta permissão serve somente ao cronômetro em segundo plano. Lembretes
+    // diários exigem uma escolha separada e explícita no Perfil.
+    Notification.requestPermission().catch(function () {});
   }
 
   // ---- Notificação "em andamento" do cronômetro (contador em segundo plano) ----
@@ -1506,6 +1503,46 @@
     state.revisoes = state.revisoes.filter(function (r) {
       return r.topicoId !== topicoId || r.dataConcluida;
     });
+  }
+
+  async function sairDaContaComSeguranca(botao) {
+    if (!window.FirebaseSync) {
+      toast('Sincronização indisponível.', 'erro');
+      return;
+    }
+    if (navigator.onLine === false) {
+      toast('Conecte-se à internet para salvar tudo antes de sair.', 'erro');
+      return;
+    }
+    const ok = await confirmar({
+      titulo: 'Sair desta conta?',
+      mensagem: 'As alterações serão sincronizadas e os dados deste perfil serão removidos deste aparelho.',
+      confirmar: 'Sincronizar e sair',
+      icone: '🔒'
+    });
+    if (!ok) return;
+    if (botao) botao.disabled = true;
+    try {
+      await window.FirebaseSync.logout({
+        sincronizarAntes: true,
+        antesDeSair: function () {
+          if (window.Timer) window.Timer.descartar();
+          if (window.Sync && window.Sync.parar) window.Sync.parar();
+          atualizarTituloTimer(null);
+          window.Store.limparLocal();
+          localStorage.removeItem(CHAVE_ULTIMO_USUARIO);
+          state = window.Store.estadoVazio();
+          modoOfflineLocal = false;
+        }
+      });
+      fecharModal();
+      render();
+      toast('Conta desconectada e dados locais removidos.', 'sucesso');
+    } catch (e) {
+      toast(e && e.message ? e.message : 'Não consegui sair agora.', 'erro');
+    } finally {
+      if (botao && document.contains(botao)) botao.disabled = false;
+    }
   }
 
   // ---------------- registro de sessão (F1, ≤3 toques) ----------------
@@ -6531,10 +6568,7 @@
     });
     const fbLogout = raiz.querySelector('#fb-logout');
     if (fbLogout) fbLogout.addEventListener('click', function () {
-      if (!window.FirebaseSync) return;
-      window.FirebaseSync.logout().catch(function () {
-        toast('Não consegui sair do Firebase.', 'erro');
-      });
+      sairDaContaComSeguranca(fbLogout);
     });
 
     ligarEditaisEsquematizados(raiz);
@@ -11568,6 +11602,8 @@
     const atual = statusSincronizacao();
     const email = atual && atual.usuario && atual.usuario.email ? atual.usuario.email : null;
     const temPlano = !!state.plano;
+    const pushDisponivel = !!(window.FirebaseSync && window.FirebaseSync.pushConfigurado &&
+      window.FirebaseSync.pushConfigurado());
     const m = abrirModal(
       '<h3>Perfil</h3>' +
       '<label for="pf-nome">Seu nome na tela Hoje</label>' +
@@ -11575,6 +11611,12 @@
       '<label class="pf-toggle" for="pf-som-conquistas">' +
       '<span><strong>Som das conquistas</strong><small>Toca um efeito ao desbloquear uma conquista.</small></span>' +
       '<input id="pf-som-conquistas" type="checkbox"' + (state.config.somConquistasOff ? '' : ' checked') + '></label>' +
+      '<label class="pf-toggle" for="pf-lembretes-push">' +
+      '<span><strong>Lembretes diários</strong><small>' +
+      (pushDisponivel ? 'Receba um lembrete de estudo neste aparelho.' : 'Em breve — notificações programadas ainda não foram configuradas.') +
+      '</small></span>' +
+      '<input id="pf-lembretes-push" type="checkbox"' +
+      (state.config.lembretesPush ? ' checked' : '') + (pushDisponivel ? '' : ' disabled') + '></label>' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
       perfilMetasHtml() +
@@ -11592,17 +11634,44 @@
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
     const pfSair = m.querySelector('#pf-sair');
     if (pfSair) pfSair.addEventListener('click', function () {
-      if (!window.FirebaseSync) { toast('Sincronização indisponível.', 'erro'); return; }
-      window.FirebaseSync.logout().then(function () {
-        fecharModal();
-        toast('Você saiu da conta', 'sucesso');
-      }).catch(function () { toast('Não consegui sair agora.', 'erro'); });
+      sairDaContaComSeguranca(pfSair);
     });
     const pfSom = m.querySelector('#pf-som-conquistas');
     if (pfSom) pfSom.addEventListener('change', function () {
       state.config.somConquistasOff = !pfSom.checked;
       salvar({ sincronizar: false });
       if (pfSom.checked) tocarSomConquista(50); // prévia do som ao reativar
+    });
+    const pfPush = m.querySelector('#pf-lembretes-push');
+    if (pfPush) pfPush.addEventListener('change', async function () {
+      if (!pfPush.checked) {
+        state.config.lembretesPush = false;
+        salvar();
+        if (window.FirebaseSync && window.FirebaseSync.desativarPushAtual) {
+          await window.FirebaseSync.desativarPushAtual();
+        }
+        toast('Lembretes diários desativados.', 'sucesso');
+        return;
+      }
+      if (!('Notification' in window)) {
+        pfPush.checked = false;
+        toast('Este navegador não oferece notificações.', 'erro');
+        return;
+      }
+      const permissao = Notification.permission === 'default'
+        ? await Notification.requestPermission().catch(function () { return 'denied'; })
+        : Notification.permission;
+      if (permissao !== 'granted') {
+        pfPush.checked = false;
+        state.config.lembretesPush = false;
+        salvar();
+        toast('Permissão de notificações não concedida.', 'erro');
+        return;
+      }
+      state.config.lembretesPush = true;
+      salvar();
+      await window.FirebaseSync.registrarPush();
+      toast('Lembretes diários ativados neste aparelho.', 'sucesso');
     });
     const pfExportarCal = m.querySelector('#pf-exportar-cal');
     if (pfExportarCal) pfExportarCal.addEventListener('click', function () {
@@ -11689,6 +11758,7 @@
     const conteudo = document.getElementById('conteudo');
     if (!usuarioLogado() && !modoDemo) {
       document.body.classList.add('login-gate');
+      delete document.body.dataset.rota;
       if (pintarTimerAtual) pintarTimerAtual = null;
       if (autenticacaoPendente()) {
         conteudo.innerHTML = telaCarregandoAuth();
@@ -11709,6 +11779,7 @@
     if (!modoDemo) processarPausasVencidas();
     if (!modoDemo && !pulaRecalcSemanal) verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
+    document.body.dataset.rota = rota;
     const mudouRota = rota !== ultimaRotaRender;
     ultimaRotaRender = rota;
     const tela = telas[rota];
@@ -12216,7 +12287,10 @@
     }
   };
 
-  if (window.Sync) {
+  // O endpoint /api/sync é legado e não possui autenticação. Permanece disponível
+  // só para desenvolvimento local com opt-in explícito; contas reais usam Firebase.
+  const syncLocalOptIn = new URLSearchParams(location.search).get('syncLocal') === '1';
+  if (window.Sync && syncLocalOptIn) {
     window.Sync.iniciar(Object.assign({}, opcoesSyncBase, {
       aoStatus: function (novoStatus) {
         syncStatus = novoStatus;

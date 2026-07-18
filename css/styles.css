@@ -940,6 +940,7 @@ html[data-tema="escuro"] .ic-tema-sol { display: block; }
 }
 @media (max-width: 760px) {
   .fab-rapido { bottom: calc(var(--abas-alt) + 1rem + env(safe-area-inset-bottom)); }
+  body[data-rota="mais"] .fab-rapido { display: none; }
 }
 /* O FAB de atalhos (com o timer rápido) fica disponível também no desktop —
    útil sobretudo com a sidebar recolhida, quando os atalhos dela somem. */
