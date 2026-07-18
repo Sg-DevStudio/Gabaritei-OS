@@ -412,14 +412,10 @@
     setTimeout(function () { el.remove(); }, 3200);
   }
 
-  function urlInstagramDirect(mensagem) {
-    const texto = String(mensagem || '').trim();
-    return INSTAGRAM_DIRECT_URL + (texto ? '?text=' + encodeURIComponent(texto) : '');
-  }
-
   function copiarTextoParaTransferencia(texto) {
     function copiarLegado() {
       try {
+        const focoAnterior = document.activeElement;
         const aux = document.createElement('textarea');
         aux.value = texto;
         aux.setAttribute('readonly', '');
@@ -427,15 +423,65 @@
         aux.style.opacity = '0';
         document.body.appendChild(aux);
         aux.select();
-        document.execCommand('copy');
+        const copiou = document.execCommand('copy');
         aux.remove();
-      } catch (_) { /* O link do Direct continua funcionando sem a cópia. */ }
+        if (focoAnterior && focoAnterior.focus) focoAnterior.focus();
+        return copiou;
+      } catch (_) {
+        return false;
+      }
     }
+    const copiaLegadaOk = copiarLegado();
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(texto).catch(copiarLegado);
-    } else {
-      copiarLegado();
+      return navigator.clipboard.writeText(texto).then(function () {
+        return true;
+      }).catch(function () {
+        return copiaLegadaOk;
+      });
     }
+    return Promise.resolve(copiaLegadaOk);
+  }
+
+  function abrirPedidoPronto(textoPedido) {
+    const mensagem = 'Olá! Gostaria de pedir este edital no Gabaritei OS:\n\n' + textoPedido;
+    const m = abrirModal(
+      '<h3>Pedido pronto</h3>' +
+      '<p class="sub">O Instagram não permite preencher essa mensagem automaticamente. Copie o texto abaixo, abra o Direct e cole na conversa.</p>' +
+      '<label for="pedido-mensagem-pronta">Mensagem para enviar</label>' +
+      '<textarea id="pedido-mensagem-pronta" class="pedido-mensagem-pronta" readonly></textarea>' +
+      '<p class="pedido-copia-status" id="pedido-copia-status" aria-live="polite"></p>' +
+      '<div class="modal-acoes">' +
+      '<button type="button" class="botao-quieto" id="pedido-pronto-fechar">Fechar</button>' +
+      '<button type="button" class="botao-secundario" id="pedido-copiar">Copiar mensagem</button>' +
+      '<a class="botao botao-instagram" id="pedido-abrir-direct" href="' + INSTAGRAM_DIRECT_URL + '" target="_blank" rel="noopener noreferrer">' +
+      '<svg aria-hidden="true"><use href="#ic-instagram"/></svg>Abrir Direct</a>' +
+      '</div>'
+    );
+    const campoMensagem = m.querySelector('#pedido-mensagem-pronta');
+    const statusCopia = m.querySelector('#pedido-copia-status');
+    const botaoCopiar = m.querySelector('#pedido-copiar');
+    campoMensagem.value = mensagem;
+
+    function copiarMensagem() {
+      botaoCopiar.disabled = true;
+      return copiarTextoParaTransferencia(mensagem).then(function (copiou) {
+        statusCopia.classList.toggle('copia-falhou', !copiou);
+        statusCopia.textContent = copiou
+          ? 'Mensagem copiada. Agora abra o Direct e cole para enviar.'
+          : 'Não consegui copiar automaticamente. Selecione o texto acima e copie.';
+        botaoCopiar.textContent = copiou ? 'Copiar novamente' : 'Tentar copiar';
+        return copiou;
+      }).finally(function () {
+        botaoCopiar.disabled = false;
+      });
+    }
+
+    m.querySelector('#pedido-pronto-fechar').addEventListener('click', fecharModal);
+    botaoCopiar.addEventListener('click', copiarMensagem);
+    m.querySelector('#pedido-abrir-direct').addEventListener('click', function () {
+      copiarTextoParaTransferencia(mensagem);
+    });
+    copiarMensagem();
   }
 
   function abrirPedidoEdital(filtro) {
@@ -447,46 +493,33 @@
       filtro.busca ? 'Observação: ' + filtro.busca : ''
     ].filter(Boolean).join('\n');
     const m = abrirModal('<h3>Pedir um edital</h3>' +
-      '<p class="sub">Descreva o concurso/cargo que você quer ver no catálogo. O pedido será registrado no painel e o Direct será aberto para você confirmar a mensagem.</p>' +
+      '<p class="sub">Descreva o concurso/cargo que você quer ver no catálogo. O pedido será registrado no painel e prepararemos a mensagem para o Instagram.</p>' +
       '<label for="pedido-edital-txt">Edital desejado</label>' +
       '<textarea id="pedido-edital-txt" maxlength="500" placeholder="Ex.: TJSP Escrevente 2026, banca Vunesp, SP">' + esc(sugestao) + '</textarea>' +
-      '<p class="sub pedido-instagram-nota"><svg aria-hidden="true"><use href="#ic-instagram"/></svg><span>Se o Instagram não preencher a mensagem, cole o texto que deixaremos copiado.</span></p>' +
+      '<p class="sub pedido-instagram-nota"><svg aria-hidden="true"><use href="#ic-instagram"/></svg><span>Na próxima etapa, copie a mensagem pronta e abra o Direct.</span></p>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="pedido-cancelar">Cancelar</button>' +
-      '<a class="botao botao-instagram" id="pedido-enviar" href="' + INSTAGRAM_DIRECT_URL + '" target="_blank" rel="noopener noreferrer">' +
-      '<svg aria-hidden="true"><use href="#ic-instagram"/></svg>Enviar pedido</a></div>');
+      '<button type="button" class="botao botao-instagram" id="pedido-enviar">' +
+      '<svg aria-hidden="true"><use href="#ic-instagram"/></svg>Preparar pedido</button></div>');
     const campo = m.querySelector('#pedido-edital-txt');
     const enviar = m.querySelector('#pedido-enviar');
-    function mensagemPedido() {
-      const txt = (campo.value || '').trim();
-      return txt ? 'Olá! Gostaria de pedir este edital no Gabaritei OS:\n\n' + txt : '';
-    }
-    function atualizarDestinoPedido() {
-      enviar.href = urlInstagramDirect(mensagemPedido());
-    }
-    campo.addEventListener('input', atualizarDestinoPedido);
-    atualizarDestinoPedido();
     m.querySelector('#pedido-cancelar').addEventListener('click', fecharModal);
-    enviar.addEventListener('click', function (evento) {
+    enviar.addEventListener('click', function () {
       const txt = (campo.value || '').trim();
       if (!txt) {
-        evento.preventDefault();
         toast('Descreva o edital que você quer pedir.', 'erro');
         campo.focus();
         return;
       }
       if (txt.length > 500) {
-        evento.preventDefault();
         toast('O pedido deve ter no máximo 500 caracteres.', 'erro');
         return;
       }
-      copiarTextoParaTransferencia(mensagemPedido());
       if (window.FirebaseSync && window.FirebaseSync.enviarPedidoEdital) {
         window.FirebaseSync.enviarPedidoEdital({ texto: txt }).catch(function () {
-          toast('Não consegui registrar no painel; confirme o pedido pelo Direct.', 'erro');
+          toast('Não consegui registrar no painel, mas você ainda pode enviar pelo Direct.', 'erro');
         });
       }
-      toast('Abrindo o Direct para você confirmar o envio.', 'sucesso');
-      setTimeout(fecharModal, 0);
+      abrirPedidoPronto(txt);
     });
   }
 

@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v141-contato-instagram';
+const CACHE = 'estudos-v142-pedido-direct';
 const ESTATICOS = [
   './',
   './index.html',
@@ -7,7 +7,7 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20260718d-contato-instagram',
+  './css/styles.css?v=20260718e-pedido-direct',
   './js/domain.js?v=20260718a-integridade',
   './js/store.js?v=20260718b-integridade',
   './js/sync.js?v=20260717a-auditoria',
@@ -16,7 +16,7 @@ const ESTATICOS = [
   './js/charts.js?v=20260615v-green-performance',
   './data/catalogo-editais.js?v=20260629-provapassou1',
   './data/exemplo-trf3.json',
-  './js/app.js?v=20260718d-contato-instagram',
+  './js/app.js?v=20260718e-pedido-direct',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

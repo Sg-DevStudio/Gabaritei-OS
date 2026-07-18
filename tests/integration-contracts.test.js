@@ -50,9 +50,12 @@ test('menu deixa o Instagram apenas dentro dos modais de contato', () => {
   assert.match(app, /target="_blank" rel="noopener noreferrer"/);
 });
 
-test('pedido de edital prepara a mensagem para o Direct e mantém o registro no painel', () => {
-  assert.match(app, /urlInstagramDirect\(mensagemPedido\(\)\)/);
+test('pedido de edital copia a mensagem antes de abrir o Direct e mantém o registro no painel', () => {
+  assert.doesNotMatch(app, /INSTAGRAM_DIRECT_URL \+ .*encodeURIComponent/);
   assert.match(app, /Gostaria de pedir este edital no Gabaritei OS/);
-  assert.match(app, /copiarTextoParaTransferencia\(mensagemPedido\(\)\)/);
+  assert.match(app, /Instagram não permite preencher essa mensagem automaticamente/);
+  assert.match(app, /id="pedido-copiar">Copiar mensagem/);
+  assert.match(app, /id="pedido-abrir-direct"/);
+  assert.match(app, /copiarTextoParaTransferencia\(mensagem\)/);
   assert.match(app, /FirebaseSync\.enviarPedidoEdital\(\{ texto: txt \}\)/);
 });

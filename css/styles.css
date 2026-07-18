@@ -755,6 +755,9 @@ html[data-tema="escuro"] .login-preview-grid span.ativo {
 .botao-instagram svg { width: 18px; height: 18px; }
 .pedido-instagram-nota { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.55rem 0 0; }
 .pedido-instagram-nota svg { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 0.05rem; }
+.pedido-mensagem-pronta { min-height: 118px; }
+.pedido-copia-status { min-height: 1.3em; margin: 0.45rem 0 0; color: var(--sucesso); font-weight: 600; }
+.pedido-copia-status.copia-falhou { color: var(--alerta); }
 
 /* Entrada animada do menu "Mais" (aparece ao abrir a aba) */
 .mais-menu-anima { animation: maisCartao 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; margin-top: 0.5rem; }
