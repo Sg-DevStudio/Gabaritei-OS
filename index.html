@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20260717b-pausa-programada">
+  <link rel="stylesheet" href="css/styles.css?v=20260718d-contato-instagram">
 </head>
 <body>
   <!-- Ícones compartilhados da navegação -->
@@ -27,6 +27,8 @@
     <symbol id="ic-stats" viewBox="0 0 24 24"><path d="M5 20v-6.5M11 20V5.5M17 20v-9.5M2.8 20h18.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="ic-historico" viewBox="0 0 24 24"><path d="M3.6 12a8.4 8.4 0 1 0 2.6-6.1M3.6 3.4v4.4H8M12 8.2v4.2l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="ic-ajustes" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="7" r="2" fill="var(--papel-card, #fff)" stroke="currentColor" stroke-width="1.8"/><circle cx="15" cy="12" r="2" fill="var(--papel-card, #fff)" stroke="currentColor" stroke-width="1.8"/><circle cx="10.5" cy="17" r="2" fill="var(--papel-card, #fff)" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="ic-feedback" viewBox="0 0 24 24"><path d="M4 5.8A2.8 2.8 0 0 1 6.8 3h10.4A2.8 2.8 0 0 1 20 5.8v7.4a2.8 2.8 0 0 1-2.8 2.8H11l-4.8 4v-4A2.7 2.7 0 0 1 4 13.3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8h8M8 11.5h5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="ic-instagram" viewBox="0 0 24 24"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.7" r="1.1" fill="currentColor"/></symbol>
     <symbol id="ic-mais" viewBox="0 0 24 24"><rect x="4" y="4" width="6.6" height="6.6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13.4" y="4" width="6.6" height="6.6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="13.4" width="6.6" height="6.6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13.4" y="13.4" width="6.6" height="6.6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
     <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
     <symbol id="ic-lua" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4 7 7 0 0 0 20 14.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
@@ -79,6 +81,12 @@
       <a href="#simulados" data-rota="simulados" class="nav-item"><svg class="nav-ic"><use href="#ic-simulados"/></svg>Simulados</a>
       <a href="#stats" data-rota="stats" class="nav-item"><svg class="nav-ic"><use href="#ic-stats"/></svg>Desempenho</a>
       <a href="#ajustes" data-rota="ajustes" class="nav-item"><svg class="nav-ic"><use href="#ic-ajustes"/></svg>Configurações</a>
+      <div class="sidebar-rodape-comunidade">
+        <button type="button" id="sidebar-feedback" class="sidebar-feedback">
+          <svg class="nav-ic" aria-hidden="true"><use href="#ic-feedback"/></svg>
+          <span>Feedback, erros e sugestões</span>
+        </button>
+      </div>
     </nav>
 
     <!-- Conteúdo -->
@@ -120,15 +128,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
   <script src="js/frases.js"></script>
-  <script src="js/domain.js?v=20260717c-auditoria"></script>
-  <script src="js/store.js?v=20260717b-pausa-programada"></script>
+  <script src="js/domain.js?v=20260718a-integridade"></script>
+  <script src="js/store.js?v=20260718b-integridade"></script>
   <script src="js/sync.js?v=20260717a-auditoria"></script>
-  <script type="module" src="js/firebase-sync.js?v=20260717a-seguranca"></script>
+  <script type="module" src="js/firebase-sync.js?v=20260718a-integridade"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="js/timer.js?v=20260714a-revisao-timer"></script>
+  <script src="js/timer.js?v=20260718a-integridade"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
   <script src="data/catalogo-editais.js?v=20260629-provapassou1"></script>
-  <script src="js/app.js?v=20260717c-auditoria"></script>
+  <script src="js/app.js?v=20260718d-contato-instagram"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

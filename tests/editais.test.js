@@ -1,6 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { loadDomain } = require('./helpers/load-domain');
 const D = loadDomain();
 
@@ -10,6 +12,19 @@ function edital(nome, disciplinas, extra) {
 function disc(nome, topicos) {
   return { nome, peso: 1, topicos: topicos.map(function (t) { return { nome: t[0], horas_estimadas: t[1], incidencia_pct: t[2] || 0, prioridade: t[3] || 2 }; }) };
 }
+
+test('editais encerrados não anunciam uma janela de prova no passado', () => {
+  const pasta = path.join(__dirname, '..', 'data');
+  const mesAtual = new Date().toISOString().slice(0, 7);
+  const invalidos = fs.readdirSync(pasta)
+    .filter(function (nome) { return nome.startsWith('edital-') && nome.endsWith('.json'); })
+    .filter(function (nome) {
+      const edital = JSON.parse(fs.readFileSync(path.join(pasta, nome), 'utf8'));
+      const inicio = edital.janela_prova && edital.janela_prova.inicio;
+      return inicio && inicio < mesAtual;
+    });
+  assert.deepEqual(invalidos, []);
+});
 
 test('conciliarPlanos: editais idênticos → 100% de sobreposição e compatibilidade alta', () => {
   const ed = edital('A', [disc('Direito Constitucional', [['Princípios fundamentais', 4, 30], ['Direitos e garantias', 3, 20]])]);

@@ -255,6 +255,7 @@
   function normalizarStatusDisciplinas(disciplinas) {
     (disciplinas || []).forEach(function (d) {
       if (!d || d.id === 'ORF') return;
+      if (d.cor != null && (typeof d.cor !== 'string' || !/^#[0-9a-f]{6}$/i.test(d.cor))) d.cor = '#3B82F6';
       const topicos = (d.topicos || []).filter(function (t) { return t && !t.orfao; });
       const concluida = topicos.length > 0 && topicos.every(function (t) {
         return t.status === 'teoria_concluida' || t.status === 'dominado';
@@ -414,11 +415,13 @@
     delete copia.plano; delete copia.disciplinas; delete copia.cronogramas; delete copia.links;
     try {
       localStorage.setItem(CHAVE, JSON.stringify(copia));
+      return { ok: true };
     } catch (e) {
       // Quota estourada (estado grande, ex.: fotos de edital em data URL): não
       // derruba a ação do usuário — o estado segue em memória e vai para a
       // nuvem pelo sync; só o cache local deste aparelho fica defasado.
       console.error('Não consegui salvar no localStorage (quota?). O estado segue em memória/na nuvem.', e);
+      return { ok: false, erro: e && e.message ? e.message : String(e) };
     }
   }
 
@@ -440,7 +443,7 @@
   // ---------- Exportação/restauração manual (a nuvem fica com o Firebase) ----------
   function exportarBackup(state) {
     state.config.ultimoBackup = window.Dominio.hojeISO();
-    salvar(state);
+    const persistencia = salvar(state);
     const copia = Object.assign({}, state);
     delete copia.plano; delete copia.disciplinas; delete copia.cronogramas; delete copia.links;
     const blob = new Blob([JSON.stringify(copia, null, 2)], { type: 'application/json' });
@@ -452,18 +455,27 @@
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    return persistencia;
   }
 
-  function importarBackup(texto) {
+  function importarBackup(texto, opcoes) {
+    opcoes = opcoes || {};
     let dados;
     try { dados = JSON.parse(texto); }
     catch (e) { return { ok: false, erro: 'O arquivo não é um JSON válido: ' + e.message }; }
     if (!dados || !Array.isArray(dados.sessoes) || (dados.versao !== 1 && dados.versao !== VERSAO_SCHEMA)) {
       return { ok: false, erro: 'O arquivo não parece ser um backup deste app (campo "versao" ou "sessoes" ausente).' };
     }
-    const state = migrar(dados);
-    salvar(state);
-    return { ok: true, state };
+    try {
+      const state = migrar(dados);
+      if (opcoes.persistir !== false) {
+        const persistencia = salvar(state);
+        if (!persistencia.ok) return { ok: false, erro: 'O backup é válido, mas não coube no armazenamento local: ' + persistencia.erro };
+      }
+      return { ok: true, state };
+    } catch (e) {
+      return { ok: false, erro: 'Não foi possível restaurar o backup: ' + (e && e.message ? e.message : String(e)) };
+    }
   }
 
   function diasDesdeBackup(state) {
@@ -501,6 +513,48 @@
     const set = {};
     state.config.removidos.forEach(function (i) { set[i] = true; });
     lista.forEach(function (i) { if (i && !set[i]) { state.config.removidos.push(i); set[i] = true; } });
+  }
+
+  function unirItensPorId(preferidos, complementares) {
+    const resultado = Array.isArray(preferidos) ? preferidos : [];
+    const ids = {};
+    resultado.forEach(function (item) { if (item && item.id) ids[item.id] = true; });
+    (Array.isArray(complementares) ? complementares : []).forEach(function (item) {
+      if (item && item.id && !ids[item.id]) { resultado.push(item); ids[item.id] = true; }
+    });
+    return resultado;
+  }
+
+  // Resolve edições estruturais concorrentes sem trocar o plano inteiro. Campos
+  // escalares e cronogramas seguem a versão mais nova; disciplinas/tópicos/links
+  // adicionados no outro aparelho são preservados por id.
+  function mesclarEstruturaPlano(preferido, complementar) {
+    if (!preferido || !complementar) return preferido || complementar;
+    preferido.disciplinas = Array.isArray(preferido.disciplinas) ? preferido.disciplinas : [];
+    const discPorId = {};
+    preferido.disciplinas.forEach(function (d) { if (d && d.id) discPorId[d.id] = d; });
+    (complementar.disciplinas || []).forEach(function (d) {
+      if (!d || !d.id) return;
+      if (!discPorId[d.id]) {
+        preferido.disciplinas.push(d);
+        discPorId[d.id] = d;
+        return;
+      }
+      const disc = discPorId[d.id];
+      disc.topicos = unirItensPorId(disc.topicos, d.topicos);
+    });
+
+    preferido.links = Array.isArray(preferido.links) ? preferido.links : [];
+    const chavesLink = {};
+    preferido.links.forEach(function (l) {
+      if (l) chavesLink[l.id || l.url || JSON.stringify(l)] = true;
+    });
+    (complementar.links || []).forEach(function (l) {
+      if (!l) return;
+      const chave = l.id || l.url || JSON.stringify(l);
+      if (!chavesLink[chave]) { preferido.links.push(l); chavesLink[chave] = true; }
+    });
+    return preferido;
   }
 
   // Mescla dois estados sem perder registros de estudo: `base` (o mais recente)
@@ -542,9 +596,13 @@
       merged.planos.forEach(function (p, i) { if (p && p.id) idsP[p.id] = i; });
       outro.planos.forEach(function (p) {
         if (!p || !p.id) return;
-        if (idsP[p.id] === undefined) { idsP[p.id] = merged.planos.length; merged.planos.push(p); return; }
+        const copiaOutroPlano = JSON.parse(JSON.stringify(p));
+        if (idsP[p.id] === undefined) { idsP[p.id] = merged.planos.length; merged.planos.push(copiaOutroPlano); return; }
         const atual = merged.planos[idsP[p.id]];
-        if ((p.atualizadoEm || '') > ((atual && atual.atualizadoEm) || '')) merged.planos[idsP[p.id]] = p;
+        const pMaisNovo = (p.atualizadoEm || '') > ((atual && atual.atualizadoEm) || '');
+        const preferido = pMaisNovo ? copiaOutroPlano : atual;
+        const complementar = pMaisNovo ? atual : copiaOutroPlano;
+        merged.planos[idsP[p.id]] = mesclarEstruturaPlano(preferido, complementar);
       });
     }
     // Progresso dos blocos da agenda: sem união (regenerável), mas blocos com o
@@ -566,10 +624,15 @@
     const revBase = parseInt(base && base.config && base.config.rev, 10) || 0;
     const revOutro = parseInt(outro && outro.config && outro.config.rev, 10) || 0;
     merged.config.rev = Math.max(revBase, revOutro);
+    const apagadoBase = base && base.config && base.config.apagadoEm;
+    const apagadoOutro = outro && outro.config && outro.config.apagadoEm;
+    if (apagadoBase || apagadoOutro) {
+      merged.config.apagadoEm = (apagadoBase || '') > (apagadoOutro || '') ? apagadoBase : apagadoOutro;
+    }
     // Lápides de exclusão: um plano excluído num aparelho não pode ressuscitar
     // quando outro aparelho traz uma cópia local antiga (anterior à exclusão).
-    // A lápide vale para planos criados ANTES dela — recriar um plano gera id
-    // novo, então nunca é bloqueado. As lápides dos dois lados se somam.
+    // Recriar um plano gera id novo; portanto uma lápide sempre bloqueia o id
+    // antigo, independentemente de relógios incorretos entre aparelhos.
     const tumbas = Object.assign(
       {},
       base && base.config && base.config.planosExcluidos,
@@ -580,8 +643,7 @@
       merged.config.planosExcluidos = Object.assign({}, merged.config.planosExcluidos, tumbas);
       if (Array.isArray(merged.planos)) {
         merged.planos = merged.planos.filter(function (p) {
-          if (!p || !p.id || !tumbas[p.id]) return true;
-          return !!(p.criadoEm && p.criadoEm > tumbas[p.id]);
+          return !p || !p.id || !tumbas[p.id];
         });
       }
     }

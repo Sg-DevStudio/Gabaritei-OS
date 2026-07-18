@@ -33,6 +33,15 @@ test('sessão com tombstone (removidos) não ressuscita de nenhum lado', () => {
   assert.ok(m.config.removidos.indexOf('s-apagada') >= 0, 'tombstone propaga');
 });
 
+test('revisão com tombstone não reaparece de uma cópia desatualizada', () => {
+  const atual = estadoCom(function (st) { S.marcarRemovido(st, 'rev-apagada'); });
+  const velha = estadoCom(function (st) {
+    st.revisoes = [{ id: 'rev-apagada', topicoId: 't1', dataAgendada: '2026-07-20' }];
+  });
+  const m = S.mesclarEstados(atual, velha);
+  assert.equal(m.revisoes.length, 0);
+});
+
 test('lápide de plano (planosExcluidos) impede ressurreição por cópia velha', () => {
   const nuvem = estadoCom(function (st) {
     st.planos = [plano('pln-comb', '2026-06-20T00:00:00Z', 'Combinado')];
@@ -67,6 +76,44 @@ test('risco 1: para o mesmo plano, vence a versão com atualizadoEm mais novo (m
   const outro = estadoCom(function (st) { st.planos = [editadoHoje]; st.planoAtivoId = 'pln-x'; });
   const m = S.mesclarEstados(base, outro);
   assert.equal(m.planos[0].plano.concurso, 'Versão nova');
+});
+
+test('edições concorrentes preservam disciplinas e tópicos adicionados nos dois aparelhos', () => {
+  const antigo = plano('pln-x', '2026-06-01T00:00:00Z', 'Plano', '2026-07-01T00:00:00Z');
+  antigo.disciplinas = [{
+    id: 'D1', nome: 'Direito',
+    topicos: [{ id: 'T1', nome: 'Princípios' }]
+  }];
+  const recente = plano('pln-x', '2026-06-01T00:00:00Z', 'Plano atualizado', '2026-07-02T00:00:00Z');
+  recente.disciplinas = [
+    { id: 'D1', nome: 'Direito', topicos: [{ id: 'T2', nome: 'Atos administrativos' }] },
+    { id: 'D2', nome: 'Português', topicos: [{ id: 'T3', nome: 'Crase' }] }
+  ];
+  const a = estadoCom(function (st) { st.planos = [antigo]; st.planoAtivoId = 'pln-x'; });
+  const b = estadoCom(function (st) { st.planos = [recente]; st.planoAtivoId = 'pln-x'; });
+
+  const m = S.mesclarEstados(a, b);
+  assert.equal(m.planos[0].plano.concurso, 'Plano atualizado');
+  assert.deepEqual(m.planos[0].disciplinas.map(function (d) { return d.id; }).sort(), ['D1', 'D2']);
+  assert.deepEqual(
+    m.planos[0].disciplinas.find(function (d) { return d.id === 'D1'; }).topicos.map(function (t) { return t.id; }).sort(),
+    ['T1', 'T2']
+  );
+});
+
+test('salvar informa falha de persistência ao estourar a quota', () => {
+  const original = global.localStorage.setItem;
+  const erroOriginal = console.error;
+  global.localStorage.setItem = function () { throw new Error('QuotaExceededError'); };
+  console.error = function () {};
+  try {
+    const resultado = S.salvar(estadoCom(function () {}));
+    assert.equal(resultado.ok, false);
+    assert.match(resultado.erro, /QuotaExceededError/);
+  } finally {
+    global.localStorage.setItem = original;
+    console.error = erroOriginal;
+  }
 });
 
 test('risco 3: salvar incrementa config.rev e a mescla mantém o maior', () => {

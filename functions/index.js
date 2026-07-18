@@ -21,6 +21,40 @@ const GEMINI_MODEL = defineString('GEMINI_MODEL', { default: 'gemini-2.0-flash' 
 
 const LIMITE_MATERIAL = 20000; // ~caracteres; evita estourar custo/contexto
 const MIN_MATERIAL = 30;
+const LIMITE_IA_POR_MINUTO = 8;
+const LIMITE_IA_POR_DIA = 40;
+
+async function consumirCotaIA(uid) {
+  const db = admin.firestore();
+  const ref = db.collection('users').doc(uid).collection('usage').doc('flashcards');
+  const agora = Date.now();
+  const dia = new Date(agora).toISOString().slice(0, 10);
+
+  await db.runTransaction(async function (tx) {
+    const snap = await tx.get(ref);
+    const uso = snap.exists ? (snap.data() || {}) : {};
+    const mesmaJanela = Number.isFinite(uso.janelaInicioMs) && agora - uso.janelaInicioMs < 60000;
+    const janelaInicioMs = mesmaJanela ? uso.janelaInicioMs : agora;
+    const minuto = mesmaJanela ? (parseInt(uso.minuto, 10) || 0) : 0;
+    const mesmoDia = uso.dia === dia;
+    const diario = mesmoDia ? (parseInt(uso.diario, 10) || 0) : 0;
+
+    if (minuto >= LIMITE_IA_POR_MINUTO) {
+      throw new HttpsError('resource-exhausted', 'Muitas gerações em sequência. Aguarde um minuto e tente novamente.');
+    }
+    if (diario >= LIMITE_IA_POR_DIA) {
+      throw new HttpsError('resource-exhausted', 'Seu limite diário de geração com IA foi atingido. Tente novamente amanhã.');
+    }
+
+    tx.set(ref, {
+      dia: dia,
+      diario: diario + 1,
+      janelaInicioMs: janelaInicioMs,
+      minuto: minuto + 1,
+      atualizadoEm: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+}
 
 function montarPrompt(material, disciplina, quantidade) {
   const contexto = disciplina
@@ -71,6 +105,8 @@ exports.gerarFlashcards = onCall({ secrets: [GEMINI_API_KEY] }, async (request) 
   if (material.length > LIMITE_MATERIAL) {
     throw new HttpsError('invalid-argument', 'Material muito longo (máximo ~' + LIMITE_MATERIAL + ' caracteres). Divida em partes.');
   }
+
+  await consumirCotaIA(request.auth.uid);
 
   const model = GEMINI_MODEL.value();
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +

@@ -205,6 +205,44 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
   border-top: 1px solid var(--sb-linha);
 }
 
+.sidebar-rodape-comunidade {
+  margin-top: auto;
+  padding: 0.85rem 0.25rem 0.15rem;
+  border-top: 1px solid var(--sb-linha);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.sidebar-feedback {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.58rem 0.55rem;
+  border-radius: var(--raio-s);
+  border: 0;
+  background: transparent;
+  color: rgba(201, 210, 234, 0.82);
+  box-shadow: none;
+  text-decoration: none;
+  font: inherit;
+  font-size: 0.79rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.sidebar-feedback { cursor: pointer; }
+.sidebar-feedback:hover {
+  background: var(--sb-hover);
+  color: var(--sb-texto-forte);
+  filter: none;
+  transform: none;
+  box-shadow: none;
+}
+.sidebar-feedback svg { width: 18px; height: 18px; flex: 0 0 18px; }
+
 #conteudo {
   flex: 1;
   min-width: 0;
@@ -702,6 +740,21 @@ html[data-tema="escuro"] .login-preview-grid span.ativo {
 .mais-item-nome { font-weight: 700; font-size: 1.02rem; color: var(--caneta); }
 .mais-item-seta { color: var(--grafite); font-size: 1.4rem; line-height: 1; transition: transform 0.15s ease; }
 .mais-item:hover .mais-item-seta, .mais-item:active .mais-item-seta { transform: translateX(3px); }
+.mais-item-botao {
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  text-align: left;
+}
+.mais-item-botao:hover,
+.mais-item-botao:active { filter: none; transform: none; box-shadow: none; }
+.botao-instagram { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.botao-instagram svg { width: 18px; height: 18px; }
+.pedido-instagram-nota { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.55rem 0 0; }
+.pedido-instagram-nota svg { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 0.05rem; }
 
 /* Entrada animada do menu "Mais" (aparece ao abrir a aba) */
 .mais-menu-anima { animation: maisCartao 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; margin-top: 0.5rem; }
@@ -1425,6 +1478,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .fc-topo-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch; }
 .fc-topo-acoes > button { flex: 1 1 0; min-width: 0; white-space: nowrap; }
 .fc-topo .sub { margin: 0; }
+.fc-ia-breve:disabled {
+  opacity: 1;
+  background: var(--alerta-suave);
+  border: 1.5px dashed color-mix(in srgb, var(--alerta) 58%, transparent);
+  color: var(--alerta);
+  cursor: default;
+}
 /* No mobile os 3 botões não cabem em uma linha (o texto era cortado). O principal
    ocupa a linha inteira e os outros dois dividem a linha de baixo. */
 @media (max-width: 560px) {

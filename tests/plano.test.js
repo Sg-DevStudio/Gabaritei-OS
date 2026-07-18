@@ -103,6 +103,35 @@ test('validarPlano: rejeita simulados inconsistentes', () => {
   assert.ok(resultado.erros.some(function (e) { return e.includes('.total deve ser um inteiro maior'); }));
 });
 
+test('validarPlano: cronograma com tipo inválido retorna erro sem lançar exceção', () => {
+  const entrada = {
+    versao: 1,
+    plano: { concurso: 'C', meta: { corte_pct: 70 } },
+    disciplinas: [{ id: 'D1', nome: 'Disciplina', topicos: [{ id: 'T1', nome: 'Tópico', incidencia_pct: 50 }] }],
+    cronograma: { sustentavel: { semana: 1 }, hardcore: 'inválido' }
+  };
+
+  assert.doesNotThrow(function () { D.validarPlano(entrada); });
+  const resultado = D.validarPlano(entrada);
+  assert.equal(resultado.ok, false);
+  assert.ok(resultado.erros.some(function (e) { return e.includes('cronograma.sustentavel') && e.includes('lista'); }));
+  assert.ok(resultado.erros.some(function (e) { return e.includes('cronograma.hardcore') && e.includes('lista'); }));
+});
+
+test('validarPlano rejeita cor de disciplina que poderia injetar CSS', () => {
+  const resultado = D.validarPlano({
+    versao: 1,
+    plano: { concurso: 'C', meta: { corte_pct: 70 } },
+    disciplinas: [{
+      id: 'D1', nome: 'Disciplina', cor: 'red;position:fixed',
+      topicos: [{ id: 'T1', nome: 'Tópico', incidencia_pct: 50 }]
+    }]
+  });
+
+  assert.equal(resultado.ok, false);
+  assert.ok(resultado.erros.some(function (e) { return e.includes('.cor') && e.includes('#RRGGBB'); }));
+});
+
 test('todos os JSONs de plano distribuídos em data/ cumprem o contrato de importação', () => {
   const pasta = path.join(__dirname, '..', 'data');
   const arquivos = fs.readdirSync(pasta).filter(function (nome) { return nome.endsWith('.json'); });

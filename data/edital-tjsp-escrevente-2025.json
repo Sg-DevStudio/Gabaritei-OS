@@ -13,10 +13,10 @@
   "nota_corte_sugerida_pct": 77,
   "lista_corte": "ampla",
   "janela_prova": {
-    "inicio": "2025-12",
-    "fim": "2025-12"
+    "inicio": "",
+    "fim": ""
   },
-  "em_alta": true,
+  "em_alta": false,
   "fonte": "Base: Edital TJSP2503/2025 - Escrevente Técnico Judiciário, Vunesp; notícia oficial TJSP de publicação do edital; página oficial Vunesp TJSP2503; levantamentos públicos de notas de corte do edital TJSP Escrevente 2024.",
   "observacoes": [
     "Edital atual publicado em 2025 para cadastro de reserva na Capital e circunscricoes da 1a RAJ.",

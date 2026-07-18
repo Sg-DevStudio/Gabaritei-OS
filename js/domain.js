@@ -911,6 +911,9 @@
         else if (idsDisciplinas.has(d.id)) erros.push(ref + '.id duplicado: ' + d.id);
         else idsDisciplinas.add(d.id);
         if (!d.nome) erros.push(ref + '.nome é obrigatório.');
+        if (d.cor != null && (typeof d.cor !== 'string' || !/^#[0-9a-f]{6}$/i.test(d.cor))) {
+          erros.push(ref + '.cor deve usar o formato hexadecimal #RRGGBB.');
+        }
         if (d.peso != null && (typeof d.peso !== 'number' || !Number.isFinite(d.peso) || d.peso <= 0)) {
           erros.push(ref + '.peso deve ser um número finito maior que zero.');
         }
@@ -946,8 +949,25 @@
       });
       if (json.cronograma) {
         ['sustentavel', 'hardcore'].forEach(function (ritmo) {
-          (json.cronograma[ritmo] || []).forEach(function (sem, i) {
+          const semanas = json.cronograma[ritmo];
+          if (semanas != null && !Array.isArray(semanas)) {
+            erros.push('Campo "cronograma.' + ritmo + '" deve ser uma lista.');
+            return;
+          }
+          (semanas || []).forEach(function (sem, i) {
+            if (!sem || typeof sem !== 'object') {
+              erros.push('cronograma.' + ritmo + '[' + i + '] deve ser um objeto.');
+              return;
+            }
+            if (sem.blocos != null && !Array.isArray(sem.blocos)) {
+              erros.push('cronograma.' + ritmo + '[' + i + '].blocos deve ser uma lista.');
+              return;
+            }
             (sem.blocos || []).forEach(function (b, j) {
+              if (!b || typeof b !== 'object') {
+                erros.push('cronograma.' + ritmo + '[' + i + '].blocos[' + j + '] deve ser um objeto.');
+                return;
+              }
               if (b.topico && !idsTopicos.has(b.topico)) {
                 erros.push('cronograma.' + ritmo + '[' + i + '].blocos[' + j + ']: tópico "' + b.topico + '" não existe em disciplinas.');
               }
@@ -1821,9 +1841,9 @@
     return ini.slice(0, 7) + '-01';
   }
 
-  // Mede quantos tópicos terminam o ciclo de revisão ANTES da prova. Um tópico está
-  // "pronto" se a sua revisão pendente mais distante cai até o prazo; senão, "em risco".
-  // Tópicos sem revisão pendente (todas já feitas) contam como prontos.
+  // Mede quantos tópicos do edital terminam o ciclo de revisão ANTES da prova.
+  // O denominador inclui também matéria ainda não estudada: sem isso, um único
+  // tópico revisado podia produzir 100% de prontidão em um edital quase intocado.
   function prontidaoProva(state, hoje) {
     const prazo = prazoProva(state);
     if (!prazo) return null;
@@ -1832,7 +1852,11 @@
       .filter(function (r) { return !r.dataConcluida && topicoPorId(state, r.topicoId); });
 
     const ultimaPorTopico = {};
+    const comRevisaoConcluida = {};
     let revisoesForaDoPrazo = 0;
+    doPlanoAtivo(state, state.revisoes).forEach(function (r) {
+      if (r && r.dataConcluida && topicoPorId(state, r.topicoId)) comRevisaoConcluida[r.topicoId] = true;
+    });
     pend.forEach(function (r) {
       if (r.dataAgendada > prazo) revisoesForaDoPrazo++;
       if (!ultimaPorTopico[r.topicoId] || r.dataAgendada > ultimaPorTopico[r.topicoId]) {
@@ -1840,13 +1864,39 @@
       }
     });
 
-    const ids = Object.keys(ultimaPorTopico);
+    const topicos = [];
+    (state.disciplinas || []).forEach(function (d) {
+      if (!d || d.id === 'ORF') return;
+      (d.topicos || []).forEach(function (t) {
+        if (t && !t.orfao && t.id) topicos.push(t);
+      });
+    });
     let emRisco = 0;
-    ids.forEach(function (id) { if (ultimaPorTopico[id] > prazo) emRisco++; });
-    const totalTopicos = ids.length;
-    const prontos = totalTopicos - emRisco;
+    let prontos = 0;
+    let semRevisao = 0;
+    topicos.forEach(function (t) {
+      const ultima = ultimaPorTopico[t.id];
+      if (ultima) {
+        if (ultima <= prazo) prontos++;
+        else emRisco++;
+        return;
+      }
+      // Sem pendência só significa "ciclo encerrado" quando há histórico de revisão
+      // ou o tópico foi explicitamente dominado. Matéria virgem continua em risco.
+      if (comRevisaoConcluida[t.id] || t.status === 'dominado') prontos++;
+      else { emRisco++; semRevisao++; }
+    });
+    const totalTopicos = topicos.length;
     const pct = totalTopicos > 0 ? Math.round((prontos / totalTopicos) * 100) : 100;
-    return { prazo: prazo, totalTopicos: totalTopicos, prontos: prontos, emRisco: emRisco, revisoesForaDoPrazo: revisoesForaDoPrazo, pct: pct };
+    return {
+      prazo: prazo,
+      totalTopicos: totalTopicos,
+      prontos: prontos,
+      emRisco: emRisco,
+      semRevisao: semRevisao,
+      revisoesForaDoPrazo: revisoesForaDoPrazo,
+      pct: pct
+    };
   }
 
   // ---------- Modo reta final ----------

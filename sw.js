@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v137-auditoria';
+const CACHE = 'estudos-v141-contato-instagram';
 const ESTATICOS = [
   './',
   './index.html',
@@ -7,16 +7,16 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20260717b-pausa-programada',
-  './js/domain.js?v=20260717c-auditoria',
-  './js/store.js?v=20260717b-pausa-programada',
+  './css/styles.css?v=20260718d-contato-instagram',
+  './js/domain.js?v=20260718a-integridade',
+  './js/store.js?v=20260718b-integridade',
   './js/sync.js?v=20260717a-auditoria',
-  './js/firebase-sync.js?v=20260717a-seguranca',
-  './js/timer.js?v=20260714a-revisao-timer',
+  './js/firebase-sync.js?v=20260718a-integridade',
+  './js/timer.js?v=20260718a-integridade',
   './js/charts.js?v=20260615v-green-performance',
   './data/catalogo-editais.js?v=20260629-provapassou1',
   './data/exemplo-trf3.json',
-  './js/app.js?v=20260717c-auditoria',
+  './js/app.js?v=20260718d-contato-instagram',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

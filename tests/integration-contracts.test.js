@@ -8,6 +8,7 @@ const raiz = path.join(__dirname, '..');
 const regras = fs.readFileSync(path.join(raiz, 'firestore.rules'), 'utf8');
 const firebaseSync = fs.readFileSync(path.join(raiz, 'js', 'firebase-sync.js'), 'utf8');
 const app = fs.readFileSync(path.join(raiz, 'js', 'app.js'), 'utf8');
+const indexHtml = fs.readFileSync(path.join(raiz, 'index.html'), 'utf8');
 
 test('pedidos de edital usam um documento limitado por usuário e campos validados', () => {
   assert.match(regras, /pedidoId == request\.auth\.uid/);
@@ -31,4 +32,27 @@ test('Google Calendar recupera evento por propriedades privadas antes de inserir
       corpoUpsert.indexOf('await inserirEventoGoogleCalendar(token, item)'),
     'a busca remota deve acontecer antes do POST de inserção'
   );
+});
+
+test('IA não configurada aparece como recurso em breve e fica desativada', () => {
+  assert.match(app, /const IA_FLASHCARDS_DISPONIVEL = false/);
+  assert.match(app, /id="fc-gerar-ia"[^>]*disabled/);
+  assert.match(app, /IA em breve/);
+});
+
+test('menu deixa o Instagram apenas dentro dos modais de contato', () => {
+  assert.match(indexHtml, /id="sidebar-feedback"/);
+  assert.match(indexHtml, /Feedback, erros e sugestões/);
+  assert.doesNotMatch(indexHtml, /class="sidebar-instagram"/);
+  assert.doesNotMatch(app, /class="mais-item mais-instagram"/);
+  assert.match(app, /const INSTAGRAM_DIRECT_URL = 'https:\/\/ig\.me\/m\/samuel_g\.silva'/);
+  assert.match(app, /Abrir Direct/);
+  assert.match(app, /target="_blank" rel="noopener noreferrer"/);
+});
+
+test('pedido de edital prepara a mensagem para o Direct e mantém o registro no painel', () => {
+  assert.match(app, /urlInstagramDirect\(mensagemPedido\(\)\)/);
+  assert.match(app, /Gostaria de pedir este edital no Gabaritei OS/);
+  assert.match(app, /copiarTextoParaTransferencia\(mensagemPedido\(\)\)/);
+  assert.match(app, /FirebaseSync\.enviarPedidoEdital\(\{ texto: txt \}\)/);
 });

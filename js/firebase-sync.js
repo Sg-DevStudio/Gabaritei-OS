@@ -113,6 +113,14 @@ function temDados(state) {
   return window.Store && window.Store.temDados(state);
 }
 
+function temLapides(state) {
+  const config = state && state.config;
+  if (!config) return false;
+  return !!config.apagadoEm ||
+    (Array.isArray(config.removidos) && config.removidos.length > 0) ||
+    (config.planosExcluidos && Object.keys(config.planosExcluidos).length > 0);
+}
+
 function definirStatus(estado, texto, extra) {
   statusAtual = Object.assign({
     estado,
@@ -150,7 +158,7 @@ async function gravarRemoto(state) {
   // exceção é uma exclusão explícita do usuário, marcada por config.apagadoEm
   // — aí o vazio deve mesmo propagar. Sem isso, um aparelho zerado apagava o
   // plano de todos os outros.
-  if (!temDados(state) && !(state.config && state.config.apagadoEm)) return;
+  if (!temDados(state) && !temLapides(state)) return;
   enviando = true;
   definirStatus('enviando', 'Enviando para a nuvem');
   try {
@@ -199,7 +207,14 @@ async function reconciliarComRemoto(silencioso) {
     const apagouLocal = local.config && local.config.apagadoEm &&
       dataMs(local.config.apagadoEm) > remotoMs + FOLGA_RELOGIO_MS;
 
-    if (!localTemDados && remotoTemDados && !apagouLocal) {
+    if (!localTemDados && remotoTemDados && temLapides(local)) {
+      // Mesmo vazio, o estado local pode carregar exclusões explícitas. Mesclar
+      // aplica as lápides antes de adotar a nuvem e evita ressuscitar registros.
+      const merged = window.Store.mesclarEstados(remoto.state, local);
+      aplicarRemoto(merged, silencioso);
+      await gravarRemoto(merged);
+      definirStatus('sincronizado', 'Sincronizado com Firebase');
+    } else if (!localTemDados && remotoTemDados && !apagouLocal) {
       aplicarRemoto(remoto.state, silencioso);
       definirStatus('sincronizado', 'Sincronizado com Firebase');
     } else if (apagouLocal) {
@@ -250,7 +265,12 @@ function observarMudancas() {
     // rev decide (imune a relógio); com revs iguais, o timestamp com folga.
     const rR = revDe(remoto.state), rL = revDe(local);
     const remotoNovo = rR !== rL ? rR > rL : remotoMs > localMs + FOLGA_RELOGIO_MS;
-    if (localVazioRemotoCheio) {
+    if (localVazioRemotoCheio && temLapides(local)) {
+      const merged = window.Store.mesclarEstados(remoto.state, local);
+      aplicarRemoto(merged, true);
+      gravarRemoto(merged);
+      definirStatus('sincronizado', 'Atualizado pela nuvem');
+    } else if (localVazioRemotoCheio) {
       aplicarRemoto(remoto.state, true);
       definirStatus('sincronizado', 'Atualizado pela nuvem');
     } else if (remotoNovo && temDados(local)) {

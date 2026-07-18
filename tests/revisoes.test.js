@@ -181,3 +181,43 @@ test('intervalosRevisaoConfig: null no padrão, lista ordenada no custom', () =>
     [1, 7, 30]
   );
 });
+
+test('prontidaoProva inclui tópicos ainda não estudados no denominador', () => {
+  const state = {
+    planoAtivoId: 'p1',
+    plano: { radar: { janela_prova: ['2026-09', '2026-09'] } },
+    disciplinas: [{
+      id: 'D1',
+      topicos: [
+        { id: 't-revisao', status: 'teoria_concluida' },
+        { id: 't-pendente', status: 'pendente' }
+      ]
+    }],
+    revisoes: [{
+      id: 'r1', planoId: 'p1', topicoId: 't-revisao',
+      dataAgendada: '2026-08-10', dataConcluida: null
+    }]
+  };
+
+  const resultado = D.prontidaoProva(state, '2026-07-18');
+  assert.equal(resultado.totalTopicos, 2);
+  assert.equal(resultado.prontos, 1);
+  assert.equal(resultado.emRisco, 1);
+  assert.equal(resultado.semRevisao, 1);
+  assert.equal(resultado.pct, 50);
+});
+
+test('prontidaoProva considera pronto tópico dominado sem revisão pendente', () => {
+  const state = {
+    planoAtivoId: 'p1',
+    plano: { radar: { janela_prova: ['2026-09', '2026-09'] } },
+    disciplinas: [{ id: 'D1', topicos: [{ id: 't1', status: 'dominado' }] }],
+    revisoes: []
+  };
+
+  const resultado = D.prontidaoProva(state, '2026-07-18');
+  assert.equal(resultado.totalTopicos, 1);
+  assert.equal(resultado.prontos, 1);
+  assert.equal(resultado.emRisco, 0);
+  assert.equal(resultado.pct, 100);
+});

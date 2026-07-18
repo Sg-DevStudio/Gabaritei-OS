@@ -38,6 +38,8 @@
       decorridoMs: ms,
       decorridoMin: Math.floor(ms / 60000)
     };
+    e.estudoMs = ms;
+    e.estudoMin = e.decorridoMin;
     if (interno.limiteMin) {
       const limiteMs = interno.limiteMin * 60000;
       e.limiteMin = interno.limiteMin;
@@ -52,20 +54,32 @@
       }
     }
     if (interno.modo === 'pomodoro') {
-      const faseMs = (interno.pomoFase === 'foco' ? POMO_FOCO_MIN : POMO_PAUSA_MIN) * 60000;
-      const nestaFase = ms - interno.pomoFaseInicioMs;
-      e.pomoFase = interno.pomoFase;
-      e.pomoCiclos = interno.pomoCiclos;
-      e.pomoRestanteMs = Math.max(0, faseMs - nestaFase);
-      if (nestaFase >= faseMs && interno.rodando) {
-        // troca de fase automática
-        interno.pomoFase = interno.pomoFase === 'foco' ? 'pausa' : 'foco';
-        if (interno.pomoFase === 'foco') interno.pomoCiclos++;
-        interno.pomoFaseInicioMs = ms;
+      const focoMs = POMO_FOCO_MIN * 60000;
+      const pausaMs = POMO_PAUSA_MIN * 60000;
+      const cicloMs = focoMs + pausaMs;
+      const ciclos = Math.floor(ms / cicloMs);
+      const resto = ms % cicloMs;
+      const fase = resto < focoMs ? 'foco' : 'pausa';
+      const inicioFase = ciclos * cicloMs + (fase === 'pausa' ? focoMs : 0);
+      const faseMs = fase === 'foco' ? focoMs : pausaMs;
+      const faseAnterior = interno.pomoFase;
+      const ciclosAnteriores = interno.pomoCiclos || 0;
+
+      // Calcula a fase a partir do tempo total, em vez de avançar uma etapa por
+      // tick. Assim uma aba suspensa que retorna vários minutos depois não deixa o
+      // Pomodoro preso numa fase antiga.
+      interno.pomoFase = fase;
+      interno.pomoCiclos = ciclos;
+      interno.pomoFaseInicioMs = inicioFase;
+      e.pomoFase = fase;
+      e.pomoCiclos = ciclos;
+      e.pomoRestanteMs = Math.max(0, faseMs - (ms - inicioFase));
+      e.estudoMs = ciclos * focoMs + Math.min(resto, focoMs);
+      e.estudoMin = Math.floor(e.estudoMs / 60000);
+
+      if (interno.rodando && (faseAnterior !== fase || ciclosAnteriores !== ciclos)) {
         persistir();
         e.pomoTrocouFase = true;
-        e.pomoFase = interno.pomoFase;
-        e.pomoRestanteMs = (interno.pomoFase === 'foco' ? POMO_FOCO_MIN : POMO_PAUSA_MIN) * 60000;
       }
     }
     return e;
@@ -128,7 +142,7 @@
     if (intervalo) { clearInterval(intervalo); intervalo = null; }
     interno = null;
     persistir();
-    return e; // quem chama usa decorridoMin para o registro
+    return e; // quem chama usa estudoMin para o registro (pausas do Pomodoro não contam)
   }
 
   function descartar() {

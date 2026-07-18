@@ -10,6 +10,8 @@
   const TITULO_PADRAO = document.title;
   const ADMIN_EMAIL = 'casar70@gmail.com';
   const CHAVE_ULTIMO_USUARIO = 'estudos.firebase.ultimoUsuario';
+  const INSTAGRAM_DIRECT_URL = 'https://ig.me/m/samuel_g.silva';
+  const IA_FLASHCARDS_DISPONIVEL = false;
   let state = window.Store.carregar();
   // Varre planos-rascunho: criados ao clicar "Iniciar" mas nunca confirmados no
   // assistente (sessão fechada/recarregada sem passar pelo descarte). Evita o
@@ -43,6 +45,7 @@
   // Modo exemplo: deixa visitantes sem login explorarem com um plano de demonstração.
   // Tudo fica só em memória — nada é persistido nem sincronizado.
   let modoDemo = false;
+  let modoOfflineLocal = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   const ID_SIM_TIMER = '__simulado__'; // "disciplina" sintética do timer p/ cronometrar um simulado
@@ -50,6 +53,7 @@
   let syncStatus = window.Sync ? window.Sync.status() : { estado: 'local', texto: 'Somente neste navegador' };
   let firebaseStatus = window.FirebaseSync ? window.FirebaseSync.status() : { estado: 'carregando', texto: 'Preparando Firebase', fonte: 'Firebase' };
   let autenticacaoExpirou = false; // rede de segurança: se o Firebase nunca responder, libera a tela de login
+  let falhaPersistenciaAvisadaEm = 0;
   let pintarTimerAtual = null;
   let pintarTimerModal = null; // timer rápido em modal (pinta em qualquer rota)
   let timerBlocoPendente = null; // bloco da agenda a creditar no próximo timer iniciado
@@ -327,10 +331,19 @@
 
   function salvar(opcoes) {
     opcoes = opcoes || {};
-    if (modoDemo) return; // modo exemplo: nada é gravado nem sincronizado
-    window.Store.salvar(state, opcoes);
+    if (modoDemo) return true; // modo exemplo: nada é gravado nem sincronizado
+    const resultado = window.Store.salvar(state, opcoes);
     if (window.Sync && opcoes.sincronizar !== false) window.Sync.agendarEnvio(state);
     if (window.FirebaseSync && opcoes.sincronizar !== false) window.FirebaseSync.agendarEnvio(state);
+    if (resultado && resultado.ok === false) {
+      const agora = Date.now();
+      if (agora - falhaPersistenciaAvisadaEm > 10000) {
+        falhaPersistenciaAvisadaEm = agora;
+        toast('O armazenamento local está cheio. Os dados seguem em memória; exporte um backup agora.', 'erro');
+      }
+      return false;
+    }
+    return true;
   }
 
   function statusSincronizacao() {
@@ -340,7 +353,16 @@
 
   function usuarioAtual() {
     const atual = statusSincronizacao();
-    return atual && atual.usuario ? atual.usuario : null;
+    if (atual && atual.usuario) return atual.usuario;
+    if (modoOfflineLocal) {
+      return {
+        uid: localStorage.getItem(CHAVE_ULTIMO_USUARIO) || 'local',
+        nome: 'Modo offline',
+        email: 'dados locais',
+        offline: true
+      };
+    }
+    return null;
   }
 
   function usuarioLogado() {
@@ -390,6 +412,32 @@
     setTimeout(function () { el.remove(); }, 3200);
   }
 
+  function urlInstagramDirect(mensagem) {
+    const texto = String(mensagem || '').trim();
+    return INSTAGRAM_DIRECT_URL + (texto ? '?text=' + encodeURIComponent(texto) : '');
+  }
+
+  function copiarTextoParaTransferencia(texto) {
+    function copiarLegado() {
+      try {
+        const aux = document.createElement('textarea');
+        aux.value = texto;
+        aux.setAttribute('readonly', '');
+        aux.style.position = 'fixed';
+        aux.style.opacity = '0';
+        document.body.appendChild(aux);
+        aux.select();
+        document.execCommand('copy');
+        aux.remove();
+      } catch (_) { /* O link do Direct continua funcionando sem a cópia. */ }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).catch(copiarLegado);
+    } else {
+      copiarLegado();
+    }
+  }
+
   function abrirPedidoEdital(filtro) {
     filtro = filtro || {};
     const sugestao = [
@@ -399,30 +447,46 @@
       filtro.busca ? 'Observação: ' + filtro.busca : ''
     ].filter(Boolean).join('\n');
     const m = abrirModal('<h3>Pedir um edital</h3>' +
-      '<p class="sub">Descreva o concurso/cargo que você quer ver no catálogo. O pedido vai para o painel do administrador.</p>' +
+      '<p class="sub">Descreva o concurso/cargo que você quer ver no catálogo. O pedido será registrado no painel e o Direct será aberto para você confirmar a mensagem.</p>' +
       '<label for="pedido-edital-txt">Edital desejado</label>' +
       '<textarea id="pedido-edital-txt" maxlength="500" placeholder="Ex.: TJSP Escrevente 2026, banca Vunesp, SP">' + esc(sugestao) + '</textarea>' +
+      '<p class="sub pedido-instagram-nota"><svg aria-hidden="true"><use href="#ic-instagram"/></svg><span>Se o Instagram não preencher a mensagem, cole o texto que deixaremos copiado.</span></p>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="pedido-cancelar">Cancelar</button>' +
-      '<button id="pedido-enviar">Enviar pedido</button></div>');
+      '<a class="botao botao-instagram" id="pedido-enviar" href="' + INSTAGRAM_DIRECT_URL + '" target="_blank" rel="noopener noreferrer">' +
+      '<svg aria-hidden="true"><use href="#ic-instagram"/></svg>Enviar pedido</a></div>');
+    const campo = m.querySelector('#pedido-edital-txt');
+    const enviar = m.querySelector('#pedido-enviar');
+    function mensagemPedido() {
+      const txt = (campo.value || '').trim();
+      return txt ? 'Olá! Gostaria de pedir este edital no Gabaritei OS:\n\n' + txt : '';
+    }
+    function atualizarDestinoPedido() {
+      enviar.href = urlInstagramDirect(mensagemPedido());
+    }
+    campo.addEventListener('input', atualizarDestinoPedido);
+    atualizarDestinoPedido();
     m.querySelector('#pedido-cancelar').addEventListener('click', fecharModal);
-    m.querySelector('#pedido-enviar').addEventListener('click', function () {
-      const txt = (m.querySelector('#pedido-edital-txt').value || '').trim();
-      if (!txt) { toast('Descreva o edital que você quer pedir.', 'erro'); return; }
-      if (txt.length > 500) { toast('O pedido deve ter no máximo 500 caracteres.', 'erro'); return; }
-      if (window.FirebaseSync && window.FirebaseSync.enviarPedidoEdital) {
-        m.querySelector('#pedido-enviar').disabled = true;
-        window.FirebaseSync.enviarPedidoEdital({ texto: txt }).then(function () {
-          fecharModal();
-          toast('Pedido enviado ao administrador.', 'sucesso');
-        }).catch(function () {
-          const assunto = encodeURIComponent('Pedido de edital');
-          const corpo = encodeURIComponent(txt);
-          location.href = 'mailto:' + EMAIL_SUPORTE + '?subject=' + assunto + '&body=' + corpo;
-          m.querySelector('#pedido-enviar').disabled = false;
-        });
-      } else {
-        location.href = 'mailto:' + EMAIL_SUPORTE + '?subject=' + encodeURIComponent('Pedido de edital') + '&body=' + encodeURIComponent(txt);
+    enviar.addEventListener('click', function (evento) {
+      const txt = (campo.value || '').trim();
+      if (!txt) {
+        evento.preventDefault();
+        toast('Descreva o edital que você quer pedir.', 'erro');
+        campo.focus();
+        return;
       }
+      if (txt.length > 500) {
+        evento.preventDefault();
+        toast('O pedido deve ter no máximo 500 caracteres.', 'erro');
+        return;
+      }
+      copiarTextoParaTransferencia(mensagemPedido());
+      if (window.FirebaseSync && window.FirebaseSync.enviarPedidoEdital) {
+        window.FirebaseSync.enviarPedidoEdital({ texto: txt }).catch(function () {
+          toast('Não consegui registrar no painel; confirme o pedido pelo Direct.', 'erro');
+        });
+      }
+      toast('Abrindo o Direct para você confirmar o envio.', 'sucesso');
+      setTimeout(fecharModal, 0);
     });
   }
 
@@ -443,7 +507,7 @@
       '<li><span aria-hidden="true">🔁</span> Revisões espaçadas que se adaptam ao seu desempenho e à incidência do tópico</li>' +
       '<li><span aria-hidden="true">🎯</span> Fila do dia inteligente: estuda primeiro o que mais rende pontos</li>' +
       '<li><span aria-hidden="true">⚖️</span> Comparação de editais para conciliar concursos sem perder tempo</li>' +
-      '<li><span aria-hidden="true">🃏</span> Flashcards com IA, desempenho e metas semanais num só lugar</li>' +
+      '<li><span aria-hidden="true">🃏</span> Flashcards inteligentes — geração com IA em breve</li>' +
       '</ul>' +
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
       '<button id="login-demo" class="login-demo" type="button">Explorar com um plano de exemplo</button>' +
@@ -483,17 +547,46 @@
   function abrirModal(html) {
     aoFecharModal = null; // limpa hook de um modal anterior
     const raiz = document.getElementById('modal-raiz');
+    abrirModal.focoAnterior = document.activeElement;
     raiz.innerHTML = '<div class="modal-fundo"><div class="modal" role="dialog" aria-modal="true">' + html + '</div></div>';
+    const modal = raiz.querySelector('.modal');
+    const titulo = modal.querySelector('h1, h2, h3');
+    if (titulo) {
+      titulo.id = titulo.id || 'modal-titulo-' + Date.now().toString(36);
+      modal.setAttribute('aria-labelledby', titulo.id);
+    } else {
+      modal.setAttribute('aria-label', 'Janela de diálogo');
+    }
     raiz.querySelector('.modal-fundo').addEventListener('click', function (e) {
       if (e.target === e.currentTarget) fecharModal();
     });
-    return raiz.querySelector('.modal');
+    raiz.onkeydown = function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); fecharModal(); return; }
+      if (e.key !== 'Tab') return;
+      const focaveis = Array.from(modal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
+        .filter(function (el) { return el.offsetParent !== null; });
+      if (!focaveis.length) { e.preventDefault(); modal.focus(); return; }
+      const primeiro = focaveis[0], ultimo = focaveis[focaveis.length - 1];
+      if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro.focus(); }
+    };
+    modal.setAttribute('tabindex', '-1');
+    setTimeout(function () {
+      const primeiro = modal.querySelector('input:not([disabled]),select:not([disabled]),textarea:not([disabled]),button:not([disabled]),a[href]');
+      (primeiro || modal).focus();
+    }, 0);
+    return modal;
   }
 
   function fecharModal() {
     pintarTimerModal = null;
     const hook = aoFecharModal; aoFecharModal = null;
-    document.getElementById('modal-raiz').innerHTML = '';
+    const raiz = document.getElementById('modal-raiz');
+    raiz.onkeydown = null;
+    raiz.innerHTML = '';
+    const anterior = abrirModal.focoAnterior;
+    abrirModal.focoAnterior = null;
+    if (anterior && document.contains(anterior) && anterior.focus) anterior.focus();
     if (hook) hook();
   }
 
@@ -673,6 +766,11 @@
   const TAG_NOTIF_TIMER = 'estudos-timer';
   let ultimaNotifTimerMs = 0;
   let notifTimerAtiva = false;
+
+  function minutosEstudoTimer(e) {
+    if (!e) return 0;
+    return Math.max(0, Number.isFinite(e.estudoMin) ? e.estudoMin : (e.decorridoMin || 0));
+  }
 
   function textoNotifTimer(e) {
     if (e.modo === 'pomodoro') {
@@ -1323,6 +1421,10 @@
     const alvos = Object.keys(alvoSet);
     if (!alvos.length) return 0;
     // 1) remove as revisões em massa desses tópicos (pendentes, no plano ativo)
+    window.Store.marcarRemovido(state, state.revisoes.filter(function (r) {
+      const noAtivo = r && (!r.planoId || r.planoId === state.planoAtivoId);
+      return noAtivo && !r.dataConcluida && alvoSet[r.topicoId];
+    }).map(function (r) { return r.id; }));
     state.revisoes = state.revisoes.filter(function (r) {
       if (!r) return false;
       const noAtivo = !r.planoId || r.planoId === state.planoAtivoId;
@@ -1352,12 +1454,12 @@
     const t = D.topicoPorId(state, topicoId);
     if (!t) return false;
     const tEstado = window.Timer.estado();
-    if (tEstado && tEstado.topicoId === topicoId && tEstado.decorridoMin >= 1) {
+    if (tEstado && tEstado.topicoId === topicoId && minutosEstudoTimer(tEstado) >= 1) {
       window.Timer.finalizar();
       atualizarTituloTimer(null);
       // concluirRegistro já cria a sessão, marca teoria_concluida, agenda revisões,
       // credita o ciclo e salva.
-      concluirRegistro({ topicoId: topicoId, tipo: 'teoria', duracaoMin: Math.max(1, tEstado.decorridoMin), qFeitas: 0, qCertas: 0, teoriaOk: true });
+      concluirRegistro({ topicoId: topicoId, tipo: 'teoria', duracaoMin: Math.max(1, minutosEstudoTimer(tEstado)), qFeitas: 0, qCertas: 0, teoriaOk: true });
       return true;
     }
     if (t.status !== 'dominado') t.status = 'teoria_concluida';
@@ -1367,6 +1469,10 @@
   }
 
   function removerRevisoesPendentes(topicoId) {
+    const removidas = state.revisoes.filter(function (r) {
+      return r.topicoId === topicoId && !r.dataConcluida;
+    }).map(function (r) { return r.id; });
+    window.Store.marcarRemovido(state, removidas);
     state.revisoes = state.revisoes.filter(function (r) {
       return r.topicoId !== topicoId || r.dataConcluida;
     });
@@ -2652,7 +2758,8 @@
       if (frame) frame.classList.toggle('timer-frame-extra', !!passouLimite);
       if (info) {
         if (e.modo === 'pomodoro') {
-          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
+          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) +
+            ' · foco ' + window.Timer.formatar(e.estudoMs) + ' · total ' + window.Timer.formatar(e.decorridoMs);
         } else if (passouLimite) {
           info.innerHTML = '<span class="timer-info-extra">🎉 +' + extraMin + ' min além do planejado</span>';
         } else {
@@ -2709,19 +2816,19 @@
         atualizarTituloTimer(null);
         if (fim.topicoId === ID_SIM_TIMER) {
           render();
-          abrirNovoSimulado({ duracaoMin: Math.max(1, fim.decorridoMin) });
+          abrirNovoSimulado({ duracaoMin: Math.max(1, minutosEstudoTimer(fim)) });
           return;
         }
         // Timer iniciado a partir de uma revisão: encerra caindo no modal de
         // concluir a revisão, com o tempo cronometrado já preenchido.
         if (fim.revisaoId && state.revisoes.some(function (r) { return r.id === fim.revisaoId && !r.dataConcluida; })) {
           render();
-          abrirConcluirRevisao(fim.revisaoId, Math.max(1, fim.decorridoMin));
+          abrirConcluirRevisao(fim.revisaoId, Math.max(1, minutosEstudoTimer(fim)));
           return;
         }
         abrirRegistro({
           topicoId: fim.topicoId,
-          duracaoMin: Math.max(1, fim.decorridoMin),
+          duracaoMin: Math.max(1, minutosEstudoTimer(fim)),
           tipo: 'teoria',
           blocoId: fim.blocoId || null,
           aoSalvar: function () { render(); }
@@ -2761,7 +2868,8 @@
       disp.classList.toggle('timer-extra', !!passouLimite);
       if (info) {
         if (e.modo === 'pomodoro') {
-          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) + ' · total ' + window.Timer.formatar(e.decorridoMs);
+          info.textContent = (e.pomoFase === 'foco' ? 'Foco' : 'Pausa') + ' · ciclo ' + (e.pomoCiclos + 1) +
+            ' · foco ' + window.Timer.formatar(e.estudoMs) + ' · total ' + window.Timer.formatar(e.decorridoMs);
         } else if (passouLimite) {
           info.innerHTML = '<span class="timer-info-extra">🎉 +' + extraMin + ' min além do planejado</span>';
         } else {
@@ -2793,8 +2901,8 @@
         corpo.querySelector('#tr-encerrar').addEventListener('click', function () {
           const fim = window.Timer.finalizar();
           atualizarTituloTimer(null);
-          if (fim.topicoId === ID_SIM_TIMER) { render(); abrirNovoSimulado({ duracaoMin: Math.max(1, fim.decorridoMin) }); return; }
-          abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, fim.decorridoMin), tipo: 'teoria', blocoId: fim.blocoId || null, aoSalvar: function () { render(); } });
+          if (fim.topicoId === ID_SIM_TIMER) { render(); abrirNovoSimulado({ duracaoMin: Math.max(1, minutosEstudoTimer(fim)) }); return; }
+          abrirRegistro({ topicoId: fim.topicoId, duracaoMin: Math.max(1, minutosEstudoTimer(fim)), tipo: 'teoria', blocoId: fim.blocoId || null, aoSalvar: function () { render(); } });
           render();
         });
         corpo.querySelector('#tr-descartar').addEventListener('click', function () {
@@ -3006,11 +3114,6 @@
       .filter(function (r) { return !r.dataConcluida && D.topicoPorId(state, r.topicoId); })
       .sort(function (a, b) { return a.dataAgendada.localeCompare(b.dataAgendada); });
 
-    if (pendentes.length === 0) {
-      return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 3d · 7d · 14d · 30d.</div></div>';
-    }
-
     // Prontidão para a prova: o ciclo de revisões cabe antes da prova?
     const prazo = state.plano ? D.prazoProva(state) : null;
     let html0 = '';
@@ -3027,10 +3130,16 @@
           '<div class="prontidao-cab"><strong>Preparado para a prova?</strong>' +
           '<span class="prontidao-pct">' + pr.pct + '%</span></div>' +
           '<div class="barra' + (pr.pct >= 90 ? ' barra-verde' : '') + '"><span style="width:' + pr.pct + '%"></span></div>' +
-          '<p class="sub prontidao-sub">' + pr.prontos + ' de ' + pr.totalTopicos + ' tópicos revisados até ' + D.formatarDataBR(prazo) + ' (início da janela da prova)' +
+          '<p class="sub prontidao-sub">' + pr.prontos + ' de ' + pr.totalTopicos + ' tópicos com ciclo concluído ou programado até ' + D.formatarDataBR(prazo) + ' (início da janela da prova)' +
           (pr.revisoesForaDoPrazo > 0 ? ' · <span class="prontidao-alerta">' + pr.revisoesForaDoPrazo + (pr.revisoesForaDoPrazo === 1 ? ' revisão cai' : ' revisões caem') + ' depois da prova</span>' : '') +
+          (pr.semRevisao > 0 ? ' · <span class="prontidao-alerta">' + pr.semRevisao + (pr.semRevisao === 1 ? ' tópico ainda não entrou' : ' tópicos ainda não entraram') + ' no ciclo</span>' : '') +
           '</p></div>';
       }
+    }
+
+    if (pendentes.length === 0) {
+      return html0 + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
+        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 3d · 7d · 14d · 30d.</div></div>';
     }
 
     const grupos = [
@@ -3096,6 +3205,7 @@
       const pendentes = revs.filter(function (r) { return !r.dataConcluida; });
       if (pendentes.length === 0) return; // curva já fechada — nada a reagendar
       const idsRemover = new Set(pendentes.map(function (r) { return r.id; }));
+      window.Store.marcarRemovido(state, Array.from(idsRemover));
       state.revisoes = state.revisoes.filter(function (r) { return !idsRemover.has(r.id); });
       const novas = D.agendarRevisoes(tid, hoje, { pular24h: true, intervalos: intervalos });
       const restantes = novas.slice(concluidas.length); // pula as etapas já cumpridas
@@ -3215,7 +3325,7 @@
     let html = '<div class="card fc-topo">' +
       '<div class="fc-topo-acoes">' +
       '<button class="botao" id="fc-aleatorio"' + (devidasTotal ? '' : ' disabled') + '>🔀 Estudo aleatório' + (devidasTotal ? ' (' + devidasTotal + ')' : '') + '</button>' +
-      '<button class="botao-secundario" id="fc-gerar-ia">✨ Gerar com IA</button>' +
+      '<button class="botao-secundario fc-ia-breve" id="fc-gerar-ia" type="button" disabled title="Geração automática de flashcards será liberada em breve">✨ IA em breve</button>' +
       '<button class="botao-secundario" id="fc-novo-deck">+ Novo deck</button>' +
       '</div>' +
       '<p class="sub">' + cartasTotal + ' carta(s) no total · ' + devidasTotal + ' para revisar hoje</p>' +
@@ -3296,6 +3406,10 @@
   // Geração de flashcards com IA: o aluno cola o material, a IA (via Cloud Function
   // segura) devolve cartas; o aluno revisa e importa para um deck novo ou existente.
   function abrirGerarFlashcardsIA() {
+    if (!IA_FLASHCARDS_DISPONIVEL) {
+      toast('A geração de flashcards com IA chega em breve.', 'sucesso');
+      return;
+    }
     if (!state.plano) { toast('Ative um plano antes de gerar flashcards.', 'erro'); return; }
     if (!window.FirebaseSync || typeof window.FirebaseSync.gerarFlashcardsIA !== 'function') {
       toast('Recurso de IA indisponível nesta versão.', 'erro'); return;
@@ -3599,7 +3713,7 @@
     const novoDeck = raiz.querySelector('#fc-novo-deck');
     if (novoDeck) novoDeck.addEventListener('click', abrirNovoDeck);
     const gerarIA = raiz.querySelector('#fc-gerar-ia');
-    if (gerarIA) gerarIA.addEventListener('click', abrirGerarFlashcardsIA);
+    if (gerarIA && IA_FLASHCARDS_DISPONIVEL) gerarIA.addEventListener('click', abrirGerarFlashcardsIA);
     const aleatorio = raiz.querySelector('#fc-aleatorio');
     if (aleatorio) aleatorio.addEventListener('click', function () {
       const hoje = D.hojeISO();
@@ -3966,10 +4080,10 @@
       // se há cronômetro deste tópico em andamento, registra a sessão (conta o
       // tempo de hoje e risca o calendário) ao concluir.
       const tEstado = concluindo ? window.Timer.estado() : null;
-      if (tEstado && tEstado.topicoId === t.id && tEstado.decorridoMin >= 1) {
+      if (tEstado && tEstado.topicoId === t.id && minutosEstudoTimer(tEstado) >= 1) {
         t.status = 'em_curso'; // garante que concluirRegistro credite e agende revisões
         window.Timer.finalizar(); atualizarTituloTimer(null);
-        concluirRegistro({ topicoId: t.id, tipo: 'teoria', duracaoMin: Math.max(1, tEstado.decorridoMin), qFeitas: 0, qCertas: 0, teoriaOk: true });
+        concluirRegistro({ topicoId: t.id, tipo: 'teoria', duracaoMin: Math.max(1, minutosEstudoTimer(tEstado)), qFeitas: 0, qCertas: 0, teoriaOk: true });
         if (novo === 'dominado') { t.status = 'dominado'; t.reaberto = false; salvar(); }
         fecharModal(); render();
         toast('Status salvo — estudo de hoje registrado ✓', 'sucesso');
@@ -4758,6 +4872,14 @@
       '</div></div>';
 
     html += '</div>'; // .ajustes-sync-grid
+
+    html += '<div class="card"><h3>Backup manual</h3>' +
+      '<p class="sub">Baixe uma cópia completa em JSON. Ela funciona mesmo sem Firebase e pode restaurar seus planos e registros neste ou em outro aparelho.</p>' +
+      '<div class="modal-acoes" style="justify-content:flex-start">' +
+      '<button class="botao-secundario" id="backup-exportar"' + (modoDemo ? ' disabled' : '') + '>Baixar backup (.json)</button>' +
+      '<button class="botao-quieto" id="backup-importar"' + (modoDemo ? ' disabled' : '') + '>Restaurar backup</button>' +
+      '<input id="backup-arquivo" class="oculto" type="file" accept=".json,application/json">' +
+      '</div>' + (modoDemo ? '<p class="sub">Saia do modo exemplo para usar backups dos seus dados reais.</p>' : '') + '</div>';
 
     // Recuperação de dados: registros de estudo de planos excluídos continuam
     // salvos (excluirPlano preserva sessões/simulados), mas ficam invisíveis
@@ -6358,6 +6480,79 @@
 
     const fbBackups = raiz.querySelector('#fb-backups');
     if (fbBackups) fbBackups.addEventListener('click', abrirBackupsNuvem);
+    const backupExportar = raiz.querySelector('#backup-exportar');
+    if (backupExportar) backupExportar.addEventListener('click', function () {
+      if (modoDemo) return;
+      const persistencia = window.Store.exportarBackup(state);
+      if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
+      toast(persistencia && persistencia.ok === false
+        ? 'Backup baixado. O armazenamento local está cheio; guarde este arquivo.'
+        : 'Backup baixado', persistencia && persistencia.ok === false ? 'erro' : 'sucesso');
+    });
+    const backupImportar = raiz.querySelector('#backup-importar');
+    const backupArquivo = raiz.querySelector('#backup-arquivo');
+    if (backupImportar && backupArquivo) {
+      backupImportar.addEventListener('click', function () { backupArquivo.value = ''; backupArquivo.click(); });
+      backupArquivo.addEventListener('change', function () {
+        const arquivo = backupArquivo.files && backupArquivo.files[0];
+        if (!arquivo) return;
+        if (arquivo.size > 10 * 1024 * 1024) {
+          toast('Esse backup é grande demais (máximo de 10 MB).', 'erro');
+          return;
+        }
+        arquivo.text().then(function (texto) {
+          const resultado = window.Store.importarBackup(texto, { persistir: false });
+          if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+          confirmar({
+            titulo: 'Restaurar este backup?',
+            mensagem: 'Os dados atuais serão substituídos pelo conteúdo do arquivo. Uma nova cópia será sincronizada com a nuvem.',
+            confirmar: 'Restaurar',
+            perigo: true,
+            icone: '↺'
+          }).then(function (ok) {
+            if (!ok) return;
+            const anterior = state;
+            const restaurado = resultado.state;
+            const agora = new Date().toISOString();
+            const idsRestaurados = {};
+            ['sessoes', 'revisoes', 'simulados', 'flashcards'].forEach(function (lista) {
+              (restaurado[lista] || []).forEach(function (item) { if (item && item.id) idsRestaurados[item.id] = true; });
+            });
+            restaurado.config.removidos = (restaurado.config.removidos || []).filter(function (id) { return !idsRestaurados[id]; });
+            const removidosAgora = [];
+            ['sessoes', 'revisoes', 'simulados', 'flashcards'].forEach(function (lista) {
+              (anterior[lista] || []).forEach(function (item) {
+                if (item && item.id && !idsRestaurados[item.id]) removidosAgora.push(item.id);
+              });
+            });
+            window.Store.marcarRemovido(restaurado, removidosAgora);
+
+            if (!restaurado.config.planosExcluidos || typeof restaurado.config.planosExcluidos !== 'object') restaurado.config.planosExcluidos = {};
+            const planosRestaurados = {};
+            (restaurado.planos || []).forEach(function (p) {
+              if (!p || !p.id) return;
+              planosRestaurados[p.id] = true;
+              delete restaurado.config.planosExcluidos[p.id];
+              p.atualizadoEm = agora;
+            });
+            (anterior.planos || []).forEach(function (p) {
+              if (p && p.id && !planosRestaurados[p.id]) restaurado.config.planosExcluidos[p.id] = agora;
+            });
+            restaurado.config.rev = Math.max(
+              parseInt(restaurado.config.rev, 10) || 0,
+              parseInt(anterior.config && anterior.config.rev, 10) || 0
+            );
+            if (window.Store.temDados(restaurado)) delete restaurado.config.apagadoEm;
+            state = restaurado;
+            salvar();
+            render();
+            toast('Backup restaurado e pronto para sincronizar', 'sucesso');
+          });
+        }).catch(function () {
+          toast('Não foi possível ler esse arquivo.', 'erro');
+        });
+      });
+    }
 
     raiz.querySelectorAll('[data-rec-edital]').forEach(function (b) {
       b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-rec-edital')); });
@@ -6374,6 +6569,12 @@
         if (!ok) return;
         // Zera apenas os dados de estudo do aluno; preserva o catálogo de editais
         // (catálogo global, no caso do admin) e as configurações pessoais.
+        const apagadoEm = new Date().toISOString();
+        window.Store.marcarRemovido(state, ['sessoes', 'revisoes', 'simulados', 'flashcards'].reduce(function (ids, lista) {
+          return ids.concat((state[lista] || []).map(function (item) { return item && item.id; }));
+        }, []));
+        if (!state.config.planosExcluidos || typeof state.config.planosExcluidos !== 'object') state.config.planosExcluidos = {};
+        state.planos.forEach(function (p) { if (p && p.id) state.config.planosExcluidos[p.id] = apagadoEm; });
         state.planos = [];
         state.planoAtivoId = null;
         state.sessoes = [];
@@ -6382,7 +6583,7 @@
         state.agenda = [];
         state.flashcards = [];
         window.Store.hidratar(state);
-        state.config.apagadoEm = new Date().toISOString();
+        state.config.apagadoEm = apagadoEm;
         salvar(); render();
         toast('Seus dados de estudo foram apagados');
       });
@@ -7786,9 +7987,6 @@
       '</div>';
   }
 
-  // E-mail de suporte para pedidos de edital (empty state do modal)
-  const EMAIL_SUPORTE = 'casar70@gmail.com';
-
   function normalizarBusca(s) {
     return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
   }
@@ -8280,6 +8478,9 @@
     // Limpa o que é do plano/calendário (revisões agendadas, blocos da agenda e
     // flashcards), mas PRESERVA as estatísticas do aluno: sessões registradas
     // (questões feitas/acertos) e simulados continuam guardados.
+    const removidos = state.revisoes.filter(function (r) { return pertenceAoPlano(r, planoId); })
+      .concat(state.flashcards.filter(function (f) { return pertenceAoPlano(f, planoId); }));
+    window.Store.marcarRemovido(state, removidos.map(function (item) { return item.id; }));
     state.revisoes = state.revisoes.filter(function (r) { return !pertenceAoPlano(r, planoId); });
     state.agenda = state.agenda.filter(function (a) { return !pertenceAoPlano(a, planoId); });
     state.flashcards = state.flashcards.filter(function (f) { return !pertenceAoPlano(f, planoId); });
@@ -11206,6 +11407,24 @@
   }
 
   // ---------------- TELA: Mais (atalhos no celular) ----------------
+  function abrirFeedback() {
+    const m = abrirModal(
+      '<h3>Ajude a melhorar o Gabaritei OS</h3>' +
+      '<p class="sub">Encontrou um erro, teve uma ideia ou sentiu falta de alguma coisa? Sua mensagem ajuda a decidir as próximas melhorias.</p>' +
+      '<div class="card card-quieto" style="margin:0.85rem 0;padding:0.9rem 1rem">' +
+      '<p style="margin:0 0 0.45rem"><strong>Para erros</strong>, envie a tela, o que você fez e o que esperava acontecer.</p>' +
+      '<p style="margin:0"><strong>Para sugestões</strong>, conte qual problema a melhoria resolveria para você.</p>' +
+      '</div>' +
+      '<p class="sub">Por enquanto, o canal de contato é o Instagram <strong>@samuel_g.silva</strong>.</p>' +
+      '<div class="modal-acoes">' +
+      '<button type="button" class="botao-quieto" id="feedback-fechar">Agora não</button>' +
+      '<a class="botao botao-instagram" href="' + INSTAGRAM_DIRECT_URL + '" target="_blank" rel="noopener noreferrer">' +
+      '<svg aria-hidden="true"><use href="#ic-instagram"/></svg>Abrir Direct</a>' +
+      '</div>'
+    );
+    m.querySelector('#feedback-fechar').addEventListener('click', fecharModal);
+  }
+
   function telaMais() {
     const itens = [
       ['#stats', 'Desempenho'],
@@ -11218,7 +11437,16 @@
         return '<a class="mais-item" href="' + i[0] + '">' +
           '<span class="mais-item-nome">' + i[1] + '</span>' +
           '<span class="mais-item-seta" aria-hidden="true">›</span></a>';
-      }).join('') + '</div>';
+      }).join('') +
+      '<button type="button" class="mais-item mais-item-botao" id="mais-feedback">' +
+      '<span class="mais-item-nome">Feedback, erros e sugestões</span>' +
+      '<span class="mais-item-seta" aria-hidden="true">›</span></button>' +
+      '</div>';
+  }
+
+  function ligarMais(raiz) {
+    const feedback = raiz.querySelector('#mais-feedback');
+    if (feedback) feedback.addEventListener('click', abrirFeedback);
   }
 
   // ---------------- Meta semanal de questões (editada na própria Hoje) ----------------
@@ -11347,7 +11575,7 @@
     disciplina: { render: telaDisciplinaDetalhe, ligar: ligarDisciplinaDetalhe },
     historico: { render: telaHistorico, ligar: ligarHistorico },
     ajustes: { render: telaAjustes, ligar: ligarAjustes },
-    mais: { render: telaMais, ligar: function () {} }
+    mais: { render: telaMais, ligar: ligarMais }
   };
 
   function rotaAtual() {
@@ -11429,6 +11657,7 @@
         esc(String(err && err.message ? err.message : err)) + '</p></div>';
     }
     if (modoDemo) injetarBannerDemo(conteudo);
+    else if (modoOfflineLocal) injetarBannerOffline(conteudo);
     atualizarNav(rota);
     atualizarSyncUi();
     if (mudouRota) setTimeout(function () { window.scrollTo(0, 0); }, 0);
@@ -11456,6 +11685,13 @@
     });
     const sair = conteudo.querySelector('#demo-sair');
     if (sair) sair.addEventListener('click', sairModoDemo);
+  }
+
+  function injetarBannerOffline(conteudo) {
+    conteudo.insertAdjacentHTML('afterbegin',
+      '<div class="demo-banner offline-banner" role="status">' +
+      '<span class="demo-banner-txt">📴 Modo offline — usando os dados salvos neste aparelho. As alterações serão sincronizadas quando sua sessão voltar.</span>' +
+      '</div>');
   }
 
   function sairModoDemo() {
@@ -11799,7 +12035,11 @@
   if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', fecharGaveta);
   // Navegar pela gaveta a fecha; trocar para desktop também limpa o estado de gaveta.
   const sidebarEl = document.getElementById('sidebar');
-  if (sidebarEl) sidebarEl.addEventListener('click', function (e) { if (e.target.closest('.nav-item')) fecharGaveta(); });
+  if (sidebarEl) sidebarEl.addEventListener('click', function (e) {
+    if (e.target.closest('.nav-item, .sidebar-feedback')) fecharGaveta();
+  });
+  const sidebarFeedback = document.getElementById('sidebar-feedback');
+  if (sidebarFeedback) sidebarFeedback.addEventListener('click', abrirFeedback);
   window.addEventListener('resize', function () { if (!ehLarguraMobile()) document.body.classList.remove('sidebar-aberta'); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharGaveta(); });
 
@@ -11875,12 +12115,20 @@
 
   render();
 
-  // Se o Firebase nao confirmar a sessao em poucos segundos (offline, bloqueado),
-  // desistimos do splash e mostramos a tela de login para nao deixar o usuario preso.
+  // Se o Firebase não confirmar a sessão (offline/CDN bloqueado), libera os dados
+  // locais do último usuário. Sem dados locais, cai na tela de login normalmente.
   setTimeout(function () {
     if (autenticacaoExpirou) return;
     autenticacaoExpirou = true;
+    const ultimoUsuario = localStorage.getItem(CHAVE_ULTIMO_USUARIO);
+    const estadoFirebase = firebaseStatus && firebaseStatus.estado;
+    const firebaseIndisponivel = !window.FirebaseSync || navigator.onLine === false ||
+      estadoFirebase === 'autenticando' || estadoFirebase === 'carregando' || estadoFirebase === 'erro';
+    if (!usuarioLogado() && ultimoUsuario && window.Store.temDados(state) && firebaseIndisponivel) {
+      modoOfflineLocal = true;
+    }
     if (!usuarioLogado()) render();
+    else if (modoOfflineLocal) render();
   }, 4000);
 
   const opcoesSyncBase = {
@@ -11923,7 +12171,12 @@
           state = window.Store.estadoVazio();
           window.Store.salvar(state, { marcarAlterado: false });
         }
-        if (novoStatus && novoStatus.usuario) prepararEstadoParaUsuario(novoStatus.usuario);
+        if (novoStatus && novoStatus.usuario) {
+          modoOfflineLocal = false;
+          prepararEstadoParaUsuario(novoStatus.usuario);
+        } else if (novoStatus && novoStatus.estado === 'deslogado' && navigator.onLine !== false) {
+          modoOfflineLocal = false;
+        }
         if (novoStatus && novoStatus.estado === 'sincronizado') syncInicialFeito = true;
         firebaseStatus = novoStatus;
         atualizarSyncUi();
