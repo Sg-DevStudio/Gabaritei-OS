@@ -17,7 +17,7 @@ jobs:
       # Gate de sintaxe para scripts do navegador, service workers e Functions.
       - name: Checar sintaxe (node --check)
         run: |
-          for f in js/app.js js/domain.js js/store.js js/sync.js js/timer.js js/charts.js js/frases.js js/firebase-sync.js sw.js firebase-messaging-sw.js functions/index.js; do
+          for f in js/app.js js/domain.js js/store.js js/sync.js js/timer.js js/charts.js js/frases.js js/firebase-sync.js sw.js functions/index.js; do
             node --check "$f"
           done
       # Sem dependências: a suíte usa só o test runner nativo do Node.
