@@ -3957,6 +3957,52 @@ canvas.grafico {
 }
 .ajustes-sync-grid .card { margin-bottom: 0; }
 
+/* Configurações: catálogo pessoal de carreiras */
+.carreiras-config-card { border-color: color-mix(in srgb, var(--caneta) 24%, var(--linha)); }
+.carreiras-config-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.carreiras-config-cab h3 { margin: 0.08rem 0 0; }
+.carreiras-config-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+.carreira-config-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.7rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-s);
+  background: var(--papel-elevado);
+}
+.carreira-config-resumo { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+.carreira-config-resumo > div { min-width: 0; }
+.carreira-config-resumo strong { display: block; font-size: 0.88rem; line-height: 1.35; }
+.carreira-config-resumo .sub { margin: 0.25rem 0 0; font-size: 0.74rem; }
+.carreira-config-resumo .catalogo-foto { width: 52px; height: 62px; flex: 0 0 52px; }
+.editor-carreira-intro {
+  margin-bottom: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--caneta) 24%, var(--linha));
+  border-radius: var(--raio-s);
+  background: var(--caneta-suave);
+}
+.editor-carreira-intro .sub { margin: 0.2rem 0 0; }
+.editor-topicos-scroll { overflow-x: auto; }
+.editor-topicos-scroll .editor-topicos { min-width: 620px; }
+@media (max-width: 560px) {
+  .carreiras-config-lista { grid-template-columns: 1fr; }
+  .carreiras-config-cab > .botao { width: 100%; }
+}
+
 /* Edital verticalizado: tag de origem do plano + banner de compatibilidade */
 .disc-origem {
   font-size: 0.66rem;

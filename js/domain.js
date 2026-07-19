@@ -2540,6 +2540,28 @@
     return { ok: erros.length === 0, dias: limpos, erros: erros, avisos: avisos };
   }
 
+  // Combina as carreiras distribuídas com o app e as versões criadas pelo aluno.
+  // Uma personalizada com o mesmo id substitui visualmente a carreira-base; novas
+  // carreiras são acrescentadas ao fim. Sempre devolve cópias para que o editor
+  // nunca altere por referência o catálogo empacotado.
+  function mesclarCatalogoCarreiras(base, personalizadas) {
+    const mapa = Object.create(null);
+    const ordem = [];
+    function incluir(item, personalizada) {
+      if (!item || !item.id || !item.titulo || !Array.isArray(item.disciplinas)) return;
+      const id = String(item.id);
+      if (!mapa[id]) ordem.push(id);
+      const copia = JSON.parse(JSON.stringify(item));
+      copia.id = id;
+      copia.tipoCatalogo = 'carreira';
+      copia._personalizada = !!personalizada;
+      mapa[id] = copia;
+    }
+    (Array.isArray(base) ? base : []).forEach(function (item) { incluir(item, false); });
+    (Array.isArray(personalizadas) ? personalizadas : []).forEach(function (item) { incluir(item, true); });
+    return ordem.map(function (id) { return mapa[id]; });
+  }
+
   window.Dominio = {
     CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig, validarEsquemaRevisao,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
@@ -2561,7 +2583,7 @@
     conciliarPlanos, mapearAproveitamentoPlano, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
-    tendenciaSimulados, rankingAcionavel,
+    tendenciaSimulados, rankingAcionavel, mesclarCatalogoCarreiras,
     revisarFlashcard, flashcardDevido
   };
 })();

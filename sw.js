@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v152-capas-carreiras';
+const CACHE = 'estudos-v153-editor-carreiras';
 
 /* Toque na notificação: timer abre a tela do cronômetro; lembrete abre o app. */
 self.addEventListener('notificationclick', (e) => {
@@ -59,9 +59,9 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20260719-carreiras1',
-  './js/domain.js?v=20260719-carreiras2',
-  './js/store.js?v=20260718h-seguranca-escala',
+  './css/styles.css?v=20260720-carreiras-config1',
+  './js/domain.js?v=20260720-carreiras-config1',
+  './js/store.js?v=20260720-carreiras-config1',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
   './js/firebase-sync.js?v=20260718h-seguranca-escala',
@@ -72,7 +72,7 @@ const ESTATICOS = [
   './assets/carreiras/capa-trf-tjaa.jpg',
   './assets/carreiras/capa-trt-tjaa.jpg',
   './data/exemplo-trf3.json?v=20260718g-integridade-sync',
-  './js/app.js?v=20260719-carreiras4',
+  './js/app.js?v=20260720-carreiras-config1',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

@@ -47,7 +47,7 @@
   let modoDemo = false;
   let modoOfflineLocal = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
-  const catalogoCarreiras = normalizarCatalogoGlobal(window.CATALOGO_CARREIRAS || []);
+  const catalogoCarreirasBase = normalizarCatalogoGlobal(window.CATALOGO_CARREIRAS || []);
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   const ID_SIM_TIMER = '__simulado__'; // "disciplina" sintética do timer p/ cronometrar um simulado
   let editalAbertas = new Set();  // disciplinas expandidas no edital
@@ -135,21 +135,70 @@
     return lista.map(function (e) { return normalizarEditalCatalogo(e, 'global'); });
   }
 
+  function carreirasPersonalizadas() {
+    if (!state.config) state.config = {};
+    if (!Array.isArray(state.config.carreirasPersonalizadas)) state.config.carreirasPersonalizadas = [];
+    return state.config.carreirasPersonalizadas;
+  }
+
+  function ehItemCarreira(e) {
+    return !!(e && e.tipoCatalogo === 'carreira');
+  }
+
+  function carreirasGlobais() {
+    const mapa = new Map();
+    (catalogoGlobalEditais || []).forEach(function (e) {
+      if (ehItemCarreira(e)) mapa.set(e.id, e);
+    });
+    (state.editais || []).forEach(function (e) {
+      if (ehItemCarreira(e)) mapa.set(e.id, e);
+    });
+    return Array.from(mapa.values());
+  }
+
+  function carreirasDoCatalogo() {
+    const globais = carreirasGlobais();
+    const pessoais = usuarioAdmin() ? [] : carreirasPersonalizadas();
+    const idsGlobais = {};
+    const idsPessoais = {};
+    globais.forEach(function (e) { idsGlobais[e.id] = true; });
+    pessoais.forEach(function (e) { idsPessoais[e.id] = true; });
+    return D.mesclarCatalogoCarreiras(catalogoCarreirasBase, globais.concat(pessoais))
+      .map(function (e) {
+        const n = normalizarEditalCatalogo(e, 'carreira');
+        n._carreiraGlobal = !!idsGlobais[n.id];
+        n._carreiraPessoal = !!idsPessoais[n.id];
+        n._personalizada = !!(idsGlobais[n.id] || idsPessoais[n.id]);
+        return n;
+      });
+  }
+
+  function carreiraBasePorId(id) {
+    return catalogoCarreirasBase.find(function (e) { return e.id === id; }) || null;
+  }
+
+  function carreiraPorId(id) {
+    return carreirasDoCatalogo().find(function (e) { return e.id === id; }) || null;
+  }
+
   function editaisDoCatalogo() {
     const mapa = new Map();
     // 1) catálogo global do Firebase (tem as capas/imagens cadastradas pelo admin)
     catalogoGlobalEditais.forEach(function (e) {
+      if (ehItemCarreira(e)) return;
       const n = normalizarEditalCatalogo(e, 'global');
       mapa.set(n.id, n);
     });
     // 2) editais do perfil do usuário. O catálogo é SÓ o global do Firebase (+ perfil):
     //    não há mais fallback de editais empacotados. Offline/sem catálogo, a aba
     //    Planos fica vazia de propósito (o resto do site continua funcionando).
-    (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
+    (state.editais || []).forEach(function (e) {
+      if (!ehItemCarreira(e)) mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil'));
+    });
     // Planos-base de carreira fazem parte do produto e continuam disponíveis
     // offline. Entram por último para não serem apagados por uma publicação do
     // catálogo administrativo de concursos.
-    catalogoCarreiras.forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'carreira')); });
+    carreirasDoCatalogo().forEach(function (e) { mapa.set(e.id, e); });
     return Array.from(mapa.values());
   }
 
@@ -160,10 +209,13 @@
   function editaisDoCatalogoAdmin() {
     const mapa = new Map();
     catalogoGlobalEditais.forEach(function (e) {
+      if (ehItemCarreira(e)) return;
       const n = normalizarEditalCatalogo(e, 'global');
       mapa.set(n.id, n);
     });
-    (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
+    (state.editais || []).forEach(function (e) {
+      if (!ehItemCarreira(e)) mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil'));
+    });
     return Array.from(mapa.values());
   }
 
@@ -4941,6 +4993,8 @@
         '<p class="sub">Seu perfil tem acesso ao catálogo global e pode gerar planos próprios. O painel administrativo fica restrito ao administrador.</p></div>';
     }
 
+    html += carreirasConfiguracaoHtml();
+
     html += '<div class="ajustes-sync-grid">';
 
     const syncAtual = statusSincronizacao();
@@ -5199,6 +5253,45 @@
 
     html += '</div>';
     return html;
+  }
+
+  function carreiraConfiguracaoCard(c) {
+    const admin = usuarioAdmin();
+    const temBase = !!carreiraBasePorId(c.id);
+    const personalizada = !!c._personalizada;
+    const podeRemover = admin ? !!c._carreiraGlobal : !!c._carreiraPessoal;
+    const restauraPlataforma = !admin && !!(c._carreiraPessoal && c._carreiraGlobal);
+    const origem = personalizada
+      ? (c._carreiraGlobal ? 'publicada para todos' : (temBase ? 'versão personalizada' : 'criada por você'))
+      : 'modelo do Gabaritei OS';
+    const acaoRemover = podeRemover
+      ? '<button class="botao-mini botao-quieto" data-car-remover="' + esc(c.id) + '">' +
+        (restauraPlataforma ? 'Restaurar versão da plataforma' : (temBase ? 'Restaurar original' : 'Excluir')) + '</button>'
+      : '';
+    return '<div class="carreira-config-item">' +
+      '<div class="carreira-config-resumo">' + editalFotoHtml(c) +
+      '<div><strong>' + esc(c.titulo) + '</strong>' +
+      '<p class="sub">' + esc(origem) + ' · ' + (c.disciplinas || []).length + ' disciplinas · ' +
+      contarTopicosEdital(c) + ' tópicos</p></div></div>' +
+      '<div class="compact-actions">' +
+      '<button class="botao-mini" data-car-editar="' + esc(c.id) + '">Editar</button>' +
+      '<button class="botao-mini botao-secundario" data-car-ver="' + esc(c.id) + '">Ver em Planos</button>' +
+      acaoRemover + '</div></div>';
+  }
+
+  function carreirasConfiguracaoHtml() {
+    const lista = carreirasDoCatalogo();
+    const admin = usuarioAdmin();
+    return '<div class="card carreiras-config-card">' +
+      '<div class="carreiras-config-cab"><div><span class="rotulo-pagina">' + (admin ? 'Catálogo da plataforma' : 'Catálogo pessoal') + '</span>' +
+      '<h3>Planos de carreira</h3></div>' +
+      '<button class="botao botao-mini" id="car-nova">+ Nova carreira</button></div>' +
+      '<p class="sub">' + (admin
+        ? 'Edite TRF e TRT ou crie outra carreira do zero. Ao salvar, o catálogo é publicado para todos os alunos.'
+        : 'Edite TRF e TRT para adaptar matérias, prioridades, carga e capa ao seu método. Você também pode criar outra carreira do zero. As alterações ficam na sua conta e não mudam os modelos dos demais alunos.') + '</p>' +
+      '<div class="carreiras-config-lista">' +
+      (lista.length ? lista.map(carreiraConfiguracaoCard).join('') : '<p class="sub">Nenhuma carreira disponível.</p>') +
+      '</div></div>';
   }
 
   // aceita o contrato completo ({disciplinas:[...]}), uma lista de disciplinas ou linhas de planilha
@@ -5697,7 +5790,7 @@
       '</span>' +
       (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div></div>' +
-      (carreira ? '<p class="catalogo-carreira-promessa">Comece pelo núcleo que mais se repete e especialize o plano quando o edital do seu tribunal sair.</p>' : '') +
+      (carreira ? '<p class="catalogo-carreira-promessa">Comece pelo núcleo que mais se repete e especialize o plano quando sair um edital específico.</p>' : '') +
       '<div class="catalogo-metricas">' + metricas + '</div>' +
       '<div class="catalogo-acoes">' +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e prioridades">Detalhes</button>' +
@@ -5745,7 +5838,7 @@
       }).join('') + '</div>';
     const carreiraIntro = tipoAtual === 'carreira'
       ? '<div class="card carreira-intro"><span class="carreira-intro-icone" aria-hidden="true">⌁</span><div>' +
-        '<strong>Ainda não escolheu um tribunal?</strong>' +
+        '<strong>Ainda não escolheu um concurso específico?</strong>' +
         '<p class="sub">Estude o núcleo recorrente da carreira agora. Quando sair o concurso, troque para o plano específico e o sistema oferece reaproveitar seu histórico compatível.</p>' +
         '</div></div>'
       : '';
@@ -6247,6 +6340,7 @@
 
   // ================= Editor/conferência de edital (admin) =================
   let editorEdital = null;
+  let editorTipo = 'edital';
 
   function topicoEmBranco() {
     return { id: '', nome: '', incidencia_pct: 0, prioridade: 2, horas_estimadas: 2, semana_sugerida: null, status: 'pendente', reaberto: false, orfao: false };
@@ -6256,6 +6350,18 @@
   }
   function editalEmBranco() {
     return { id: null, titulo: '', banca: '', orgao: '', cargo: '', area: '', estado: '', nivel: 'medio', notaCorte: 70, tipoCorte: 'ampla', cortes: { ampla: 70, negros: null, pcd: null }, emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' }, salario: '', beneficios: '', vagas: '', disciplinas: [] };
+  }
+  function carreiraEmBranco() {
+    const primeiraDisciplina = disciplinaEmBranco();
+    primeiraDisciplina.topicos[0].incidencia_pct = 100;
+    return {
+      id: null, tipoCatalogo: 'carreira', titulo: '', banca: 'Base personalizada',
+      orgao: '', cargo: '', area: 'Administrativa', estado: '', nivel: 'medio',
+      notaCorte: 80, tipoCorte: 'ampla', cortes: { ampla: 80, negros: null, pcd: null },
+      emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' },
+      cobertura: 'Nacional', metodologia: '', baseEditais: [], fontesResumo: '',
+      salario: '', beneficios: '', vagas: '', disciplinas: [primeiraDisciplina]
+    };
   }
 
   const LISTAS_CORTE = { ampla: 'Ampla concorrência', negros: 'Cota negros', pcd: 'Cota PcD', indigenas: 'Cota indígenas' };
@@ -6350,7 +6456,63 @@
     });
   }
 
+  function editorCarreiraBody() {
+    const e = editorEdital;
+    const nivelAtual = nivelEdital(e);
+    const nivelOpts = ['fundamental', 'medio', 'tecnico', 'superior'].map(function (k) {
+      return '<option value="' + k + '"' + (nivelAtual === k ? ' selected' : '') + '>' + NIVEIS_EDITAL[k] + '</option>';
+    }).join('');
+    let h = '<div class="editor-carreira-intro"><strong>Estrutura da carreira</strong>' +
+      '<p class="sub">Use a prioridade percentual para indicar o que merece mais atenção dentro de cada disciplina. Os tópicos podem ser ajustados a qualquer momento.</p></div>' +
+      '<div class="grade-2">' +
+      '<div><label>Nome da carreira</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: Carreira Fiscal · Área Administrativa"></div>' +
+      '<div><label>Base de provas / bancas</label><input id="ee-banca" type="text" value="' + esc(e.banca || '') + '" placeholder="Ex.: Multibanca · últimos editais"></div></div>' +
+      '<div class="grade-3">' +
+      '<div><label>Órgão ou ramo</label><input id="ee-orgao" type="text" value="' + esc(e.orgao || '') + '" placeholder="Ex.: Fiscos estaduais"></div>' +
+      '<div><label>Cargo-alvo</label><input id="ee-cargo" type="text" value="' + esc(e.cargo || '') + '" placeholder="Ex.: Técnico Fazendário"></div>' +
+      '<div><label>Área</label><input id="ee-area" type="text" value="' + esc(e.area || '') + '" placeholder="Ex.: Administrativa"></div></div>' +
+      '<div class="grade-3">' +
+      '<div><label>Cobertura</label><input id="ee-cobertura" type="text" value="' + esc(e.cobertura || 'Nacional') + '" placeholder="Ex.: Nacional"></div>' +
+      '<div><label>Escolaridade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
+      '<div><label>Meta inicial de acerto (%)</label><input id="ee-corte-ampla" type="number" min="1" max="100" value="' + (e.notaCorte || 80) + '"></div></div>' +
+      '<div class="grade-2">' +
+      '<div><label>Como esta carreira foi montada</label><textarea id="ee-metodologia" rows="4" placeholder="Explique o critério usado para selecionar e priorizar os conteúdos.">' + esc(e.metodologia || '') + '</textarea></div>' +
+      '<div><label>Editais usados como base</label><textarea id="ee-base-editais" rows="4" placeholder="Um por linha ou separados por vírgula">' + esc((e.baseEditais || []).join('\n')) + '</textarea></div></div>' +
+      '<label>Resumo das fontes</label><input id="ee-fontes-resumo" type="text" value="' + esc(e.fontesResumo || '') + '" placeholder="Ex.: editais oficiais e análise de questões">' +
+      '<div class="ee-foto-campo"><label>Foto / capa da carreira (aparece na aba Planos)</label>' +
+      '<div class="ee-foto-linha">' +
+      '<span class="catalogo-foto' + (e.foto ? '' : ' catalogo-foto-placeholder') + '" id="ee-foto-preview">' +
+      (e.foto ? '<img src="' + esc(e.foto) + '" alt="">' : 'IMG') + '</span>' +
+      '<input type="file" id="ee-foto" accept="image/*">' +
+      (e.foto ? '<button type="button" class="botao-mini botao-quieto" id="ee-foto-remover">Remover foto</button>' : '') +
+      '</div></div><div class="editor-discs">';
+
+    e.disciplinas.forEach(function (d, di) {
+      h += '<div class="editor-disc" data-di="' + di + '"><div class="editor-disc-cab">' +
+        '<input class="ed-d-nome" data-di="' + di + '" type="text" value="' + esc(d.nome) + '" placeholder="Disciplina">' +
+        '<input class="ed-d-cor" data-di="' + di + '" type="color" value="' + esc(/^#/.test(d.cor) ? d.cor : '#3B82F6') + '" title="Cor">' +
+        '<label class="mini-rot">peso<input class="ed-d-peso" data-di="' + di + '" type="number" min="1" max="5" value="' + (d.peso || 1) + '"></label>' +
+        '<select class="ed-d-dif" data-di="' + di + '">' +
+        ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
+        '</select>' +
+        '<button class="botao-mini botao-quieto" data-rem-disc="' + di + '">remover</button></div>' +
+        '<div class="editor-topicos-scroll"><table class="editor-topicos"><thead><tr><th>Tópico</th><th>Prior.%</th><th>Faixa</th><th>Horas</th><th></th></tr></thead><tbody>';
+      d.topicos.forEach(function (t, ti) {
+        h += '<tr>' +
+          '<td><input class="ed-t-nome" data-di="' + di + '" data-ti="' + ti + '" type="text" value="' + esc(t.nome) + '"></td>' +
+          '<td><input class="ed-t-inc" data-di="' + di + '" data-ti="' + ti + '" type="number" min="0" max="100" value="' + (t.incidencia_pct || 0) + '"></td>' +
+          '<td><input class="ed-t-pri" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="3" value="' + (t.prioridade || 2) + '"></td>' +
+          '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="120" value="' + (t.horas_estimadas || 2) + '"></td>' +
+          '<td><button class="botao-mini botao-quieto" data-rem-top="' + di + '_' + ti + '" title="Remover tópico">×</button></td></tr>';
+      });
+      h += '</tbody></table></div><button class="botao-mini botao-quieto" data-add-top="' + di + '">+ tópico</button></div>';
+    });
+    h += '</div><button class="botao-secundario botao-mini" id="ee-add-disc">+ Adicionar disciplina</button>';
+    return h;
+  }
+
   function editorEditalBody() {
+    if (editorTipo === 'carreira') return editorCarreiraBody();
     const e = editorEdital;
     const nivelEscolaridadeOpts = ['fundamental', 'medio', 'tecnico', 'superior'];
     const nivelAtual = nivelEdital(e);
@@ -6429,6 +6591,12 @@
     e.orgao = val('#ee-orgao').trim();
     e.cargo = val('#ee-cargo').trim();
     e.area = val('#ee-area').trim();
+    if (body.querySelector('#ee-cobertura')) e.cobertura = val('#ee-cobertura').trim() || 'Nacional';
+    if (body.querySelector('#ee-metodologia')) e.metodologia = val('#ee-metodologia').trim();
+    if (body.querySelector('#ee-fontes-resumo')) e.fontesResumo = val('#ee-fontes-resumo').trim();
+    if (body.querySelector('#ee-base-editais')) {
+      e.baseEditais = val('#ee-base-editais').split(/[\n;,]+/).map(function (x) { return x.trim(); }).filter(Boolean);
+    }
     e.estado = val('#ee-estado').trim().toUpperCase().slice(0, 2);
     e.nivel = val('#ee-nivel') || 'medio';
     const clampPct = function (v) { const n = parseInt(v, 10); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null; };
@@ -6494,7 +6662,9 @@
     const addDisc = body.querySelector('#ee-add-disc');
     if (addDisc) addDisc.addEventListener('click', function () {
       sincronizarEditorDoDom(body);
-      editorEdital.disciplinas.push(disciplinaEmBranco());
+      const nova = disciplinaEmBranco();
+      if (editorTipo === 'carreira') nova.topicos[0].incidencia_pct = 100;
+      editorEdital.disciplinas.push(nova);
       rerenderEditorBody(m);
     });
     body.querySelectorAll('[data-rem-disc]').forEach(function (b) {
@@ -6523,6 +6693,7 @@
 
   function abrirEditorEdital(editalId, modo, dadosImport) {
     if (!usuarioAdmin()) { toast('Apenas o administrador pode editar editais.', 'erro'); return; }
+    editorTipo = 'edital';
     let baseObj;
     if (dadosImport) {
       baseObj = Object.assign(editalEmBranco(), {
@@ -6596,6 +6767,96 @@
     fecharModal();
     render();
     toast('Edital salvo: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
+  }
+
+  function abrirEditorCarreira(carreiraId) {
+    editorTipo = 'carreira';
+    const existente = carreiraId ? carreiraPorId(carreiraId) : null;
+    editorEdital = normalizarEditalParaEditor(existente || carreiraEmBranco());
+    editorEdital._editId = carreiraId || null;
+    const personalizada = existente && (usuarioAdmin() ? existente._carreiraGlobal : existente._carreiraPessoal);
+    const titulo = !existente ? 'Nova carreira'
+      : (carreiraBasePorId(carreiraId) && !personalizada ? 'Personalizar carreira' : 'Editar carreira');
+    const dica = usuarioAdmin()
+      ? '<p class="sub">Ao salvar, a carreira será publicada na aba Planos para todos os alunos. O modelo distribuído com o app poderá ser restaurado quando quiser.</p>'
+      : (carreiraBasePorId(carreiraId) && !personalizada
+        ? '<p class="sub">Ao salvar, o modelo original continua preservado. Você poderá restaurá-lo quando quiser.</p>'
+        : '<p class="sub">A carreira ficará disponível na aba Planos somente para a sua conta.</p>');
+    const m = abrirModal('<h3>' + titulo + '</h3>' + dica +
+      '<div id="editor-body">' + editorEditalBody() + '</div>' +
+      '<div class="modal-acoes"><button class="botao-quieto" id="editor-cancelar">Cancelar</button>' +
+      '<button id="editor-salvar">Salvar carreira</button></div>');
+    m.classList.add('modal-amplo');
+    ligarEditorBody(m);
+    m.querySelector('#editor-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#editor-salvar').addEventListener('click', function () { salvarEditorCarreira(m); });
+  }
+
+  function salvarEditorCarreira(m) {
+    sincronizarEditorDoDom(m.querySelector('#editor-body'));
+    const e = editorEdital;
+    if (!e.titulo) { toast('Dê um nome à carreira.', 'erro'); return; }
+    const disciplinas = e.disciplinas
+      .map(function (d) {
+        return Object.assign({}, d, {
+          topicos: (d.topicos || []).filter(function (t) { return (t.nome || '').trim(); })
+        });
+      })
+      .filter(function (d) { return (d.nome || '').trim() && d.topicos.length; });
+    if (!disciplinas.length) {
+      toast('Adicione ao menos uma disciplina com um tópico.', 'erro');
+      return;
+    }
+    gerarIdsEdital(disciplinas);
+    const teste = {
+      versao: 1,
+      plano: { concurso: e.titulo, banca: e.banca || '', meta: { corte_pct: e.notaCorte || 80 } },
+      disciplinas: disciplinas
+    };
+    const v = D.validarPlano(teste);
+    if (!v.ok) { toast('Não consegui validar: ' + v.erros[0], 'erro'); return; }
+
+    const admin = usuarioAdmin();
+    const lista = admin ? carreirasGlobais() : carreirasPersonalizadas();
+    const anterior = e._editId ? lista.find(function (x) { return x.id === e._editId; }) : null;
+    const id = e._editId || window.Store.novoId('carreira');
+    const registro = {
+      id: id,
+      tipoCatalogo: 'carreira',
+      titulo: e.titulo,
+      banca: e.banca || 'Base personalizada',
+      orgao: e.orgao || '',
+      cargo: e.cargo || '',
+      area: e.area || '',
+      estado: '',
+      cobertura: e.cobertura || 'Nacional',
+      nivel: e.nivel || 'medio',
+      notaCorte: e.notaCorte || 80,
+      tipoCorte: 'ampla',
+      cortes: { ampla: e.notaCorte || 80, negros: null, pcd: null },
+      foto: e.foto || '',
+      metodologia: e.metodologia || 'Plano de carreira criado e priorizado manualmente pelo aluno.',
+      baseEditais: Array.isArray(e.baseEditais) ? e.baseEditais : [],
+      fontesResumo: e.fontesResumo || 'Conteúdo e prioridades definidos manualmente.',
+      emAlta: false,
+      arquivado: false,
+      janelaProva: { inicio: '', fim: '' },
+      disciplinas: disciplinas,
+      criadoEm: anterior && anterior.criadoEm ? anterior.criadoEm : D.hojeISO(),
+      atualizadoEm: new Date().toISOString()
+    };
+    if (admin) {
+      state.editais = (state.editais || []).filter(function (x) { return x.id !== id; });
+      state.editais.push(registro);
+    } else {
+      state.config.carreirasPersonalizadas = lista.filter(function (x) { return x.id !== id; });
+      state.config.carreirasPersonalizadas.push(registro);
+    }
+    salvar();
+    if (admin) publicarCatalogoAdmin({ toast: true }).finally(render);
+    fecharModal();
+    render();
+    toast('Carreira salva: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
   }
 
   const PROMPT_EDITAL_BRUTO = [
@@ -6689,7 +6950,57 @@
     salvar();
   }
 
+  function ligarCarreirasConfiguracao(raiz) {
+    const nova = raiz.querySelector('#car-nova');
+    if (nova) nova.addEventListener('click', function () { abrirEditorCarreira(null); });
+    raiz.querySelectorAll('[data-car-editar]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirEditorCarreira(b.getAttribute('data-car-editar')); });
+    });
+    raiz.querySelectorAll('[data-car-ver]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        catalogoFiltro = { tipo: 'carreira', busca: '', orgao: '', cargo: '', estado: '' };
+        location.hash = '#planos';
+      });
+    });
+    raiz.querySelectorAll('[data-car-remover]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const id = b.getAttribute('data-car-remover');
+        const admin = usuarioAdmin();
+        const lista = admin ? carreirasGlobais() : carreirasPersonalizadas();
+        const personalizada = lista.find(function (x) { return x.id === id; });
+        if (!personalizada) return;
+        const temBase = !!carreiraBasePorId(id);
+        const restauraPlataforma = !admin && carreirasGlobais().some(function (x) { return x.id === id; });
+        confirmar({
+          titulo: restauraPlataforma ? 'Restaurar versão da plataforma?' : (temBase ? 'Restaurar carreira original?' : 'Excluir carreira?'),
+          mensagem: restauraPlataforma
+            ? 'Sua versão de "' + personalizada.titulo + '" será removida e a carreira publicada pela plataforma voltará ao catálogo. Planos já criados continuam como estão.'
+            : (temBase
+            ? 'As alterações em "' + personalizada.titulo + '" serão removidas e o modelo original voltará ao catálogo' + (admin ? ' de todos os alunos' : '') + '. Planos já criados continuam como estão.'
+            : 'A carreira "' + personalizada.titulo + '" sairá do catálogo' + (admin ? ' de todos os alunos' : '') + '. Planos já criados a partir dela continuam existindo.'),
+          confirmar: restauraPlataforma ? 'Restaurar versão' : (temBase ? 'Restaurar original' : 'Excluir carreira'),
+          perigo: !temBase && !restauraPlataforma,
+          icone: (temBase || restauraPlataforma) ? '↺' : '🗑️'
+        }).then(function (ok) {
+          if (!ok) return;
+          if (admin) {
+            state.editais = (state.editais || []).filter(function (x) { return x.id !== id; });
+            catalogoGlobalEditais = (catalogoGlobalEditais || []).filter(function (x) { return x.id !== id; });
+          } else {
+            state.config.carreirasPersonalizadas = carreirasPersonalizadas().filter(function (x) { return x.id !== id; });
+          }
+          comparacaoIds = comparacaoIds.filter(function (x) { return x !== id; });
+          salvar();
+          if (admin) publicarCatalogoAdmin({ toast: true, permitirVazio: true, removerId: id }).finally(render);
+          render();
+          toast(restauraPlataforma ? 'Versão da plataforma restaurada' : (temBase ? 'Modelo original restaurado' : 'Carreira excluída'));
+        });
+      });
+    });
+  }
+
   function ligarAjustes(raiz) {
+    ligarCarreirasConfiguracao(raiz);
     const ritmo = raiz.querySelector('#aj-ritmo');
     if (ritmo) ritmo.addEventListener('change', function () {
       state.plano.ritmoAtivo = ritmo.value;

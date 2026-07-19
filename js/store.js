@@ -238,6 +238,7 @@
       normalizarAcentosDisciplinas(p && p.disciplinas);
     });
     (state.editais || []).forEach(normalizarAcentosEdital);
+    ((state.config && state.config.carreirasPersonalizadas) || []).forEach(normalizarAcentosEdital);
     (state.flashcards || []).forEach(function (deck) {
       normalizarAcentosCampos(deck);
       (deck.cards || []).forEach(normalizarAcentosCampos);
@@ -269,6 +270,7 @@
         onboardingGuiaVisto: false,
         lembretesPush: false,
         tema: 'claro',
+        carreirasPersonalizadas: [],
         criadoEm: agora,
         atualizadoEm: agora,
         googleCalendar: { clientId: '', calendarId: 'primary', eventos: {} }
@@ -380,6 +382,7 @@
     if (state.config.ultimoBackup === undefined) state.config.ultimoBackup = null;
     state.config.lembretesPush = state.config.lembretesPush === true;
     if (!state.config.tema) state.config.tema = 'claro';
+    if (!Array.isArray(state.config.carreirasPersonalizadas)) state.config.carreirasPersonalizadas = [];
     if (!Array.isArray(state.config.blocosVinculados)) state.config.blocosVinculados = [];
     // Regras de estudo recorrente (troca de disciplina por dia da semana), que o
     // motor de geração da agenda respeita (ver domain.aplicarRegrasAgenda).
