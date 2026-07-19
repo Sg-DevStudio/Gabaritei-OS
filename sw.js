@@ -1,5 +1,5 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
-const CACHE = 'estudos-v146-seguranca-escala';
+const CACHE = 'estudos-v152-capas-carreiras';
 
 /* Toque na notificação: timer abre a tela do cronômetro; lembrete abre o app. */
 self.addEventListener('notificationclick', (e) => {
@@ -59,8 +59,8 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20260718h-seguranca-escala',
-  './js/domain.js?v=20260718a-integridade',
+  './css/styles.css?v=20260719-carreiras1',
+  './js/domain.js?v=20260719-carreiras2',
   './js/store.js?v=20260718h-seguranca-escala',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
@@ -68,8 +68,11 @@ const ESTATICOS = [
   './js/timer.js?v=20260718a-integridade',
   './js/charts.js?v=20260615v-green-performance',
   './data/catalogo-editais.js?v=20260629-provapassou1',
+  './data/carreiras.js?v=20260720-capas1',
+  './assets/carreiras/capa-trf-tjaa.jpg',
+  './assets/carreiras/capa-trt-tjaa.jpg',
   './data/exemplo-trf3.json?v=20260718g-integridade-sync',
-  './js/app.js?v=20260718h-seguranca-escala',
+  './js/app.js?v=20260719-carreiras4',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

@@ -1487,6 +1487,103 @@
   const SIM_DISC = 0.5;
   const SIM_TOP = 0.34;
 
+  function disciplinasClaramenteDistintas(tokensA, tokensB) {
+    // "Direito do Trabalho" e "Direito Processual do Trabalho" compartilham
+    // muitos tokens, assim como os ramos processuais Civil e Penal. Esses casos
+    // não podem transferir estatísticas entre si.
+    if (!!tokensA.processual !== !!tokensB.processual) return true;
+    const ramos = ['civil', 'penal', 'trabalho', 'tributario', 'previdenciario'];
+    const ramoA = ramos.find(function (r) { return tokensA[r]; }) || '';
+    const ramoB = ramos.find(function (r) { return tokensB[r]; }) || '';
+    return !!(ramoA && ramoB && ramoA !== ramoB);
+  }
+
+  // Monta um mapa explícito de equivalências para trocar de plano sem perder o
+  // histórico. O casamento é conservador: primeiro exige disciplinas
+  // semanticamente equivalentes e só então procura tópicos semelhantes dentro
+  // delas. Cada destino é usado uma única vez, evitando somar estatísticas de
+  // assuntos diferentes num mesmo tópico.
+  function mapearAproveitamentoPlano(origem, destino) {
+    const discsOrigem = (origem && origem.disciplinas) || [];
+    const discsDestino = (destino && destino.disciplinas) || [];
+    const usadasDestino = {};
+    const disciplinas = [];
+    const topicos = [];
+
+    discsOrigem.forEach(function (discOrigem) {
+      let melhorIndice = -1;
+      let melhorSimilaridade = SIM_DISC;
+      discsDestino.forEach(function (discDestino, indice) {
+        if (usadasDestino[indice]) return;
+        const tokensOrigem = tokensDisc(discOrigem.nome);
+        const tokensDestino = tokensDisc(discDestino.nome);
+        if (disciplinasClaramenteDistintas(tokensOrigem, tokensDestino)) return;
+        const mesmoNome = normalizarNomeConc(discOrigem.nome) === normalizarNomeConc(discDestino.nome);
+        const similaridade = mesmoNome ? 1 : similaridadeTokens(tokensOrigem, tokensDestino);
+        if (similaridade >= melhorSimilaridade) {
+          melhorSimilaridade = similaridade;
+          melhorIndice = indice;
+        }
+      });
+      if (melhorIndice < 0) return;
+
+      usadasDestino[melhorIndice] = true;
+      const discDestino = discsDestino[melhorIndice];
+      disciplinas.push({
+        origemId: discOrigem.id,
+        destinoId: discDestino.id,
+        origemNome: discOrigem.nome,
+        destinoNome: discDestino.nome,
+        similaridade: Math.round(melhorSimilaridade * 100)
+      });
+
+      const topicosDestino = discDestino.topicos || [];
+      const topicosDestinoUsados = {};
+      (discOrigem.topicos || []).forEach(function (topicoOrigem) {
+        let melhorTopico = -1;
+        let melhorTopicoSimilaridade = SIM_TOP;
+        topicosDestino.forEach(function (topicoDestino, indiceTopico) {
+          if (topicosDestinoUsados[indiceTopico]) return;
+          const nomeOrigem = normalizarNomeConc(topicoOrigem.nome);
+          const nomeDestino = normalizarNomeConc(topicoDestino.nome);
+          const mesmoNome = nomeOrigem && nomeOrigem === nomeDestino;
+          const similaridade = mesmoNome
+            ? 1
+            : similaridadeTokens(tokensTop(topicoOrigem.nome), tokensTop(topicoDestino.nome));
+          if (similaridade >= melhorTopicoSimilaridade) {
+            melhorTopicoSimilaridade = similaridade;
+            melhorTopico = indiceTopico;
+          }
+        });
+        if (melhorTopico < 0) return;
+        topicosDestinoUsados[melhorTopico] = true;
+        const topicoDestino = topicosDestino[melhorTopico];
+        topicos.push({
+          origemId: topicoOrigem.id,
+          destinoId: topicoDestino.id,
+          origemDisciplinaId: discOrigem.id,
+          destinoDisciplinaId: discDestino.id,
+          origemNome: topicoOrigem.nome,
+          destinoNome: topicoDestino.nome,
+          similaridade: Math.round(melhorTopicoSimilaridade * 100)
+        });
+      });
+    });
+
+    return {
+      disciplinas: disciplinas,
+      topicos: topicos,
+      resumo: {
+        disciplinasOrigem: discsOrigem.length,
+        disciplinasDestino: discsDestino.length,
+        disciplinasComuns: disciplinas.length,
+        topicosOrigem: discsOrigem.reduce(function (n, d) { return n + ((d.topicos || []).length); }, 0),
+        topicosDestino: discsDestino.reduce(function (n, d) { return n + ((d.topicos || []).length); }, 0),
+        topicosComuns: topicos.length
+      }
+    };
+  }
+
   // Disciplinas de um edital com seus tópicos já tokenizados e horas somadas.
   function disciplinasDoEdital(ed) {
     return (ed.disciplinas || []).map(function (d) {
@@ -2461,7 +2558,7 @@
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
-    conciliarPlanos, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
+    conciliarPlanos, mapearAproveitamentoPlano, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel,

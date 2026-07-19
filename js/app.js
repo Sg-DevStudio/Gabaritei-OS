@@ -47,6 +47,7 @@
   let modoDemo = false;
   let modoOfflineLocal = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
+  const catalogoCarreiras = normalizarCatalogoGlobal(window.CATALOGO_CARREIRAS || []);
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   const ID_SIM_TIMER = '__simulado__'; // "disciplina" sintética do timer p/ cronometrar um simulado
   let editalAbertas = new Set();  // disciplinas expandidas no edital
@@ -68,7 +69,7 @@
   // espaço); no desktop o CSS a mostra sempre. Guarda a escolha na sessão.
   let paletaExpandida = false;
   let disciplinaDetalheId = null;
-  let catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
+  let catalogoFiltro = { tipo: 'todos', busca: '', orgao: '', cargo: '', estado: '' };
   let comparacaoIds = []; // editais selecionados p/ comparar na aba Planos (máx. 2)
   let adminBusca = '';
   let adminPedidosGlobais = null;
@@ -145,6 +146,10 @@
     //    não há mais fallback de editais empacotados. Offline/sem catálogo, a aba
     //    Planos fica vazia de propósito (o resto do site continua funcionando).
     (state.editais || []).forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil')); });
+    // Planos-base de carreira fazem parte do produto e continuam disponíveis
+    // offline. Entram por último para não serem apagados por uma publicação do
+    // catálogo administrativo de concursos.
+    catalogoCarreiras.forEach(function (e) { mapa.set(e.id, normalizarEditalCatalogo(e, 'carreira')); });
     return Array.from(mapa.values());
   }
 
@@ -5319,25 +5324,141 @@
     return (state.planos || []).filter(function (p) { return p && p.plano && !p.plano.rascunho; });
   }
 
-  // Um plano por vez: mantém o foco e evita confusão no calendário. Se já existe
-  // um plano, avisa e oferece excluí-lo para começar outro. Retorna true se a
-  // criação deve PARAR (usuário optou por manter o plano atual).
-  async function limitePlanoBloqueia() {
-    const reais = planosReais();
-    if (reais.length === 0) return false;
-    const atual = reais[0];
-    const nome = (atual.plano && atual.plano.concurso) || 'seu plano atual';
-    const ok = await confirmar({
-      titulo: 'Um plano por vez',
-      mensagem: 'Para manter o foco, o Gabaritei trabalha com UM plano de cada vez — você já tem «' + nome + '». ' +
-        'Para começar outro, é preciso excluir o atual (o histórico dele será apagado). Quer fazer isso agora?',
-      confirmar: 'Excluir «' + nome + '» e começar outro',
-      cancelar: 'Manter «' + nome + '»',
-      perigo: true, icone: '🎯'
+  // Ao trocar de plano, mostra quanto do histórico é semanticamente compatível e
+  // deixa o aluno decidir. O padrão recomendado reaproveita sessões, questões,
+  // simulados integralmente compatíveis e o status dos tópicos equivalentes.
+  function escolherAproveitamentoPlano(atual, destino, mapa) {
+    return new Promise(function (resolve) {
+      const r = mapa.resumo;
+      const topicosCompativeis = {};
+      mapa.topicos.forEach(function (t) { topicosCompativeis[t.origemId] = true; });
+      let sessoes = 0, questoes = 0, minutos = 0;
+      (state.sessoes || []).forEach(function (s) {
+        if (s.planoId !== atual.id || !topicosCompativeis[s.topicoId]) return;
+        sessoes++;
+        questoes += s.qFeitas || 0;
+        minutos += s.duracaoMin || 0;
+      });
+
+      const fundo = document.createElement('div');
+      fundo.className = 'modal-fundo modal-fundo-dialogo';
+      fundo.innerHTML = '<div class="modal modal-dialogo troca-plano-dialogo" role="dialog" aria-modal="true" aria-labelledby="troca-plano-titulo">' +
+        '<div class="dialogo-icone" aria-hidden="true">↗</div>' +
+        '<h3 id="troca-plano-titulo">Levar seu progresso para o novo plano?</h3>' +
+        '<p class="sub dialogo-msg">Encontramos conteúdo em comum entre <strong>' + esc(atual.plano.concurso) + '</strong> e <strong>' + esc(destino.titulo) + '</strong>.</p>' +
+        '<div class="troca-plano-resumo">' +
+        '<span><strong>' + r.disciplinasComuns + '</strong><small>disciplinas em comum</small></span>' +
+        '<span><strong>' + r.topicosComuns + '</strong><small>tópicos equivalentes</small></span>' +
+        '<span><strong>' + questoes + '</strong><small>questões reaproveitáveis</small></span>' +
+        '<span><strong>' + D.formatarMin(minutos) + '</strong><small>de estudo compatível</small></span>' +
+        '</div>' +
+        '<div class="troca-plano-opcoes">' +
+        '<button type="button" data-troca="reaproveitar"><strong>Reaproveitar meu progresso <span class="etiqueta">recomendado</span></strong>' +
+        '<small>Leva ' + sessoes + ' sessões compatíveis, desempenho e tópicos já estudados. O calendário será recalculado.</small></button>' +
+        '<button type="button" class="botao-quieto" data-troca="zerar"><strong>Começar o novo plano do zero</strong>' +
+        '<small>Mantém as estatísticas antigas guardadas no histórico anterior, sem misturá-las ao novo plano.</small></button>' +
+        '</div>' +
+        '<button type="button" class="botao-quieto troca-plano-cancelar" data-troca="cancelar">Continuar no plano atual</button>' +
+        '<p class="sub troca-plano-nota">A correspondência é feita por disciplina e tópico. Conteúdo sem equivalência não é transferido.</p>' +
+        '</div>';
+      document.body.appendChild(fundo);
+      function fechar(valor) {
+        document.removeEventListener('keydown', aoTecla);
+        fundo.remove();
+        resolve(valor);
+      }
+      function aoTecla(e) { if (e.key === 'Escape') fechar(null); }
+      fundo.addEventListener('click', function (e) { if (e.target === fundo) fechar(null); });
+      fundo.querySelectorAll('[data-troca]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          const escolha = b.getAttribute('data-troca');
+          fechar(escolha === 'cancelar' ? null : escolha);
+        });
+      });
+      document.addEventListener('keydown', aoTecla);
+      setTimeout(function () { fundo.querySelector('[data-troca="reaproveitar"]').focus(); }, 20);
     });
-    if (!ok) return true;           // mantém o plano atual → bloqueia a criação
-    await excluirPlano(atual.id, true);
-    return false;                   // liberado para criar o novo
+  }
+
+  async function limitePlanoBloqueia(destino) {
+    const reais = planosReais();
+    if (reais.length === 0) return { permitido: true, troca: null };
+    const atual = reais[0];
+    const mapa = D.mapearAproveitamentoPlano(atual, destino);
+    const escolha = await escolherAproveitamentoPlano(atual, destino, mapa);
+    if (!escolha) return { permitido: false, troca: null };
+    return {
+      permitido: true,
+      troca: { origemId: atual.id, modo: escolha, mapa: mapa }
+    };
+  }
+
+  function aplicarAproveitamentoHistorico(troca, entradaNova) {
+    const resumo = { sessoes: 0, questoes: 0, minutos: 0, simulados: 0, topicos: 0 };
+    if (!troca || troca.modo !== 'reaproveitar' || !entradaNova) return resumo;
+    const porTopico = {};
+    const porDisciplina = {};
+    troca.mapa.topicos.forEach(function (t) { porTopico[t.origemId] = t.destinoId; });
+    troca.mapa.disciplinas.forEach(function (d) { porDisciplina[d.origemId] = d.destinoId; });
+
+    (state.sessoes || []).forEach(function (s) {
+      const destinoTopico = s.planoId === troca.origemId && porTopico[s.topicoId];
+      if (!destinoTopico) return;
+      s.planoId = entradaNova.id;
+      s.topicoId = destinoTopico;
+      s.migradoDePlanoId = troca.origemId;
+      resumo.sessoes++;
+      resumo.questoes += s.qFeitas || 0;
+      resumo.minutos += s.duracaoMin || 0;
+    });
+
+    (state.simulados || []).forEach(function (simulado) {
+      if (simulado.planoId !== troca.origemId || !(simulado.acertos || []).length) return;
+      const todosCompativeis = simulado.acertos.every(function (a) { return !!porDisciplina[a.disciplinaId]; });
+      if (!todosCompativeis) return;
+      simulado.acertos.forEach(function (a) { a.disciplinaId = porDisciplina[a.disciplinaId]; });
+      simulado.planoId = entradaNova.id;
+      simulado.migradoDePlanoId = troca.origemId;
+      resumo.simulados++;
+    });
+
+    const statusPeso = { pendente: 0, em_curso: 1, teoria_concluida: 2, dominado: 3 };
+    const topicosOrigem = {};
+    const planoOrigem = (state.planos || []).find(function (p) { return p.id === troca.origemId; });
+    ((planoOrigem && planoOrigem.disciplinas) || []).forEach(function (d) {
+      (d.topicos || []).forEach(function (t) { topicosOrigem[t.id] = t; });
+    });
+    troca.mapa.topicos.forEach(function (par) {
+      const antigo = topicosOrigem[par.origemId];
+      let novo = null;
+      (entradaNova.disciplinas || []).some(function (d) {
+        novo = (d.topicos || []).find(function (t) { return t.id === par.destinoId; }) || null;
+        return !!novo;
+      });
+      if (!antigo || !novo) return;
+      if ((statusPeso[antigo.status] || 0) > (statusPeso[novo.status] || 0)) novo.status = antigo.status;
+      if (antigo.bagagem && !novo.bagagem) novo.bagagem = antigo.bagagem;
+      if (antigo.reaberto) novo.reaberto = true;
+      if (antigo.status !== 'pendente' || antigo.bagagem) resumo.topicos++;
+    });
+    return resumo;
+  }
+
+  function finalizarTrocaPlano(troca, entradaNova) {
+    if (!troca || !entradaNova) return null;
+    const resumo = aplicarAproveitamentoHistorico(troca, entradaNova);
+    excluirEventosPlanoGoogleCalendar(troca.origemId).catch(function () {
+      console.warn('Não consegui limpar todos os eventos do plano anterior no Google Calendar.');
+    });
+    limparDadosVinculados(troca.origemId);
+    window.Store.removerPlano(state, troca.origemId);
+    window.Store.ativarPlano(state, entradaNova.id);
+    if (!state.config.planosExcluidos || typeof state.config.planosExcluidos !== 'object') state.config.planosExcluidos = {};
+    state.config.planosExcluidos[troca.origemId] = new Date().toISOString();
+    if (state.config) delete state.config.apagadoEm;
+    editalAbertas = new Set();
+    salvar();
+    return resumo;
   }
 
   async function criarPlanoDeEdital(editalId) {
@@ -5393,7 +5514,8 @@
       return;
     }
     // Limite de 1 plano por vez (o refazer acima já tratou o mesmo edital).
-    if (await limitePlanoBloqueia()) return;
+    const permissao = await limitePlanoBloqueia(e);
+    if (!permissao.permitido) return;
     // Guarda o plano ativo anterior: se o usuário sair do assistente sem concluir,
     // o plano recém-criado é removido (não fica um plano "fantasma" no catálogo).
     const planoAnteriorId = state.planoAtivoId;
@@ -5406,7 +5528,11 @@
     // pushState não dispara hashchange (que fecharia o modal de rotina abaixo)
     if (location.hash !== '#planejamento') history.pushState(null, '', '#planejamento');
     render();
-    abrirGerarPlanoComRotina({ novoPlanoId: entrada.id, planoAnteriorId: planoAnteriorId });
+    abrirGerarPlanoComRotina({
+      novoPlanoId: entrada.id,
+      planoAnteriorId: planoAnteriorId,
+      trocaPlano: permissao.troca
+    });
   }
 
   // ---- Atualização de plano quando o edital de origem muda (pré-edital → real) ----
@@ -5516,6 +5642,10 @@
     return (e.notaCorte || 70) + '% · ' + curto;
   }
 
+  function ehPlanoCarreira(e) {
+    return !!(e && e.tipoCatalogo === 'carreira');
+  }
+
   function catalogoCard(e) {
     const nt = contarTopicosEdital(e);
     const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
@@ -5546,24 +5676,32 @@
     const jaTem = state.planos.some(function (p) { return p.plano.concurso === e.titulo; });
     const selComparar = comparacaoIds.indexOf(e.id) >= 0;
     const calc = calculadoraDoEdital(e);
+    const carreira = ehPlanoCarreira(e);
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
-    return '<div class="card catalogo-card catalogo-card-compacto' + (selComparar ? ' catalogo-card-comparando' : '') + '">' +
+    const subtitulo = carreira
+      ? 'Base multibanca · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos prioritários'
+      : esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos';
+    const metricas = carreira
+      ? metrica('Cobertura', esc(e.cobertura || 'Nacional')) +
+        metrica('Perfil', 'Área administrativa') +
+        metrica('Meta inicial', (e.notaCorte || 80) + '%')
+      : metrica('Corte', esc(rotuloCorteEdital(e))) +
+        metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+        metrica('Data estimada', esc(janelaProvaTexto(e)));
+    return '<div class="card catalogo-card catalogo-card-compacto' + (carreira ? ' catalogo-card-carreira' : '') + (selComparar ? ' catalogo-card-comparando' : '') + '">' +
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
       '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) +
-      (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</strong>' +
-      '<span class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos' +
+      (carreira ? ' <span class="etiqueta etiqueta-carreira">plano de carreira</span>' : (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '')) + '</strong>' +
+      '<span class="catalogo-sub">' + subtitulo +
       (calc ? ' <button type="button" class="catalogo-calc-mini" data-pl-calc="' + esc(e.id) + '" title="Estimar a remuneração do cargo">💰 Calculadora de salário</button>' : '') +
       '</span>' +
       (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div></div>' +
-      '<div class="catalogo-metricas">' +
-      metrica('Corte', esc(rotuloCorteEdital(e))) +
-      metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Data estimada', esc(janelaProvaTexto(e))) +
-      '</div>' +
+      (carreira ? '<p class="catalogo-carreira-promessa">Comece pelo núcleo que mais se repete e especialize o plano quando o edital do seu tribunal sair.</p>' : '') +
+      '<div class="catalogo-metricas">' + metricas + '</div>' +
       '<div class="catalogo-acoes">' +
-      '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e incidências">Detalhes</button>' +
-      '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir deste edital">' + (jaTem ? 'Refazer' : 'Iniciar') + '</button>' +
+      '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e prioridades">Detalhes</button>' +
+      '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir desta seleção">' + (jaTem ? 'Refazer' : (carreira ? 'Começar pela carreira' : 'Iniciar')) + '</button>' +
       '<button class="botao-mini ' + (selComparar ? 'catalogo-comparar-on' : 'botao-quieto') + '" data-pl-comparar="' + esc(e.id) + '" title="Selecionar para comparar (máx. 2)">' + (selComparar ? '✓ Comparando' : 'Comparar') + '</button>' +
       '</div>' +
       '</div>';
@@ -5590,7 +5728,8 @@
     const lista = editaisDoCatalogo().filter(function (e) {
       return !e.arquivado && !ehEditalCombinado(e) && editalCorrespondeFiltro(e, catalogoFiltro);
     }).slice().sort(function (a, b) {
-      return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a);
+      return (ehPlanoCarreira(b) ? 1 : 0) - (ehPlanoCarreira(a) ? 1 : 0) ||
+        (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a);
     });
     function selectFiltro(campo, rotulo) {
       const opts = valoresUnicosEditais(campo).map(function (v) {
@@ -5598,15 +5737,29 @@
       }).join('');
       return '<select data-cat-filtro="' + campo + '" title="' + rotulo + '"><option value="">' + rotulo + '</option>' + opts + '</select>';
     }
-    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de editais</span><h1>Planos</h1></div></div>' +
+    const tipoAtual = catalogoFiltro.tipo || 'todos';
+    const tiposHtml = '<div class="catalogo-tipos" role="tablist" aria-label="Tipo de plano">' +
+      [['todos', 'Todos'], ['carreira', 'Carreiras'], ['concurso', 'Concursos']].map(function (tipo) {
+        const ativo = tipoAtual === tipo[0];
+        return '<button type="button" role="tab" aria-selected="' + (ativo ? 'true' : 'false') + '" class="' + (ativo ? 'ativo' : '') + '" data-cat-tipo="' + tipo[0] + '">' + tipo[1] + '</button>';
+      }).join('') + '</div>';
+    const carreiraIntro = tipoAtual === 'carreira'
+      ? '<div class="card carreira-intro"><span class="carreira-intro-icone" aria-hidden="true">⌁</span><div>' +
+        '<strong>Ainda não escolheu um tribunal?</strong>' +
+        '<p class="sub">Estude o núcleo recorrente da carreira agora. Quando sair o concurso, troque para o plano específico e o sistema oferece reaproveitar seu histórico compatível.</p>' +
+        '</div></div>'
+      : '';
+    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de planos</span><h1>Planos</h1></div></div>' +
       guiaBoasVindasPlanosHtml() +
-      cardAvisoCompararHtml() +
+      tiposHtml +
+      carreiraIntro +
+      (tipoAtual === 'carreira' ? '' : cardAvisoCompararHtml()) +
       '<div class="catalogo-toolbar">' +
-      '<input id="cat-busca" type="search" placeholder="Pesquisar edital" value="' + esc(catalogoFiltro.busca || '') + '">' +
+      '<input id="cat-busca" type="search" placeholder="Pesquisar plano ou concurso" value="' + esc(catalogoFiltro.busca || '') + '">' +
       '<div class="catalogo-filtros">' + selectFiltro('orgao', 'Órgão') + selectFiltro('cargo', 'Cargo') + selectFiltro('estado', 'Estado') +
       '<button class="botao-mini botao-quieto" id="cat-limpar" title="Limpar busca e filtros">Limpar</button></div></div>';
     if (lista.length === 0) {
-      const filtroAtivo = !!(catalogoFiltro.busca || catalogoFiltro.orgao || catalogoFiltro.cargo || catalogoFiltro.estado);
+      const filtroAtivo = !!(catalogoFiltro.busca || catalogoFiltro.orgao || catalogoFiltro.cargo || catalogoFiltro.estado || tipoAtual !== 'todos');
       let titulo, sub, offline = false;
       if (!catalogoGlobalCarregado) { titulo = 'Carregando catálogo…'; sub = 'Buscando os editais publicados.'; }
       else if (filtroAtivo) { titulo = 'Nenhum edital encontrado'; sub = 'Tente outra busca ou peça um edital.'; }
@@ -5822,6 +5975,14 @@
   }
 
   function ligarPlanos(raiz) {
+    raiz.querySelectorAll('[data-cat-tipo]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        catalogoFiltro.tipo = b.getAttribute('data-cat-tipo') || 'todos';
+        catalogoFiltro.orgao = '';
+        catalogoFiltro.estado = '';
+        render();
+      });
+    });
     const busca = raiz.querySelector('#cat-busca');
     if (busca) {
       const aplicarBusca = function () { catalogoFiltro.busca = busca.value; render(); };
@@ -5850,7 +6011,7 @@
     });
     const limpar = raiz.querySelector('#cat-limpar');
     if (limpar) limpar.addEventListener('click', function () {
-      catalogoFiltro = { busca: '', orgao: '', cargo: '', estado: '' };
+      catalogoFiltro = { tipo: catalogoFiltro.tipo || 'todos', busca: '', orgao: '', cargo: '', estado: '' };
       render();
     });
     raiz.querySelectorAll('[data-pedir-edital]').forEach(function (b) {
@@ -5884,6 +6045,7 @@
     const e = editalPorId(id);
     if (!e) return;
     const calc = calculadoraDoEdital(e);
+    const carreira = ehPlanoCarreira(e);
     // Disciplinas com tópicos · incidência · horas (antiga "tela 2", agora direto)
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
@@ -5894,27 +6056,37 @@
       return '<div class="detalhe-disc"><div class="detalhe-disc-cab">' +
         '<span class="tag-disc" style="background:' + esc(cor) + '22;color:' + esc(cor) + '">' + esc(d.nome) + '</span>' +
         '<span class="sub">peso ' + (d.peso || 1) + ' · ' + (d.topicos || []).length + ' tópicos</span></div>' +
-        '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">Incid.</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
+        '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">' + (carreira ? 'Prior.' : 'Incid.') + '</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
     }).join('');
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     const m = abrirModal('<h3 class="detalhe-titulo">' + esc(e.titulo) + '</h3>' +
-      '<p class="sub">' + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
+      '<p class="sub">' + (carreira ? '<span class="etiqueta etiqueta-carreira">plano de carreira</span> · ' : '') + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
       '<div class="catalogo-metricas" style="margin:0.5rem 0">' +
       (e.area ? metrica('Área', esc(e.area)) : '') +
-      metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
+      metrica(carreira ? 'Meta inicial' : 'Corte', (carreira ? '' : '~') + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
-      metrica('Data estimada', esc(janelaProvaTexto(e))) +
+      (carreira ? metrica('Cobertura', esc(e.cobertura || 'Nacional')) : metrica('Data estimada', esc(janelaProvaTexto(e)))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
       (e.salario ? metrica('Salário', esc(e.salario)) : '') +
       (e.vagas != null && e.vagas !== '' ? metrica('Vagas', esc(e.vagas)) : '') +
       '</div>' +
       (e.beneficios ? '<p class="sub" style="margin:0.1rem 0 0.5rem"><strong>Benefícios:</strong> ' + esc(e.beneficios) + '</p>' : '') +
-      '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (incidência nas provas e horas estimadas).</p>' +
+      (carreira ? '<div class="carreira-metodologia"><strong>Como esta trilha foi montada</strong><p>' + esc(e.metodologia || '') + '</p>' +
+        '<p><strong>Base analisada:</strong> ' + esc((e.baseEditais || []).join(' · ')) + '</p>' +
+        '<p><strong>Fontes:</strong> ' + esc(e.fontesResumo || '') + '</p></div>' : '') +
+      '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (' + (carreira ? 'prioridade relativa e horas estimadas' : 'incidência nas provas e horas estimadas') + ').</p>' +
       '<div class="detalhe-discs">' + discHtml + '</div>' +
       (calc ? '<button type="button" class="botao-secundario det-calc" id="det-calc" style="width:100%;margin:0.2rem 0 0.6rem">' + calc.rotulo + '</button>' : '') +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
-      '<button id="det-iniciar">Iniciar plano</button></div>');
+      '<button id="det-iniciar">' + (carreira ? 'Começar pela carreira' : 'Iniciar plano') + '</button></div>');
     m.classList.add('modal-amplo');
+    // O modal contém tabelas longas e o primeiro botão aparece no rodapé. Sem
+    // este ajuste, o foco automático do diálogo fazia os detalhes abrirem já no
+    // fim da lista, escondendo título, metodologia e métricas.
+    setTimeout(function () {
+      m.scrollTop = 0;
+      try { m.focus({ preventScroll: true }); } catch (err) { m.focus(); }
+    }, 0);
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
     if (calc) m.querySelector('#det-calc').addEventListener('click', function () { abrirCalculadoraRemuneracao(calc); });
@@ -8089,16 +8261,22 @@
   // opções únicas (Órgão / Cargo / Estado) presentes nos editais cadastrados
   function valoresUnicosEditais(campo) {
     const set = new Set();
-    editaisDoCatalogo().forEach(function (e) { if (e[campo]) set.add(e[campo]); });
+    editaisDoCatalogo().forEach(function (e) {
+      if (catalogoFiltro.tipo === 'carreira' && !ehPlanoCarreira(e)) return;
+      if (catalogoFiltro.tipo === 'concurso' && ehPlanoCarreira(e)) return;
+      if (e[campo]) set.add(e[campo]);
+    });
     return Array.from(set).sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
   }
 
   function editalCorrespondeFiltro(e, filtro) {
+    if (filtro.tipo === 'carreira' && !ehPlanoCarreira(e)) return false;
+    if (filtro.tipo === 'concurso' && ehPlanoCarreira(e)) return false;
     if (filtro.orgao && (e.orgao || '') !== filtro.orgao) return false;
     if (filtro.cargo && (e.cargo || '') !== filtro.cargo) return false;
     if (filtro.estado && (e.estado || '') !== filtro.estado) return false;
     if (filtro.busca) {
-      const alvo = normalizarBusca([e.titulo, e.banca, e.orgao, e.cargo, e.estado].join(' '));
+      const alvo = normalizarBusca([e.titulo, e.banca, e.orgao, e.cargo, e.estado, e.cobertura, (e.baseEditais || []).join(' ')].join(' '));
       if (alvo.indexOf(normalizarBusca(filtro.busca)) < 0) return false;
     }
     return true;
@@ -9733,12 +9911,16 @@
       }
       planoGerado = true; // concluiu o assistente: o plano deixa de ser "fantasma"
       if (state.plano) delete state.plano.rascunho; // confirmado: não é mais rascunho
+      const resumoTroca = opcoes.trocaPlano ? finalizarTrocaPlano(opcoes.trocaPlano, entrada) : null;
       fecharModal();
       const cron = D.cronogramaAtivo(state);
       agendaRef = modoPlano === 'ciclo' ? D.segundaDaSemana(D.hojeISO()) : (cron.length ? cron[0].inicio : D.segundaDaSemana(D.hojeISO()));
       agendaModo = 'semana';
       render();
-      toast('Plano ' + nomeRitmo + (ehAtualizacao ? ' atualizado — histórico preservado' : ' gerado — calendário preenchido'), 'sucesso');
+      const complementoTroca = resumoTroca && opcoes.trocaPlano.modo === 'reaproveitar'
+        ? ' · ' + resumoTroca.sessoes + ' sessões e ' + resumoTroca.questoes + ' questões reaproveitadas'
+        : '';
+      toast('Plano ' + nomeRitmo + (ehAtualizacao ? ' atualizado — histórico preservado' : ' gerado — calendário preenchido') + complementoTroca, 'sucesso');
     });
 
     mostrarPasso(1);
