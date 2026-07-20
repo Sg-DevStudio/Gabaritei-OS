@@ -68,6 +68,30 @@
     return state.disciplinas.find((d) => d.id === id) || null;
   }
 
+  // Renomeia um tópico sem trocar seu id. Manter o id é essencial porque agenda,
+  // sessões, revisões, timer e estatísticas referenciam o tópico por essa chave.
+  // A regra também evita dois nomes equivalentes dentro da mesma disciplina.
+  function renomearTopico(state, disciplinaId, topicoId, novoNome) {
+    const disciplina = disciplinaPorId(state, disciplinaId);
+    if (!disciplina) return { ok: false, motivo: 'disciplina_nao_encontrada' };
+    const topico = (disciplina.topicos || []).find((t) => t.id === topicoId);
+    if (!topico) return { ok: false, motivo: 'topico_nao_encontrado' };
+
+    const nome = String(novoNome == null ? '' : novoNome).replace(/\s+/g, ' ').trim();
+    if (!nome) return { ok: false, motivo: 'nome_vazio' };
+    if (nome.length > 120) return { ok: false, motivo: 'nome_muito_longo' };
+
+    const chave = normalizarNomeConc(nome);
+    const duplicado = (disciplina.topicos || []).some((t) =>
+      t !== topico && normalizarNomeConc(t.nome) === chave
+    );
+    if (duplicado) return { ok: false, motivo: 'nome_duplicado' };
+
+    const alterou = topico.nome !== nome;
+    topico.nome = nome;
+    return { ok: true, alterou, topico };
+  }
+
   // Registros do plano ativo (itens antigos sem planoId contam — schema v1)
   function doPlanoAtivo(state, lista) {
     if (!state.planoAtivoId) return lista;
@@ -2565,7 +2589,7 @@
   window.Dominio = {
     CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig, validarEsquemaRevisao,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
-    topicoPorId, disciplinaDoTopico, disciplinaPorId, doPlanoAtivo, sessoesDoPlano,
+    topicoPorId, disciplinaDoTopico, disciplinaPorId, renomearTopico, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,

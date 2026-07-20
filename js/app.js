@@ -2683,6 +2683,43 @@
     return novo.id;
   }
 
+  function mensagemErroRenomearTopico(motivo) {
+    if (motivo === 'nome_duplicado') return 'Já existe um tópico com esse nome nesta disciplina.';
+    if (motivo === 'nome_muito_longo') return 'Use um nome com até 120 caracteres.';
+    if (motivo === 'nome_vazio') return 'Informe um nome para o tópico.';
+    return 'Não consegui encontrar esse tópico no plano.';
+  }
+
+  // Edita somente o nome e mantém o id estável, para não romper agenda, sessões,
+  // revisões, timer ou estatísticas já vinculadas ao tópico.
+  function abrirEditarNomeTopico(disciplinaId, topicoId, aoSalvar) {
+    const disciplina = D.disciplinaPorId(state, disciplinaId);
+    const topico = disciplina && (disciplina.topicos || []).find(function (t) { return t.id === topicoId; });
+    if (!disciplina || !topico) {
+      toast('Não consegui encontrar esse tópico no plano.', 'erro');
+      return;
+    }
+    pedirTexto({
+      titulo: 'Editar tópico',
+      mensagem: 'O código ' + topico.id + ' e todo o histórico serão mantidos.',
+      placeholder: 'Ex.: Atos administrativos',
+      valor: topico.nome,
+      confirmar: 'Salvar nome',
+      maxlength: 120
+    }).then(function (nome) {
+      if (nome === null) return;
+      const resultado = D.renomearTopico(state, disciplina.id, topico.id, nome);
+      if (!resultado.ok) {
+        toast(mensagemErroRenomearTopico(resultado.motivo), 'erro');
+        if (resultado.motivo === 'nome_duplicado') abrirEditarNomeTopico(disciplina.id, topico.id, aoSalvar);
+        return;
+      }
+      if (resultado.alterou) salvar();
+      if (aoSalvar) aoSalvar(resultado.topico);
+      if (resultado.alterou) toast('Tópico atualizado', 'sucesso');
+    });
+  }
+
   function abrirModalAssuntosTimer(disciplinaId, selecionadoId, aoEscolher) {
     const d = D.disciplinaPorId(state, disciplinaId);
     if (!d) return;
@@ -4188,10 +4225,17 @@
       'Desempenho: ' + (dt.pct !== null ? dt.certas + '/' + dt.feitas + ' (' + dt.pct + '%)' : 'sem questões ainda') + '</p>' +
       '<div class="status-radio-group">' + radioHtml + '</div>' +
       '<div class="modal-acoes">' +
+      '<button type="button" class="botao-quieto" id="top-editar-nome">Editar nome</button>' +
       '<button type="button" class="botao-quieto" id="top-fechar">Fechar</button>' +
       '<button type="button" class="botao-secundario" id="top-estudar">Estudar agora</button>' +
       '<button type="button" id="top-salvar">Salvar status</button></div>'
     );
+    m.querySelector('#top-editar-nome').addEventListener('click', function () {
+      abrirEditarNomeTopico(d.id, t.id, function (atualizado) {
+        const titulo = m.querySelector('h3');
+        if (titulo) titulo.innerHTML = (d ? tagDisc(d) + ' ' : '') + esc(atualizado.nome);
+      });
+    });
     m.querySelector('#top-fechar').addEventListener('click', fecharModal);
     m.querySelector('#top-estudar').addEventListener('click', function () {
       timerPreselecao = t.id; fecharModal(); location.hash = '#timer';
@@ -7587,28 +7631,75 @@
       }).join('') : '') +
       '<option value="' + OPT_NOVO_TOPICO + '">＋ criar novo tópico…</option>';
   }
+
+  function cabecalhoTopicoEditavel(labelFor, label, botaoId) {
+    return '<div class="topico-campo-cab">' +
+      '<label for="' + esc(labelFor) + '">' + esc(label) + '</label>' +
+      '<button type="button" class="botao-mini botao-quieto editar-topico-btn" id="' + esc(botaoId) + '" disabled>Editar tópico</button>' +
+      '</div>';
+  }
+
   // Liga a opção "criar novo tópico" a um par (selDisc, selTop): ao escolhê-la,
   // pede o nome, cria o tópico na disciplina e já o seleciona. Preserva a escolha
   // anterior se o usuário cancelar.
-  function ligarCriarTopicoSelect(selDisc, selTop) {
+  function ligarCriarTopicoSelect(selDisc, selTop, aoAtualizar) {
     selTop.dataset.prevTop = selTop.value;
     selTop.addEventListener('change', function () {
-      if (selTop.value !== OPT_NOVO_TOPICO) { selTop.dataset.prevTop = selTop.value; return; }
+      if (selTop.value !== OPT_NOVO_TOPICO) {
+        selTop.dataset.prevTop = selTop.value;
+        if (aoAtualizar) aoAtualizar();
+        return;
+      }
       const disc = D.disciplinaPorId(state, selDisc.value);
       const prev = selTop.dataset.prevTop || '';
-      if (!disc) { selTop.value = prev; return; }
+      if (!disc) {
+        selTop.value = prev;
+        if (aoAtualizar) aoAtualizar();
+        return;
+      }
       pedirTexto({
         titulo: 'Novo tópico', mensagem: 'Novo tópico em ' + disc.nome,
         placeholder: 'Ex.: Atos administrativos', confirmar: 'Criar', maxlength: 120
       }).then(function (nome) {
-        if (!nome) { selTop.value = prev; return; }
+        if (!nome) {
+          selTop.value = prev;
+          if (aoAtualizar) aoAtualizar();
+          return;
+        }
         const id = adicionarTopicoUsuario(disc.id, nome);
         selTop.innerHTML = opcoesTopicosSelect(D.disciplinaPorId(state, selDisc.value), id);
         selTop.value = id || prev;
         selTop.dataset.prevTop = selTop.value;
+        if (aoAtualizar) aoAtualizar();
         if (id) toast('Tópico “' + nome + '” criado.', 'sucesso');
       });
     });
+  }
+
+  // Botão contextual dos seletores de agenda/ciclo. Só fica disponível quando
+  // há um tópico real selecionado (não para "disciplina inteira" ou "criar novo").
+  function ligarEditarTopicoSelect(selDisc, selTop, botao) {
+    function atualizar() {
+      const id = selTop.value;
+      const disc = D.disciplinaPorId(state, selDisc.value);
+      botao.disabled = !disc || !id || id === OPT_NOVO_TOPICO ||
+        !(disc.topicos || []).some(function (t) { return t.id === id && !t.orfao; });
+    }
+    botao.addEventListener('click', function () {
+      const id = selTop.value;
+      if (!id || id === OPT_NOVO_TOPICO) return;
+      abrirEditarNomeTopico(selDisc.value, id, function (topico) {
+        const disc = D.disciplinaPorId(state, selDisc.value);
+        selTop.innerHTML = opcoesTopicosSelect(disc, topico.id);
+        selTop.value = topico.id;
+        selTop.dataset.prevTop = topico.id;
+        atualizar();
+      });
+    });
+    selTop.addEventListener('change', atualizar);
+    selDisc.addEventListener('change', atualizar);
+    atualizar();
+    return atualizar;
   }
 
   function abrirNovoBlocoAgenda(dataISO, discIni) {
@@ -7623,7 +7714,8 @@
       '<div><label for="agd-data">Dia</label><input id="agd-data" type="date" value="' + esc(dataISO) + '" required></div>' +
       '<div><label for="agd-dur">Duração (min)</label><input id="agd-dur" type="number" min="5" max="600" value="60"></div></div>' +
       '<label for="agd-disc">Disciplina</label><select id="agd-disc">' + optsDisc + '</select>' +
-      '<label for="agd-topico">Tópico (opcional)</label><select id="agd-topico"></select>' +
+      cabecalhoTopicoEditavel('agd-topico', 'Tópico (opcional)', 'agd-editar-topico') +
+      '<select id="agd-topico"></select>' +
       '<label for="agd-obs">Anotação (opcional)</label><input id="agd-obs" type="text" placeholder="Ex.: cap. 3 do PDF">' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="agd-cancelar">Cancelar</button>' +
       '<button type="submit">Adicionar à agenda</button></div></form>'
@@ -7637,7 +7729,8 @@
     }
     preencher();
     selDisc.addEventListener('change', preencher);
-    ligarCriarTopicoSelect(selDisc, selTop);
+    const atualizarEditar = ligarEditarTopicoSelect(selDisc, selTop, m.querySelector('#agd-editar-topico'));
+    ligarCriarTopicoSelect(selDisc, selTop, atualizarEditar);
     m.querySelector('#agd-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#form-agd').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -7684,7 +7777,8 @@
       '<div><label for="agde-data">Dia</label><input id="agde-data" type="date" value="' + esc(a.data) + '" required></div>' +
       '<div><label for="agde-dur">Duração (min)</label><input id="agde-dur" type="number" min="5" max="600" value="' + (a.duracaoMin || 60) + '"></div></div>' +
       '<label for="agde-disc">Disciplina</label><select id="agde-disc">' + optsDisc + '</select>' +
-      '<label for="agde-topico">Tópico (opcional)</label><select id="agde-topico"></select>' +
+      cabecalhoTopicoEditavel('agde-topico', 'Tópico (opcional)', 'agde-editar-topico') +
+      '<select id="agde-topico"></select>' +
       '<label for="agde-obs">Anotação</label><input id="agde-obs" type="text" value="' + esc(a.obs || '') + '">' +
       (blocoParcial(a)
         ? '<p class="sub agde-progresso">⏱️ Já estudado: <strong>' + D.formatarMin(blocoFeitoMin(a)) + '</strong> · faltam <strong>' + D.formatarMin(blocoRestanteMin(a)) + '</strong> de ' + D.formatarMin(a.duracaoMin || 0) + '.</p>'
@@ -7705,7 +7799,8 @@
     }
     preencher();
     selDisc.addEventListener('change', preencher);
-    ligarCriarTopicoSelect(selDisc, selTop);
+    const atualizarEditar = ligarEditarTopicoSelect(selDisc, selTop, m.querySelector('#agde-editar-topico'));
+    ligarCriarTopicoSelect(selDisc, selTop, atualizarEditar);
     m.querySelector('#agde-excluir').addEventListener('click', function () {
       state.agenda = state.agenda.filter(function (x) { return x.id !== id; });
       salvar(); fecharModal(); render();
@@ -11144,7 +11239,8 @@
       '<h3>' + (b ? 'Editar bloco do ciclo' : 'Adicionar ao ciclo') + '</h3>' +
       '<form id="form-ciclo">' +
       '<label for="cic-disc">Disciplina</label><select id="cic-disc">' + optsDisc + '</select>' +
-      '<label for="cic-topico">Tópico-alvo (opcional)</label><select id="cic-topico"></select>' +
+      cabecalhoTopicoEditavel('cic-topico', 'Tópico-alvo (opcional)', 'cic-editar-topico') +
+      '<select id="cic-topico"></select>' +
       '<label for="cic-min">Meta de tempo (min)</label><input id="cic-min" type="number" min="10" max="240" step="5" value="' + (b ? (b.metaMin || 60) : 60) + '">' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="cic-cancelar">Cancelar</button>' +
       '<button type="submit">' + (b ? 'Salvar' : 'Adicionar') + '</button></div></form>'
@@ -11158,7 +11254,8 @@
     }
     preencher();
     selDisc.addEventListener('change', preencher);
-    ligarCriarTopicoSelect(selDisc, selTop);
+    const atualizarEditar = ligarEditarTopicoSelect(selDisc, selTop, m.querySelector('#cic-editar-topico'));
+    ligarCriarTopicoSelect(selDisc, selTop, atualizarEditar);
     m.querySelector('#cic-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#form-ciclo').addEventListener('submit', function (e) {
       e.preventDefault();
