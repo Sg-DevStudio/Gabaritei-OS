@@ -47,6 +47,9 @@
   let modoDemo = false;
   let modoOfflineLocal = false;
   let catalogoGlobalEditais = normalizarCatalogoGlobal(window.CATALOGO_EDITAIS_GLOBAIS || []);
+  const catalogoEditaisBase = (window.CATALOGO_EDITAIS_BASE || []).map(function (e) {
+    return normalizarEditalCatalogo(e, 'base');
+  });
   const catalogoCarreirasBase = normalizarCatalogoGlobal(window.CATALOGO_CARREIRAS || []);
   let timerPreselecao = null;     // tópico vindo de "Estudar" na fila
   const ID_SIM_TIMER = '__simulado__'; // "disciplina" sintética do timer p/ cronometrar um simulado
@@ -127,6 +130,7 @@
     }
     if (!c.foto) c.foto = c.fotoUrl || c.imagem || '';
     c._global = origem === 'global';
+    c._base = origem === 'base';
     return c;
   }
 
@@ -183,15 +187,16 @@
 
   function editaisDoCatalogo() {
     const mapa = new Map();
-    // 1) catálogo global do Firebase (tem as capas/imagens cadastradas pelo admin)
+    // 1) planos-base distribuídos com o produto. Continuam disponíveis offline e
+    // podem ser sobrescritos por uma versão global ou personalizada com o mesmo id.
+    catalogoEditaisBase.forEach(function (e) { mapa.set(e.id, e); });
+    // 2) catálogo global do Firebase (tem as capas/imagens cadastradas pelo admin)
     catalogoGlobalEditais.forEach(function (e) {
       if (ehItemCarreira(e)) return;
       const n = normalizarEditalCatalogo(e, 'global');
       mapa.set(n.id, n);
     });
-    // 2) editais do perfil do usuário. O catálogo é SÓ o global do Firebase (+ perfil):
-    //    não há mais fallback de editais empacotados. Offline/sem catálogo, a aba
-    //    Planos fica vazia de propósito (o resto do site continua funcionando).
+    // 3) editais do perfil do usuário.
     (state.editais || []).forEach(function (e) {
       if (!ehItemCarreira(e)) mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil'));
     });
@@ -208,6 +213,7 @@
   // catálogo real chega, e impede botões de excluir em editais não gerenciáveis.
   function editaisDoCatalogoAdmin() {
     const mapa = new Map();
+    catalogoEditaisBase.forEach(function (e) { mapa.set(e.id, e); });
     catalogoGlobalEditais.forEach(function (e) {
       if (ehItemCarreira(e)) return;
       const n = normalizarEditalCatalogo(e, 'global');
@@ -5035,6 +5041,7 @@
       html += '<div class="card"><h3>Minha conta</h3>' +
         '<p class="sub">Você está logado como <strong>' + esc(u && u.email ? u.email : 'usuário') + '</strong>.</p>' +
         '<p class="sub">Seu perfil tem acesso ao catálogo global e pode gerar planos próprios. O painel administrativo fica restrito ao administrador.</p></div>';
+      html += planosBaseConfiguracaoHtml();
     }
 
     html += carreirasConfiguracaoHtml();
@@ -5137,6 +5144,7 @@
 
   // Resumo compacto das notas de corte por modalidade para os cards do admin.
   function cortesResumoEdital(e) {
+    if (e && e.metaDesempenho) return 'meta ' + (e.notaCorte || 80) + '%';
     const c = e.cortes || {};
     const ampla = c.ampla != null ? c.ampla : (e.notaCorte != null ? e.notaCorte : null);
     const partes = [];
@@ -5148,17 +5156,19 @@
 
   function adminEditalCard(e, arquivado) {
     const global = !!e._global;
+    const base = !!e._base;
+    const podeExcluir = !base;
     return '<div class="plano-mini">' +
       '<div class="plano-mini-top">' +
       '<div class="plano-mini-tit"><strong>' + esc(e.titulo) + '</strong>' +
       (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') +
-      (global ? ' <span class="etiqueta">global</span>' : '') + '</div></div>' +
+      (global ? ' <span class="etiqueta">global</span>' : (base ? ' <span class="etiqueta">modelo</span>' : '')) + '</div></div>' +
       '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
       contarTopicosEdital(e) + ' tóp · ' + cortesResumoEdital(e) + ' · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
       '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
-      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">' + (global ? 'Personalizar' : 'Editar') + '</button>' +
-      '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button>' + '</div></div>';
+      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">' + (global || base ? 'Personalizar' : 'Editar') + '</button>' +
+      (podeExcluir ? '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button>' : '') + '</div></div>';
   }
 
   function pedidosEditalHtml() {
@@ -5331,11 +5341,36 @@
       '<h3>Planos de carreira</h3></div>' +
       '<button class="botao botao-mini" id="car-nova">+ Nova carreira</button></div>' +
       '<p class="sub">' + (admin
-        ? 'Edite TRF e TRT ou crie outra carreira do zero. Ao salvar, o catálogo é publicado para todos os alunos.'
-        : 'Edite TRF e TRT para adaptar matérias, prioridades, carga e capa ao seu método. Você também pode criar outra carreira do zero. As alterações ficam na sua conta e não mudam os modelos dos demais alunos.') + '</p>' +
+        ? 'Edite os modelos de carreira ou crie outro do zero. Ao salvar, o catálogo é publicado para todos os alunos.'
+        : 'Edite qualquer modelo de carreira para adaptar matérias, prioridades, ordem, carga e capa ao seu método. Você também pode criar outra carreira do zero. As alterações ficam na sua conta e não mudam os modelos dos demais alunos.') + '</p>' +
       '<div class="carreiras-config-lista">' +
       (lista.length ? lista.map(carreiraConfiguracaoCard).join('') : '<p class="sub">Nenhuma carreira disponível.</p>') +
       '</div></div>';
+  }
+
+  function planosBaseConfiguracaoHtml() {
+    const idsBase = {};
+    catalogoEditaisBase.forEach(function (e) { idsBase[e.id] = true; });
+    const personalizados = (state.editais || []).filter(function (e) { return idsBase[e.id] && !ehItemCarreira(e); });
+    const lista = catalogoEditaisBase.map(function (base) {
+      return personalizados.find(function (e) { return e.id === base.id; }) || base;
+    });
+    if (!lista.length) return '';
+    return '<div class="card carreiras-config-card">' +
+      '<div class="carreiras-config-cab"><div><span class="rotulo-pagina">Catálogo pessoal</span>' +
+      '<h3>Planos específicos</h3></div></div>' +
+      '<p class="sub">Personalize os modelos de concurso sem transformar o conteúdo em uma carreira. As alterações ficam na sua conta.</p>' +
+      '<div class="carreiras-config-lista">' + lista.map(function (e) {
+        const personalizado = personalizados.some(function (p) { return p.id === e.id; });
+        return '<div class="carreira-config-item"><div class="carreira-config-resumo">' + editalFotoHtml(e) +
+          '<div><strong>' + esc(e.titulo) + '</strong><p class="sub">' +
+          (personalizado ? 'versão personalizada' : 'modelo do Gabaritei OS') + ' · ' +
+          (e.disciplinas || []).length + ' disciplinas · ' + contarTopicosEdital(e) + ' tópicos</p></div></div>' +
+          '<div class="compact-actions"><button class="botao-mini" data-base-editar="' + esc(e.id) + '">Editar</button>' +
+          '<button class="botao-mini botao-secundario" data-base-ver="' + esc(e.id) + '">Ver em Planos</button>' +
+          (personalizado ? '<button class="botao-mini botao-quieto" data-base-restaurar="' + esc(e.id) + '">Restaurar original</button>' : '') +
+          '</div></div>';
+      }).join('') + '</div></div>';
   }
 
   // aceita o contrato completo ({disciplinas:[...]}), uma lista de disciplinas ou linhas de planilha
@@ -5766,13 +5801,24 @@
   // ================= Catálogo: aba "Planos disponíveis" =================
   function editalFotoHtml(e) {
     const src = e.foto || e.fotoUrl || e.imagem || '';
+    const alt = e.fotoAlt || '';
     const iniciais = String(e.orgao || e.titulo || 'ED').replace(/[^0-9A-Za-z\u00C0-\u017F ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(function (p) { return p.charAt(0); }).join('').toUpperCase() || 'ED';
     return src
-      ? '<span class="catalogo-foto"><img src="' + esc(src) + '" alt=""></span>'
+      ? '<span class="catalogo-foto"><img src="' + esc(src) + '" alt="' + esc(alt) + '"></span>'
       : '<span class="catalogo-foto catalogo-foto-placeholder" aria-hidden="true">' + esc(iniciais) + '</span>';
   }
 
+  function fotoCreditoHtml(e) {
+    if (!e || !e.fotoCredito) return '';
+    const fonte = /^https:\/\//i.test(e.fotoFonte || '') ? e.fotoFonte : '';
+    const credito = fonte
+      ? '<a href="' + esc(fonte) + '" target="_blank" rel="noopener noreferrer">' + esc(e.fotoCredito) + '</a>'
+      : esc(e.fotoCredito);
+    return '<p class="sub" style="margin:0.2rem 0 0.6rem"><strong>Foto:</strong> ' + credito + '</p>';
+  }
+
   function rotuloCorteEdital(e) {
+    if (e && e.metaDesempenho) return (e.notaCorte || 80) + '%';
     // o rótulo do card já diz "Corte"; aqui vai só o valor: "73% · ampla"
     const lista = normalizarListaCorte(e.tipoCorte || e.corteTipo || e.modalidadeCorte || 'ampla');
     const curto = { ampla: 'ampla', negros: 'negros', pcd: 'PcD', indigenas: 'indígenas' }[lista] || 'ampla';
@@ -5793,7 +5839,7 @@
       (e.emAlta ? '<span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</div>' +
       (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
       '<div class="catalogo-metricas">' +
-      metrica('Corte', '~' + (e.notaCorte || 70) + '%') +
+      metrica(e.metaDesempenho ? 'Meta' : 'Corte', (e.metaDesempenho ? '' : '~') + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Data estimada', esc(janelaProvaTexto(e))) +
       metrica('Tempo médio', '~' + tempoMedioMesesEdital(e) + ' meses') +
@@ -5816,13 +5862,13 @@
     const carreira = ehPlanoCarreira(e);
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     const subtitulo = carreira
-      ? 'Base multibanca · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos prioritários'
+      ? esc(e.banca || 'Base de provas') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos prioritários'
       : esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos';
     const metricas = carreira
       ? metrica('Cobertura', esc(e.cobertura || 'Nacional')) +
-        metrica('Perfil', 'Área administrativa') +
+        metrica('Perfil', esc(e.area || 'Área administrativa')) +
         metrica('Meta inicial', (e.notaCorte || 80) + '%')
-      : metrica('Corte', esc(rotuloCorteEdital(e))) +
+      : metrica(e.metaDesempenho ? 'Meta' : 'Corte', esc(rotuloCorteEdital(e))) +
         metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
         metrica('Data estimada', esc(janelaProvaTexto(e)));
     return '<div class="card catalogo-card catalogo-card-compacto' + (carreira ? ' catalogo-card-carreira' : '') + (selComparar ? ' catalogo-card-comparando' : '') + '">' +
@@ -6200,7 +6246,7 @@
       '<p class="sub">' + (carreira ? '<span class="etiqueta etiqueta-carreira">plano de carreira</span> · ' : '') + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
       '<div class="catalogo-metricas" style="margin:0.5rem 0">' +
       (e.area ? metrica('Área', esc(e.area)) : '') +
-      metrica(carreira ? 'Meta inicial' : 'Corte', (carreira ? '' : '~') + (e.notaCorte || 70) + '%') +
+      metrica(carreira || e.metaDesempenho ? 'Meta inicial' : 'Corte', (carreira || e.metaDesempenho ? '' : '~') + (e.notaCorte || 70) + '%') +
       metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
       (carreira ? metrica('Cobertura', esc(e.cobertura || 'Nacional')) : metrica('Data estimada', esc(janelaProvaTexto(e)))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
@@ -6211,6 +6257,10 @@
       (carreira ? '<div class="carreira-metodologia"><strong>Como esta trilha foi montada</strong><p>' + esc(e.metodologia || '') + '</p>' +
         '<p><strong>Base analisada:</strong> ' + esc((e.baseEditais || []).join(' · ')) + '</p>' +
         '<p><strong>Fontes:</strong> ' + esc(e.fontesResumo || '') + '</p></div>' : '') +
+      (!carreira && (e.observacoes || e.fonte) ? '<div class="carreira-metodologia"><strong>Sobre este plano</strong>' +
+        (e.observacoes ? '<p>' + esc(e.observacoes) + '</p>' : '') +
+        (e.fonte ? '<p><strong>Base estatística:</strong> ' + esc(e.fonte) + '</p>' : '') + '</div>' : '') +
+      fotoCreditoHtml(e) +
       '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (' + (carreira ? 'prioridade relativa e horas estimadas' : 'incidência nas provas e horas estimadas') + ').</p>' +
       '<div class="detalhe-discs">' + discHtml + '</div>' +
       (calc ? '<button type="button" class="botao-secundario det-calc" id="det-calc" style="width:100%;margin:0.2rem 0 0.6rem">' + calc.rotulo + '</button>' : '') +
@@ -6507,7 +6557,7 @@
       return '<option value="' + k + '"' + (nivelAtual === k ? ' selected' : '') + '>' + NIVEIS_EDITAL[k] + '</option>';
     }).join('');
     let h = '<div class="editor-carreira-intro"><strong>Estrutura da carreira</strong>' +
-      '<p class="sub">Use a prioridade percentual para indicar o que merece mais atenção dentro de cada disciplina. Os tópicos podem ser ajustados a qualquer momento.</p></div>' +
+      '<p class="sub">Use a prioridade percentual para indicar o que merece mais atenção dentro de cada disciplina. A ordem define a sequência da primeira passada; tudo pode ser ajustado a qualquer momento.</p></div>' +
       '<div class="grade-2">' +
       '<div><label>Nome da carreira</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: Carreira Fiscal · Área Administrativa"></div>' +
       '<div><label>Base de provas / bancas</label><input id="ee-banca" type="text" value="' + esc(e.banca || '') + '" placeholder="Ex.: Multibanca · últimos editais"></div></div>' +
@@ -6540,12 +6590,13 @@
         ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
         '</select>' +
         '<button class="botao-mini botao-quieto" data-rem-disc="' + di + '">remover</button></div>' +
-        '<div class="editor-topicos-scroll"><table class="editor-topicos"><thead><tr><th>Tópico</th><th>Prior.%</th><th>Faixa</th><th>Horas</th><th></th></tr></thead><tbody>';
+        '<div class="editor-topicos-scroll"><table class="editor-topicos"><thead><tr><th>Tópico</th><th>Prior.%</th><th>Faixa</th><th>Ordem</th><th>Horas</th><th></th></tr></thead><tbody>';
       d.topicos.forEach(function (t, ti) {
         h += '<tr>' +
           '<td><input class="ed-t-nome" data-di="' + di + '" data-ti="' + ti + '" type="text" value="' + esc(t.nome) + '"></td>' +
           '<td><input class="ed-t-inc" data-di="' + di + '" data-ti="' + ti + '" type="number" min="0" max="100" value="' + (t.incidencia_pct || 0) + '"></td>' +
           '<td><input class="ed-t-pri" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="3" value="' + (t.prioridade || 2) + '"></td>' +
+          '<td><input class="ed-t-sem" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="52" value="' + (t.semana_sugerida || (ti + 1)) + '"></td>' +
           '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="120" value="' + (t.horas_estimadas || 2) + '"></td>' +
           '<td><button class="botao-mini botao-quieto" data-rem-top="' + di + '_' + ti + '" title="Remover tópico">×</button></td></tr>';
       });
@@ -6578,9 +6629,9 @@
       '<div><label>Estado (UF)</label><input id="ee-estado" type="text" maxlength="2" value="' + esc(e.estado) + '" style="text-transform:uppercase"></div>' +
       '<div><label>Escolaridade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
       '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>' +
-      '<div class="ee-cortes-grupo"><span class="ee-grupo-rotulo">Notas de corte do último aprovado (%)</span>' +
+      '<div class="ee-cortes-grupo"><span class="ee-grupo-rotulo">' + (e.metaDesempenho ? 'Meta inicial de desempenho (%)' : 'Notas de corte do último aprovado (%)') + '</span>' +
       '<div class="grade-3">' +
-      '<div><label>Ampla concorrência</label><input id="ee-corte-ampla" type="number" min="0" max="100" value="' + cAmpla + '"></div>' +
+      '<div><label>' + (e.metaDesempenho ? 'Meta principal' : 'Ampla concorrência') + '</label><input id="ee-corte-ampla" type="number" min="0" max="100" value="' + cAmpla + '"></div>' +
       '<div><label>Cota negros (CN)</label><input id="ee-corte-negros" type="number" min="0" max="100" value="' + cNeg + '" placeholder="—"></div>' +
       '<div><label>Cota PcD</label><input id="ee-corte-pcd" type="number" min="0" max="100" value="' + cPcd + '" placeholder="—"></div>' +
       '</div></div>' +
@@ -6611,12 +6662,13 @@
         ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
         '</select>' +
         '<button class="botao-mini botao-quieto" data-rem-disc="' + di + '">remover</button></div>' +
-        '<table class="editor-topicos"><thead><tr><th>Tópico</th><th>Incid.%</th><th>Prior.</th><th>Horas</th><th></th></tr></thead><tbody>';
+        '<table class="editor-topicos"><thead><tr><th>Tópico</th><th>Incid.%</th><th>Prior.</th><th>Ordem</th><th>Horas</th><th></th></tr></thead><tbody>';
       d.topicos.forEach(function (t, ti) {
         h += '<tr>' +
           '<td><input class="ed-t-nome" data-di="' + di + '" data-ti="' + ti + '" type="text" value="' + esc(t.nome) + '"></td>' +
           '<td><input class="ed-t-inc" data-di="' + di + '" data-ti="' + ti + '" type="number" min="0" max="100" value="' + (t.incidencia_pct || 0) + '"></td>' +
           '<td><input class="ed-t-pri" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="3" value="' + (t.prioridade || 2) + '"></td>' +
+          '<td><input class="ed-t-sem" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="52" value="' + (t.semana_sugerida || (ti + 1)) + '"></td>' +
           '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="40" value="' + (t.horas_estimadas || 2) + '"></td>' +
           '<td><button class="botao-mini botao-quieto" data-rem-top="' + di + '_' + ti + '" title="Remover tópico">×</button></td></tr>';
       });
@@ -6667,6 +6719,7 @@
     body.querySelectorAll('.ed-t-nome').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].nome = inp.value; });
     body.querySelectorAll('.ed-t-inc').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].incidencia_pct = Math.max(0, Math.min(100, parseInt(inp.value, 10) || 0)); });
     body.querySelectorAll('.ed-t-pri').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].prioridade = Math.max(1, Math.min(3, parseInt(inp.value, 10) || 2)); });
+    body.querySelectorAll('.ed-t-sem').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].semana_sugerida = Math.max(1, Math.min(52, parseInt(inp.value, 10) || (t + 1))); });
     body.querySelectorAll('.ed-t-hor').forEach(function (inp) { const d = +inp.getAttribute('data-di'), t = +inp.getAttribute('data-ti'); if (e.disciplinas[d] && e.disciplinas[d].topicos[t]) e.disciplinas[d].topicos[t].horas_estimadas = Math.max(1, parseInt(inp.value, 10) || 2); });
   }
 
@@ -6736,7 +6789,8 @@
   }
 
   function abrirEditorEdital(editalId, modo, dadosImport) {
-    if (!usuarioAdmin()) { toast('Apenas o administrador pode editar editais.', 'erro'); return; }
+    const baseEditavelPeloAluno = !!(editalId && catalogoEditaisBase.some(function (e) { return e.id === editalId; }));
+    if (!usuarioAdmin() && !baseEditavelPeloAluno) { toast('Apenas o administrador pode editar este edital.', 'erro'); return; }
     editorTipo = 'edital';
     let baseObj;
     if (dadosImport) {
@@ -6758,14 +6812,17 @@
       baseObj.disciplinas = [disciplinaEmBranco()];
     }
     editorEdital = normalizarEditalParaEditor(baseObj);
-    editorEdital._editId = (!dadosImport && editalId && !baseObj._global) ? editalId : null;
-    editorEdital._globalId = (!dadosImport && editalId && baseObj._global) ? editalId : null;
-    const titulo = modo === 'conferencia' ? 'Conferência da importação' : (editorEdital._editId ? 'Editar edital' : 'Novo edital');
-    const dica = modo === 'conferencia' ? '<p class="sub">Confira as disciplinas, pesos e incidências sugeridos. Ajuste o que precisar e confirme.</p>' : '';
+    editorEdital._editId = (!dadosImport && editalId && !baseObj._global && !baseObj._base) ? editalId : null;
+    editorEdital._globalId = (!dadosImport && editalId && (baseObj._global || baseObj._base)) ? editalId : null;
+    const titulo = modo === 'conferencia' ? 'Conferência da importação'
+      : (editorEdital._editId ? 'Editar edital' : (editorEdital._globalId ? (baseEditavelPeloAluno ? 'Personalizar plano' : 'Personalizar edital') : 'Novo edital'));
+    const dica = modo === 'conferencia'
+      ? '<p class="sub">Confira as disciplinas, pesos e incidências sugeridos. Ajuste o que precisar e confirme.</p>'
+      : (!usuarioAdmin() && baseEditavelPeloAluno ? '<p class="sub">Sua versão ficará somente na sua conta; o modelo original poderá ser restaurado quando quiser.</p>' : '');
     const m = abrirModal('<h3>' + titulo + '</h3>' + dica +
       '<div id="editor-body">' + editorEditalBody() + '</div>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="editor-cancelar">Cancelar</button>' +
-      '<button id="editor-salvar">' + (modo === 'conferencia' ? 'Confirmar e salvar' : 'Salvar edital') + '</button></div>');
+      '<button id="editor-salvar">' + (modo === 'conferencia' ? 'Confirmar e salvar' : (baseEditavelPeloAluno ? 'Salvar plano' : 'Salvar edital')) + '</button></div>');
     m.classList.add('modal-amplo');
     ligarEditorBody(m);
     m.querySelector('#editor-cancelar').addEventListener('click', fecharModal);
@@ -6773,7 +6830,8 @@
   }
 
   function salvarEditorEdital(m) {
-    if (!usuarioAdmin()) { toast('Apenas o administrador pode salvar editais.', 'erro'); return; }
+    const baseEditavelPeloAluno = !!(editorEdital && editorEdital._globalId && catalogoEditaisBase.some(function (x) { return x.id === editorEdital._globalId; }));
+    if (!usuarioAdmin() && !baseEditavelPeloAluno) { toast('Apenas o administrador pode salvar este edital.', 'erro'); return; }
     sincronizarEditorDoDom(m.querySelector('#editor-body'));
     const e = editorEdital;
     if (!e.titulo) { toast('Dê um nome ao edital.', 'erro'); return; }
@@ -6789,8 +6847,10 @@
       titulo: e.titulo, banca: e.banca, orgao: e.orgao, cargo: e.cargo, area: e.area,
       estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte),
       cortes: e.cortes || { ampla: e.notaCorte, negros: null, pcd: null }, emAlta: e.emAlta,
+      metaDesempenho: !!e.metaDesempenho,
       foto: e.foto || '',
       salario: e.salario || '', beneficios: e.beneficios || '', vagas: e.vagas || '',
+      fonte: e.fonte || '', observacoes: e.observacoes || '',
       // carimbo de versão: muda a cada save e dispara o aviso de "atualizar plano"
       // nos planos criados a partir deste edital.
       atualizadoEm: new Date().toISOString(),
@@ -6807,10 +6867,10 @@
       state.editais.push(registro);
     }
     salvar();
-    publicarCatalogoAdmin({ toast: true });
+    if (usuarioAdmin()) publicarCatalogoAdmin({ toast: true });
     fecharModal();
     render();
-    toast('Edital salvo: ' + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
+    toast((baseEditavelPeloAluno ? 'Plano salvo: ' : 'Edital salvo: ') + v.resumo.disciplinas + ' disciplinas, ' + v.resumo.topicos + ' tópicos', 'sucesso');
   }
 
   function abrirEditorCarreira(carreiraId) {
@@ -7043,7 +7103,39 @@
     });
   }
 
+  function ligarPlanosBaseConfiguracao(raiz) {
+    raiz.querySelectorAll('[data-base-editar]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirEditorEdital(b.getAttribute('data-base-editar'), 'editar'); });
+    });
+    raiz.querySelectorAll('[data-base-ver]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const id = b.getAttribute('data-base-ver');
+        const e = editalPorId(id);
+        catalogoFiltro = { tipo: 'concurso', busca: e ? e.titulo : '', orgao: '', cargo: '', estado: '' };
+        location.hash = '#planos';
+      });
+    });
+    raiz.querySelectorAll('[data-base-restaurar]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const id = b.getAttribute('data-base-restaurar');
+        const e = (state.editais || []).find(function (x) { return x.id === id; });
+        if (!e) return;
+        confirmar({
+          titulo: 'Restaurar plano original?',
+          mensagem: 'Sua personalização de "' + e.titulo + '" será removida. Planos de estudo já criados continuam como estão.',
+          confirmar: 'Restaurar original',
+          icone: '↺'
+        }).then(function (ok) {
+          if (!ok) return;
+          state.editais = (state.editais || []).filter(function (x) { return x.id !== id; });
+          salvar(); render(); toast('Plano original restaurado');
+        });
+      });
+    });
+  }
+
   function ligarAjustes(raiz) {
+    ligarPlanosBaseConfiguracao(raiz);
     ligarCarreirasConfiguracao(raiz);
     const ritmo = raiz.querySelector('#aj-ritmo');
     if (ritmo) ritmo.addEventListener('change', function () {

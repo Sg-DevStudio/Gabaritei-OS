@@ -20,7 +20,16 @@ function carregarCarreiras() {
   return contexto.window.CATALOGO_CARREIRAS;
 }
 
-test('catálogo de carreiras oferece TRF e TRT para Técnico da Área Administrativa', function () {
+function carregarEditaisBase() {
+  const contexto = { window: {} };
+  vm.runInNewContext(
+    fs.readFileSync(path.join(__dirname, '..', 'data', 'catalogo-editais.js'), 'utf8'),
+    contexto
+  );
+  return contexto.window.CATALOGO_EDITAIS_BASE;
+}
+
+test('catálogo de carreiras continua restrito a TRF e TRT', function () {
   const carreiras = carregarCarreiras();
 
   assert.equal(carreiras.length, 2);
@@ -32,11 +41,45 @@ test('catálogo de carreiras oferece TRF e TRT para Técnico da Área Administra
     assert.equal(c.tipoCatalogo, 'carreira');
     assert.match(c.cargo, /Técnico Judiciário/);
     assert.match(c.area, /Administrativa/);
-    assert.match(c.foto, /^assets\/carreiras\/.+\.jpg$/);
-    assert.ok(fs.statSync(path.join(__dirname, '..', c.foto)).size > 10000);
+    assert.match(c.foto, /^assets\/carreiras\/.+\.jpg\?v=\d{8}-[a-z0-9-]+$/);
+    assert.ok(fs.statSync(path.join(__dirname, '..', c.foto.split('?')[0])).size > 10000);
+    assert.ok(c.fotoAlt.length > 20);
+    assert.match(c.fotoCredito, /Wikimedia Commons/);
+    assert.match(c.fotoFonte, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
     assert.ok(c.metodologia.length > 80);
     assert.ok(c.baseEditais.length >= 4);
   });
+});
+
+test('plano do INSS preserva a amostra oficial e a sequência pedagógica', function () {
+  const inss = carregarEditaisBase().find(function (e) { return e.id === 'edital-inss-tecnico-2022'; });
+  const topicos = inss.disciplinas.reduce(function (todos, d) { return todos.concat(d.topicos); }, []);
+
+  assert.equal(inss.tipo, 'edital_esquematizado');
+  assert.notEqual(inss.tipoCatalogo, 'carreira');
+  assert.equal(inss.disciplinas.length, 8);
+  assert.equal(topicos.length, 57);
+  assert.match(inss.fonte, /240 itens/);
+  assert.equal(inss.metaDesempenho, true);
+  assert.match(inss.foto, /\.png$/);
+  assert.equal(inss.disciplinas.find(function (d) { return d.id === 'PRE'; }).peso, 5);
+  assert.equal(inss.disciplinas.find(function (d) { return d.id === 'BEN'; }).peso, 5);
+  topicos.forEach(function (t) {
+    assert.ok(Number.isInteger(t.semana_sugerida) && t.semana_sugerida > 0, t.id);
+  });
+  inss.disciplinas.forEach(function (disciplina) {
+    const soma = disciplina.topicos.reduce(function (n, t) { return n + t.incidencia_pct; }, 0);
+    assert.equal(soma, 100, disciplina.nome);
+  });
+
+  const resultado = D.validarPlano({
+    versao: 1,
+    plano: { concurso: inss.titulo, banca: inss.banca, meta: { corte_pct: inss.notaCorte } },
+    disciplinas: inss.disciplinas,
+    cronograma: {}
+  });
+  assert.equal(resultado.ok, true);
+  assert.deepEqual(resultado.erros, []);
 });
 
 test('disciplinas das carreiras têm prioridade relativa fechando em 100%', function () {
@@ -71,8 +114,9 @@ test('planos de carreira cumprem o contrato de importação do domínio', functi
 
 test('carreira personalizada substitui o modelo-base e novas carreiras são acrescentadas', function () {
   const base = carregarCarreiras();
+  const trf = base.find(function (c) { return c.id === 'carreira-trf-tjaa'; });
   const personalizadas = [
-    Object.assign({}, base[0], { titulo: 'Minha versão TRF' }),
+    Object.assign({}, trf, { titulo: 'Minha versão TRF' }),
     {
       id: 'carreira-fiscal-manual',
       tipoCatalogo: 'carreira',
@@ -83,12 +127,11 @@ test('carreira personalizada substitui o modelo-base e novas carreiras são acre
   const resultado = D.mesclarCatalogoCarreiras(base, personalizadas);
 
   assert.equal(resultado.length, 3);
-  assert.equal(resultado[0].id, base[0].id);
-  assert.equal(resultado[0].titulo, 'Minha versão TRF');
-  assert.equal(resultado[0]._personalizada, true);
-  assert.equal(resultado[1]._personalizada, false);
-  assert.equal(resultado[2].id, 'carreira-fiscal-manual');
-  assert.equal(base[0].titulo, 'Carreira TRF — Técnico Judiciário · Área Administrativa');
+  const trfMesclado = resultado.find(function (c) { return c.id === trf.id; });
+  assert.equal(trfMesclado.titulo, 'Minha versão TRF');
+  assert.equal(trfMesclado._personalizada, true);
+  assert.equal(resultado.find(function (c) { return c.id === 'carreira-fiscal-manual'; }).id, 'carreira-fiscal-manual');
+  assert.equal(trf.titulo, 'Carreira TRF — Técnico Judiciário · Área Administrativa');
 });
 
 test('estado novo e migração preservam uma coleção própria para carreiras personalizadas', function () {
@@ -106,4 +149,9 @@ test('configurações publicam carreiras do administrador e mantêm carreiras pe
   assert.match(appSource, /if \(admin\) publicarCatalogoAdmin\(\{ toast: true \}\)/);
   assert.match(appSource, /state\.config\.carreirasPersonalizadas\.push\(registro\)/);
   assert.match(appSource, /tipoCatalogo: 'carreira'/);
+  assert.match(appSource, /class="ed-t-sem"/);
+  assert.match(appSource, /semana_sugerida =/);
+  assert.match(appSource, /catalogoEditaisBase/);
+  assert.match(appSource, /baseObj\._global \|\| baseObj\._base/);
+  assert.match(appSource, /fotoCreditoHtml\(e\)/);
 });
