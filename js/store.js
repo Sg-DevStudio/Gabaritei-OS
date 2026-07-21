@@ -257,8 +257,8 @@
       disciplinas: [],
       cronogramas: { sustentavel: [], hardcore: [] },
       links: [],
-      sessoes: [],   // {id, planoId, data, topicoId, tipo, duracaoMin, qFeitas, qCertas, obs}
-      revisoes: [],  // {id, planoId, topicoId, tipo, dataAgendada, dataConcluida, resultadoPct}
+      sessoes: [],   // {id, planoId, data, topicoId, tipo, duracaoMin, qFeitas, qCertas, obs, revisaoId?}
+      revisoes: [],  // {id, planoId, topicoId, tipo, dataAgendada, dataConcluida, resultadoPct, duracaoConcluidaMin?, sessaoId?}
       simulados: [], // {id, planoId, data, tipo, acertos:[{disciplinaId, certas, total}]}
       agenda: [],    // {id, planoId, data, disciplinaId, topicoId|null, duracaoMin, obs, feito, gerado}
       editais: [],   // editais esquematizados {id, titulo, banca, notaCorte, criadoEm, disciplinas}

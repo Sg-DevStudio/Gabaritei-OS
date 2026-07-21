@@ -147,6 +147,7 @@ function stateRevisoes() {
   return {
     planoAtivoId: 'p1',
     disciplinas: [disc('D0', 'Português', [top('D0-1', 50), top('D0-2', 30)])],
+    sessoes: [],
     revisoes: [
       { id: 'r1', planoId: 'p1', topicoId: 'D0-1', tipo: '24h', dataAgendada: '2026-06-25', dataConcluida: null },
       { id: 'r2', planoId: 'p1', topicoId: 'D0-2', tipo: '30d', dataAgendada: '2026-06-25', dataConcluida: null },
@@ -177,4 +178,31 @@ test('minutosRevisaoNoDia: soma as durações do dia', () => {
   assert.equal(D.minutosRevisaoNoDia(st, '2026-06-25'), 10 + 20); // 24h + 30d
   assert.equal(D.minutosRevisaoNoDia(st, '2026-06-26'), 15);       // 7d
   assert.equal(D.minutosRevisaoNoDia(st, '2026-06-27'), 0);
+});
+
+test('revisões concluídas trocam a estimativa pelo tempo real registrado', () => {
+  const st = stateRevisoes();
+  const feita = st.revisoes.find((r) => r.id === 'r4');
+  st.sessoes.push({
+    id: 's-rev-r4', planoId: 'p1', revisaoId: 'r4', topicoId: 'D0-1',
+    tipo: 'revisao', data: '2026-06-25', duracaoMin: 47, obs: 'Revisão 3d'
+  });
+
+  assert.equal(D.duracaoRevisaoConcluidaMin(st, feita), 47);
+  assert.equal(D.minutosRevisoesConcluidasNoDia(st, '2026-06-25'), 47);
+
+  feita.duracaoConcluidaMin = 52;
+  feita.sessaoId = 's-rev-r4';
+  assert.equal(D.duracaoRevisaoConcluidaMin(st, feita), 52);
+  assert.equal(D.minutosRevisoesConcluidasNoDia(st, '2026-06-25'), 52);
+});
+
+test('revisão concluída antiga usa a estimativa quando não há sessão recuperável', () => {
+  const st = stateRevisoes();
+  st.sessoes.push({
+    id: 's-outro-topico', planoId: 'p1', topicoId: 'D0-2', tipo: 'revisao',
+    data: '2026-06-25', duracaoMin: 99, obs: 'Revisão 3d'
+  });
+  assert.equal(D.minutosRevisoesConcluidasNoDia(st, '2026-06-25'), 15);
+  assert.equal(D.minutosRevisoesConcluidasNoDia(st, '2026-06-26'), 0);
 });

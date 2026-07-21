@@ -1761,7 +1761,7 @@
           if (bl.feito) toast('Bloco concluído ✓', 'sucesso');
           else toast('Faltam ' + D.formatarMin(blocoRestanteMin(bl)) + ' para fechar o bloco', 'sucesso');
         }
-      } else if (topico && dados.tipo !== 'revisao' && (dados.duracaoMin || 0) > 0) {
+      } else if (topico && (dados.duracaoMin || 0) > 0) {
         // Estudo livre (Timer/registro avulso) num tópico SEM bloco planejado no
         // dia: cria um bloco "extra" já concluído, para o estudo aparecer sozinho
         // no calendário — sem a pessoa precisar arrastar um bloco e cronometrar.
@@ -3197,10 +3197,14 @@
       rev.dataConcluida = D.hojeISO();
       rev.resultadoPct = feitas > 0 ? Math.round((certas / feitas) * 100) : null;
 
-      state.sessoes.push({
+      const sessaoRevisao = {
         id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: rev.dataConcluida, topicoId: rev.topicoId,
-        tipo: 'revisao', duracaoMin: dur, qFeitas: feitas, qCertas: certas, obs: 'Revisão ' + rev.tipo
-      });
+        tipo: 'revisao', duracaoMin: dur, qFeitas: feitas, qCertas: certas, obs: 'Revisão ' + rev.tipo,
+        revisaoId: rev.id
+      };
+      state.sessoes.push(sessaoRevisao);
+      rev.duracaoConcluidaMin = dur;
+      rev.sessaoId = sessaoRevisao.id;
 
       // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
       const t = D.topicoPorId(state, rev.topicoId);
@@ -7541,7 +7545,7 @@
     const d = D.disciplinaDoTopico(state, r.topicoId);
     const cor = d ? d.cor : '#9A9DA3';
     const pctTxt = r.resultadoPct != null ? ' · ' + r.resultadoPct + '%' : '';
-    const sub = rotuloTipoRevisao(r.tipo) + (t ? ' · ' + t.nome : '') + pctTxt;
+    const sub = D.formatarMin(D.duracaoRevisaoConcluidaMin(state, r)) + ' · revisão ' + rotuloTipoRevisao(r.tipo) + (t ? ' · ' + t.nome : '') + pctTxt;
     return '<div class="agenda-bloco agenda-bloco-revisao feito" data-revisao-feita="' + esc(r.id) + '" role="button" tabindex="0" style="border-color:' + esc(cor) + '" title="Revisão concluída · ' + esc(sub) + '">' +
       '<span class="agenda-bloco-rev-ic" aria-hidden="true">✓</span>' +
       '<span class="agenda-bloco-texto"><span class="agenda-bloco-titulo">Revisão feita</span>' +
@@ -7581,7 +7585,8 @@
     const t = D.topicoPorId(state, r.topicoId);
     const m = abrirModal(
       '<h3>Revisão concluída ✓</h3>' +
-      '<p class="sub">' + (t ? esc(t.nome) + ' · ' : '') + 'revisão ' + esc(rotuloTipoRevisao(r.tipo)) + '</p>' +
+      '<p class="sub">' + (t ? esc(t.nome) + ' · ' : '') + 'revisão ' + esc(rotuloTipoRevisao(r.tipo)) +
+      ' · ' + D.formatarMin(D.duracaoRevisaoConcluidaMin(state, r)) + '</p>' +
       '<p class="sub">Concluída em ' + D.formatarDataBR(r.dataConcluida) +
       (r.resultadoPct != null ? ' · desempenho ' + r.resultadoPct + '%' : '') + '</p>' +
       '<div class="modal-acoes"><button type="button" class="botao-quieto" id="revf-fechar">Fechar</button></div>'
@@ -10611,8 +10616,9 @@
         const revsFeitas = revisoesConcluidasNoDia(data);
         const sims = simuladosDoDia(data);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
+        const revsFeitasMin = D.minutosRevisoesConcluidasNoDia(state, data);
         const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + simsMin;
+        const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + revsFeitasMin + simsMin;
         html += '<div class="agenda-dia' + (data === hoje ? ' dia-hoje' : '') + '" data-dia="' + esc(data) + '">' +
           '<div class="agenda-dia-cab"><span>' + DIAS_CURTOS[i] + ' <span class="num">' + data.slice(8, 10) + '</span></span>' +
           (totalMin > 0 ? '<span class="num">' + D.formatarMin(totalMin) + '</span>' : '') + '</div>' +
@@ -10676,8 +10682,9 @@
         const revsFeitas = revisoesConcluidasNoDia(cursor);
         const sims = simuladosDoDia(cursor);
         const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
+        const revsFeitasMin = D.minutosRevisoesConcluidasNoDia(state, cursor);
         const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
-        const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + simsMin;
+        const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + revsFeitasMin + simsMin;
         const todoFeito = blocos.length > 0 && blocos.every(blocoAgendaConcluido);
         const temConteudo = blocos.length > 0 || revs.length > 0 || revsFeitas.length > 0 || sims.length > 0;
 
@@ -10691,7 +10698,7 @@
         }).join('');
         if (porDisc.length > MAX_CHIPS_MES) chips += '<span class="mes-mais">+' + (porDisc.length - MAX_CHIPS_MES) + ' mais</span>';
         if (revs.length > 0) chips += '<span class="mes-evento mes-evento-rev" title="' + revs.length + (revs.length === 1 ? ' revisão' : ' revisões') + ' · ' + D.formatarMin(revsMin) + '"><span class="mes-evento-nome">🔁 ' + revs.length + (revs.length === 1 ? ' revisão' : ' revisões') + '</span></span>';
-        if (revsFeitas.length > 0) chips += '<span class="mes-evento mes-evento-rev feito" title="' + revsFeitas.length + (revsFeitas.length === 1 ? ' revisão concluída' : ' revisões concluídas') + '"><span class="mes-evento-nome">✓ ' + revsFeitas.length + (revsFeitas.length === 1 ? ' revisão' : ' revisões') + '</span></span>';
+        if (revsFeitas.length > 0) chips += '<span class="mes-evento mes-evento-rev feito" title="' + revsFeitas.length + (revsFeitas.length === 1 ? ' revisão concluída' : ' revisões concluídas') + ' · ' + D.formatarMin(revsFeitasMin) + '"><span class="mes-evento-nome">✓ ' + revsFeitas.length + (revsFeitas.length === 1 ? ' revisão' : ' revisões') + '</span></span>';
         if (sims.length > 0) chips += '<span class="mes-evento mes-evento-sim feito" title="' + sims.length + (sims.length === 1 ? ' simulado' : ' simulados') + '"><span class="mes-evento-nome">📝 Simulado</span></span>';
 
         html += '<div class="mes-celula mes-celula-rotulos' + (noMes ? '' : ' fora-mes') + (cursor === hoje ? ' dia-hoje' : '') +
@@ -10780,8 +10787,9 @@
     const revsFeitas = revisoesConcluidasNoDia(dataISO);
     const sims = simuladosDoDia(dataISO);
     const revsMin = revs.reduce(function (n, r) { return n + D.duracaoRevisaoMin(r.tipo); }, 0);
+    const revsFeitasMin = D.minutosRevisoesConcluidasNoDia(state, dataISO);
     const simsMin = sims.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0);
-    const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + simsMin;
+    const totalMin = blocos.reduce(function (n, b) { return n + blocoMinContado(b); }, 0) + revsMin + revsFeitasMin + simsMin;
     const feitos = blocos.filter(blocoAgendaConcluido).length;
     const simsHtml = sims.length === 0 ? '' :
       '<div class="dia-detalhe-revs"><h4 class="dia-detalhe-revs-tit">📝 Simulados do dia</h4><div class="dia-detalhe-lista">' +
@@ -10815,10 +10823,11 @@
         const d = D.disciplinaDoTopico(state, r.topicoId);
         const cor = d ? d.cor : '#9A9DA3';
         const pctTxt = r.resultadoPct != null ? ' · ' + r.resultadoPct + '%' : '';
+        const duracaoTxt = D.formatarMin(D.duracaoRevisaoConcluidaMin(state, r));
         return '<div class="dia-detalhe-item dia-detalhe-rev feito" style="--disc-cor:' + esc(cor) + '">' +
           '<span class="dia-detalhe-cor" style="background:' + esc(cor) + '"></span>' +
           '<span class="dia-detalhe-info"><span class="dia-detalhe-disc">' + (t ? esc(t.nome) : 'Revisão') + ' ✓</span>' +
-          '<span class="dia-detalhe-sub">revisão ' + esc(rotuloTipoRevisao(r.tipo)) + ' concluída' + pctTxt + '</span></span></div>';
+          '<span class="dia-detalhe-sub">' + duracaoTxt + ' · revisão ' + esc(rotuloTipoRevisao(r.tipo)) + ' concluída' + pctTxt + '</span></span></div>';
       }).join('') + '</div></div>';
     const ymd = dataISO.split('-').map(Number);
     const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(ymd[0], ymd[1] - 1, ymd[2]).getDay()];

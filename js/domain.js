@@ -1843,6 +1843,55 @@
     return revisoesPendentesNoDia(state, dia).reduce(function (n, r) { return n + duracaoRevisaoMin(r.tipo); }, 0);
   }
 
+  // Duração REAL das revisões já concluídas. Revisões novas guardam a duração e
+  // o id da sessão diretamente; para dados antigos, recuperamos a sessão pelo
+  // dia/tópico/tipo e usamos a estimativa apenas como último fallback.
+  function sessoesCandidatasRevisao(state, revisao) {
+    return sessoesDoPlano(state).filter(function (s) {
+      return s && s.tipo === 'revisao' && s.data === revisao.dataConcluida &&
+        s.topicoId === revisao.topicoId && (s.duracaoMin || 0) > 0;
+    });
+  }
+  function indiceSessaoDaRevisao(revisao, sessoes, usadas) {
+    function achar(teste) {
+      for (let i = 0; i < sessoes.length; i++) {
+        if ((!usadas || !usadas[i]) && sessoes[i].topicoId === revisao.topicoId && teste(sessoes[i])) return i;
+      }
+      return -1;
+    }
+    let idx = achar(function (s) {
+      return (revisao.sessaoId && s.id === revisao.sessaoId) || s.revisaoId === revisao.id;
+    });
+    if (idx < 0) idx = achar(function (s) { return s.obs === 'Revisão ' + revisao.tipo; });
+    if (idx < 0) idx = achar(function () { return true; });
+    return idx;
+  }
+  function duracaoRevisaoConcluidaMin(state, revisao) {
+    const direta = Math.round(Number(revisao && revisao.duracaoConcluidaMin));
+    if (direta > 0) return direta;
+    if (!revisao || !revisao.dataConcluida) return 0;
+    const sessoes = sessoesCandidatasRevisao(state, revisao);
+    const idx = indiceSessaoDaRevisao(revisao, sessoes);
+    return idx >= 0 ? Math.round(sessoes[idx].duracaoMin) : duracaoRevisaoMin(revisao.tipo);
+  }
+  function minutosRevisoesConcluidasNoDia(state, dia) {
+    const revisoes = doPlanoAtivo(state, state.revisoes || []).filter(function (r) {
+      return r && r.dataConcluida === dia && topicoPorId(state, r.topicoId);
+    });
+    const sessoes = sessoesDoPlano(state).filter(function (s) {
+      return s && s.tipo === 'revisao' && s.data === dia && (s.duracaoMin || 0) > 0;
+    });
+    const usadas = {};
+    return revisoes.reduce(function (total, r) {
+      const direta = Math.round(Number(r.duracaoConcluidaMin));
+      const idx = indiceSessaoDaRevisao(r, sessoes, usadas);
+      if (idx >= 0) usadas[idx] = true;
+      if (direta > 0) return total + direta;
+      if (idx >= 0) return total + Math.round(sessoes[idx].duracaoMin);
+      return total + duracaoRevisaoMin(r.tipo);
+    }, 0);
+  }
+
   // ---------- Espaçamento adaptativo das revisões (curva por desempenho) ----------
   // A cadência de revisão reflete o histórico de acertos do tópico: quem vai
   // melhorando precisa revisar com MENOS frequência (intervalos esticam), quem
@@ -2606,6 +2655,7 @@
     totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mapearAproveitamentoPlano, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
+    duracaoRevisaoConcluidaMin, minutosRevisoesConcluidasNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel, mesclarCatalogoCarreiras,
     revisarFlashcard, flashcardDevido
