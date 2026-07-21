@@ -8539,6 +8539,50 @@
     });
   }
 
+  function abrirGerenciarDisciplinas() {
+    const disciplinas = state.disciplinas.filter(function (d) { return d && d.id !== 'ORF'; });
+    if (!disciplinas.length) { toast('Não há disciplinas para excluir.'); return; }
+    const linhas = disciplinas.map(function (d) {
+      const topicos = (d.topicos || []).filter(function (t) { return t && !t.orfao; }).length;
+      const status = D.statusDisciplinaPlanejamento(d) === D.STATUS_DISCIPLINA.PAUSADA ? ' · pausada' : '';
+      return '<div class="disciplina-gerenciar-linha">' +
+        '<span class="disciplina-gerenciar-cor" style="background:' + esc(d.cor || '#9A9DA3') + '"></span>' +
+        '<div><strong>' + esc(d.nome) + '</strong><span class="sub">' + esc(d.id) + ' · ' + topicos +
+        ' assunto' + (topicos === 1 ? '' : 's') + status + '</span></div>' +
+        '<button type="button" class="botao-mini botao-perigo" data-excluir-disc="' + esc(d.id) + '">Excluir</button></div>';
+    }).join('');
+    const m = abrirModal(
+      '<h3>Gerenciar disciplinas</h3>' +
+      '<p class="sub">Exclua matérias que não fazem mais parte deste plano.</p>' +
+      '<div class="disciplinas-gerenciar-lista">' + linhas + '</div>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="disciplinas-fechar">Fechar</button></div>'
+    );
+    m.querySelector('#disciplinas-fechar').addEventListener('click', fecharModal);
+    m.querySelectorAll('[data-excluir-disc]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-excluir-disc');
+        const disciplina = D.disciplinaPorId(state, id);
+        if (!disciplina) return;
+        const topicos = (disciplina.topicos || []).filter(function (t) { return t && !t.orfao; }).length;
+        confirmar({
+          titulo: 'Excluir ' + disciplina.nome + '?',
+          mensagem: 'A disciplina, seus ' + topicos + ' assunto' + (topicos === 1 ? '' : 's') +
+            ', blocos, revisões e histórico de estudo serão removidos deste plano. Esta ação não tem volta.',
+          confirmar: 'Excluir disciplina',
+          perigo: true,
+          icone: '🗑️'
+        }).then(function (ok) {
+          if (!ok) return;
+          const resultado = D.excluirDisciplina(state, id);
+          if (!resultado.ok) { toast('Não foi possível excluir a disciplina.', 'erro'); return; }
+          window.Store.marcarRemovido(state, resultado.idsRemovidos);
+          salvar(); fecharModal(); render();
+          toast(resultado.disciplinaNome + ' excluída do plano.', 'sucesso');
+        });
+      });
+    });
+  }
+
   function rotuloRitmo(chave, dados) {
     const mapa = {
       sustentavel: 'Sustentável',
@@ -10586,7 +10630,8 @@
       }).join('') +
       (chipsOcultos > 0 ? '<button type="button" class="chip-disc-vermais botao-mini botao-quieto" data-paleta-vermais aria-expanded="false">+' + chipsOcultos + '</button>' : '') +
       '<span class="paleta-dica">arraste para um dia · ou toque para agendar hoje</span>' +
-      '<span class="paleta-disc-acoes"><button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div></div>';
+      '<span class="paleta-disc-acoes"><button class="botao-mini botao-quieto" id="pl-gerenciar-disc">Gerenciar</button>' +
+      '<button class="botao-mini botao-secundario" id="pl-nova-disc-card">+ Nova disciplina</button></span></div></div></div>';
     html += '<div class="planejamento-metodo-paleta">' + modoPlanCard + paletaCard + '</div>';
 
     // Calendário: visão semanal (arrastar/soltar entre os dias, com toque) e
@@ -10982,6 +11027,8 @@
     if (editais) editais.addEventListener('click', abrirEditaisDisponiveis);
     const novaDiscCard = raiz.querySelector('#pl-nova-disc-card');
     if (novaDiscCard) novaDiscCard.addEventListener('click', abrirNovaDisciplina);
+    const gerenciarDisc = raiz.querySelector('#pl-gerenciar-disc');
+    if (gerenciarDisc) gerenciarDisc.addEventListener('click', abrirGerenciarDisciplinas);
     const criarDisc = raiz.querySelector('#pl-criar-disc');
     if (criarDisc) criarDisc.addEventListener('click', abrirNovaDisciplina);
     ['#pl-em-branco', '#pl-em-branco-2', '#pl-em-branco-vazio'].forEach(function (sel) {

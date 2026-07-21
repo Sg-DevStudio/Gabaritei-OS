@@ -2543,7 +2543,7 @@ td.num, th.num { text-align: right; }
 }
 .planejamento-disciplinas-card { margin-bottom: 1rem; }
 .planejamento-disciplinas-card .paleta-disc { margin: 0.65rem 0 0; }
-.paleta-disc-acoes { margin-left: auto; display: inline-flex; }
+.paleta-disc-acoes { margin-left: auto; display: inline-flex; gap: 0.35rem; flex-wrap: wrap; }
 /* Cabeçalho clicável do card "Personalize" (recolhe/expande, sobretudo no mobile) */
 .paleta-cabecalho {
   display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
@@ -2824,6 +2824,12 @@ td.num, th.num { text-align: right; }
 .pausada-cor { width: 10px; height: 34px; border-radius: 999px; }
 .pausada-linha > div { display: flex; flex-direction: column; min-width: 0; }
 .pausada-linha .sub { font-size: 0.76rem; }
+.disciplinas-gerenciar-lista { margin-top: 0.8rem; border: 1px solid var(--linha); border-radius: 10px; overflow: hidden; }
+.disciplina-gerenciar-linha { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.65rem; padding: 0.65rem 0.75rem; }
+.disciplina-gerenciar-linha + .disciplina-gerenciar-linha { border-top: 1px solid var(--linha); }
+.disciplina-gerenciar-cor { width: 10px; height: 34px; border-radius: 999px; }
+.disciplina-gerenciar-linha > div { display: flex; flex-direction: column; min-width: 0; }
+.disciplina-gerenciar-linha .sub { font-size: 0.76rem; }
 .etiqueta-pausada { background: var(--alerta-suave); color: var(--alerta); }
 .etiqueta-concluida { background: var(--correto-suave); color: var(--correto); }
 
@@ -2835,6 +2841,8 @@ td.num, th.num { text-align: right; }
   .ajuste-prazo-campo .sub { grid-column: auto; }
   .pausada-linha { grid-template-columns: auto 1fr; }
   .pausada-linha button { grid-column: 2; justify-self: start; }
+  .disciplina-gerenciar-linha { grid-template-columns: auto 1fr; }
+  .disciplina-gerenciar-linha button { grid-column: 2; justify-self: start; }
 }
 
 /* visão mensal compacta — minmax(0,1fr): conteúdo longo nunca alarga as colunas */

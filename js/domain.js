@@ -68,6 +68,133 @@
     return state.disciplinas.find((d) => d.id === id) || null;
   }
 
+  // Exclui uma disciplina do plano ativo e limpa todas as referências que
+  // ficariam órfãs. Os ids dos registros removidos voltam para a camada de
+  // persistência criar tombstones e impedir que outro aparelho os ressuscite.
+  function excluirDisciplina(state, disciplinaId) {
+    if (!state || !Array.isArray(state.disciplinas)) return { ok: false, motivo: 'estado_invalido' };
+    const disciplina = disciplinaPorId(state, disciplinaId);
+    if (!disciplina || disciplina.id === 'ORF') return { ok: false, motivo: 'disciplina_nao_encontrada' };
+
+    const planoId = state.planoAtivoId || null;
+    const topicos = new Set((disciplina.topicos || []).map((t) => t && t.id).filter(Boolean));
+    const idsRemovidos = [];
+    const resumo = {
+      topicos: topicos.size, agenda: 0, sessoes: 0, revisoes: 0,
+      simulados: 0, resultadosSimulado: 0, flashcards: 0,
+      blocosCiclo: 0, blocosCronograma: 0, regrasAgenda: 0
+    };
+    const pertenceAoPlano = (item) => !planoId || !item || !item.planoId || item.planoId === planoId;
+    const referenciaDisciplina = (item) => !!item &&
+      (item.disciplinaId === disciplinaId || topicos.has(item.topicoId));
+
+    function removerRegistros(nome, campoResumo) {
+      const mantidos = [];
+      (Array.isArray(state[nome]) ? state[nome] : []).forEach((item) => {
+        if (pertenceAoPlano(item) && referenciaDisciplina(item)) {
+          resumo[campoResumo]++;
+          if (item && item.id) idsRemovidos.push(item.id);
+        } else {
+          mantidos.push(item);
+        }
+      });
+      state[nome] = mantidos;
+    }
+
+    state.agenda = (Array.isArray(state.agenda) ? state.agenda : []).filter((item) => {
+      const remover = pertenceAoPlano(item) && referenciaDisciplina(item);
+      if (remover) resumo.agenda++;
+      return !remover;
+    });
+    removerRegistros('sessoes', 'sessoes');
+    removerRegistros('revisoes', 'revisoes');
+
+    const simuladosMantidos = [];
+    (Array.isArray(state.simulados) ? state.simulados : []).forEach((simulado) => {
+      if (!pertenceAoPlano(simulado)) { simuladosMantidos.push(simulado); return; }
+      const antes = Array.isArray(simulado.acertos) ? simulado.acertos.length : 0;
+      simulado.acertos = (Array.isArray(simulado.acertos) ? simulado.acertos : []).filter((a) => a.disciplinaId !== disciplinaId);
+      resumo.resultadosSimulado += antes - simulado.acertos.length;
+      if (antes > 0 && simulado.acertos.length === 0) {
+        resumo.simulados++;
+        if (simulado.id) idsRemovidos.push(simulado.id);
+      } else {
+        simuladosMantidos.push(simulado);
+      }
+    });
+    state.simulados = simuladosMantidos;
+
+    state.flashcards = (Array.isArray(state.flashcards) ? state.flashcards : []).filter((deck) => {
+      const remover = pertenceAoPlano(deck) && deck && deck.disciplinaId === disciplinaId;
+      if (remover) {
+        resumo.flashcards++;
+        if (deck.id) idsRemovidos.push(deck.id);
+      }
+      return !remover;
+    });
+
+    function limparPlanejamento(plano) {
+      if (!plano || limparPlanejamento.visitados.indexOf(plano) >= 0) return;
+      limparPlanejamento.visitados.push(plano);
+      const ciclo = plano.ciclo;
+      if (ciclo && Array.isArray(ciclo.blocos)) {
+        const antes = ciclo.blocos.length;
+        ciclo.blocos = ciclo.blocos.filter((b) => !referenciaDisciplina(b));
+        resumo.blocosCiclo += antes - ciclo.blocos.length;
+      }
+    }
+    limparPlanejamento.visitados = [];
+    const entradaAtiva = (state.planos || []).find((p) => p && p.id === planoId) || null;
+    limparPlanejamento(state.plano);
+    limparPlanejamento(entradaAtiva && entradaAtiva.plano);
+
+    if (state.cronogramas && typeof state.cronogramas === 'object') {
+      Object.keys(state.cronogramas).forEach((ritmo) => {
+        (Array.isArray(state.cronogramas[ritmo]) ? state.cronogramas[ritmo] : []).forEach((semana) => {
+          if (!semana || !Array.isArray(semana.blocos)) return;
+          const antes = semana.blocos.length;
+          semana.blocos = semana.blocos.filter((b) => b &&
+            b.disciplinaId !== disciplinaId && !topicos.has(b.topico || b.topicoId));
+          resumo.blocosCronograma += antes - semana.blocos.length;
+        });
+      });
+    }
+
+    if (state.config) {
+      if (state.config.metaAcertoDisc) delete state.config.metaAcertoDisc[disciplinaId];
+      if (Array.isArray(state.config.regrasAgenda)) {
+        const antes = state.config.regrasAgenda.length;
+        state.config.regrasAgenda = state.config.regrasAgenda.filter((r) =>
+          !(pertenceAoPlano(r) && r && (r.de === disciplinaId || r.para === disciplinaId))
+        );
+        resumo.regrasAgenda = antes - state.config.regrasAgenda.length;
+      }
+      if (Array.isArray(state.config.historicoAjustesAgenda)) {
+        state.config.historicoAjustesAgenda = state.config.historicoAjustesAgenda.filter((r) =>
+          !(pertenceAoPlano(r) && r && r.disciplinaId === disciplinaId)
+        );
+      }
+      if (state.config.ultimoAjusteAgenda && state.config.ultimoAjusteAgenda.disciplinaId === disciplinaId &&
+          pertenceAoPlano(state.config.ultimoAjusteAgenda)) {
+        state.config.ultimoAjusteAgenda = null;
+      }
+    }
+
+    const indice = state.disciplinas.findIndex((d) => d && d.id === disciplinaId);
+    if (indice >= 0) state.disciplinas.splice(indice, 1);
+    if (entradaAtiva && entradaAtiva.disciplinas !== state.disciplinas) {
+      entradaAtiva.disciplinas = (entradaAtiva.disciplinas || []).filter((d) => d && d.id !== disciplinaId);
+    }
+
+    return {
+      ok: true,
+      disciplinaId: disciplinaId,
+      disciplinaNome: disciplina.nome,
+      idsRemovidos: Array.from(new Set(idsRemovidos)),
+      resumo: resumo
+    };
+  }
+
   // Renomeia um tópico sem trocar seu id. Manter o id é essencial porque agenda,
   // sessões, revisões, timer e estatísticas referenciam o tópico por essa chave.
   // A regra também evita dois nomes equivalentes dentro da mesma disciplina.
@@ -2638,7 +2765,7 @@
   window.Dominio = {
     CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig, validarEsquemaRevisao,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
-    topicoPorId, disciplinaDoTopico, disciplinaPorId, renomearTopico, doPlanoAtivo, sessoesDoPlano,
+    topicoPorId, disciplinaDoTopico, disciplinaPorId, excluirDisciplina, renomearTopico, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
