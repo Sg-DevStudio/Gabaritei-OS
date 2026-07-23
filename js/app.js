@@ -12476,8 +12476,39 @@
     if (badgeM) badgeM.classList.toggle('oculto', nVencidas === 0);
   }
 
+  // Aviso global de sincronização travada: sem ele, o aluno só descobria nos
+  // Ajustes que o estudo registrado ficou preso neste aparelho (e os outros
+  // abriam "sem nada salvo"). Aparece apenas em erro real com sessão ativa.
+  function atualizarAvisoSyncPendente(atual) {
+    let aviso = document.getElementById('sync-aviso-pendente');
+    const mostrar = !!(atual && atual.usuario && atual.estado === 'erro' && !modoDemo);
+    if (!mostrar) { if (aviso) aviso.remove(); return; }
+    if (aviso) return;
+    aviso = document.createElement('button');
+    aviso.id = 'sync-aviso-pendente';
+    aviso.type = 'button';
+    aviso.className = 'sync-aviso-pendente';
+    aviso.textContent = '⚠️ Alterações deste aparelho ainda não foram para a nuvem — toque para sincronizar agora';
+    aviso.addEventListener('click', function () {
+      if (!window.FirebaseSync || !window.FirebaseSync.ativo()) return;
+      aviso.disabled = true;
+      aviso.textContent = 'Sincronizando…';
+      window.FirebaseSync.sincronizarAgora({ silencioso: false }).finally(function () {
+        firebaseStatus = window.FirebaseSync.status();
+        atualizarSyncUi();
+        const seguiu = document.getElementById('sync-aviso-pendente');
+        if (seguiu) {
+          seguiu.disabled = false;
+          seguiu.textContent = '⚠️ Ainda não consegui sincronizar — verifique a internet e toque para tentar de novo';
+        }
+      });
+    });
+    document.body.appendChild(aviso);
+  }
+
   function atualizarSyncUi() {
     const atual = statusSincronizacao();
+    atualizarAvisoSyncPendente(atual);
     const el = document.getElementById('sync-status');
     if (el && atual) el.textContent = atual.texto;
     const ep = document.getElementById('sync-endpoint');
