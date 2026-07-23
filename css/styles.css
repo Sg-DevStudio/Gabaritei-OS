@@ -3143,6 +3143,22 @@ html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
 .toast-sucesso { background: #1F7A4D; color: #fff; }
 .toast-erro { background: #B83A2E; color: #fff; }
 
+/* Aviso fixo de sincronização travada (alterações presas neste aparelho). */
+.sync-aviso-pendente {
+  position: fixed;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px));
+  z-index: 95;
+  max-width: min(92vw, 34rem);
+  background: #B83A2E; color: #fff;
+  border: none; border-radius: 12px; cursor: pointer;
+  padding: 0.6rem 1rem; font-size: 0.85rem; line-height: 1.35; text-align: left;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+  -webkit-tap-highlight-color: transparent;
+}
+.sync-aviso-pendente:disabled { opacity: 0.75; cursor: wait; }
+@media (min-width: 761px) { .sync-aviso-pendente { bottom: 1.2rem; } }
+
 .badge {
   background: #C03B2B; color: #fff; font-size: 0.7rem;
   border-radius: 99px; padding: 0 0.4rem; min-width: 18px; text-align: center;
