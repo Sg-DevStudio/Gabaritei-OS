@@ -84,6 +84,8 @@ let ultimoErroGravacao = null;
 // mescla) o plano atual dos outros aparelhos.
 let reconciliadoOk = false;
 let aplicandoRemoto = false;
+let retryReconciliacao = null;
+let tentativasReconciliacao = 0;
 let statusAtual = {
   // 'autenticando' = ainda nao sabemos se ha sessao salva; evita piscar a tela de login
   estado: 'autenticando',
@@ -314,7 +316,9 @@ async function reconciliarComRemoto(silencioso) {
     return;
   }
   reconciliando = true;
+  if (retryReconciliacao) { clearTimeout(retryReconciliacao); retryReconciliacao = null; }
   definirStatus('sincronizando', 'Sincronizando com Firebase');
+  let reconciliou = true;
   try {
     const local = opcoes.obterEstado();
     const snap = await getDoc(refEstado);
@@ -384,10 +388,26 @@ async function reconciliarComRemoto(silencioso) {
       definirStatus('sincronizado', 'Sincronizado com Firebase');
     }
   } catch (e) {
+    reconciliou = false;
     console.error('Falha ao sincronizar com Firebase.', e);
     definirStatus('erro', 'Verifique Auth, Firestore e regras');
   } finally {
     reconciliando = false;
+    if (reconciliou) {
+      tentativasReconciliacao = 0;
+    } else {
+      // Sem retry, uma falha aqui (rede instável, leitura das partes cruzando com
+      // a gravação de outro aparelho) deixava a sessão presa nos dados locais até
+      // o próximo foco/snapshot — era o "PC mostra dados diferentes do celular".
+      // Backoff exponencial 5s → 10s → 20s → ... (teto de 5 min), zerado no sucesso.
+      tentativasReconciliacao++;
+      const atraso = Math.min(300000, 5000 * Math.pow(2, tentativasReconciliacao - 1));
+      clearTimeout(retryReconciliacao);
+      retryReconciliacao = setTimeout(function () {
+        retryReconciliacao = null;
+        if (refEstado) reconciliarComRemoto(true).then(observarMudancas);
+      }, atraso);
+    }
     if (reconciliarDepois) {
       reconciliarDepois = false;
       setTimeout(function () { reconciliarComRemoto(true); }, 0);
@@ -424,6 +444,8 @@ function iniciar(novasOpcoes) {
     usuario = user;
     reconciliadoOk = false; // nova sessão/usuário: exige nova leitura da nuvem
     numeroChunksAtuais = 0;
+    tentativasReconciliacao = 0;
+    if (retryReconciliacao) { clearTimeout(retryReconciliacao); retryReconciliacao = null; }
     if (cancelarSnapshot) { cancelarSnapshot(); cancelarSnapshot = null; }
     if (!user) {
       refEstado = null;
@@ -461,6 +483,13 @@ function registrarReSyncPrimeiroPlano() {
     if (document.hidden) flushEnvio();
     else reconciliarFresco();
   });
+  // Rede de segurança para o onSnapshot que morre em silêncio (aba aberta o dia
+  // todo no desktop, sem trocar de janela): a cada 5 min com a aba visível,
+  // busca fresca + reata o ouvinte. Ocioso e sem mudanças, custa só uma leitura.
+  setInterval(function () {
+    if (document.hidden || !refEstado || reconciliando || enviando) return;
+    reconciliarFresco();
+  }, 5 * 60 * 1000);
 }
 
 // Registra o token de push do dispositivo (lembretes de estudo). Tudo aqui é
