@@ -69,6 +69,18 @@ test('dono grava formato particionado e ainda pode migrar formato legado', { ski
   }));
 });
 
+test('marcador principal impede que cliente antigo grave current sem geração', { skip: !ativo }, async () => {
+  const db = banco('aluno');
+  const principal = Object.assign(metadataAtual(), {
+    syncGeneration: 'principal-geracao-teste'
+  });
+  await assertSucceeds(setDoc(doc(db, 'users/aluno/state/current'), principal));
+  await assertFails(setDoc(doc(db, 'users/aluno/state/current'), metadataAtual()));
+  await assertSucceeds(setDoc(doc(db, 'users/aluno/state/current'), Object.assign(metadataAtual(), {
+    syncGeneration: 'principal-geracao-teste'
+  })));
+});
+
 test('IDs extras e partes fora do limite são negados', { skip: !ativo }, async () => {
   const db = banco('aluno');
   await assertFails(setDoc(doc(db, 'users/aluno/state/lixeira'), metadataAtual()));

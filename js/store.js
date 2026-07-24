@@ -367,6 +367,13 @@
       state.config.entidadesExcluidas = {};
     }
     if (!Number.isFinite(parseInt(state.config.rev, 10))) state.config.rev = 0;
+    if (typeof state.config.syncGeneration !== 'string' || !state.config.syncGeneration) {
+      delete state.config.syncGeneration;
+    }
+    if (typeof state.config.syncGenerationCreatedAt !== 'string' ||
+        !Number.isFinite(Date.parse(state.config.syncGenerationCreatedAt))) {
+      delete state.config.syncGenerationCreatedAt;
+    }
     if (state.config.metaQuestoesSemana === undefined) state.config.metaQuestoesSemana = 100;
     // Metas de acerto definidas pelo aluno: % geral (null = usa a nota de corte do
     // plano) e overrides por disciplina ({ disciplinaId: pct }).
@@ -709,6 +716,42 @@
   // duplicaria blocos no calendário — as horas vivem nas `sessoes`, não nos blocos.
   const LISTAS_ESTUDO = ['sessoes', 'revisoes', 'simulados', 'flashcards'];
 
+  function geracaoSync(state) {
+    return state && state.config && typeof state.config.syncGeneration === 'string'
+      ? state.config.syncGeneration
+      : '';
+  }
+
+  // Quando uma nova base oficial é criada, aparelhos que ainda carregam a geração
+  // anterior não podem devolver toda a estrutura velha à nuvem. A base oficial
+  // vence; preservamos somente registros de estudo realmente criados/alterados
+  // depois do instante da promoção, para não perder uma sessão feita offline.
+  function adotarGeracaoOficial(oficial, localAntigo) {
+    const base = migrar(clonarJson(oficial || estadoVazio()));
+    const local = migrar(clonarJson(localAntigo || estadoVazio()));
+    const geracao = geracaoSync(base);
+    const corte = Date.parse(base.config && base.config.syncGenerationCreatedAt || '');
+    if (!geracao || geracao === geracaoSync(local) || !Number.isFinite(corte)) {
+      return mesclarEstados(base, local);
+    }
+
+    const posteriores = estadoVazio();
+    posteriores.config.criadoEm = base.config.criadoEm;
+    posteriores.config.atualizadoEm = base.config.atualizadoEm;
+    function posterior(item) {
+      if (!item) return false;
+      const quando = Date.parse(item.atualizadoEm || item.criadoEm || '');
+      return Number.isFinite(quando) && quando > corte;
+    }
+    LISTAS_ESTUDO.forEach(function (lista) {
+      posteriores[lista] = (local[lista] || []).filter(posterior).map(clonarJson);
+    });
+    posteriores.agenda = (local.agenda || []).filter(function (item) {
+      return agendaPersistente(item) && posterior(item);
+    }).map(clonarJson);
+    return mesclarEstados(base, posteriores);
+  }
+
   // Quantos registros de estudo um estado carrega (para detectar se a mesclagem
   // realmente recuperou itens que faltavam num dos lados).
   function contarRegistros(state) {
@@ -990,7 +1033,7 @@
     carregar, salvar, limparLocal, estadoVazio, normalizar: migrar, hidratar, novoId,
     ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados,
     mesclarEstados, contarRegistros, marcarRemovido, paraPersistencia, estadosEquivalentes,
-    limparLapidesDeEntidadesPresentes,
+    limparLapidesDeEntidadesPresentes, geracaoSync, adotarGeracaoOficial,
     corrigirAcentosTexto, normalizarAcentosEdital, normalizarAcentosConteudo
   };
 })();

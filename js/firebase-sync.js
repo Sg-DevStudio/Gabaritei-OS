@@ -117,6 +117,13 @@ function revDe(state) {
   return (state && state.config && parseInt(state.config.rev, 10)) || 0;
 }
 
+function geracaoDe(state) {
+  if (window.Store && window.Store.geracaoSync) return window.Store.geracaoSync(state);
+  return state && state.config && state.config.syncGeneration
+    ? String(state.config.syncGeneration)
+    : '';
+}
+
 // Decide quem é a base da mescla: rev (contador de edições, monotônico e imune
 // a relógio errado) manda; timestamps só desempatam revs iguais (estados antigos
 // sem rev caem nos timestamps, como antes). Empate total → remoto ganha.
@@ -244,6 +251,14 @@ function estadoCanonicoParaGravacao(localState, remoto) {
   if (!remoto || !remoto.state) return local;
 
   const remotoState = remoto.state;
+  const geracaoRemota = geracaoDe(remotoState);
+  const geracaoLocal = geracaoDe(local);
+  // Uma geração oficial criada explicitamente na nuvem nunca pode ser substituída
+  // por um cache de geração anterior. Registros feitos depois da promoção ainda
+  // são recuperados pelo Store, mas plano/configuração antigos ficam de fora.
+  if (geracaoRemota && geracaoRemota !== geracaoLocal) {
+    return window.Store.adotarGeracaoOficial(remotoState, local);
+  }
   const localMs = dataMs(atualizadoEm(local));
   const remotoMs = dataMs(atualizadoEm(remotoState) || remoto.updatedAt);
   const apagadoLocalMs = dataMs(local.config && local.config.apagadoEm);
@@ -321,6 +336,7 @@ async function gravarEstadoTransacional(stateLimpo) {
       chunks: codificado.partes.length,
       updatedAt: atualizadoEm(canonicoLimpo),
       clientId: idDispositivo(),
+      syncGeneration: geracaoDe(canonicoLimpo),
       rev: revDe(canonicoLimpo),
       resumo: resumoEstado(canonicoLimpo),
       savedAt: serverTimestamp()
@@ -334,6 +350,13 @@ async function gravarEstadoTransacional(stateLimpo) {
 
 function gravarRemoto(state) {
   if (!refEstado || !usuario || aplicandoRemoto) return Promise.resolve();
+  // Contas existentes precisam escolher uma única cópia antes de continuar.
+  // Sem esse marcador, qualquer aparelho antigo ainda poderia publicar sua base
+  // local antes de o usuário indicar qual histórico é o correto.
+  if (!geracaoDe(state)) {
+    definirStatus('aguardando-principal', 'Defina a versão principal para liberar a sincronização');
+    return Promise.resolve();
+  }
   // Salvaguarda contra perda de dados multi-dispositivo: um estado local SEM
   // dados (recém-carregado/cache limpo tem atualizadoEm = agora, logo "mais
   // novo" que a nuvem) NÃO pode sobrescrever uma nuvem que tem dados. A única
@@ -409,8 +432,11 @@ async function reconciliarComRemoto(silencioso) {
     if (!snap.exists()) {
       reconciliadoOk = true; // confirmou que não há cópia remota
       numeroChunksAtuais = 0;
-      if (temDados(local) || (local.config && local.config.apagadoEm)) await gravarRemoto(local);
-      else definirStatus('sincronizado', 'Conectado ao Firebase');
+      if (geracaoDe(local) && (temDados(local) || (local.config && local.config.apagadoEm))) {
+        await gravarRemoto(local);
+      } else {
+        definirStatus('aguardando-principal', 'Escolha neste aparelho a versão principal da conta');
+      }
       return;
     }
 
@@ -424,6 +450,25 @@ async function reconciliarComRemoto(silencioso) {
     reconciliadoOk = true;
     if (!remoto) {
       await gravarRemoto(local);
+      return;
+    }
+
+    const geracaoRemota = geracaoDe(remoto.state);
+    const geracaoLocal = geracaoDe(local);
+    // Migração segura das contas antigas: enquanto nenhuma cópia foi promovida,
+    // não mesclamos automaticamente estados divergentes. Assim o PC correto não
+    // é contaminado pelo histórico velho da nuvem antes do clique do usuário.
+    if (!geracaoRemota) {
+      if (geracaoLocal) await gravarRemoto(local);
+      else definirStatus('aguardando-principal', 'Escolha o aparelho com os dados corretos');
+      return;
+    }
+    if (geracaoRemota && geracaoRemota !== geracaoLocal) {
+      const adotado = window.Store.adotarGeracaoOficial(remoto.state, local);
+      const recuperouPosteriores = !window.Store.estadosEquivalentes(adotado, remoto.state);
+      aplicarRemoto(adotado, silencioso);
+      if (recuperouPosteriores) await gravarRemoto(adotado);
+      definirStatus('sincronizado', 'Versão principal baixada do Firebase');
       return;
     }
 
@@ -652,26 +697,31 @@ function chaveSnapshotUsuario(uid) {
   return CHAVE_SNAPSHOT_DIA + '.' + String(uid || '');
 }
 
+function informacoesBackupAgora() {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: FUSO_APP, year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short'
+  }).formatToParts(new Date()).reduce(function (acc, parte) {
+    acc[parte.type] = parte.value;
+    return acc;
+  }, {});
+  const diaSemana = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
+  return {
+    hoje: partes.year + '-' + partes.month + '-' + partes.day,
+    slot: 'backup-' + (diaSemana[partes.weekday] == null ? 0 : diaSemana[partes.weekday])
+  };
+}
+
 async function talvezSnapshotDiario(stateLimpo) {
   try {
     if (!usuario || !temDados(stateLimpo)) return;
-    const agora = new Date();
-    const partes = new Intl.DateTimeFormat('en-CA', {
-      timeZone: FUSO_APP, year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short'
-    }).formatToParts(agora).reduce(function (acc, parte) {
-      acc[parte.type] = parte.value;
-      return acc;
-    }, {});
-    const hoje = partes.year + '-' + partes.month + '-' + partes.day;
+    const info = informacoesBackupAgora();
     const chaveSnapshot = chaveSnapshotUsuario(usuario.uid);
-    if (localStorage.getItem(chaveSnapshot) === hoje) return;
-    const diaSemana = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
-    const slot = 'backup-' + (diaSemana[partes.weekday] == null ? 0 : diaSemana[partes.weekday]);
-    const slotRef = doc(db, 'users', usuario.uid, 'state', slot);
+    if (localStorage.getItem(chaveSnapshot) === info.hoje) return;
+    const slotRef = doc(db, 'users', usuario.uid, 'state', info.slot);
     const anterior = await getDoc(slotRef);
     const dadosAnteriores = anterior.exists() ? (anterior.data() || {}) : {};
     const lote = writeBatch(db);
-    const codificado = gravarPartesNoLote(lote, slot, stateLimpo, dadosAnteriores.chunks);
+    const codificado = gravarPartesNoLote(lote, info.slot, stateLimpo, dadosAnteriores.chunks);
     lote.set(slotRef, {
       formato: codificado.formato,
       chunks: codificado.partes.length,
@@ -682,7 +732,7 @@ async function talvezSnapshotDiario(stateLimpo) {
       savedAt: serverTimestamp()
     });
     await lote.commit();
-    localStorage.setItem(chaveSnapshot, hoje);
+    localStorage.setItem(chaveSnapshot, info.hoje);
   } catch (e) {
     console.warn('Backup diário na nuvem não gravado:', e && e.message ? e.message : e);
   }
@@ -727,6 +777,153 @@ async function lerBackupNuvem(id) {
   return window.Store.normalizar(JSON.parse(JSON.stringify(estado)));
 }
 
+function novaGeracaoPrincipal() {
+  return 'principal-' + Date.now().toString(36) + '-' + idDispositivo().slice(-12) +
+    '-' + Math.random().toString(36).slice(2, 7);
+}
+
+// Inicialização explícita da conta: o usuário escolhe o aparelho que contém a
+// cópia correta. A transação guarda a versão remota anterior no backup do dia e
+// só então substitui o estado principal por uma nova geração oficial.
+async function definirComoPrincipal() {
+  if (!usuario || !refEstado || !opcoes || !opcoes.obterEstado) {
+    throw new Error('Entre com Google antes de definir a versão principal.');
+  }
+  if (envioPendente) {
+    clearTimeout(envioPendente);
+    envioPendente = null;
+  }
+  if (promessaGravacao) await promessaGravacao;
+  const escolhido = prepararEstadoRemoto(opcoes.obterEstado());
+  if (!temDados(escolhido)) {
+    throw new Error('Este aparelho não possui dados de estudo para tornar principais.');
+  }
+
+  const geracao = novaGeracaoPrincipal();
+  const criadoEm = new Date().toISOString();
+  const infoBackup = informacoesBackupAgora();
+  definirStatus('sincronizando', 'Criando versão principal e backup de segurança');
+
+  try {
+    const resultado = await runTransaction(db, async function (transacao) {
+      const slotRef = doc(db, 'users', usuario.uid, 'state', infoBackup.slot);
+      const leituras = await Promise.all([
+        transacao.get(refEstado),
+        transacao.get(slotRef)
+      ]);
+      const snapAtual = leituras[0];
+      const snapBackup = leituras[1];
+      const dadosAtuais = snapAtual.exists() ? (snapAtual.data() || {}) : null;
+      const dadosBackup = snapBackup.exists() ? (snapBackup.data() || {}) : {};
+      const chunksAtuais = dadosAtuais && dadosAtuais.formato === codecRemoto().FORMATO
+        ? (parseInt(dadosAtuais.chunks, 10) || 0)
+        : 0;
+      const remotoAnterior = dadosAtuais
+        ? await normalizarRemoto(dadosAtuais, 'current', function (referencia) {
+          return transacao.get(referencia);
+        })
+        : null;
+
+      if (remotoAnterior && remotoAnterior.state) {
+        const anteriorLimpo = prepararEstadoRemoto(remotoAnterior.state);
+        const backupCodificado = gravarPartesNoLote(
+          transacao,
+          infoBackup.slot,
+          anteriorLimpo,
+          dadosBackup.chunks
+        );
+        transacao.set(slotRef, {
+          formato: backupCodificado.formato,
+          chunks: backupCodificado.partes.length,
+          criadoEm,
+          clientId: idDispositivo(),
+          rev: revDe(anteriorLimpo),
+          resumo: resumoEstado(anteriorLimpo),
+          savedAt: serverTimestamp()
+        });
+      }
+
+      const principal = window.Store.normalizar(JSON.parse(JSON.stringify(escolhido)));
+      principal.config.syncGeneration = geracao;
+      principal.config.syncGenerationCreatedAt = criadoEm;
+      principal.config.rev = Math.max(revDe(principal), revDe(remotoAnterior && remotoAnterior.state)) + 1;
+      principal.config.atualizadoEm = criadoEm;
+      if (temDados(principal)) delete principal.config.apagadoEm;
+      const principalLimpo = prepararEstadoRemoto(principal);
+      const codificado = gravarPartesNoLote(transacao, 'current', principalLimpo, chunksAtuais);
+      transacao.set(refEstado, {
+        formato: codificado.formato,
+        chunks: codificado.partes.length,
+        updatedAt: criadoEm,
+        clientId: idDispositivo(),
+        syncGeneration: geracao,
+        rev: revDe(principalLimpo),
+        resumo: resumoEstado(principalLimpo),
+        savedAt: serverTimestamp()
+      });
+      return {
+        state: principalLimpo,
+        chunks: codificado.partes.length,
+        backupId: remotoAnterior && remotoAnterior.state ? infoBackup.slot : null
+      };
+    }, { maxAttempts: 5 });
+
+    estadoPendenteGravacao = null;
+    numeroChunksAtuais = resultado.chunks;
+    reconciliadoOk = true;
+    if (resultado.backupId) {
+      localStorage.setItem(chaveSnapshotUsuario(usuario.uid), infoBackup.hoje);
+    }
+    aplicarRemoto(resultado.state, true);
+    definirStatus('sincronizado', 'Este aparelho definiu a versão principal');
+    return {
+      geracao,
+      criadoEm,
+      backupId: resultado.backupId,
+      resumo: resumoEstado(resultado.state)
+    };
+  } catch (e) {
+    definirStatus('erro', e && e.message ? e.message : 'Falha ao criar a versão principal');
+    throw e;
+  }
+}
+
+// Ação manual para um aparelho secundário: ignora seu cache local e baixa a
+// geração oficial exatamente como está na nuvem. A UI baixa um JSON local antes.
+async function baixarVersaoPrincipal() {
+  if (!usuario || !refEstado) throw new Error('Entre com Google para baixar a versão principal.');
+  if (envioPendente) {
+    clearTimeout(envioPendente);
+    envioPendente = null;
+  }
+  estadoPendenteGravacao = null;
+  if (promessaGravacao) await promessaGravacao;
+  definirStatus('sincronizando', 'Baixando versão principal do Firebase');
+  try {
+    const snap = await getDoc(refEstado);
+    if (!snap.exists()) throw new Error('Ainda não existe uma versão principal na nuvem.');
+    const dados = snap.data() || {};
+    const remoto = await normalizarRemoto(dados, 'current');
+    if (!remoto || !geracaoDe(remoto.state)) {
+      throw new Error('A versão principal ainda não foi definida no PC com os dados corretos.');
+    }
+    numeroChunksAtuais = dados.formato === codecRemoto().FORMATO
+      ? (parseInt(dados.chunks, 10) || 0)
+      : 0;
+    reconciliadoOk = true;
+    aplicarRemoto(remoto.state, true);
+    definirStatus('sincronizado', 'Versão principal baixada do Firebase');
+    return {
+      geracao: geracaoDe(remoto.state),
+      criadoEm: remoto.state.config && remoto.state.config.syncGenerationCreatedAt,
+      resumo: resumoEstado(remoto.state)
+    };
+  } catch (e) {
+    definirStatus('erro', e && e.message ? e.message : 'Falha ao baixar a versão principal');
+    throw e;
+  }
+}
+
 function agendarEnvio(state) {
   if (!usuario || !refEstado) return;
   clearTimeout(envioPendente);
@@ -766,6 +963,10 @@ async function logout(opcoesLogout) {
     if (!reconciliadoOk) await reconciliarComRemoto(true);
     if (!reconciliadoOk || statusAtual.estado === 'erro') {
       throw new Error('Não foi possível confirmar a sincronização. Conecte-se à internet antes de sair.');
+    }
+    const estadoAntesDeSair = opcoes && opcoes.obterEstado ? opcoes.obterEstado() : null;
+    if (temDados(estadoAntesDeSair) && !geracaoDe(estadoAntesDeSair)) {
+      throw new Error('Defina a versão principal ou baixe um backup antes de sair desta conta.');
     }
     if (envioPendente) {
       clearTimeout(envioPendente);
@@ -869,6 +1070,6 @@ window.FirebaseSync = {
   carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
   carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush,
   desativarPushAtual, pushConfigurado,
-  listarBackupsNuvem, lerBackupNuvem
+  listarBackupsNuvem, lerBackupNuvem, definirComoPrincipal, baixarVersaoPrincipal
 };
 window.dispatchEvent(new CustomEvent('firebase-sync-ready'));

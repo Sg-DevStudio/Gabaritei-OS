@@ -32,7 +32,7 @@ service cloud.firestore {
 
     function validCurrentMetadata() {
       return request.resource.data.keys().hasOnly([
-          "formato", "chunks", "updatedAt", "clientId", "rev", "resumo", "savedAt"
+          "formato", "chunks", "updatedAt", "clientId", "syncGeneration", "rev", "resumo", "savedAt"
         ])
         && request.resource.data.formato == 2
         && request.resource.data.chunks is int
@@ -42,6 +42,10 @@ service cloud.firestore {
         && request.resource.data.updatedAt.size() <= 40
         && request.resource.data.clientId is string
         && request.resource.data.clientId.size() <= 120
+        && (!("syncGeneration" in request.resource.data) ||
+          (request.resource.data.syncGeneration is string
+            && request.resource.data.syncGeneration.size() >= 8
+            && request.resource.data.syncGeneration.size() <= 120))
         && request.resource.data.rev is int
         && request.resource.data.rev >= 0
         && validSummary(request.resource.data.resumo)
@@ -97,6 +101,20 @@ service cloud.firestore {
         : (docId.matches("^backup-[0-6]$") && (validBackupMetadata() || validLegacyBackup()));
     }
 
+    // Depois que uma conta tem uma geração oficial, clientes antigos (que ainda
+    // não enviam syncGeneration) não podem voltar a gravar o documento principal.
+    // A operação atômica inteira falha, inclusive os chunks.
+    function keepsPrincipalMarker(docId) {
+      return docId != "current"
+        || !("syncGeneration" in resource.data)
+        || ("syncGeneration" in request.resource.data);
+    }
+
+    function validStateWrite(docId) {
+      return (isStateMetadataId(docId) && validStateMetadata(docId))
+        || (isStateChunkId(docId) && validStateChunk());
+    }
+
     function validStateChunk() {
       return request.resource.data.keys().hasOnly(["payload", "index", "rev", "savedAt"])
         && request.resource.data.payload is string
@@ -135,9 +153,9 @@ service cloud.firestore {
     match /users/{userId}/state/{docId} {
       allow read: if isOwner(userId) &&
         (isStateMetadataId(docId) || isStateChunkId(docId));
-      allow create, update: if isOwner(userId) &&
-        ((isStateMetadataId(docId) && validStateMetadata(docId)) ||
-         (isStateChunkId(docId) && validStateChunk()));
+      allow create: if isOwner(userId) && validStateWrite(docId);
+      allow update: if isOwner(userId) &&
+        validStateWrite(docId) && keepsPrincipalMarker(docId);
       allow delete: if isOwner(userId) &&
         (isStateMetadataId(docId) || isStateChunkId(docId));
     }

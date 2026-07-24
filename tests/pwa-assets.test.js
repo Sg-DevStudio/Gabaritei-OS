@@ -31,7 +31,7 @@ test('arquivos críticos de sincronização são publicados na mesma versão da 
     return match[1];
   });
   assert.equal(new Set(versoes).size, 1, 'assets críticos não podem ficar em gerações diferentes');
-  assert.match(serviceWorker, /const CACHE = 'estudos-v\d+-sync-convergencia'/);
+  assert.match(serviceWorker, /const CACHE = 'estudos-v\d+-sync-oficial'/);
 });
 
 test('service worker mantém disponíveis offline o plano de exemplo e os ícones do manifesto', () => {

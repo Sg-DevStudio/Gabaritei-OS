@@ -59,6 +59,69 @@ test('dois aparelhos convergem horas e questões sem perder o histórico confirm
   assert.equal(S.mesclarEstados(canonico, trabalho).sessoes.length, 3, 'todos os aparelhos convergem');
 });
 
+test('nova geração oficial bloqueia plano e histórico antigos, mas preserva estudo realmente posterior', () => {
+  const oficial = estadoCom(function (st) {
+    st.planos = [plano('p-oficial', '2026-07-01T00:00:00Z', 'Plano correto', '2026-07-24T10:00:00Z')];
+    st.planoAtivoId = 'p-oficial';
+    st.config.metaQuestoesSemana = 200;
+    st.config.syncGeneration = 'principal-geracao-1';
+    st.config.syncGenerationCreatedAt = '2026-07-24T10:00:00Z';
+    st.sessoes = [{
+      id: 's-oficial', planoId: 'p-oficial', criadoEm: '2026-07-24T09:30:00Z',
+      data: '2026-07-24', duracaoMin: 60, qFeitas: 20
+    }];
+  });
+  const aparelhoAntigo = estadoCom(function (st) {
+    st.planos = [plano('p-antigo', '2026-02-01T00:00:00Z', 'Plano ultrapassado', '2026-07-23T10:00:00Z')];
+    st.planoAtivoId = 'p-antigo';
+    st.config.metaQuestoesSemana = 999;
+    st.sessoes = [
+      {
+        id: 's-velha', planoId: 'p-antigo', criadoEm: '2026-07-23T18:00:00Z',
+        data: '2026-07-23', duracaoMin: 30, qFeitas: 10
+      },
+      {
+        id: 's-offline-nova', planoId: 'p-oficial', criadoEm: '2026-07-24T11:00:00Z',
+        data: '2026-07-24', duracaoMin: 45, qFeitas: 15
+      }
+    ];
+    st.agenda = [
+      { id: 'agenda-velha', gerado: false, criadoEm: '2026-07-23T18:30:00Z' },
+      { id: 'agenda-nova', gerado: false, criadoEm: '2026-07-24T11:30:00Z' }
+    ];
+  });
+
+  const adotado = S.adotarGeracaoOficial(oficial, aparelhoAntigo);
+
+  assert.deepEqual(adotado.planos.map(function (p) { return p.id; }), ['p-oficial']);
+  assert.equal(adotado.planoAtivoId, 'p-oficial');
+  assert.equal(adotado.config.metaQuestoesSemana, 200, 'configuração oficial vence');
+  assert.equal(adotado.config.syncGeneration, 'principal-geracao-1');
+  assert.deepEqual(
+    adotado.sessoes.map(function (s) { return s.id; }).sort(),
+    ['s-offline-nova', 's-oficial']
+  );
+  assert.deepEqual(adotado.agenda.map(function (a) { return a.id; }), ['agenda-nova']);
+});
+
+test('aparelhos na mesma geração continuam unindo normalmente seus registros', () => {
+  const casa = estadoCom(function (st) {
+    st.config.syncGeneration = 'principal-geracao-2';
+    st.config.syncGenerationCreatedAt = '2026-07-24T10:00:00Z';
+    st.sessoes = [{ id: 's-casa', criadoEm: '2026-07-20T10:00:00Z' }];
+  });
+  const trabalho = estadoCom(function (st) {
+    st.config.syncGeneration = 'principal-geracao-2';
+    st.config.syncGenerationCreatedAt = '2026-07-24T10:00:00Z';
+    st.sessoes = [{ id: 's-trabalho', criadoEm: '2026-07-19T10:00:00Z' }];
+  });
+  const unido = S.adotarGeracaoOficial(casa, trabalho);
+  assert.deepEqual(
+    unido.sessoes.map(function (s) { return s.id; }).sort(),
+    ['s-casa', 's-trabalho']
+  );
+});
+
 test('sessão com tombstone (removidos) não ressuscita de nenhum lado', () => {
   const a = estadoCom(function (st) { S.marcarRemovido(st, 's-apagada'); });
   const b = estadoCom(function (st) { st.sessoes = [{ id: 's-apagada' }, { id: 's-viva' }]; });
