@@ -90,26 +90,20 @@ test('gravação remota remove o espelho hidratado e particiona estados grandes'
   assert.match(indexHtml, /js\/remote-state\.js/);
 });
 
-test('versão principal exige escolha explícita, protege clientes antigos e oferece restauração segura', () => {
-  const inicioPromocao = firebaseSync.indexOf('async function definirComoPrincipal');
-  const fimPromocao = firebaseSync.indexOf('async function baixarVersaoPrincipal', inicioPromocao);
-  const promocao = firebaseSync.slice(inicioPromocao, fimPromocao);
+test('geração de sync é automática para novas contas e mantém escolhas já feitas sem expor controles', () => {
+  const apiPublica = firebaseSync.slice(firebaseSync.indexOf('window.FirebaseSync = {'));
 
-  assert.ok(inicioPromocao >= 0 && fimPromocao > inicioPromocao);
+  assert.match(firebaseSync, /function novaGeracaoAutomatica/);
+  assert.match(firebaseSync, /canonico\.config\.syncGeneration = novaGeracaoAutomatica\(\)/);
+  assert.match(firebaseSync, /Contas antigas são migradas em silêncio/);
+  assert.match(firebaseSync, /function geracaoFoiEscolhida/);
   assert.match(store, /function adotarGeracaoOficial/);
-  assert.match(firebaseSync, /aguardando-principal/);
   assert.match(firebaseSync, /syncGeneration: geracaoDe\(canonicoLimpo\)/);
-  const gravacaoBackup = promocao.match(/gravarPartesNoLote\(\s*transacao,\s*infoBackup\.slot/);
-  const gravacaoPrincipal = promocao.match(/gravarPartesNoLote\(transacao,\s*'current'/);
-  assert.ok(gravacaoBackup && gravacaoPrincipal && gravacaoBackup.index < gravacaoPrincipal.index,
-    'a nuvem anterior deve ser copiada para backup antes de escrever a nova base'
-  );
-  assert.match(promocao, /syncGeneration: geracao/);
-  assert.match(app, /id="fb-definir-principal"/);
-  assert.match(app, /id="fb-baixar-principal"/);
-  assert.match(app, /Digite PRINCIPAL/);
-  assert.match(app, /Sincronização pausada: escolha o aparelho com os dados corretos/);
-  assert.match(app, /Store\.exportarBackup\(state\)[\s\S]*?FirebaseSync\.baixarVersaoPrincipal\(\)/);
+  assert.doesNotMatch(firebaseSync, /aguardando-principal/);
+  assert.doesNotMatch(app, /id="fb-definir-principal"/);
+  assert.doesNotMatch(app, /id="fb-baixar-principal"/);
+  assert.doesNotMatch(app, /Digite PRINCIPAL/);
+  assert.doesNotMatch(apiPublica, /definirComoPrincipal|baixarVersaoPrincipal/);
   assert.match(regras, /keepsPrincipalMarker/);
   assert.match(regras, /"syncGeneration" in resource\.data/);
 });

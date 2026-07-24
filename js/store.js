@@ -722,10 +722,9 @@
       : '';
   }
 
-  // Quando uma nova base oficial é criada, aparelhos que ainda carregam a geração
-  // anterior não podem devolver toda a estrutura velha à nuvem. A base oficial
-  // vence; preservamos somente registros de estudo realmente criados/alterados
-  // depois do instante da promoção, para não perder uma sessão feita offline.
+  // Uma geração explicitamente escolhida antes da migração automática continua
+  // sendo a base da conta. Aparelhos antigos só podem acrescentar registros feitos
+  // depois dessa escolha; estruturas e configurações anteriores não retornam.
   function adotarGeracaoOficial(oficial, localAntigo) {
     const base = migrar(clonarJson(oficial || estadoVazio()));
     const local = migrar(clonarJson(localAntigo || estadoVazio()));

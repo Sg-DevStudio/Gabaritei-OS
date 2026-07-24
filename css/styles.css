@@ -4002,30 +4002,6 @@ canvas.grafico {
   align-items: start;
 }
 .ajustes-sync-grid .card { margin-bottom: 0; }
-.sync-principal-box {
-  margin-top: 1rem;
-  padding: 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--caneta) 24%, var(--linha));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--caneta) 5%, var(--papel));
-}
-.sync-principal-box strong { display: block; margin-bottom: 0.25rem; }
-.sync-principal-status,
-.sync-principal-resumo,
-.sync-principal-ajuda { margin: 0.28rem 0 0; }
-.sync-principal-resumo { font-weight: 650; color: var(--tinta); }
-.sync-principal-acoes {
-  justify-content: flex-start;
-  align-items: stretch;
-  margin-top: 0.75rem;
-}
-.sync-principal-acoes button { white-space: normal; }
-.sync-principal-ajuda { font-size: 0.78rem; line-height: 1.45; }
-
-@media (max-width: 520px) {
-  .sync-principal-acoes { flex-direction: column; }
-  .sync-principal-acoes button { width: 100%; }
-}
 
 /* Configurações: catálogo pessoal de carreiras */
 .carreiras-config-card { border-color: color-mix(in srgb, var(--caneta) 24%, var(--linha)); }

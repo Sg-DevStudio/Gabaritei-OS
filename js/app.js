@@ -5058,14 +5058,6 @@
     const contaSync = firebaseStatus && firebaseStatus.usuario && firebaseStatus.usuario.email
       ? '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">' + esc(firebaseStatus.usuario.email) + '</strong></p>'
       : '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">não conectada</strong></p>';
-    const principalCriadoEm = state.config && state.config.syncGenerationCreatedAt;
-    const temPrincipal = !!(state.config && state.config.syncGeneration && principalCriadoEm);
-    const principalQuando = temPrincipal && Number.isFinite(Date.parse(principalCriadoEm))
-      ? new Date(principalCriadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
-      : '';
-    const podePrincipal = !!(firebaseStatus && firebaseStatus.usuario && !modoDemo);
-    const resumoPrincipal = (state.planos || []).length + ' plano(s) · ' +
-      window.Store.contarRegistros(state) + ' registro(s)';
     html += '<div class="card"><h3>Sincronização entre aparelhos</h3>' +
       '<p style="font-size:0.88rem;color:var(--grafite)">Status: <strong id="sync-status">' + esc(syncTexto) + '</strong></p>' +
       '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">' + esc(syncFonte) + '</span></p>' +
@@ -5075,19 +5067,6 @@
       '<button class="botao-secundario" id="sync-agora">Sincronizar agora</button>' +
       '<button class="botao-secundario" id="fb-backups">Backups na nuvem</button>' +
       '<button class="botao-quieto" id="fb-logout">Sair</button>' +
-      '</div>' +
-      '<div class="sync-principal-box">' +
-      '<div><strong>Versão principal da conta</strong>' +
-      (temPrincipal
-        ? '<p class="sub sync-principal-status">Ativa desde ' + esc(principalQuando) + '. Todos os aparelhos seguem esta base no Firebase.</p>'
-        : '<p class="sub sync-principal-status">Ainda não definida. Faça isso uma única vez no aparelho que contém o histórico correto.</p>') +
-      '<p class="sub sync-principal-resumo">Neste aparelho: ' + esc(resumoPrincipal) + '</p></div>' +
-      '<div class="modal-acoes sync-principal-acoes">' +
-      '<button class="botao-perigo botao-mini" id="fb-definir-principal"' + (podePrincipal ? '' : ' disabled') + '>' +
-      (temPrincipal ? 'Substituir versão principal por estes dados' : 'Usar estes dados como versão principal') + '</button>' +
-      '<button class="botao-secundario botao-mini" id="fb-baixar-principal"' + (podePrincipal ? '' : ' disabled') + '>Baixar versão principal neste aparelho</button>' +
-      '</div>' +
-      '<p class="sub sync-principal-ajuda">Ao definir, a versão anterior da nuvem é guardada automaticamente em Backups. Ao baixar, uma cópia JSON deste aparelho é criada antes da substituição.</p>' +
       '</div></div>';
 
     html += '</div>'; // .ajustes-sync-grid
@@ -7219,86 +7198,6 @@
 
     const fbBackups = raiz.querySelector('#fb-backups');
     if (fbBackups) fbBackups.addEventListener('click', abrirBackupsNuvem);
-    const fbDefinirPrincipal = raiz.querySelector('#fb-definir-principal');
-    if (fbDefinirPrincipal) fbDefinirPrincipal.addEventListener('click', function () {
-      if (!window.FirebaseSync || !window.FirebaseSync.ativo()) {
-        toast('Entre com Google para definir a versão principal.', 'erro');
-        return;
-      }
-      confirmar({
-        titulo: 'Usar estes dados como versão principal?',
-        mensagem: 'Este aparelho passará a ser a base oficial da conta. Planejamento, metas e histórico antigos de outros aparelhos não poderão substituir esta cópia. A versão atual da nuvem será guardada em Backups.',
-        confirmar: 'Continuar',
-        perigo: true,
-        icone: '⚠️'
-      }).then(function (ok) {
-        if (!ok) return null;
-        return pedirTexto({
-          titulo: 'Confirmação final',
-          mensagem: 'Digite PRINCIPAL para confirmar que os dados corretos estão neste aparelho.',
-          placeholder: 'PRINCIPAL',
-          confirmar: 'Criar versão principal',
-          maxlength: 9
-        });
-      }).then(function (confirmacao) {
-        if (confirmacao === null) return;
-        if (confirmacao.toUpperCase() !== 'PRINCIPAL') {
-          toast('A confirmação não confere. Nenhum dado foi alterado.', 'erro');
-          return;
-        }
-        fbDefinirPrincipal.disabled = true;
-        return window.FirebaseSync.definirComoPrincipal().then(function (resultado) {
-          firebaseStatus = window.FirebaseSync.status();
-          render();
-          toast(
-            resultado.backupId
-              ? 'Versão principal criada. A cópia anterior da nuvem ficou salva em Backups.'
-              : 'Versão principal criada. Agora os outros aparelhos podem baixá-la.',
-            'sucesso'
-          );
-        }).catch(function (e) {
-          firebaseStatus = window.FirebaseSync.status();
-          atualizarSyncUi();
-          toast(e && e.message ? e.message : 'Não foi possível criar a versão principal.', 'erro');
-        }).finally(function () {
-          if (fbDefinirPrincipal.isConnected) fbDefinirPrincipal.disabled = false;
-        });
-      });
-    });
-    const fbBaixarPrincipal = raiz.querySelector('#fb-baixar-principal');
-    if (fbBaixarPrincipal) fbBaixarPrincipal.addEventListener('click', function () {
-      if (!window.FirebaseSync || !window.FirebaseSync.ativo()) {
-        toast('Entre com Google para baixar a versão principal.', 'erro');
-        return;
-      }
-      confirmar({
-        titulo: 'Baixar a versão principal neste aparelho?',
-        mensagem: 'Os dados locais serão substituídos pela base oficial da conta. Antes disso, o app baixará uma cópia JSON deste aparelho para que nada fique sem recuperação.',
-        confirmar: 'Baixar e substituir',
-        perigo: true,
-        icone: '↓'
-      }).then(function (ok) {
-        if (!ok) return;
-        fbBaixarPrincipal.disabled = true;
-        const persistencia = window.Store.exportarBackup(state);
-        return window.FirebaseSync.baixarVersaoPrincipal().then(function () {
-          firebaseStatus = window.FirebaseSync.status();
-          render();
-          toast(
-            persistencia && persistencia.ok === false
-              ? 'Versão principal baixada. Guarde o JSON: o armazenamento local estava cheio.'
-              : 'Versão principal baixada. A cópia local anterior está no arquivo JSON.',
-            persistencia && persistencia.ok === false ? 'erro' : 'sucesso'
-          );
-        }).catch(function (e) {
-          firebaseStatus = window.FirebaseSync.status();
-          atualizarSyncUi();
-          toast(e && e.message ? e.message : 'Não foi possível baixar a versão principal.', 'erro');
-        }).finally(function () {
-          if (fbBaixarPrincipal.isConnected) fbBaixarPrincipal.disabled = false;
-        });
-      });
-    });
     const backupExportar = raiz.querySelector('#backup-exportar');
     if (backupExportar) backupExportar.addEventListener('click', function () {
       if (modoDemo) return;
@@ -12582,23 +12481,15 @@
   // abriam "sem nada salvo"). Aparece apenas em erro real com sessão ativa.
   function atualizarAvisoSyncPendente(atual) {
     let aviso = document.getElementById('sync-aviso-pendente');
-    const aguardandoPrincipal = !!(atual && atual.estado === 'aguardando-principal');
-    const mostrar = !!(atual && atual.usuario &&
-      (atual.estado === 'erro' || aguardandoPrincipal) && !modoDemo);
+    const mostrar = !!(atual && atual.usuario && atual.estado === 'erro' && !modoDemo);
     if (!mostrar) { if (aviso) aviso.remove(); return; }
     if (aviso) return;
     aviso = document.createElement('button');
     aviso.id = 'sync-aviso-pendente';
     aviso.type = 'button';
     aviso.className = 'sync-aviso-pendente';
-    aviso.textContent = aguardandoPrincipal
-      ? '⚠️ Sincronização pausada: escolha o aparelho com os dados corretos — abrir Configurações'
-      : '⚠️ Alterações deste aparelho ainda não foram para a nuvem — toque para sincronizar agora';
+    aviso.textContent = '⚠️ Alterações deste aparelho ainda não foram para a nuvem — toque para sincronizar agora';
     aviso.addEventListener('click', function () {
-      if (aguardandoPrincipal) {
-        location.hash = '#ajustes';
-        return;
-      }
       if (!window.FirebaseSync || !window.FirebaseSync.ativo()) return;
       aviso.disabled = true;
       aviso.textContent = 'Sincronizando…';

@@ -124,6 +124,15 @@ function geracaoDe(state) {
     : '';
 }
 
+function geracaoFoiEscolhida(state) {
+  return geracaoDe(state).indexOf('principal-') === 0;
+}
+
+function novaGeracaoAutomatica() {
+  return 'auto-' + Date.now().toString(36) + '-' + idDispositivo().slice(-12) +
+    '-' + Math.random().toString(36).slice(2, 7);
+}
+
 // Decide quem é a base da mescla: rev (contador de edições, monotônico e imune
 // a relógio errado) manda; timestamps só desempatam revs iguais (estados antigos
 // sem rev caem nos timestamps, como antes). Empate total → remoto ganha.
@@ -253,11 +262,17 @@ function estadoCanonicoParaGravacao(localState, remoto) {
   const remotoState = remoto.state;
   const geracaoRemota = geracaoDe(remotoState);
   const geracaoLocal = geracaoDe(local);
-  // Uma geração oficial criada explicitamente na nuvem nunca pode ser substituída
-  // por um cache de geração anterior. Registros feitos depois da promoção ainda
-  // são recuperados pelo Store, mas plano/configuração antigos ficam de fora.
+  // A escolha já feita pelo proprietário desta conta continua soberana. Para as
+  // demais contas, o marcador é apenas interno: estados de gerações diferentes
+  // seguem a mescla normal e convergem sem pedir nenhuma decisão ao usuário.
   if (geracaoRemota && geracaoRemota !== geracaoLocal) {
-    return window.Store.adotarGeracaoOficial(remotoState, local);
+    if (geracaoFoiEscolhida(remotoState)) {
+      return window.Store.adotarGeracaoOficial(remotoState, local);
+    }
+    local.config.syncGeneration = geracaoRemota;
+    if (remotoState.config && remotoState.config.syncGenerationCreatedAt) {
+      local.config.syncGenerationCreatedAt = remotoState.config.syncGenerationCreatedAt;
+    }
   }
   const localMs = dataMs(atualizadoEm(local));
   const remotoMs = dataMs(atualizadoEm(remotoState) || remoto.updatedAt);
@@ -322,8 +337,13 @@ async function gravarEstadoTransacional(stateLimpo) {
 
     const canonico = estadoCanonicoParaGravacao(stateLimpo, remoto);
     if (!canonico.config) canonico.config = {};
+    const agora = new Date().toISOString();
+    if (!geracaoDe(canonico)) {
+      canonico.config.syncGeneration = novaGeracaoAutomatica();
+      canonico.config.syncGenerationCreatedAt = agora;
+    }
     canonico.config.rev = Math.max(revDe(stateLimpo), revDe(remoto && remoto.state)) + 1;
-    canonico.config.atualizadoEm = new Date().toISOString();
+    canonico.config.atualizadoEm = agora;
     const canonicoLimpo = prepararEstadoRemoto(canonico);
     const codificado = gravarPartesNoLote(
       transacao,
@@ -350,13 +370,6 @@ async function gravarEstadoTransacional(stateLimpo) {
 
 function gravarRemoto(state) {
   if (!refEstado || !usuario || aplicandoRemoto) return Promise.resolve();
-  // Contas existentes precisam escolher uma única cópia antes de continuar.
-  // Sem esse marcador, qualquer aparelho antigo ainda poderia publicar sua base
-  // local antes de o usuário indicar qual histórico é o correto.
-  if (!geracaoDe(state)) {
-    definirStatus('aguardando-principal', 'Defina a versão principal para liberar a sincronização');
-    return Promise.resolve();
-  }
   // Salvaguarda contra perda de dados multi-dispositivo: um estado local SEM
   // dados (recém-carregado/cache limpo tem atualizadoEm = agora, logo "mais
   // novo" que a nuvem) NÃO pode sobrescrever uma nuvem que tem dados. A única
@@ -432,11 +445,8 @@ async function reconciliarComRemoto(silencioso) {
     if (!snap.exists()) {
       reconciliadoOk = true; // confirmou que não há cópia remota
       numeroChunksAtuais = 0;
-      if (geracaoDe(local) && (temDados(local) || (local.config && local.config.apagadoEm))) {
-        await gravarRemoto(local);
-      } else {
-        definirStatus('aguardando-principal', 'Escolha neste aparelho a versão principal da conta');
-      }
+      if (temDados(local) || (local.config && local.config.apagadoEm)) await gravarRemoto(local);
+      else definirStatus('sincronizado', 'Conectado ao Firebase');
       return;
     }
 
@@ -455,20 +465,26 @@ async function reconciliarComRemoto(silencioso) {
 
     const geracaoRemota = geracaoDe(remoto.state);
     const geracaoLocal = geracaoDe(local);
-    // Migração segura das contas antigas: enquanto nenhuma cópia foi promovida,
-    // não mesclamos automaticamente estados divergentes. Assim o PC correto não
-    // é contaminado pelo histórico velho da nuvem antes do clique do usuário.
+    // Contas antigas são migradas em silêncio: escolhemos a base mais recente,
+    // unimos registros por id e a primeira gravação transacional cria o marcador.
     if (!geracaoRemota) {
-      if (geracaoLocal) await gravarRemoto(local);
-      else definirStatus('aguardando-principal', 'Escolha o aparelho com os dados corretos');
+      const canonicoInicial = estadoCanonicoParaGravacao(local, remoto);
+      if (!window.Store.estadosEquivalentes(canonicoInicial, local)) {
+        aplicarRemoto(canonicoInicial, silencioso);
+      }
+      if (temDados(canonicoInicial) || temLapides(canonicoInicial)) {
+        await gravarRemoto(canonicoInicial);
+      } else {
+        definirStatus('sincronizado', 'Sincronizado com Firebase');
+      }
       return;
     }
     if (geracaoRemota && geracaoRemota !== geracaoLocal) {
-      const adotado = window.Store.adotarGeracaoOficial(remoto.state, local);
-      const recuperouPosteriores = !window.Store.estadosEquivalentes(adotado, remoto.state);
-      aplicarRemoto(adotado, silencioso);
-      if (recuperouPosteriores) await gravarRemoto(adotado);
-      definirStatus('sincronizado', 'Versão principal baixada do Firebase');
+      const convergente = estadoCanonicoParaGravacao(local, remoto);
+      const mudouRemoto = !window.Store.estadosEquivalentes(convergente, remoto.state);
+      aplicarRemoto(convergente, silencioso);
+      if (mudouRemoto) await gravarRemoto(convergente);
+      definirStatus('sincronizado', 'Sincronizado com Firebase');
       return;
     }
 
@@ -964,10 +980,6 @@ async function logout(opcoesLogout) {
     if (!reconciliadoOk || statusAtual.estado === 'erro') {
       throw new Error('Não foi possível confirmar a sincronização. Conecte-se à internet antes de sair.');
     }
-    const estadoAntesDeSair = opcoes && opcoes.obterEstado ? opcoes.obterEstado() : null;
-    if (temDados(estadoAntesDeSair) && !geracaoDe(estadoAntesDeSair)) {
-      throw new Error('Defina a versão principal ou baixe um backup antes de sair desta conta.');
-    }
     if (envioPendente) {
       clearTimeout(envioPendente);
       envioPendente = null;
@@ -1070,6 +1082,6 @@ window.FirebaseSync = {
   carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
   carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush,
   desativarPushAtual, pushConfigurado,
-  listarBackupsNuvem, lerBackupNuvem, definirComoPrincipal, baixarVersaoPrincipal
+  listarBackupsNuvem, lerBackupNuvem
 };
 window.dispatchEvent(new CustomEvent('firebase-sync-ready'));
