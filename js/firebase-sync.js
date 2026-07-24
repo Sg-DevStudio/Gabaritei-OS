@@ -18,6 +18,7 @@ import {
   getFirestore,
   onSnapshot,
   deleteField,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -157,15 +158,16 @@ function refParteEstado(prefixo, indice) {
   return doc(db, 'users', usuario.uid, 'state', codecRemoto().idParte(prefixo, indice));
 }
 
-async function lerEstadoDoDocumento(dados, prefixo) {
+async function lerEstadoDoDocumento(dados, prefixo, lerDocumento) {
   if (!dados) return null;
   if (dados.formato === codecRemoto().FORMATO) {
     const quantidade = parseInt(dados.chunks, 10);
     if (!Number.isFinite(quantidade) || quantidade < 1 || quantidade > codecRemoto().MAX_PARTES) {
       throw new Error('Metadados do estado remoto são inválidos.');
     }
+    const ler = typeof lerDocumento === 'function' ? lerDocumento : getDoc;
     const snaps = await Promise.all(Array.from({ length: quantidade }, function (_, indice) {
-      return getDoc(refParteEstado(prefixo, indice));
+      return ler(refParteEstado(prefixo, indice));
     }));
     const partes = snaps.map(function (snap, indice) {
       const parte = snap.exists() ? (snap.data() || {}) : {};
@@ -181,8 +183,8 @@ async function lerEstadoDoDocumento(dados, prefixo) {
   return dados.state || null; // formato legado (documento único)
 }
 
-async function normalizarRemoto(dados, prefixo) {
-  const estado = await lerEstadoDoDocumento(dados, prefixo || 'current');
+async function normalizarRemoto(dados, prefixo, lerDocumento) {
+  const estado = await lerEstadoDoDocumento(dados, prefixo || 'current', lerDocumento);
   if (!estado) return null;
   return {
     state: window.Store.normalizar(estado),
@@ -233,6 +235,43 @@ function resumoEstado(state) {
   };
 }
 
+// Resolve o estado que uma gravação pode publicar sem apagar o trabalho de outro
+// aparelho. Esta decisão roda DENTRO da transação, depois de reler a versão mais
+// recente do Firestore; portanto dois envios simultâneos são serializados e o
+// segundo sempre incorpora o primeiro antes de confirmar.
+function estadoCanonicoParaGravacao(localState, remoto) {
+  const local = window.Store.normalizar(JSON.parse(JSON.stringify(localState)));
+  if (!remoto || !remoto.state) return local;
+
+  const remotoState = remoto.state;
+  const localMs = dataMs(atualizadoEm(local));
+  const remotoMs = dataMs(atualizadoEm(remotoState) || remoto.updatedAt);
+  const apagadoLocalMs = dataMs(local.config && local.config.apagadoEm);
+  const apagadoRemotoMs = dataMs(remotoState.config && remotoState.config.apagadoEm);
+
+  // Exclusão total explícita vence uma cópia anterior, mas nunca um trabalho
+  // comprovadamente posterior feito em outro aparelho.
+  if (apagadoLocalMs && apagadoLocalMs > remotoMs + FOLGA_RELOGIO_MS &&
+      apagadoLocalMs >= apagadoRemotoMs) {
+    return local;
+  }
+  if (apagadoRemotoMs && apagadoRemotoMs > localMs + FOLGA_RELOGIO_MS &&
+      apagadoRemotoMs > apagadoLocalMs) {
+    return remotoState;
+  }
+
+  const localTemDados = temDados(local);
+  const remotoTemDados = temDados(remotoState);
+  if (!localTemDados && remotoTemDados && !temLapides(local)) return remotoState;
+  if (localTemDados && !remotoTemDados && !temLapides(remotoState)) return local;
+
+  const remotoGanha = remotoEhMaisNovo(remotoState, local, remotoMs, localMs);
+  return window.Store.mesclarEstados(
+    remotoGanha ? remotoState : local,
+    remotoGanha ? local : remotoState
+  );
+}
+
 function gravarPartesNoLote(lote, prefixo, estadoLimpo, apagarAte) {
   const codificado = codecRemoto().codificar(estadoLimpo);
   codificado.partes.forEach(function (payload, indice) {
@@ -251,6 +290,46 @@ function gravarPartesNoLote(lote, prefixo, estadoLimpo, apagarAte) {
     lote.delete(refParteEstado(prefixo, indice));
   }
   return codificado;
+}
+
+async function gravarEstadoTransacional(stateLimpo) {
+  return runTransaction(db, async function (transacao) {
+    const snap = await transacao.get(refEstado);
+    const dadosRemotos = snap.exists() ? (snap.data() || {}) : null;
+    const chunksAnteriores = dadosRemotos && dadosRemotos.formato === codecRemoto().FORMATO
+      ? (parseInt(dadosRemotos.chunks, 10) || 0)
+      : 0;
+    const remoto = dadosRemotos
+      ? await normalizarRemoto(dadosRemotos, 'current', function (referencia) {
+        return transacao.get(referencia);
+      })
+      : null;
+
+    const canonico = estadoCanonicoParaGravacao(stateLimpo, remoto);
+    if (!canonico.config) canonico.config = {};
+    canonico.config.rev = Math.max(revDe(stateLimpo), revDe(remoto && remoto.state)) + 1;
+    canonico.config.atualizadoEm = new Date().toISOString();
+    const canonicoLimpo = prepararEstadoRemoto(canonico);
+    const codificado = gravarPartesNoLote(
+      transacao,
+      'current',
+      canonicoLimpo,
+      chunksAnteriores
+    );
+    transacao.set(refEstado, {
+      formato: codificado.formato,
+      chunks: codificado.partes.length,
+      updatedAt: atualizadoEm(canonicoLimpo),
+      clientId: idDispositivo(),
+      rev: revDe(canonicoLimpo),
+      resumo: resumoEstado(canonicoLimpo),
+      savedAt: serverTimestamp()
+    });
+    return {
+      state: canonicoLimpo,
+      chunks: codificado.partes.length
+    };
+  }, { maxAttempts: 5 });
 }
 
 function gravarRemoto(state) {
@@ -276,20 +355,25 @@ function gravarRemoto(state) {
         const proximo = estadoPendenteGravacao;
         estadoPendenteGravacao = null;
         const stateLimpo = prepararEstadoRemoto(proximo);
-        const lote = writeBatch(db);
-        const codificado = gravarPartesNoLote(lote, 'current', stateLimpo, numeroChunksAtuais);
-        lote.set(refEstado, {
-          formato: codificado.formato,
-          chunks: codificado.partes.length,
-          updatedAt: atualizadoEm(stateLimpo) || new Date().toISOString(),
-          clientId: idDispositivo(),
-          rev: revDe(stateLimpo),
-          resumo: resumoEstado(stateLimpo),
-          savedAt: serverTimestamp()
-        });
-        await lote.commit();
-        numeroChunksAtuais = codificado.partes.length;
-        talvezSnapshotDiario(stateLimpo); // fire-and-forget: nunca atrasa nem quebra o save
+        const resultado = await gravarEstadoTransacional(stateLimpo);
+        numeroChunksAtuais = resultado.chunks;
+
+        // A transação pode ter encontrado registros enviados por outro aparelho.
+        // Trazemos o estado canônico de volta para este dispositivo. Se o usuário
+        // editou algo enquanto a transação estava em voo, essa edição fica como
+        // base da mescla e entra imediatamente no próximo ciclo de gravação.
+        const atual = opcoes && opcoes.obterEstado ? opcoes.obterEstado() : stateLimpo;
+        const mudouDuranteEnvio = !window.Store.estadosEquivalentes(atual, stateLimpo);
+        const canonicoLocal = mudouDuranteEnvio
+          ? window.Store.mesclarEstados(atual, resultado.state)
+          : resultado.state;
+        if (!window.Store.estadosEquivalentes(canonicoLocal, atual)) {
+          aplicarRemoto(canonicoLocal, true);
+        }
+        if (!window.Store.estadosEquivalentes(canonicoLocal, resultado.state)) {
+          estadoPendenteGravacao = canonicoLocal;
+        }
+        talvezSnapshotDiario(resultado.state); // fire-and-forget: nunca atrasa nem quebra o save
       }
       definirStatus('sincronizado', 'Sincronizado com Firebase');
     } catch (e) {

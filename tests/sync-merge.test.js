@@ -25,6 +25,40 @@ test('mescla une sessões e simulados dos dois lados por id', () => {
   assert.equal(m.simulados.length, 1);
 });
 
+test('dois aparelhos convergem horas e questões sem perder o histórico confirmado pelo primeiro', () => {
+  const inicial = estadoCom(function (st) {
+    st.planos = [plano('p1', '2026-07-01T00:00:00Z', 'Plano')];
+    st.planoAtivoId = 'p1';
+    st.sessoes = [{
+      id: 's-inicial', planoId: 'p1', data: '2026-07-20',
+      duracaoMin: 30, qFeitas: 10, qCertas: 8
+    }];
+  });
+  const casa = S.normalizar(JSON.parse(JSON.stringify(S.paraPersistencia(inicial))));
+  const trabalho = S.normalizar(JSON.parse(JSON.stringify(S.paraPersistencia(inicial))));
+  casa.sessoes.push({
+    id: 's-casa', planoId: 'p1', data: '2026-07-21',
+    duracaoMin: 60, qFeitas: 20, qCertas: 15
+  });
+  trabalho.sessoes.push({
+    id: 's-trabalho', planoId: 'p1', data: '2026-07-22',
+    duracaoMin: 45, qFeitas: 30, qCertas: 24
+  });
+
+  // Equivale ao segundo escritor reler e mesclar o estado já confirmado pelo
+  // primeiro dentro da transação do Firestore.
+  const canonico = S.mesclarEstados(casa, trabalho);
+  const ids = canonico.sessoes.map(function (s) { return s.id; }).sort();
+  const minutos = canonico.sessoes.reduce(function (n, s) { return n + s.duracaoMin; }, 0);
+  const questoes = canonico.sessoes.reduce(function (n, s) { return n + s.qFeitas; }, 0);
+
+  assert.deepEqual(ids, ['s-casa', 's-inicial', 's-trabalho']);
+  assert.equal(minutos, 135);
+  assert.equal(questoes, 60);
+  assert.equal(S.mesclarEstados(canonico, casa).sessoes.length, 3, 'nova leitura é idempotente');
+  assert.equal(S.mesclarEstados(canonico, trabalho).sessoes.length, 3, 'todos os aparelhos convergem');
+});
+
 test('sessão com tombstone (removidos) não ressuscita de nenhum lado', () => {
   const a = estadoCom(function (st) { S.marcarRemovido(st, 's-apagada'); });
   const b = estadoCom(function (st) { st.sessoes = [{ id: 's-apagada' }, { id: 's-viva' }]; });

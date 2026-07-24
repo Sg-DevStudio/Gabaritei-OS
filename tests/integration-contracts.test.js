@@ -81,6 +81,10 @@ test('gravação remota remove o espelho hidratado e particiona estados grandes'
   assert.match(firebaseSync, /window\.Store\.paraPersistencia/);
   assert.match(firebaseSync, /window\.RemoteStateCodec/);
   assert.match(firebaseSync, /writeBatch\(db\)/);
+  assert.match(firebaseSync, /runTransaction\(db/);
+  assert.match(firebaseSync, /transacao\.get\(refEstado\)/);
+  assert.match(firebaseSync, /estadoCanonicoParaGravacao/);
+  assert.match(firebaseSync, /Math\.max\(revDe\(stateLimpo\), revDe\(remoto && remoto\.state\)\) \+ 1/);
   assert.match(firebaseSync, /formato: codificado\.formato/);
   assert.match(firebaseSync, /chunks: codificado\.partes\.length/);
   assert.match(indexHtml, /js\/remote-state\.js/);

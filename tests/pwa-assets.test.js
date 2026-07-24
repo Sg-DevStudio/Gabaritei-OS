@@ -23,6 +23,17 @@ test('service worker pré-carrega as mesmas versões locais usadas pelo HTML', (
   assert.deepEqual(ausentes, []);
 });
 
+test('arquivos críticos de sincronização são publicados na mesma versão da PWA', () => {
+  const arquivos = ['css/styles.css', 'js/store.js', 'js/firebase-sync.js', 'js/app.js'];
+  const versoes = arquivos.map(function (arquivo) {
+    const match = indexHtml.match(new RegExp(arquivo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\?v=([^"\\s]+)'));
+    assert.ok(match, arquivo + ' precisa ter versão explícita');
+    return match[1];
+  });
+  assert.equal(new Set(versoes).size, 1, 'assets críticos não podem ficar em gerações diferentes');
+  assert.match(serviceWorker, /const CACHE = 'estudos-v\d+-sync-convergencia'/);
+});
+
 test('service worker mantém disponíveis offline o plano de exemplo e os ícones do manifesto', () => {
   [
     './data/exemplo-trf3.json?v=20260718g-integridade-sync',
