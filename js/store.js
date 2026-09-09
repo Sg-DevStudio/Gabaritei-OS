@@ -10,6 +10,8 @@
 
   const CHAVE = 'estudos.v1';
   const VERSAO_SCHEMA = 2;
+  // Base lida por esta aba: a cópia compartilhada pode ter mudado desde então.
+  const basesLocais = new WeakMap();
 
   function agoraISO() {
     return new Date().toISOString();
@@ -239,10 +241,8 @@
     });
     (state.editais || []).forEach(normalizarAcentosEdital);
     ((state.config && state.config.carreirasPersonalizadas) || []).forEach(normalizarAcentosEdital);
-    (state.flashcards || []).forEach(function (deck) {
-      normalizarAcentosCampos(deck);
-      (deck.cards || []).forEach(normalizarAcentosCampos);
-    });
+    // Flashcards são texto autoral. Trocas como publica -> pública alteram
+    // perguntas corretas e não podem fazer parte da persistência.
     return state;
   }
 
@@ -480,8 +480,9 @@
   function carregar() {
     try {
       const bruto = localStorage.getItem(CHAVE);
-      if (!bruto) return estadoVazio();
-      return migrar(JSON.parse(bruto));
+      const state = bruto ? migrar(JSON.parse(bruto)) : estadoVazio();
+      basesLocais.set(state, paraPersistencia(state));
+      return state;
     } catch (e) {
       console.error('Falha ao ler o estado salvo; iniciando vazio.', e);
       return estadoVazio();
@@ -621,21 +622,29 @@
   function salvar(state, opcoes) {
     opcoes = opcoes || {};
     const anterior = lerPersistidoCru();
+    const baseDaAba = basesLocais.get(state);
     migrar(state);
     if (opcoes.marcarAlterado !== false) {
       const agora = agoraISO();
-      registrarEntidadesExcluidas(state, anterior, agora);
-      carimbarItensAlterados(state, anterior, agora);
+      registrarEntidadesExcluidas(state, baseDaAba || anterior, agora);
+      carimbarItensAlterados(state, baseDaAba || anterior, agora);
       carimbarEstruturasAlteradas(state, agora);
       state.config.atualizadoEm = agora;
       // Contador de revisão monotônico: desempata a escolha da "base" da mescla
       // sem depender do relógio do aparelho (relógio errado não engana o sync).
       state.config.rev = (parseInt(state.config.rev, 10) || 0) + 1;
+      if (baseDaAba && anterior && !estadosEquivalentes(baseDaAba, anterior)) {
+        const reconciliado = mesclarEstados(state, anterior);
+        Object.keys(state).forEach(function (chave) { delete state[chave]; });
+        Object.assign(state, reconciliado);
+        hidratar(state);
+      }
     }
     // Não duplica o plano ativo no JSON salvo: os slots são recriados no carregar().
     const copia = paraPersistencia(state);
     try {
       localStorage.setItem(CHAVE, JSON.stringify(copia));
+      basesLocais.set(state, clonarJson(copia));
       return { ok: true };
     } catch (e) {
       // Quota estourada (estado grande, ex.: fotos de edital em data URL): não

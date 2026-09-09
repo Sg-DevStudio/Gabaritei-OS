@@ -9,6 +9,7 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret, defineString } = require('firebase-functions/params');
 const { setGlobalOptions } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
+const { lerEstadoEstudo } = require('./study-state');
 
 admin.initializeApp();
 
@@ -238,8 +239,7 @@ exports.lembreteEstudo = onSchedule(
         const tokens = Object.keys(tokensMap);
         if (tokens.length === 0) continue;
 
-        const stateSnap = await userRef.collection('state').doc('current').get();
-        const state = (stateSnap.exists && stateSnap.data() && stateSnap.data().state) || {};
+        const state = await db.runTransaction(tx => lerEstadoEstudo(userRef, tx));
         if (ultimaSessaoISO(state) === hoje) continue; // já estudou hoje
 
         const msg = escolherMensagem();

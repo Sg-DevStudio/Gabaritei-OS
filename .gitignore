@@ -1,5 +1,7 @@
 data/sync/
 node_modules/
+.env.local
+.env.*.local
 .firebase/
 firebase-debug.log
 firestore-debug.log
