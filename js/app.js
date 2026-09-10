@@ -1477,11 +1477,27 @@
     const tem = doAtivo(state.revisoes).some(function (r) { return r.topicoId === topicoId; });
     if (!tem) {
       const novas = D.agendarRevisoes(topicoId, D.hojeISO(), { intervalos: D.intervalosRevisaoConfig(state) });
-      novas.forEach(function (r) { r.planoId = state.planoAtivoId; });
-      state.revisoes = state.revisoes.concat(novas);
+      adicionarRevisoesDistribuidas(novas);
       return true;
     }
     return false;
+  }
+
+  // No máximo 35% da rotina diária vira revisão. Há piso de 15min para rotinas
+  // curtas e teto de 90min para rotinas longas; dias desativados recebem zero.
+  function capacidadeRevisaoDoDia(dataISO) {
+    const rotina = rotinaEstudosAtual();
+    const chaves = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+    const cfg = rotina.dias[chaves[D.diaSemanaISO(dataISO)]];
+    if (!cfg || !cfg.ativo || !(cfg.minutos > 0)) return 0;
+    return Math.max(15, Math.min(90, Math.floor((cfg.minutos * 0.35) / 5) * 5));
+  }
+
+  function adicionarRevisoesDistribuidas(novas) {
+    (novas || []).forEach(function (r) { r.planoId = state.planoAtivoId; });
+    D.distribuirRevisoesPorCapacidade(state, novas, capacidadeRevisaoDoDia);
+    state.revisoes = state.revisoes.concat(novas || []);
+    return novas || [];
   }
 
   // Agenda revisões para vários tópicos "já estudados" de uma vez (ponto de
@@ -1496,8 +1512,7 @@
       if (doAtivo(state.revisoes).some(function (r) { return r.topicoId === id; })) return;
       const base = D.addDias(D.hojeISO(), Math.floor(i / REVISOES_LOTE_POR_DIA));
       const novas = D.agendarRevisoes(id, base, { pular24h: true, intervalos: D.intervalosRevisaoConfig(state) });
-      novas.forEach(function (r) { r.planoId = state.planoAtivoId; });
-      state.revisoes = state.revisoes.concat(novas);
+      adicionarRevisoesDistribuidas(novas);
       i++; agendou++;
     });
     return agendou;
@@ -1768,11 +1783,14 @@
     // X de Y"). Se o registro veio de um bloco específico (timer/registro do bloco)
     // usa-o; senão procura um bloco aberto do mesmo tópico na data — assim QUALQUER
     // timer (aba Timer, FAB, fila do Hoje) desconta do bloco do dia.
+    let blocoCred = null;
+    let ordemBlocoCred = null;
     if (!dados.semBloco) {
-      let blocoCred = dados.blocoId;
+      blocoCred = dados.blocoId;
       if (!blocoCred) { const bm = acharBlocoParaSessao(dados.topicoId, data, dados.tipo); if (bm) blocoCred = bm.id; }
       if (blocoCred) {
         const bl = creditarBlocoAgenda(blocoCred, dados.duracaoMin || 0);
+        if (bl) ordemBlocoCred = Number.isFinite(bl.ordem) ? bl.ordem : null;
         // Reflete no calendário o que foi REALMENTE estudado: se o aluno trocou o
         // tópico (ou a disciplina) no meio da sessão, atualiza o bloco creditado
         // para o estudo real — em vez de deixar o bloco antigo e criar um extra.
@@ -1801,6 +1819,15 @@
           gerado: false, extra: true
         });
       }
+    }
+
+    // Uma sessão parcial significa "continuar daqui", não "trocar de matéria".
+    // O próximo bloco gerado herda o tópico em curso; ao concluir a teoria, o
+    // recálculo já existente devolve a agenda à sequência normal do edital.
+    if (topico && topico.status === 'em_curso' && dados.tipo !== 'revisao') {
+      D.continuarTopicoEmCursoNaAgenda(state, dados.topicoId, {
+        data: data, ignorarBlocoId: blocoCred, depoisDaOrdem: ordemBlocoCred
+      });
     }
 
     // Ciclo de estudos: credita o tempo da sessão no bloco da matéria e avança a fila.
@@ -3262,10 +3289,10 @@
         else if (aj.dominar) t.status = 'dominado';
       }
       if (aj.revisaoExtraDias != null) {
-        state.revisoes.push(Object.assign(
+        adicionarRevisoesDistribuidas([Object.assign(
           D.revisaoReforco(rev.topicoId, rev.dataConcluida, aj.revisaoExtraDias),
           { planoId: state.planoAtivoId }
-        ));
+        )]);
       }
       // Manutenção pós-curva: agenda a próxima revisão de manutenção, mas só se
       // cabe antes da prova — não polui a prontidão nem cria tarefa pós-prova.
@@ -3274,10 +3301,10 @@
         const prazo = D.prazoProva(state);
         const dataManut = D.addDias(rev.dataConcluida, aj.manutencaoDias);
         if (!prazo || dataManut <= prazo) {
-          state.revisoes.push(Object.assign(
+          adicionarRevisoesDistribuidas([Object.assign(
             D.revisaoManutencao(rev.topicoId, rev.dataConcluida, aj.manutencaoDias),
             { planoId: state.planoAtivoId }
-          ));
+          )]);
           manutencaoAgendada = true;
         }
       }
@@ -3320,6 +3347,7 @@
   function badgeAdaptacaoRevisao(rev) {
     const est = D.estadoAdaptacaoRevisao(rev);
     if (est === 'reforco') return '<span class="etiqueta etiqueta-rev-antecipada" title="Revisão extra de reforço, criada porque o desempenho ficou baixo.">＋ reforço</span>';
+    if (est === 'distribuida') return '<span class="etiqueta etiqueta-rev-espacada" title="Distribuída para preservar tempo de teoria e questões neste dia.">↔ distribuída</span>';
     if (est === 'antecipada') return '<span class="etiqueta etiqueta-rev-antecipada" title="Antecipada: seu desempenho neste tópico ficou abaixo do esperado.">⏩ antecipada</span>';
     if (est === 'espacada') return '<span class="etiqueta etiqueta-rev-espacada" title="Espaçada: você vem indo bem neste tópico, então pode revisar com menos frequência.">🌱 espaçada</span>';
     return '';
