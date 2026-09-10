@@ -182,6 +182,44 @@ test('intervalosRevisaoConfig: null no padrão, lista ordenada no custom', () =>
   );
 });
 
+test('distribuirRevisoesPorCapacidade preserva parte do dia para estudo novo', () => {
+  const state = { planoAtivoId: 'p1', revisoes: [] };
+  const novas = [];
+  for (let i = 0; i < 6; i++) {
+    novas.push({
+      id: 'r' + i, planoId: 'p1', topicoId: 't' + i, tipo: '24h',
+      dataAgendada: '2026-06-02', dataConcluida: null
+    });
+  }
+  D.distribuirRevisoesPorCapacidade(state, novas, () => 20);
+  const porDia = novas.reduce((m, r) => {
+    m[r.dataAgendada] = (m[r.dataAgendada] || 0) + D.duracaoRevisaoMin(r.tipo);
+    return m;
+  }, {});
+  assert.deepEqual(Object.values(porDia), [20, 20, 20]);
+  assert.equal(novas[2].dataIdeal, '2026-06-02');
+  assert.equal(novas[2].distribuidaPorCarga, true);
+  assert.equal(D.estadoAdaptacaoRevisao(novas[2]), 'distribuida');
+});
+
+test('distribuirRevisoesPorCapacidade pula dias sem rotina', () => {
+  const state = { revisoes: [] };
+  const novas = [{ id: 'r1', topicoId: 't1', tipo: '24h', dataAgendada: '2026-06-02', dataConcluida: null }];
+  D.distribuirRevisoesPorCapacidade(state, novas, (dia) => dia === '2026-06-03' ? 20 : 0);
+  assert.equal(novas[0].dataAgendada, '2026-06-03');
+  assert.equal(novas[0].dataIdeal, '2026-06-02');
+});
+
+test('distribuição não empurra revisão para depois da prova', () => {
+  const state = {
+    plano: { radar: { janela_prova: ['2026-06', '2026-06'] } },
+    revisoes: [{ id: 'ocupada', tipo: '24h', dataAgendada: '2026-06-01', dataConcluida: null }]
+  };
+  const novas = [{ id: 'r1', topicoId: 't1', tipo: '24h', dataAgendada: '2026-06-01', dataConcluida: null }];
+  D.distribuirRevisoesPorCapacidade(state, novas, () => 10);
+  assert.equal(novas[0].dataAgendada, '2026-06-01');
+});
+
 test('prontidaoProva inclui tópicos ainda não estudados no denominador', () => {
   const state = {
     planoAtivoId: 'p1',

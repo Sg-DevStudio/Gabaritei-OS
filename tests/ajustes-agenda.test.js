@@ -4,6 +4,37 @@ const assert = require('node:assert/strict');
 const { loadDomain } = require('./helpers/load-domain');
 const { loadStore } = require('./helpers/load-store');
 const D = loadDomain();
+
+test('continuidade: próximo bloco gerado herda o tópico em curso', () => {
+  const st = {
+    planoAtivoId: 'p1',
+    disciplinas: [
+      { id: 'CON', topicos: [{ id: 'CON-1', status: 'em_curso' }] },
+      { id: 'APU', topicos: [{ id: 'APU-1', status: 'pendente' }] }
+    ],
+    agenda: [
+      { id: 'feito', planoId: 'p1', data: '2026-06-10', ordem: 0, disciplinaId: 'CON', topicoId: 'CON-1', gerado: true, feito: true },
+      { id: 'manual', planoId: 'p1', data: '2026-06-11', ordem: 0, disciplinaId: 'APU', topicoId: 'APU-1', gerado: false, feito: false },
+      { id: 'proximo', planoId: 'p1', data: '2026-06-11', ordem: 1, disciplinaId: 'APU', topicoId: 'APU-1', obs: 'teoria', gerado: true, feito: false }
+    ]
+  };
+  const r = D.continuarTopicoEmCursoNaAgenda(st, 'CON-1', { data: '2026-06-10', ignorarBlocoId: 'feito' });
+  assert.equal(r.alterou, true);
+  assert.equal(st.agenda[1].topicoId, 'APU-1', 'bloco manual é preservado');
+  assert.equal(st.agenda[2].disciplinaId, 'CON');
+  assert.equal(st.agenda[2].topicoId, 'CON-1');
+  assert.equal(st.agenda[2].continuidadeTopico, true);
+});
+
+test('continuidade: tópico concluído devolve a escolha ao cronograma', () => {
+  const st = {
+    disciplinas: [{ id: 'CON', topicos: [{ id: 'CON-1', status: 'teoria_concluida' }] }],
+    agenda: [{ id: 'b1', data: '2026-06-11', disciplinaId: 'APU', topicoId: 'APU-1', gerado: true, feito: false }]
+  };
+  const r = D.continuarTopicoEmCursoNaAgenda(st, 'CON-1', { data: '2026-06-10' });
+  assert.equal(r.alterou, false);
+  assert.equal(st.agenda[0].disciplinaId, 'APU');
+});
 const S = loadStore();
 
 function topico(id, horas, status) {

@@ -890,6 +890,40 @@
     return saida;
   }
 
+  // Mantém a recomendação no último tópico realmente iniciado. A agenda semanal
+  // é materializada com antecedência; sem este ajuste, uma sessão parcial muda o
+  // tópico para `em_curso`, mas o próximo card continua apontando para a matéria
+  // que o cronograma havia escolhido antes do estudo acontecer. Só um bloco
+  // GERADO é alterado: blocos manuais são decisões explícitas do aluno.
+  function continuarTopicoEmCursoNaAgenda(state, topicoId, opcoes) {
+    opcoes = opcoes || {};
+    const topico = topicoPorId(state, topicoId);
+    const disciplina = disciplinaDoTopico(state, topicoId);
+    if (!topico || topico.status !== 'em_curso' || !disciplina) return { alterou: false, bloco: null };
+
+    const dataRef = opcoes.data || hojeISO();
+    const ignorarId = opcoes.ignorarBlocoId || '';
+    const depoisDaOrdem = Number.isFinite(opcoes.depoisDaOrdem) ? opcoes.depoisDaOrdem : null;
+    const candidatos = doPlanoAtivo(state, state.agenda || []).filter(function (b) {
+      if (!b || !b.gerado || b.feito || b.id === ignorarId || b.data < dataRef) return false;
+      if (b.obs === 'revisao') return false;
+      if (b.data === dataRef && depoisDaOrdem !== null && Number(b.ordem) <= depoisDaOrdem) return false;
+      return true;
+    }).sort(function (a, b) {
+      return String(a.data).localeCompare(String(b.data)) ||
+        (Number(a.ordem) || 0) - (Number(b.ordem) || 0) || String(a.id).localeCompare(String(b.id));
+    });
+
+    const proximo = candidatos[0] || null;
+    if (!proximo) return { alterou: false, bloco: null };
+    const alterou = proximo.topicoId !== topicoId || proximo.disciplinaId !== disciplina.id || proximo.obs !== 'teoria';
+    proximo.disciplinaId = disciplina.id;
+    proximo.topicoId = topicoId;
+    proximo.obs = 'teoria';
+    proximo.continuidadeTopico = true;
+    return { alterou: alterou, bloco: proximo };
+  }
+
   // Família cognitiva da disciplina. Usada pelos DOIS modos de planejamento para
   // não abrir o plano com uma família só. `\bdir\b` pega a abreviação usada em
   // quase todo edital ("Noções Dir. Processual Penal"), que sem isso caía em
@@ -2057,6 +2091,59 @@
   const DURACAO_REVISAO_MIN = { '24h': 10, '3d': 15, '7d': 15, '14d': 20, '30d': 20, 'manutenção': 20, 'reforço': 20 };
   function duracaoRevisaoMin(tipo) { return DURACAO_REVISAO_MIN[tipo] || 15; }
 
+  // Distribui revisões novas sem deixar que elas consumam toda a rotina de um
+  // dia. `capacidadeNoDia` devolve quantos minutos daquele dia podem ser usados
+  // por revisão (o app usa 35% da rotina). A data nominal fica em `dataIdeal`
+  // para a interface explicar quando o excedente precisou ser espalhado.
+  function distribuirRevisoesPorCapacidade(state, revisoesNovas, capacidadeNoDia, opcoes) {
+    opcoes = opcoes || {};
+    const novas = Array.isArray(revisoesNovas) ? revisoesNovas : [];
+    if (!novas.length) return novas;
+    const maxDeslocamento = Math.max(7, Math.round(Number(opcoes.maxDeslocamentoDias) || 60));
+    const prazo = prazoProva(state);
+    const carga = {};
+    doPlanoAtivo(state, state.revisoes || []).forEach(function (r) {
+      if (!r || r.dataConcluida || !r.dataAgendada) return;
+      carga[r.dataAgendada] = (carga[r.dataAgendada] || 0) + duracaoRevisaoMin(r.tipo);
+    });
+    function capacidade(dia) {
+      const valor = typeof capacidadeNoDia === 'function' ? Number(capacidadeNoDia(dia)) : 45;
+      return Number.isFinite(valor) ? Math.max(0, Math.round(valor)) : 45;
+    }
+
+    // Datas mais próximas primeiro: a revisão de 24h ocupa a capacidade antes
+    // das etapas longas (7d/14d/30d), que toleram melhor um pequeno deslocamento.
+    novas.slice().sort(function (a, b) {
+      return String(a.dataAgendada).localeCompare(String(b.dataAgendada)) ||
+        duracaoRevisaoMin(a.tipo) - duracaoRevisaoMin(b.tipo);
+    }).forEach(function (r) {
+      const ideal = r.dataAgendada;
+      const dur = duracaoRevisaoMin(r.tipo);
+      let escolhido = null;
+      let melhor = null;
+      for (let i = 0; i <= maxDeslocamento; i++) {
+        const dia = addDias(ideal, i);
+        if (prazo && ideal <= prazo && dia > prazo) break;
+        const cap = capacidade(dia);
+        if (cap <= 0) continue;
+        const usado = carga[dia] || 0;
+        const candidato = { dia: dia, usado: usado, cap: cap, taxa: usado / cap };
+        if (!melhor || candidato.taxa < melhor.taxa || (candidato.taxa === melhor.taxa && dia < melhor.dia)) melhor = candidato;
+        if (usado + dur <= cap) { escolhido = dia; break; }
+      }
+      // Rotina excepcionalmente cheia: não perde a revisão. Usa o dia ativo
+      // menos carregado da janela e deixa o excedente explícito nos dados.
+      if (!escolhido) escolhido = melhor ? melhor.dia : ideal;
+      carga[escolhido] = (carga[escolhido] || 0) + dur;
+      if (escolhido !== ideal) {
+        r.dataIdeal = ideal;
+        r.dataAgendada = escolhido;
+        r.distribuidaPorCarga = true;
+      }
+    });
+    return novas;
+  }
+
   // Revisões PENDENTES (não concluídas) agendadas para um dia, com tópico válido.
   // Fonte única para Hoje, aba Revisões e calendário — todos leem daqui.
   function revisoesPendentesNoDia(state, dia) {
@@ -2215,6 +2302,7 @@
   function estadoAdaptacaoRevisao(rev) {
     if (!rev || rev.dataConcluida) return null;
     if (rev.tipo === 'reforço') return 'reforco';
+    if (rev.distribuidaPorCarga && rev.dataIdeal && rev.dataAgendada > rev.dataIdeal) return 'distribuida';
     const dias = DIAS_CICLO_REV[rev.tipo];
     if (!dias) return null;
     const m = String(rev.id || '').match(/(\d{4}-\d{2}-\d{2})$/);
@@ -2869,7 +2957,7 @@
     reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
-    grupoCognitivoDisciplina, promoverVariedadeLargada, LARGADA_PLANO, ordenarSemRepetirVizinho,
+    grupoCognitivoDisciplina, promoverVariedadeLargada, LARGADA_PLANO, ordenarSemRepetirVizinho, continuarTopicoEmCursoNaAgenda,
     alertaCobertura, adicionarTopicosAoCiclo,
     diaSemanaISO, aplicarRegrasAgenda, regraAgendaAtiva,
     STATUS_DISCIPLINA, statusDisciplinaPlanejamento, disciplinaAtivaPlanejamento,
@@ -2880,7 +2968,7 @@
     heatmapDias, serieSemanal, pioresTopicos,
     totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mapearAproveitamentoPlano, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
-    duracaoRevisaoMin, revisoesPendentesNoDia, minutosRevisaoNoDia,
+    duracaoRevisaoMin, distribuirRevisoesPorCapacidade, revisoesPendentesNoDia, minutosRevisaoNoDia,
     duracaoRevisaoConcluidaMin, minutosRevisoesConcluidasNoDia,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel, mesclarCatalogoCarreiras,
