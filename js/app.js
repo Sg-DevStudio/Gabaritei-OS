@@ -1753,7 +1753,7 @@
     const streakAntes = D.streak(D.sessoesDoPlano(state), hoje);
 
     const sessao = {
-      id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: data,
+      id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: data, registradoEm: new Date().toISOString(),
       topicoId: dados.topicoId, tipo: dados.tipo,
       duracaoMin: dados.duracaoMin, qFeitas: dados.qFeitas, qCertas: dados.qCertas,
       obs: dados.obs || '',
@@ -2141,7 +2141,7 @@
       '<div class="reta-final-cab"><span class="reta-final-emoji" aria-hidden="true">🏁</span>' +
       '<div><h3>' + esc(titulo) + '</h3>' +
       '<p class="sub">Hora de <strong>consolidar</strong>: menos teoria nova, mais questões, simulados e revisão do que mais cai.' +
-      (pr ? ' Você está com <strong>' + pr.pct + '%</strong> dos tópicos revisados a tempo.' : '') + '</p></div></div>' +
+      (pr ? ' Há <strong>' + pr.pct + '%</strong> dos tópicos com ciclo concluído ou previsto até a prova; ' + pr.revisoesAtrasadas + ' revisões estão atrasadas.' : '') + '</p></div></div>' +
       foco +
       '<div class="reta-final-acoes">' +
       '<a class="botao-mini" href="#simulados">Fazer um simulado</a>' +
@@ -3271,7 +3271,7 @@
       rev.resultadoPct = feitas > 0 ? Math.round((certas / feitas) * 100) : null;
 
       const sessaoRevisao = {
-        id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: rev.dataConcluida, topicoId: rev.topicoId,
+        id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: rev.dataConcluida, topicoId: rev.topicoId, registradoEm: new Date().toISOString(),
         tipo: 'revisao', duracaoMin: dur, qFeitas: feitas, qCertas: certas, obs: 'Revisão ' + rev.tipo,
         revisaoId: rev.id
       };
@@ -3372,13 +3372,15 @@
         const pr = D.prontidaoProva(state, hoje);
         const grau = pr.pct >= 90 ? 'bom' : pr.pct >= 60 ? 'medio' : 'baixo';
         html0 = '<div class="card prontidao-card prontidao-' + grau + '">' +
-          '<div class="prontidao-cab"><strong>Preparado para a prova?</strong>' +
+          '<div class="prontidao-cab"><strong>Ciclos previstos até a prova</strong>' +
           '<span class="prontidao-pct">' + pr.pct + '%</span></div>' +
           '<div class="barra' + (pr.pct >= 90 ? ' barra-verde' : '') + '"><span style="width:' + pr.pct + '%"></span></div>' +
           '<p class="sub prontidao-sub">' + pr.prontos + ' de ' + pr.totalTopicos + ' tópicos com ciclo concluído ou programado até ' + D.formatarDataBR(prazo) + ' (início da janela da prova)' +
           (pr.revisoesForaDoPrazo > 0 ? ' · <span class="prontidao-alerta">' + pr.revisoesForaDoPrazo + (pr.revisoesForaDoPrazo === 1 ? ' revisão cai' : ' revisões caem') + ' depois da prova</span>' : '') +
           (pr.semRevisao > 0 ? ' · <span class="prontidao-alerta">' + pr.semRevisao + (pr.semRevisao === 1 ? ' tópico ainda não entrou' : ' tópicos ainda não entraram') + ' no ciclo</span>' : '') +
-          '</p></div>';
+          '<br>' + pr.revisoesAtrasadas + ' revisões atrasadas. Agendamento não comprova aprendizado.</p>' +
+          '<p><strong>Evidência recente: ' + pr.evidencias.evidenciados + '/' + pr.evidencias.total + ' tópicos</strong></p>' +
+          '<p class="sub">Critério inicial: pelo menos 20 questões, prática em dois dias nos últimos 30 dias, acerto na meta e nenhuma revisão atrasada. Não estima chance de aprovação.</p></div>';
       }
     }
 
@@ -4387,9 +4389,11 @@
 
   // Ranking acionável: "o que mais cai × seu pior desempenho", com ação direta.
   function rankingAcionavelHtml() {
+    const diagnostico = D.diagnosticoAprendizagem(state);
     const ranking = D.rankingAcionavel(state, 8, D.hojeISO());
     if (!ranking.length) return '';
-    let html = '<div class="card"><h3>⚡ Prioridade cirúrgica</h3>' +
+    let html = '<div class="card"><h3>O que estudar agora</h3>' +
+      '<p class="sub">Cobertura recente: ' + diagnostico.avaliados + '/' + diagnostico.total + ' tópicos com questões nos últimos 30 dias. ' + diagnostico.evidenciados + ' atendem ao critério de evidência recente.</p>' +
       '<p class="sub" style="margin:0 0 0.6rem">Ordenado pelo que <strong>mais cai</strong> × seu <strong>pior desempenho</strong> (× proximidade da prova). Ataque de cima para baixo.</p>';
     ranking.forEach(function (r, i) {
       const d = D.disciplinaPorId(state, r.disciplinaId);
@@ -4432,32 +4436,46 @@
     const simuladosAtivos = doAtivo(state.simulados);
     if (simuladosAtivos.length === 0) {
       html += '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
-        '<strong>Nenhum simulado registrado</strong>Registre o resultado por disciplina e veja a distância até a zona de nomeação.</div></div>';
-      return html;
+        '<strong>Nenhum simulado registrado</strong>Registre o resultado por disciplina e acompanhe sua evolução.</div></div>';
+      return html + rankingAcionavelHtml();
     }
 
     const ordenados = [...simuladosAtivos].sort(function (a, b) { return b.data.localeCompare(a.data); });
     ordenados.forEach(function (sim) {
       let totalC = 0, totalQ = 0;
       sim.acertos.forEach(function (a) { totalC += a.certas; totalQ += a.total; });
-      const pctGeral = totalQ > 0 ? Math.round((totalC / totalQ) * 100) : null;
+      const nota = D.pontuacaoSimulado(sim);
+      const pctGeral = nota.pct;
       const tituloSimulado = sim.tipo === 'total' ? 'Simulado total' : sim.tipo === 'parcial' ? 'Simulado parcial' : 'Simulado';
       const ritmo = D.ritmoSimulado(sim);
       const tempoTxt = sim.duracaoMin
         ? ' · ⏱️ ' + D.formatarMin(sim.duracaoMin) + (ritmo ? ' (' + ritmo + ' min/questão)' : '')
         : '';
       html += '<div class="card"><h3>' + tituloSimulado +
-        ' — ' + D.formatarDataBR(sim.data) + ' · geral: ' + semaforoHtml(pctGeral, meta) + tempoTxt + '</h3>' +
+        ' — ' + D.formatarDataBR(sim.data) + ' · ' + (nota.configurada ? 'pontos: ' + semaforoHtml(pctGeral, meta) : 'acertos: ' + nota.acertoPct + '% (regra da prova não informada)') + tempoTxt + '</h3>' +
+        (sim.tipo !== 'total' ? '<p class="sub">Simulado parcial: este resultado não representa a prova completa.</p>' : '') +
+        (nota.eliminadas.length ? '<p class="msg-erro">Abaixo do mínimo em: ' + nota.eliminadas.map(esc).join(', ') + '.</p>' : '') +
         '<table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">%</th><th class="num">vs. meta ' + meta + '%</th></tr></thead><tbody>';
       sim.acertos.forEach(function (a) {
         const d = D.disciplinaPorId(state, a.disciplinaId);
-        const pct = a.total > 0 ? Math.round((a.certas / a.total) * 100) : null;
+        const pct = D.pontuacaoSimulado({ acertos: [a] }).pct;
         const rem = a.tipoErro ? D.remediacaoErro(a.tipoErro) : null;
         const tagErro = rem ? ' <span class="etiqueta etiqueta-erro" title="' + esc(rem.dica) + '">' + rem.icone + ' ' + esc(rem.rotulo) + '</span>' : '';
         html += '<tr><td>' + (d ? tagDisc(d) + ' ' + esc(d.nome) : esc(a.disciplinaId)) + tagErro + '</td>' +
           '<td class="num">' + a.certas + '/' + a.total + '</td>' +
           '<td class="num">' + (pct === null ? '—' : pct + '%') + '</td>' +
           '<td class="num">' + semaforoHtml(pct, meta) + '</td></tr>';
+        if (a.certas + (a.brancas || 0) < a.total) {
+          html += '<tr><td colspan="4"><button class="botao-mini" data-rec-sim="' + esc(sim.id) + '" data-rec-disc="' + esc(a.disciplinaId) + '">Trabalhar uma dificuldade</button>';
+          (a.recuperacoes || []).forEach(function (rec) {
+            const resultado = D.avaliarRecuperacao(rec, D.sessoesDoPlano(state), meta);
+            const topico = D.topicoPorId(state, rec.topicoId);
+            html += '<p class="sub"><strong>' + esc(topico ? topico.nome : 'Tópico removido') + '</strong>: ' + esc(rec.acao) + ' · ' + esc(resultado.mensagem) + '</p>' +
+              '<details><summary>Consultar dificuldade e explicação</summary><p>' + esc(rec.dificuldade) + '</p><p>' + esc(rec.explicacao) + '</p></details>';
+            if (topico) html += '<button class="botao-mini botao-quieto" data-sim-reg="' + esc(rec.topicoId) + '">Registrar nova prática</button>';
+          });
+          html += '</td></tr>';
+        }
       });
       html += '</tbody></table></div>';
     });
@@ -4466,7 +4484,7 @@
     const ana = D.analisarErrosSimulados(simuladosAtivos);
     if (ana.totalClassificado > 0) {
       const rem = D.remediacaoErro(ana.dominante);
-      html += '<div class="card"><h3>Análise de erros — onde você perde ponto</h3>';
+      html += '<div class="card"><h3>Erros predominantes declarados</h3><p class="sub">Distribuição aproximada ponderada pelos erros de cada disciplina. O tipo predominante não classifica individualmente todos os erros.</p>';
       if (rem) {
         html += '<div class="erro-remediacao"><strong>' + rem.icone + ' Predominante: ' + esc(rem.rotulo) + '</strong>' +
           '<p class="sub" style="margin:0.2rem 0 0">' + esc(rem.dica) + '</p></div>';
@@ -4508,8 +4526,10 @@
       '<option value="parcial">Parcial</option><option value="total">Total</option></select></div>' +
       '<div><label for="sim-data">Data</label><input id="sim-data" type="date" value="' + D.hojeISO() + '"></div></div>' +
       '<div><label for="sim-dur">Tempo total (min) — opcional</label><input id="sim-dur" type="number" min="0" max="600" value="' + tempoIni + '" placeholder="ex.: 180"></div>' +
+      '<p><label><input id="sim-regra" type="checkbox"> Informei abaixo a regra de pontuação da prova</label></p>' +
+      '<p class="sub">Pontos por acerto, desconto por erro e mínimo percentual por disciplina. Brancas não descontam. Os valores ficam salvos neste simulado; não usam os pesos do planejamento.</p>' +
       '<p style="font-size:0.82rem;color:var(--grafite);margin-top:0.75rem">Preencha só as disciplinas que caíram no simulado. O <strong>tipo de erro</strong> é opcional — classifique para receber remediação focada.</p>' +
-      '<div class="tabela-rolavel"><table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">Questões</th><th>Erro predominante</th></tr></thead><tbody>' +
+      '<div class="tabela-rolavel"><table><thead><tr><th>Disciplina</th><th class="num">Acertos</th><th class="num">Questões</th><th>Erro predominante</th><th>Brancas</th><th>Pontos/acerto</th><th>Desconto/erro</th><th>Mínimo %</th></tr></thead><tbody>' +
       discs.map(function (d) {
         return '<tr><td>' + tagDisc(d) + ' ' + esc(d.nome) + '</td>' +
           '<td class="num"><input type="number" min="0" max="200" data-sim-certas="' + esc(d.id) + '" style="width:70px;min-height:36px;padding:0.2rem 0.4rem"></td>' +
@@ -4520,7 +4540,10 @@
           '<option value="calculo">🧮 Cálculo</option>' +
           '<option value="interpretacao">🔍 Interpretação</option>' +
           '<option value="atencao">🎯 Desatenção</option>' +
-          '</select></td></tr>';
+          '</select></td>' +
+          ['brancas', 'pontos', 'penalidade', 'minimo'].map(function (campo) {
+            return '<td><input aria-label="' + campo + ' — ' + esc(d.nome) + '" data-sim-' + campo + '="' + esc(d.id) + '" type="number" min="' + (campo === 'pontos' ? '0.01' : '0') + '" ' + (campo === 'minimo' ? 'max="100" ' : '') + 'step="' + (campo === 'brancas' ? '1' : '0.01') + '" value="' + (campo === 'pontos' ? '1' : campo === 'minimo' ? '' : '0') + '" style="width:80px"></td>';
+          }).join('') + '</tr>';
       }).join('') +
       '</tbody></table></div>' +
       '<div class="msg-erro oculto" id="sim-erro"></div>' +
@@ -4543,6 +4566,15 @@
         if (c === null || t === null || t === 0) { problema = d.id + ': preencha acertos E total de questões.'; return; }
         if (c > t) { problema = d.id + ': acertos (' + c + ') maiores que o total (' + t + ').'; return; }
         const entrada = { disciplinaId: d.id, certas: c, total: t };
+        const ler = function (campo) { return m.querySelector('[data-sim-' + campo + '="' + d.id + '"]').value; };
+        entrada.brancas = Number(ler('brancas'));
+        if (!Number.isInteger(entrada.brancas) || entrada.brancas < 0 || entrada.brancas + c > t) { problema = d.id + ': acertos + brancas não podem ultrapassar o total.'; return; }
+        if (m.querySelector('#sim-regra').checked) {
+          entrada.pontosAcerto = Number(ler('pontos'));
+          entrada.penalidadeErro = Number(ler('penalidade'));
+          entrada.minimoPct = ler('minimo') === '' ? null : Number(ler('minimo'));
+          if (!Number.isFinite(entrada.pontosAcerto) || entrada.pontosAcerto <= 0 || !Number.isFinite(entrada.penalidadeErro) || entrada.penalidadeErro < 0 || (entrada.minimoPct != null && (!Number.isFinite(entrada.minimoPct) || entrada.minimoPct < 0 || entrada.minimoPct > 100))) { problema = d.id + ': confira a regra de pontuação.'; return; }
+        }
         // tipo de erro só faz sentido quando houve erro (c < t)
         const inErr = m.querySelector('[data-sim-erro="' + d.id + '"]');
         if (inErr && inErr.value && c < t) entrada.tipoErro = inErr.value;
@@ -4557,6 +4589,7 @@
         id: window.Store.novoId('sim'), planoId: state.planoAtivoId,
         data: m.querySelector('#sim-data').value || D.hojeISO(),
         tipo: m.querySelector('#sim-tipo').value,
+        regraPontuacao: m.querySelector('#sim-regra').checked,
         acertos
       };
       if (dur && dur > 0) novoSim.duracaoMin = dur;
@@ -4567,6 +4600,36 @@
   }
 
   function ligarSimulados(raiz) {
+    raiz.querySelectorAll('[data-rec-sim]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const sim = state.simulados.find(function (s) { return s.id === b.getAttribute('data-rec-sim'); });
+        const entrada = sim && sim.acertos.find(function (a) { return a.disciplinaId === b.getAttribute('data-rec-disc'); });
+        const disc = entrada && D.disciplinaPorId(state, entrada.disciplinaId);
+        if (!disc || !disc.topicos.length) return;
+        const m = abrirModal('<h3>Recuperar uma dificuldade</h3><form id="rec-form"><label>Tópico<select id="rec-topico">' + disc.topicos.filter(function (t) { return !t.orfao; }).map(function (t) { return '<option value="' + esc(t.id) + '">' + esc(t.nome) + '</option>'; }).join('') + '</select></label>' +
+          '<label>O que faltou entender?<textarea id="rec-dificuldade" required maxlength="1000"></textarea></label>' +
+          '<label>Explicação correta ou referência para consultar<textarea id="rec-explicacao" required maxlength="2000"></textarea></label>' +
+          '<label>Ação de recuperação<input id="rec-acao" required maxlength="500" value="Rever a explicação e resolver novas questões do tópico"></label>' +
+          '<p class="sub">Depois, registre pelo menos 10 questões novas em um dia posterior. O app confere o acerto contra a meta; atingir a meta indica melhora, não domínio definitivo.</p><button type="submit">Salvar dificuldade</button></form>');
+        m.querySelector('#rec-form').addEventListener('submit', function (e) {
+          e.preventDefault();
+          // Reencontra o registro, pois a sincronização pode substituir o estado.
+          const atual = state.simulados.find(function (s) { return s.id === sim.id; });
+          const a = atual && atual.acertos.find(function (item) { return item.disciplinaId === entrada.disciplinaId; });
+          if (!a) { toast('O simulado foi removido. Feche e tente novamente.', 'erro'); return; }
+          const topicoId = m.querySelector('#rec-topico').value;
+          const dificuldade = m.querySelector('#rec-dificuldade').value.trim();
+          const explicacao = m.querySelector('#rec-explicacao').value.trim();
+          const acao = m.querySelector('#rec-acao').value.trim();
+          if (!topicoId || !dificuldade || !explicacao || !acao) return;
+          a.recuperacoes = a.recuperacoes || [];
+          a.recuperacoes.push({ id: window.Store.novoId('rec'), topicoId: topicoId, dificuldade: dificuldade, explicacao: explicacao, acao: acao, data: D.hojeISO(), criadoEm: new Date().toISOString() });
+          const topico = D.topicoPorId(state, topicoId);
+          if (topico) topico.reaberto = true;
+          salvar(); fecharModal(); render();
+        });
+      });
+    });
     const btn = raiz.querySelector('#btn-novo-simulado');
     if (btn) btn.addEventListener('click', abrirNovoSimulado);
     raiz.querySelectorAll('[data-fila]').forEach(function (b) {

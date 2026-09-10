@@ -297,12 +297,63 @@
     // partir sessão — a que cruza o limite entra inteira).
     let jf = 0, jc = 0;
     doTopico
-      .slice()
-      .sort(function (a, b) { return String(b.data || '').localeCompare(String(a.data || '')); })
-      .some(function (s) { jf += s.qFeitas; jc += s.qCertas; return jf >= JANELA_Q_DESEMPENHO; });
+      .map(function (s, index) { return { s: s, index: index }; })
+      .sort(function (a, b) {
+        return String(b.s.data || '').localeCompare(String(a.s.data || '')) ||
+          String(b.s.registradoEm || '').localeCompare(String(a.s.registradoEm || '')) || b.index - a.index;
+      })
+      .some(function (item) { const s = item.s; jf += s.qFeitas; jc += s.qCertas; return jf >= JANELA_Q_DESEMPENHO; });
     const pct = jf > 0 ? Math.round((jc / jf) * 100)
       : (feitas > 0 ? Math.round((certas / feitas) * 100) : null);
-    return { feitas, certas, pct };
+    return { feitas, certas, pct, recentesFeitas: jf, recentesCertas: jc };
+  }
+
+  // Critério operacional explícito, não uma probabilidade de aprovação.
+  function diagnosticoAprendizagem(state, hoje) {
+    hoje = hoje || hojeISO();
+    const sessoes = doPlanoAtivo(state, state.sessoes || []).filter(function (s) { return s.data <= hoje && s.data >= addDias(hoje, -30); });
+    const meta = Number(state.plano && state.plano.meta && state.plano.meta.corte_pct) || 70;
+    const itens = [];
+    (state.disciplinas || []).forEach(function (d) {
+      if (d.id === 'ORF') return;
+      (d.topicos || []).filter(function (t) { return !t.orfao; }).forEach(function (t) {
+        const dt = desempenhoTopico(sessoes, t.id);
+        const dias = new Set(sessoes.filter(function (s) { return s.topicoId === t.id && s.qFeitas > 0; }).map(function (s) { return s.data; })).size;
+        const atrasada = doPlanoAtivo(state, state.revisoes || []).some(function (r) { return r.topicoId === t.id && !r.dataConcluida && r.dataAgendada < hoje; });
+        const suficiente = dt.recentesFeitas >= 20 && dias >= 2;
+        itens.push({ topicoId: t.id, nome: t.nome, pct: dt.pct, feitas: dt.recentesFeitas,
+          situacao: !suficiente ? 'diagnostico' : dt.pct < meta ? 'recuperar' : atrasada ? 'revisar' : 'manter' });
+      });
+    });
+    const avaliados = itens.filter(function (i) { return i.feitas > 0; }).length;
+    const evidenciados = itens.filter(function (i) { return i.situacao === 'manter'; }).length;
+    return { itens: itens, total: itens.length, avaliados: avaliados, evidenciados: evidenciados,
+      pct: itens.length ? Math.round(evidenciados / itens.length * 100) : 0 };
+  }
+
+  // A regra é uma fotografia do simulado; pesos de planejamento não entram aqui.
+  function pontuacaoSimulado(sim) {
+    let pontos = 0, maximo = 0, certas = 0, total = 0;
+    const eliminadas = [];
+    (sim.acertos || []).forEach(function (a) {
+      const peso = Number(a.pontosAcerto) > 0 ? Number(a.pontosAcerto) : 1;
+      const penalidade = Math.max(0, Number(a.penalidadeErro) || 0);
+      const erros = Math.max(0, a.total - a.certas - (Number(a.brancas) || 0));
+      const obtidos = a.certas * peso - erros * penalidade;
+      pontos += obtidos; maximo += a.total * peso; certas += a.certas; total += a.total;
+      if (a.minimoPct != null && a.total > 0 && obtidos / (a.total * peso) * 100 < a.minimoPct) eliminadas.push(a.disciplinaId);
+    });
+    return { pontos: pontos, maximo: maximo, pct: maximo ? Math.round(pontos / maximo * 100) : null,
+      acertoPct: total ? Math.round(certas / total * 100) : null, eliminadas: eliminadas,
+      configurada: sim.regraPontuacao === true };
+  }
+
+  function avaliarRecuperacao(rec, sessoes, meta, hoje) {
+    hoje = hoje || hojeISO();
+    const novas = sessoes.filter(function (s) { return s.topicoId === rec.topicoId && s.data > rec.data && s.data <= hoje && s.registradoEm && s.registradoEm > rec.criadoEm; });
+    const dt = desempenhoTopico(novas, rec.topicoId);
+    if (dt.recentesFeitas < 10) return { situacao: 'aguardando', mensagem: 'Aguardando pelo menos 10 questões novas em dia posterior (' + dt.recentesFeitas + '/10).' };
+    return { situacao: dt.pct >= meta ? 'melhora' : 'reforcar', mensagem: dt.pct + '% nas últimas ' + dt.recentesFeitas + ' questões — ' + (dt.pct >= meta ? 'melhora observada; mantenha as revisões.' : 'abaixo da meta; retome a dificuldade.') };
   }
 
   function desempenhoDisciplina(state, disciplina) {
@@ -1291,6 +1342,10 @@
             }
             if (!Number.isInteger(a.total) || a.total <= 0) erros.push(refA + '.total deve ser um inteiro maior que zero.');
             if (!Number.isInteger(a.certas) || a.certas < 0) erros.push(refA + '.certas deve ser um inteiro maior ou igual a zero.');
+            if (a.brancas != null && (!Number.isInteger(a.brancas) || a.brancas < 0 || a.brancas + a.certas > a.total)) erros.push(refA + '.brancas inválido.');
+            if (a.pontosAcerto != null && (!Number.isFinite(a.pontosAcerto) || a.pontosAcerto <= 0)) erros.push(refA + '.pontosAcerto inválido.');
+            if (a.penalidadeErro != null && (!Number.isFinite(a.penalidadeErro) || a.penalidadeErro < 0)) erros.push(refA + '.penalidadeErro inválido.');
+            if (a.minimoPct != null && (!Number.isFinite(a.minimoPct) || a.minimoPct < 0 || a.minimoPct > 100)) erros.push(refA + '.minimoPct inválido.');
             if (Number.isInteger(a.certas) && Number.isInteger(a.total) && a.certas > a.total) {
               erros.push(refA + '.certas não pode ser maior que .total.');
             }
@@ -2370,8 +2425,11 @@
       else { emRisco++; semRevisao++; }
     });
     const totalTopicos = topicos.length;
-    const pct = totalTopicos > 0 ? Math.round((prontos / totalTopicos) * 100) : 100;
+    const pct = totalTopicos > 0 ? Math.round((prontos / totalTopicos) * 100) : 0;
+    const evidencias = diagnosticoAprendizagem(state, hoje);
     return {
+      evidencias: evidencias,
+      revisoesAtrasadas: pend.filter(function (r) { return r.dataAgendada < hoje; }).length,
       prazo: prazo,
       totalTopicos: totalTopicos,
       prontos: prontos,
@@ -2803,7 +2861,7 @@
     let totalClassificado = 0, totalErros = 0;
     (simulados || []).forEach(function (sim) {
       (sim.acertos || []).forEach(function (a) {
-        const erros = Math.max(0, (a.total || 0) - (a.certas || 0));
+        const erros = Math.max(0, (a.total || 0) - (a.certas || 0) - (a.brancas || 0));
         totalErros += erros;
         if (erros > 0 && a.tipoErro && porTipo[a.tipoErro] != null) {
           porTipo[a.tipoErro] += erros;
@@ -2824,7 +2882,7 @@
       .map(function (s) {
         let c = 0, q = 0;
         (s.acertos || []).forEach(function (a) { c += a.certas || 0; q += a.total || 0; });
-        return { data: s.data, pct: q > 0 ? Math.round((c / q) * 100) : null, certas: c, total: q, tipo: s.tipo };
+        return { data: s.data, pct: pontuacaoSimulado(s).pct, certas: c, total: q, tipo: s.tipo };
       })
       .filter(function (p) { return p.pct !== null; })
       .sort(function (a, b) { return String(a.data).localeCompare(String(b.data)); });
@@ -2853,7 +2911,7 @@
         const dt = desempenhoTopico(sessoes, t.id);
         itens.push({
           topicoId: t.id, nome: t.nome, disciplinaId: d.id,
-          incidencia: t.incidencia_pct || 0, pct: dt.pct, feitas: dt.feitas,
+          incidencia: t.incidencia_pct || 0, pct: dt.pct, feitas: dt.recentesFeitas,
           urgencia: urgenciaTopico(state, t.id, hoje, metaPct),
           reaberto: !!t.reaberto, status: t.status
         });
@@ -2970,6 +3028,7 @@
     conciliarPlanos, mapearAproveitamentoPlano, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, distribuirRevisoesPorCapacidade, revisoesPendentesNoDia, minutosRevisaoNoDia,
     duracaoRevisaoConcluidaMin, minutosRevisoesConcluidasNoDia,
+    diagnosticoAprendizagem, pontuacaoSimulado, avaliarRecuperacao,
     TIPOS_ERRO, remediacaoErro, analisarErrosSimulados, ritmoSimulado,
     tendenciaSimulados, rankingAcionavel, mesclarCatalogoCarreiras,
     revisarFlashcard, flashcardDevido

@@ -41,6 +41,25 @@ em [`CLAUDE.md`](CLAUDE.md).
 
 ## Como usar
 
+### Diagnóstico e recuperação
+
+- **Revisões** separa os ciclos previstos até a prova da evidência de aprendizado.
+  O critério inicial exige 20 questões recentes, prática em dois dias nos últimos
+  30 dias, acerto na meta e nenhuma revisão atrasada. É um indicador operacional,
+  não uma estimativa de aprovação. Tópicos sem amostra continuam no denominador.
+- **Simulados** permite registrar pontos por acerto, desconto por erro, brancas e
+  mínimo por disciplina. Marque que informou a regra para comparar os pontos com
+  a meta. Os pesos de planejamento não são pesos de nota. Registros antigos
+  continuam disponíveis como percentual de acertos, sem regra oficial presumida.
+- Em uma disciplina com erros, **Trabalhar uma dificuldade** vincula um tópico,
+  uma explicação e uma ação de recuperação. **Registrar nova prática** permite
+  acompanhar o resultado: pelo menos 10 questões em dia posterior ao registro da
+  dificuldade. Atingir a meta indica melhora observada, não domínio definitivo.
+- O diagnóstico de erros predominantes é explicitamente aproximado: uma escolha
+  por disciplina não equivale à classificação individual de todos os erros.
+- Sessões novas guardam horário de registro. Para sessões antigas do mesmo dia,
+  sem horário, a última posição no histórico desempata a janela de desempenho.
+
 1. **Abrir o app**
    - **Publicado:** abra a URL do GitHub Pages e, no celular, use *Adicionar à tela
      inicial* (PWA instalável, abre offline).
