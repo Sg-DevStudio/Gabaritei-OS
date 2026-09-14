@@ -941,11 +941,9 @@
     return saida;
   }
 
-  // Mantém a recomendação no último tópico realmente iniciado. A agenda semanal
-  // é materializada com antecedência; sem este ajuste, uma sessão parcial muda o
-  // tópico para `em_curso`, mas o próximo card continua apontando para a matéria
-  // que o cronograma havia escolhido antes do estudo acontecer. Só um bloco
-  // GERADO é alterado: blocos manuais são decisões explícitas do aluno.
+  // Retoma o tópico no próximo bloco gerado DA MESMA DISCIPLINA.
+  // Encerrar uma sessão não conclui o tópico nem muda a vez das outras matérias.
+  // Blocos manuais e revisões preservam a escolha explícita do aluno.
   function continuarTopicoEmCursoNaAgenda(state, topicoId, opcoes) {
     opcoes = opcoes || {};
     const topico = topicoPorId(state, topicoId);
@@ -957,6 +955,7 @@
     const depoisDaOrdem = Number.isFinite(opcoes.depoisDaOrdem) ? opcoes.depoisDaOrdem : null;
     const candidatos = doPlanoAtivo(state, state.agenda || []).filter(function (b) {
       if (!b || !b.gerado || b.feito || b.id === ignorarId || b.data < dataRef) return false;
+      if (b.disciplinaId !== disciplina.id) return false;
       if (b.obs === 'revisao') return false;
       if (b.data === dataRef && depoisDaOrdem !== null && Number(b.ordem) <= depoisDaOrdem) return false;
       return true;

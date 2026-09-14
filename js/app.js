@@ -1821,9 +1821,9 @@
       }
     }
 
-    // Uma sessão parcial significa "continuar daqui", não "trocar de matéria".
-    // O próximo bloco gerado herda o tópico em curso; ao concluir a teoria, o
-    // recálculo já existente devolve a agenda à sequência normal do edital.
+    // Retoma de onde parou na próxima sessão da mesma disciplina, inclusive no
+    // modo exemplo. As demais matérias mantêm sua vez na agenda; concluir a
+    // teoria libera o avanço para o próximo tópico.
     if (topico && topico.status === 'em_curso' && dados.tipo !== 'revisao') {
       D.continuarTopicoEmCursoNaAgenda(state, dados.topicoId, {
         data: data, ignorarBlocoId: blocoCred, depoisDaOrdem: ordemBlocoCred
