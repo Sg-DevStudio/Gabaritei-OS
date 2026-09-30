@@ -170,12 +170,13 @@ function codecRemoto() {
   return window.RemoteStateCodec;
 }
 
-function refParteEstado(prefixo, indice) {
-  return doc(db, 'users', usuario.uid, 'state', codecRemoto().idParte(prefixo, indice));
+function refParteEstado(prefixo, indice, userId) {
+  return doc(db, 'users', userId || usuario.uid, 'state', codecRemoto().idParte(prefixo, indice));
 }
 
 async function lerEstadoDoDocumento(dados, prefixo, lerDocumento) {
   if (!dados) return null;
+  const userId = usuario.uid;
   if (dados.formato === codecRemoto().FORMATO) {
     const quantidade = parseInt(dados.chunks, 10);
     if (!Number.isFinite(quantidade) || quantidade < 1 || quantidade > codecRemoto().MAX_PARTES) {
@@ -183,7 +184,7 @@ async function lerEstadoDoDocumento(dados, prefixo, lerDocumento) {
     }
     const ler = typeof lerDocumento === 'function' ? lerDocumento : getDoc;
     const snaps = await Promise.all(Array.from({ length: quantidade }, function (_, indice) {
-      return ler(refParteEstado(prefixo, indice));
+      return ler(refParteEstado(prefixo, indice, userId));
     }));
     const partes = snaps.map(function (snap, indice) {
       const parte = snap.exists() ? (snap.data() || {}) : {};
@@ -417,6 +418,7 @@ function gravarRemoto(state) {
       ultimoErroGravacao = e;
       console.error('Falha ao salvar no Firebase.', e);
       definirStatus('erro', e && e.message ? e.message : 'Falha ao salvar no Firebase');
+      throw e;
     } finally {
       enviando = false;
       promessaGravacao = null;
@@ -436,12 +438,14 @@ async function reconciliarComRemoto(silencioso) {
     return;
   }
   reconciliando = true;
+  const referenciaLida = refEstado;
   if (retryReconciliacao) { clearTimeout(retryReconciliacao); retryReconciliacao = null; }
   definirStatus('sincronizando', 'Sincronizando com Firebase');
   let reconciliou = true;
   try {
-    const local = opcoes.obterEstado();
-    const snap = await getDoc(refEstado);
+    const snap = await getDoc(referenciaLida);
+    if (referenciaLida !== refEstado || !usuario || !opcoes) return;
+    let local = opcoes.obterEstado();
     if (!snap.exists()) {
       reconciliadoOk = true; // confirmou que não há cópia remota
       numeroChunksAtuais = 0;
@@ -455,6 +459,8 @@ async function reconciliarComRemoto(silencioso) {
       ? (parseInt(dadosRemotos.chunks, 10) || 0)
       : 0;
     const remoto = await normalizarRemoto(dadosRemotos, 'current');
+    if (referenciaLida !== refEstado || !usuario || !opcoes) return;
+    local = opcoes.obterEstado();
     // Só libera envios depois de ler também todas as partes. Metadados sem um
     // chunk íntegro não contam como reconciliação concluída.
     reconciliadoOk = true;
@@ -463,81 +469,27 @@ async function reconciliarComRemoto(silencioso) {
       return;
     }
 
-    const geracaoRemota = geracaoDe(remoto.state);
-    const geracaoLocal = geracaoDe(local);
-    // Contas antigas são migradas em silêncio: escolhemos a base mais recente,
-    // unimos registros por id e a primeira gravação transacional cria o marcador.
-    if (!geracaoRemota) {
-      const canonicoInicial = estadoCanonicoParaGravacao(local, remoto);
-      if (!window.Store.estadosEquivalentes(canonicoInicial, local)) {
-        aplicarRemoto(canonicoInicial, silencioso);
-      }
-      if (temDados(canonicoInicial) || temLapides(canonicoInicial)) {
-        await gravarRemoto(canonicoInicial);
-      } else {
-        definirStatus('sincronizado', 'Sincronizado com Firebase');
-      }
-      return;
+    // Contas antigas são migradas em silêncio; a transação cria o marcador.
+    // O estado atual foi relido após a rede, inclusive após restaurações.
+    const canonico = estadoCanonicoParaGravacao(local, remoto);
+    const mudouLocal = !window.Store.estadosEquivalentes(canonico, local);
+    const mudouRemoto = !window.Store.estadosEquivalentes(canonico, remoto.state);
+    if (mudouLocal) aplicarRemoto(canonico, silencioso);
+    // A mesma regra canônica resolve exclusão total ANTES das lápides e da
+    // mescla, tanto nas leituras quanto nas transações de gravação.
+    if ((!geracaoDe(remoto.state) || mudouRemoto) &&
+        (temDados(canonico) || temLapides(canonico))) {
+      await gravarRemoto(canonico);
     }
-    if (geracaoRemota && geracaoRemota !== geracaoLocal) {
-      const convergente = estadoCanonicoParaGravacao(local, remoto);
-      const mudouRemoto = !window.Store.estadosEquivalentes(convergente, remoto.state);
-      aplicarRemoto(convergente, silencioso);
-      if (mudouRemoto) await gravarRemoto(convergente);
-      definirStatus('sincronizado', 'Sincronizado com Firebase');
-      return;
-    }
-
-    const localMs = dataMs(atualizadoEm(local));
-    const remotoMs = dataMs(atualizadoEm(remoto.state) || remoto.updatedAt);
-    const localTemDados = temDados(local);
-    const remotoTemDados = temDados(remoto.state);
-    // Exclusão local recente (plano/dados apagados): não deixa a nuvem
-    // ressuscitar os dados — neste caso o estado local (vazio) é que vale.
-    const apagouLocal = local.config && local.config.apagadoEm &&
-      dataMs(local.config.apagadoEm) > remotoMs + FOLGA_RELOGIO_MS;
-
-    if (!localTemDados && remotoTemDados && temLapides(local)) {
-      // Mesmo vazio, o estado local pode carregar exclusões explícitas. Mesclar
-      // aplica as lápides antes de adotar a nuvem e evita ressuscitar registros.
-      const merged = window.Store.mesclarEstados(remoto.state, local);
-      aplicarRemoto(merged, silencioso);
-      await gravarRemoto(merged);
-      definirStatus('sincronizado', 'Sincronizado com Firebase');
-    } else if (!localTemDados && remotoTemDados && !apagouLocal) {
-      aplicarRemoto(remoto.state, silencioso);
-      definirStatus('sincronizado', 'Sincronizado com Firebase');
-    } else if (apagouLocal) {
-      await gravarRemoto(local);
-    } else if (localTemDados && remotoTemDados) {
-      // Ambos têm dados: mescla por id para não perder registros de estudo que só
-      // existem em um dos lados (correção do last-write-wins). O mais recente é a
-      // base (vence config e empates; a estrutura de cada plano tem carimbo
-      // próprio na mescla). "Mais recente" = rev maior (contador monotônico,
-      // imune a relógio de aparelho errado); timestamps só desempatam.
-      const remotoGanha = remotoEhMaisNovo(remoto.state, local, remotoMs, localMs);
-      const base = remotoGanha ? remoto.state : local;
-      const outro = remotoGanha ? local : remoto.state;
-      const merged = window.Store.mesclarEstados(base, outro);
-      const mudouLocal = !window.Store.estadosEquivalentes(merged, local);
-      const mudouRemoto = !window.Store.estadosEquivalentes(merged, remoto.state);
-      if (remotoGanha || mudouLocal) aplicarRemoto(merged, silencioso);
-      if (mudouRemoto) await gravarRemoto(merged);
-      definirStatus('sincronizado', 'Sincronizado com Firebase');
-    } else if (localMs > remotoMs + FOLGA_RELOGIO_MS) {
-      await gravarRemoto(local);
-    } else if (remotoMs > localMs + FOLGA_RELOGIO_MS) {
-      aplicarRemoto(remoto.state, silencioso);
-      definirStatus('sincronizado', 'Sincronizado com Firebase');
-    } else {
-      definirStatus('sincronizado', 'Sincronizado com Firebase');
-    }
+    if (referenciaLida === refEstado) definirStatus('sincronizado', 'Sincronizado com Firebase');
   } catch (e) {
+    if (referenciaLida !== refEstado) return;
     reconciliou = false;
     console.error('Falha ao sincronizar com Firebase.', e);
     definirStatus('erro', 'Verifique Auth, Firestore e regras');
   } finally {
     reconciliando = false;
+    if (referenciaLida !== refEstado) return;
     if (reconciliou) {
       tentativasReconciliacao = 0;
     } else {
@@ -561,6 +513,7 @@ async function reconciliarComRemoto(silencioso) {
 }
 
 function observarMudancas() {
+  if (!refEstado || !usuario) return;
   if (cancelarSnapshot) cancelarSnapshot();
   cancelarSnapshot = onSnapshot(refEstado, function (snap) {
     if (!snap.exists() || !opcoes) return;
@@ -949,7 +902,7 @@ function agendarEnvio(state) {
     // Ainda não leu a nuvem nesta sessão (reconciliação falhou/pendente):
     // reconcilia em vez de gravar direto — a mescla decide e envia o resultado.
     if (!reconciliadoOk) { reconciliarComRemoto(true); return; }
-    gravarRemoto(state);
+    gravarRemoto(opcoes && opcoes.obterEstado ? opcoes.obterEstado() : state).catch(function () {});
   }, 650);
 }
 
@@ -961,7 +914,7 @@ function flushEnvio() {
   clearTimeout(envioPendente);
   envioPendente = null;
   if (!reconciliadoOk) return; // nunca sobrescrever a nuvem sem tê-la lido antes
-  if (opcoes && opcoes.obterEstado) gravarRemoto(opcoes.obterEstado());
+  if (opcoes && opcoes.obterEstado) gravarRemoto(opcoes.obterEstado()).catch(function () {});
 }
 
 function sincronizarAgora(opcoesSync) {

@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const raiz = path.join(__dirname, '..');
 const indexHtml = fs.readFileSync(path.join(raiz, 'index.html'), 'utf8');
@@ -31,10 +32,8 @@ test('arquivos críticos de sincronização são publicados na mesma versão da 
     return match[1];
   });
   assert.equal(new Set(versoes).size, 1, 'assets críticos não podem ficar em gerações diferentes');
-  // O slug acompanha a feature de cada bump; o que o teste garante é o FORMATO
-  // (estudos-v<n>-<slug>), não o nome de uma entrega específica — senão todo bump de
-  // cache quebra este teste e obriga a editá-lo junto.
-  assert.match(serviceWorker, /const CACHE = 'estudos-v\d+-[a-z0-9-]+'/);
+  assert.match(serviceWorker, /const CACHE_PREFIXO = 'gabaritei-os-'/);
+  assert.match(serviceWorker, /const CACHE = CACHE_PREFIXO \+ 'v\d+-[a-z0-9-]+'/);
 });
 
 test('service worker mantém disponíveis offline o plano de exemplo e os ícones do manifesto', () => {
@@ -49,4 +48,23 @@ test('service worker mantém disponíveis offline o plano de exemplo e os ícone
   ].forEach(function (recurso) {
     assert.ok(serviceWorker.includes("'" + recurso + "'"), recurso + ' não está no pré-cache');
   });
+});
+
+
+test('ativar a PWA remove só versões próprias e o cache legado conhecido', async () => {
+  const handlers = {}, deleted = [];
+  const context = {
+    self: { addEventListener: (type, fn) => { handlers[type] = fn; }, clients: { claim: async () => {} } },
+    importScripts() { throw new Error('Messaging opcional indisponível'); },
+    console: { warn() {} },
+    caches: {
+      keys: async () => ['gabaritei-os-v173-sugestoes-revisao', 'gabaritei-os-v172-antigo', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
+      delete: async name => { deleted.push(name); }
+    }
+  };
+  vm.runInNewContext(serviceWorker, context);
+  let pending;
+  handlers.activate({ waitUntil: promise => { pending = promise; } });
+  await pending;
+  assert.deepEqual(deleted.sort(), ['estudos-v172-continuidade-disciplina', 'gabaritei-os-v172-antigo']);
 });

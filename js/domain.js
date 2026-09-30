@@ -239,6 +239,19 @@
   function sessoesDoPlano(state) { return doPlanoAtivo(state, state.sessoes); }
 
   // ---------- RN01 — Teoria concluída agenda revisões (curva 1-3-7-14-30) ----------
+  // Ausência do campo mantém o comportamento dos planos já existentes.
+  function sugestoesRevisaoAtivas(state) {
+    return !(state && state.plano && state.plano.sugestoesRevisao === false);
+  }
+
+  // Suspender sugestões não apaga o histórico nem revisões manuais explícitas.
+  // Revisões antigas sem origem foram geradas pelo sistema de repetição espaçada.
+  function revisoesVisiveis(state) {
+    return doPlanoAtivo(state, state.revisoes || []).filter(function (r) {
+      return r && (r.dataConcluida || r.origem === 'manual' || sugestoesRevisaoAtivas(state));
+    });
+  }
+
   // Intervalos expansivos (1, 3, 7, 14, 30 dias) — alinhados à evidência de
   // repetição espaçada para achatar a curva do esquecimento. A 1ª revisão fica
   // em ~24h (a mais crítica) e as demais espaçam progressivamente.
@@ -319,7 +332,7 @@
       (d.topicos || []).filter(function (t) { return !t.orfao; }).forEach(function (t) {
         const dt = desempenhoTopico(sessoes, t.id);
         const dias = new Set(sessoes.filter(function (s) { return s.topicoId === t.id && s.qFeitas > 0; }).map(function (s) { return s.data; })).size;
-        const atrasada = doPlanoAtivo(state, state.revisoes || []).some(function (r) { return r.topicoId === t.id && !r.dataConcluida && r.dataAgendada < hoje; });
+        const atrasada = revisoesVisiveis(state).some(function (r) { return r.topicoId === t.id && !r.dataConcluida && r.dataAgendada < hoje; });
         const suficiente = dt.recentesFeitas >= 20 && dias >= 2;
         itens.push({ topicoId: t.id, nome: t.nome, pct: dt.pct, feitas: dt.recentesFeitas,
           situacao: !suficiente ? 'diagnostico' : dt.pct < meta ? 'recuperar' : atrasada ? 'revisar' : 'manter' });
@@ -1137,7 +1150,7 @@
   function filaHoje(state, hoje) {
     const fila = [];
 
-    const vencidas = doPlanoAtivo(state, state.revisoes)
+    const vencidas = revisoesVisiveis(state)
       .filter((r) => !r.dataConcluida && r.dataAgendada <= hoje && topicoPorId(state, r.topicoId))
       .sort((a, b) => a.dataAgendada.localeCompare(b.dataAgendada));
     for (const r of vencidas) fila.push({ categoria: 'revisao', topicoId: r.topicoId, revisao: r });
@@ -2156,7 +2169,7 @@
     const maxDeslocamento = Math.max(7, Math.round(Number(opcoes.maxDeslocamentoDias) || 60));
     const prazo = prazoProva(state);
     const carga = {};
-    doPlanoAtivo(state, state.revisoes || []).forEach(function (r) {
+    revisoesVisiveis(state).forEach(function (r) {
       if (!r || r.dataConcluida || !r.dataAgendada) return;
       carga[r.dataAgendada] = (carga[r.dataAgendada] || 0) + duracaoRevisaoMin(r.tipo);
     });
@@ -2201,7 +2214,7 @@
   // Revisões PENDENTES (não concluídas) agendadas para um dia, com tópico válido.
   // Fonte única para Hoje, aba Revisões e calendário — todos leem daqui.
   function revisoesPendentesNoDia(state, dia) {
-    return doPlanoAtivo(state, state.revisoes || []).filter(function (r) {
+    return revisoesVisiveis(state).filter(function (r) {
       return r && !r.dataConcluida && r.dataAgendada === dia && topicoPorId(state, r.topicoId);
     });
   }
@@ -2385,7 +2398,7 @@
     const prazo = prazoProva(state);
     if (!prazo) return null;
     hoje = hoje || hojeISO();
-    const pend = doPlanoAtivo(state, state.revisoes)
+    const pend = revisoesVisiveis(state)
       .filter(function (r) { return !r.dataConcluida && topicoPorId(state, r.topicoId); });
 
     const ultimaPorTopico = {};
@@ -3006,6 +3019,7 @@
   }
 
   window.Dominio = {
+    sugestoesRevisaoAtivas, revisoesVisiveis,
     CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig, validarEsquemaRevisao,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
     topicoPorId, topicoExisteEmAlgumPlano, disciplinaDoTopico, disciplinaPorId, excluirDisciplina, renomearTopico, doPlanoAtivo, sessoesDoPlano,

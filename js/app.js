@@ -1474,6 +1474,7 @@
 
   // ---------------- revisões: agendar/cancelar coerente ----------------
   function agendarRevisoesSeNecessario(topicoId) {
+    if (!D.sugestoesRevisaoAtivas(state)) return false;
     const tem = doAtivo(state.revisoes).some(function (r) { return r.topicoId === topicoId; });
     if (!tem) {
       const novas = D.agendarRevisoes(topicoId, D.hojeISO(), { intervalos: D.intervalosRevisaoConfig(state) });
@@ -1494,6 +1495,7 @@
   }
 
   function adicionarRevisoesDistribuidas(novas) {
+    if (!D.sugestoesRevisaoAtivas(state)) return [];
     (novas || []).forEach(function (r) { r.planoId = state.planoAtivoId; });
     D.distribuirRevisoesPorCapacidade(state, novas, capacidadeRevisaoDoDia);
     state.revisoes = state.revisoes.concat(novas || []);
@@ -1507,6 +1509,7 @@
   // entupia o calendário com dezenas de "24h" no mesmo dia). Idempotente.
   const REVISOES_LOTE_POR_DIA = 3; // tópicos por dia-base → ~3 revisões/dia
   function agendarRevisoesEmLote(topicoIds) {
+    if (!D.sugestoesRevisaoAtivas(state)) return 0;
     let i = 0, agendou = 0;
     (topicoIds || []).forEach(function (id) {
       if (doAtivo(state.revisoes).some(function (r) { return r.topicoId === id; })) return;
@@ -1530,6 +1533,7 @@
   // sessão) e SEM revisão concluída. Flag por plano evita reprocessar a cada load.
   const LIMIAR_PILHA_REV = 6; // mais que isso no mesmo dia = parede
   function migrarRevisoesEmPilha() {
+    if (!D.sugestoesRevisaoAtivas(state)) return 0;
     if (!state.planoAtivoId || !state.plano) return 0;
     if (state.plano.revisoesRedistribuidasEm) return 0; // já migrado
     const ativos = doAtivo(state.revisoes).filter(function (r) {
@@ -1683,7 +1687,8 @@
       '<div class="msg-erro oculto" id="reg-erro"></div>' +
       '<label for="reg-obs">Observação (opcional)</label><textarea id="reg-obs" placeholder="Ex.: travei em prazos de recurso"></textarea>' +
       '<label style="display:flex;align-items:center;gap:0.5rem;font-weight:400">' +
-      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Teoria finalizada neste tópico (agenda as revisões e recalcula o plano, tirando-o da fila de teoria)</label>' +
+      '<input type="checkbox" id="reg-teoria-ok" style="width:auto;min-height:0"> Teoria finalizada neste tópico (' +
+      (D.sugestoesRevisaoAtivas(state) ? 'agenda as revisões e ' : '') + 'recalcula o plano, tirando-o da fila de teoria)</label>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="reg-cancelar">Cancelar</button>' +
       '<button type="submit">Registrar sessão</button>' +
@@ -1847,7 +1852,7 @@
     // Revisão adaptativa: as questões do estudo do dia a dia também reescalam as
     // próximas revisões pendentes do tópico (vai bem → espaça; vai mal → aproxima).
     let reagDiario = { ajustadas: 0, fator: 1 };
-    if (dados.qFeitas > 0 && topico) {
+    if (D.sugestoesRevisaoAtivas(state) && dados.qFeitas > 0 && topico) {
       reagDiario = D.reagendarRevisoesAdaptativo(state.revisoes, dados.topicoId, hoje, D.sessoesDoPlano(state), topico.incidencia_pct);
     }
 
@@ -3282,7 +3287,8 @@
       // Curva do esquecimento adaptativa: o desempenho da revisão ajusta o tópico.
       const t = D.topicoPorId(state, rev.topicoId);
       const incT = t ? t.incidencia_pct : null;
-      const aj = D.ajustePosRevisao(rev, rev.resultadoPct, feitas, incT);
+      const aj = D.sugestoesRevisaoAtivas(state)
+        ? D.ajustePosRevisao(rev, rev.resultadoPct, feitas, incT) : {};
       if (t) {
         if (aj.subirPrioridade) t.prioridade = Math.max(1, (t.prioridade || 2) - 1);
         if (aj.reabrir) { t.status = 'em_curso'; t.reaberto = true; }
@@ -3310,7 +3316,9 @@
       }
       // Espaçamento adaptativo: o histórico de acertos do tópico estica (indo bem)
       // ou encurta (indo mal) as próximas revisões pendentes.
-      const reag = D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state), incT);
+      const reag = D.sugestoesRevisaoAtivas(state)
+        ? D.reagendarRevisoesAdaptativo(state.revisoes, rev.topicoId, rev.dataConcluida, D.sessoesDoPlano(state), incT)
+        : { ajustadas: 0, fator: 1 };
       if (aj.reabrir) {
         toast('Desempenho baixo — tópico reaberto, prioridade elevada e reforço em ' + aj.revisaoExtraDias + ' dias.', 'erro');
       } else if (aj.revisaoExtraDias != null) {
@@ -3353,16 +3361,24 @@
     return '';
   }
 
+  function avisoSugestoesRevisaoDesativadasHtml() {
+    return '<div class="card"><strong>Sugestões de revisão desativadas</strong>' +
+      '<p class="sub">Você pode seguir seu próprio sistema e criar blocos manuais. O histórico foi preservado. Para retomar as sugestões, ative a opção no Planejamento.</p>' +
+      '<a class="botao-mini botao-quieto" href="#planejamento">Ir para Planejamento</a></div>';
+  }
+
   function revisoesAgendadasHtml() {
     const hoje = D.hojeISO();
-    const pendentes = doAtivo(state.revisoes)
+    const pendentes = D.revisoesVisiveis(state)
       .filter(function (r) { return !r.dataConcluida && D.topicoPorId(state, r.topicoId); })
       .sort(function (a, b) { return a.dataAgendada.localeCompare(b.dataAgendada); });
 
     // Prontidão para a prova: o ciclo de revisões cabe antes da prova?
     const prazo = state.plano ? D.prazoProva(state) : null;
     let html0 = '';
-    if (state.plano) {
+    if (state.plano && !D.sugestoesRevisaoAtivas(state)) {
+      html0 = avisoSugestoesRevisaoDesativadasHtml();
+    } else if (state.plano) {
       if (!prazo) {
         html0 = '<div class="card prontidao-card prontidao-sem-prazo">' +
           '<div><strong>Quando é a sua prova?</strong>' +
@@ -3386,7 +3402,9 @@
 
     if (pendentes.length === 0) {
       return html0 + '<div class="card"><div class="estado-vazio"><span class="bolha bolha-teoria_concluida"></span>' +
-        '<strong>Nenhuma revisão pendente</strong>Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 3d · 7d · 14d · 30d.</div></div>';
+        '<strong>Nenhuma revisão pendente</strong>' + (D.sugestoesRevisaoAtivas(state)
+          ? 'Conclua a teoria de um tópico (no registro de sessão ou no Edital) para agendar o ciclo 24h · 3d · 7d · 14d · 30d.'
+          : 'Use seu sistema de revisão ou crie blocos manuais no Planejamento.') + '</div></div>';
     }
 
     const grupos = [
@@ -3440,6 +3458,7 @@
   // Regenera as revisões PENDENTES dos tópicos estudados usando o esquema atual;
   // preserva o que já foi concluído (histórico) e pula as etapas já cumpridas.
   function reaplicarEsquemaRevisao() {
+    if (!D.sugestoesRevisaoAtivas(state)) return 0;
     const intervalos = D.intervalosRevisaoConfig(state);
     const hoje = D.hojeISO();
     const porTop = {};
@@ -3468,6 +3487,7 @@
       return '<div class="card"><div class="estado-vazio"><span class="bolha bolha-pendente"></span>' +
         '<strong>Sem plano ativo</strong>Ative um plano para ver os tópicos já estudados e configurar suas revisões.</div></div>';
     }
+    if (!D.sugestoesRevisaoAtivas(state)) return avisoSugestoesRevisaoDesativadasHtml();
     const esq = esquemaRevisaoAtual();
     const custom = esq.modo === 'custom';
     const padraoTxt = D.CURVA_REVISAO_PADRAO_DIAS.map(diaLabelRev).join(' · ');
@@ -8826,6 +8846,8 @@
       '<div class="compact-actions plano-acoes-card">' +
       '<button class="botao-mini" id="pl-acao-editar">Editar plano</button>' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
+      '<button type="button" class="botao-mini botao-secundario" id="pl-acao-revisoes" aria-pressed="' + D.sugestoesRevisaoAtivas(state) + '" title="Controla sugestões automáticas deste plano. O histórico e os blocos manuais são preservados.">' +
+      (D.sugestoesRevisaoAtivas(state) ? 'Desativar sugestões de revisão' : 'Ativar sugestões de revisão') + '</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
       modoRetaFinalControleHtml() +
@@ -11436,6 +11458,18 @@
     });
     const acaoPerfil = raiz.querySelector('#pl-acao-perfil');
     if (acaoPerfil) acaoPerfil.addEventListener('click', function () { abrirPerfilPlano(state.planoAtivoId); });
+    const acaoRevisoes = raiz.querySelector('#pl-acao-revisoes');
+    if (acaoRevisoes) acaoRevisoes.addEventListener('click', function () {
+      if (!state.plano) return;
+      state.plano.sugestoesRevisao = !D.sugestoesRevisaoAtivas(state);
+      regenerarAgendaFuturas();
+      salvar(); render();
+      const botao = document.getElementById('pl-acao-revisoes');
+      if (botao) botao.focus();
+      toast(D.sugestoesRevisaoAtivas(state)
+        ? 'Sugestões de revisão ativadas neste plano.'
+        : 'Sugestões de revisão desativadas. Seu histórico foi preservado.', 'sucesso');
+    });
     const acaoExcluir = raiz.querySelector('#pl-acao-excluir');
     if (acaoExcluir) acaoExcluir.addEventListener('click', async function () {
       if (state.planoAtivoId) await excluirPlano(state.planoAtivoId, true);
@@ -12404,7 +12438,7 @@
       .filter(function (a) { return a.data >= semanaInicio && a.data < fim; })
       .sort(compararAgenda);
     const eventos = blocos.map(function (b) { return eventoCalendarDoBloco(b, cursores, semanaInicio); });
-    doAtivo(state.revisoes)
+    D.revisoesVisiveis(state)
       .filter(function (r) { return !r.dataConcluida && r.dataAgendada >= semanaInicio && r.dataAgendada < fim && D.topicoPorId(state, r.topicoId); })
       .forEach(function (r) { eventos.push(eventoCalendarDaRevisao(r, semanaInicio)); });
     return eventos;
@@ -12579,7 +12613,7 @@
       });
     }
     if (opts.revisoes !== false) {
-      doAtivo(state.revisoes)
+      D.revisoesVisiveis(state)
         .filter(function (r) { return !r.dataConcluida && r.dataAgendada >= hoje && D.topicoPorId(state, r.topicoId); })
         .forEach(function (r) {
           const t = D.topicoPorId(state, r.topicoId);
@@ -12888,7 +12922,7 @@
     document.querySelectorAll('[data-rota]').forEach(function (el) {
       el.classList.toggle('ativo', el.getAttribute('data-rota') === rota);
     });
-    const nVencidas = doAtivo(state.revisoes).filter(function (r) {
+    const nVencidas = D.revisoesVisiveis(state).filter(function (r) {
       return !r.dataConcluida && r.dataAgendada <= D.hojeISO() && D.topicoPorId(state, r.topicoId);
     }).length;
     const badge = document.getElementById('badge-revisoes');
@@ -13539,3 +13573,4 @@
   // indisponível offline de propósito; o resto do site continua funcionando.
   if (!window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) catalogoGlobalCarregado = true;
 })();
+
