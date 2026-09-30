@@ -7013,6 +7013,7 @@
       cortes: e.cortes || { ampla: e.notaCorte, negros: null, pcd: null }, emAlta: e.emAlta,
       metaDesempenho: !!e.metaDesempenho,
       foto: e.foto || '',
+      fotoAlt: e.fotoAlt || '', fotoCredito: e.fotoCredito || '', fotoFonte: e.fotoFonte || '',
       salario: e.salario || '', beneficios: e.beneficios || '', vagas: e.vagas || '',
       fonte: e.fonte || '', observacoes: e.observacoes || '',
       // carimbo de versão: muda a cada save e dispara o aviso de "atualizar plano"

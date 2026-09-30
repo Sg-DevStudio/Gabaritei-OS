@@ -58,7 +58,7 @@ test('ativar a PWA remove só versões próprias e o cache legado conhecido', as
     importScripts() { throw new Error('Messaging opcional indisponível'); },
     console: { warn() {} },
     caches: {
-      keys: async () => ['gabaritei-os-v173-sugestoes-revisao', 'gabaritei-os-v172-antigo', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
+      keys: async () => ['gabaritei-os-v174-plano-ifrj', 'gabaritei-os-v173-sugestoes-revisao', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
       delete: async name => { deleted.push(name); }
     }
   };
@@ -66,5 +66,5 @@ test('ativar a PWA remove só versões próprias e o cache legado conhecido', as
   let pending;
   handlers.activate({ waitUntil: promise => { pending = promise; } });
   await pending;
-  assert.deepEqual(deleted.sort(), ['estudos-v172-continuidade-disciplina', 'gabaritei-os-v172-antigo']);
+  assert.deepEqual(deleted.sort(), ['estudos-v172-continuidade-disciplina', 'gabaritei-os-v173-sugestoes-revisao']);
 });

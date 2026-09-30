@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0.00 0.00 250.00 250.00">
+<circle fill="#c60b0e" cx="61.93" cy="35.21" r="27.96"/>
+<rect fill="#369530" x="97.76" y="9.24" width="51.00" height="51.00" rx="5.00"/>
+<rect fill="#369530" x="-25.68" y="-25.50" transform="translate(183.57,34.74) rotate(-0.1)" width="51.36" height="51.00" rx="5.31"/>
+<rect fill="#369530" x="36.27" y="70.75" width="50.98" height="50.98" rx="4.95"/>
+<rect fill="#369530" x="97.77" y="70.74" width="50.98" height="51.04" rx="5.02"/>
+<rect fill="#369530" x="-25.50" y="-25.62" transform="translate(61.75,156.62) rotate(0.1)" width="51.00" height="51.24" rx="5.33"/>
+<rect fill="#369530" x="-25.51" y="-25.62" transform="translate(123.25,156.62) rotate(-0.1)" width="51.02" height="51.24" rx="5.35"/>
+<rect fill="#369530" x="-25.72" y="-25.63" transform="translate(183.53,156.62) rotate(0.1)" width="51.44" height="51.26" rx="5.71"/>
+<rect fill="#369530" x="36.27" y="192.51" width="50.98" height="51.00" rx="5.14"/>
+<rect fill="#369530" x="-25.50" y="-25.50" transform="translate(123.26,218.01) rotate(-0.1)" width="51.00" height="51.00" rx="5.05"/>
+</svg>
