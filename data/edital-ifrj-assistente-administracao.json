@@ -1,152 +1,650 @@
 {
+  "id": "edital-ifrj-assistente-administracao-2022",
   "tipo": "edital_esquematizado",
   "versao": 1,
-  "gerado_em": "2026-06-24",
-  "titulo": "IFRJ — Assistente em Administração (concurso previsto 2026 — IDECAN)",
-  "banca": "IDECAN",
-  "cargo": "Assistente em Administração (Classe D / nível médio - PCCTAE)",
-  "fonte": "Edital do IFRJ ainda NÃO publicado (concurso em planejamento; banca IDECAN confirmada por dispensa). Conteúdo e incidência baseados no último edital IDECAN para o MESMO cargo em Instituto Federal — IF-PA, Edital nº 25/2021, prova de 13/03/2022 (distribuição real: 19 Port, 17 Dir. Adm, 12 Informática, 10 Adm. Geral, 7 RLM, 6 Arquivologia, 5 Ética) — cruzado com o projeto básico do IFRJ 2026 (50 questões: 8 Port / 7 Legislação e Ética / 35 Específicos) e incidência por tema de bancos de questões (Tec/Qconcursos). Nota de corte: aproximação declarada — lista oficial inexistente (edital não publicado).",
-  "janela_prova": {
+  "titulo": "IFRJ — Assistente em Administração (base: Edital 2022)",
+  "orgao": "Instituto Federal de Educação, Ciência e Tecnologia do Rio de Janeiro",
+  "cargo": "Assistente em Administração",
+  "area": "",
+  "estado": "RJ",
+  "nivel": "medio",
+  "banca": "Instituto SELECON",
+  "foto": "assets/carreiras/capa-ifrj-assistente.svg",
+  "fotoAlt": "Símbolo dos Institutos Federais, identificando o plano do IFRJ",
+  "fotoCredito": "Símbolo dos Institutos Federais — imagem localizada no projeto Mede1ro/TCC",
+  "fotoFonte": "https://github.com/Mede1ro/TCC/blob/46ca43cc06edf964bb4fe902d2acab2ad377f378/assets/logo.svg",
+  "metaDesempenho": true,
+  "notaCorte": 80,
+  "tipoCorte": "ampla",
+  "cortes": {
+    "ampla": 80,
+    "negros": null,
+    "pcd": null
+  },
+  "janelaProva": {
     "inicio": "",
     "fim": ""
   },
-  "nota_corte_sugerida_pct": 68,
-  "notas_corte_ultimo_nomeado": {
-    "escala": "Prova objetiva ~50 questões (previsão IFRJ 2026); percentual = acertos / total. APROXIMAÇÃO DECLARADA — sem lista oficial (edital ainda não publicado).",
-    "_observacao": "O concurso IFRJ 2026 ainda não tem edital nem lista de classificação. ÂNCORA REAL: no último concurso próprio do IFRJ (Selecon, Edital 03/2022, prova 10/04/2022), o mínimo para classificação era 40% por disciplina E 60% no total — esse é o piso eliminatório. A estimativa de 68% (ampla) / 60% (negros) para o ÚLTIMO NOMEADO fica acima desse piso, refletindo a concorrência típica. Substitua pelos valores oficiais quando o edital e o resultado do IFRJ 2026 saírem.",
-    "Rio de Janeiro (estimativa)": {
-      "ampla_pct": 68,
-      "negros_pct": 60
-    }
-  },
+  "emAlta": true,
+  "atualizadoEm": "2026-09-30T00:00:00.000Z",
+  "fonte": "Edital Retificado IFRJ nº 03/2022, fornecido em PDF: Anexo III (p. 30), Anexo IV (p. 31) e Anexo VIII (p. 36 e p. 41). Conteúdo do cargo Assistente em Administração, nível D, organizado a partir do documento.",
+  "observacoes": "Base de preparação pelo edital anterior do IFRJ, sem previsão de data ou garantia do conteúdo de um próximo concurso. Prova de referência: 50 questões de 1 ponto, sendo 8 de Português, 7 de Legislação e Ética, 5 de Informática e 30 de Conhecimentos Específicos. Mínimos do edital: 3, 3, 2 e 12 pontos por disciplina e 30 pontos no total; não são notas de corte de aprovação. A meta de 80% é editável. Os percentuais dos tópicos são uma distribuição inicial equilibrada para planejamento, sem análise de incidência em provas; pesos de estudo (2/2/1/5), horas e semanas também são estimativas editáveis. A Lei nº 8.666/1993 permanece como referência histórica expressa no edital de 2022; foi revogada e deverá ser revista à luz do próximo edital. Cada aluno pode personalizar sua cópia sem alterar o modelo público.",
   "disciplinas": [
     {
-      "id": "POR",
+      "id": "IFRJ-POR",
       "nome": "Língua Portuguesa",
-      "cor": "#E67E22",
+      "cor": "#3B82F6",
       "peso": 2,
       "base_teorica": "pdf",
+      "carater": "eliminatorio_classificatorio",
+      "nota_minima_pct": 37.5,
+      "questoes": 8,
+      "pontos_por_questao": 1,
+      "minimo_pontos": 3,
       "topicos": [
-        { "id": "POR-01", "nome": "Interpretação e compreensão de textos (núcleo IDECAN — ~metade da prova)", "incidencia_pct": 40, "prioridade": 1, "horas_estimadas": 14, "semana_sugerida": 1 },
-        { "id": "POR-02", "nome": "Coesão, coerência e reescrita de frases", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "POR-03", "nome": "Morfologia e classes de palavras", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "POR-04", "nome": "Sintaxe — período, oração e concordância", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "POR-05", "nome": "Regência verbal/nominal e crase", "incidencia_pct": 9, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "POR-06", "nome": "Semântica — sentido, sinonímia, figuras de linguagem", "incidencia_pct": 6, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 6 },
-        { "id": "POR-07", "nome": "Ortografia, acentuação e pontuação", "incidencia_pct": 11, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 7 }
+        {
+          "id": "IFRJ-POR-01",
+          "nome": "Compreensão e interpretação de textos atuais e clássicos; tipologia textual",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 1,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-02",
+          "nome": "Coesão, coerência, estrutura frasal e adequação textual",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-03",
+          "nome": "Ortografia oficial, acentuação gráfica e crase",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-04",
+          "nome": "Intertextualidade, interdiscursividade, perspectivas, paráfrases, paródias e estilizações",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 4,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-05",
+          "nome": "Classes de palavras e formação de palavras",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-06",
+          "nome": "Tempos e modos verbais; valor semântico de preposições, conjunções, locuções e advérbios",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-07",
+          "nome": "Sintaxe da oração e do período; orações coordenadas e subordinadas",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 7,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-08",
+          "nome": "Pontuação, recursos e variações linguísticas",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-09",
+          "nome": "Pronomes e regras pronominais",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 9,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-10",
+          "nome": "Concordância e regência nominal e verbal",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 10,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-11",
+          "nome": "Significação das palavras e normas de redação; adequação ao documento e ao gênero",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 11,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-POR-12",
+          "nome": "Práticas de linguagem: oralidade, leitura/escuta, produção escrita e multissemiótica e análise linguística/semiótica",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 12,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        }
       ]
     },
     {
-      "id": "LEG",
+      "id": "IFRJ-LEG",
       "nome": "Legislação e Ética",
-      "cor": "#27AE60",
+      "cor": "#A855F7",
       "peso": 2,
       "base_teorica": "lei_seca",
+      "carater": "eliminatorio_classificatorio",
+      "nota_minima_pct": 42.857142857142854,
+      "questoes": 7,
+      "pontos_por_questao": 1,
+      "minimo_pontos": 3,
       "topicos": [
-        { "id": "LEG-01", "nome": "Ética na Administração Pública — Decreto 1.171/1994 e Lei 8.429/1992", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "LEG-02", "nome": "Constituição Federal — Administração Pública (arts. 37-41)", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "LEG-03", "nome": "Lei 8.112/1990 — Regime Jurídico Único dos servidores federais", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 3 },
-        { "id": "LEG-04", "nome": "Lei 11.091/2005 — Plano de Carreira dos TAE (PCCTAE)", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "LEG-05", "nome": "Lei 9.784/1999 — Processo Administrativo Federal", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 5 },
-        { "id": "LEG-06", "nome": "Estrutura dos Institutos Federais — Lei 11.892/2008", "incidencia_pct": 14, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 6 }
+        {
+          "id": "IFRJ-LEG-01",
+          "nome": "Constituição Federal — artigos 1º a 15",
+          "incidencia_pct": 12,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 1,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-02",
+          "nome": "Lei nº 8.112/1990 — regime jurídico dos servidores públicos federais",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 12,
+          "semana_sugerida": 2,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-03",
+          "nome": "Lei nº 9.394/1996 — Lei de Diretrizes e Bases da Educação",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 3,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-04",
+          "nome": "Lei nº 8.069/1990 — Estatuto da Criança e do Adolescente",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 4,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-05",
+          "nome": "Lei nº 13.185/2015 — Programa de Combate à Intimidação Sistemática (Bullying)",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 5,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-06",
+          "nome": "Resolução CONSUP/IFRJ nº 16/2011 — Regimento Geral do IFRJ",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 6,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-07",
+          "nome": "Lei nº 8.027/1990 — normas de conduta dos servidores públicos",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 7,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-08",
+          "nome": "Ética e moral; princípios e valores; democracia, cidadania e função pública",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-LEG-09",
+          "nome": "Princípios do Direito Administrativo",
+          "incidencia_pct": 11,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 9,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        }
       ]
     },
     {
-      "id": "DAD",
-      "nome": "Direito Administrativo",
-      "cor": "#16A085",
-      "peso": 3,
-      "base_teorica": "pdf",
-      "topicos": [
-        { "id": "DAD-01", "nome": "Princípios e regime jurídico-administrativo", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "DAD-02", "nome": "Poderes da Administração", "incidencia_pct": 12, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "DAD-03", "nome": "Atos administrativos — atributos, espécies, vícios", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 3 },
-        { "id": "DAD-04", "nome": "Organização administrativa — direta e indireta", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "DAD-05", "nome": "Licitações e contratos — Lei 14.133/2021", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 5 },
-        { "id": "DAD-06", "nome": "Agentes públicos e poder de polícia", "incidencia_pct": 10, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 },
-        { "id": "DAD-07", "nome": "Controle e responsabilidade da Administração", "incidencia_pct": 8, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 7 }
-      ]
-    },
-    {
-      "id": "ADM",
-      "nome": "Administração Geral",
-      "cor": "#34495E",
-      "peso": 2,
-      "base_teorica": "pdf",
-      "topicos": [
-        { "id": "ADM-01", "nome": "Conceitos, princípios e funções da administração", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 1 },
-        { "id": "ADM-02", "nome": "Abordagens clássica e neoclássica; Teoria Geral dos Sistemas", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "ADM-03", "nome": "Tipos de organização e estrutura organizacional", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "ADM-04", "nome": "Planejamento estratégico (missão, visão, SWOT)", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 4 },
-        { "id": "ADM-05", "nome": "Gestão da qualidade", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 5 },
-        { "id": "ADM-06", "nome": "Processo organizacional — direção, coordenação e controle", "incidencia_pct": 12, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 6 }
-      ]
-    },
-    {
-      "id": "GPE",
-      "nome": "Gestão de Pessoas",
-      "cor": "#9B59B6",
-      "peso": 1,
-      "base_teorica": "pdf",
-      "topicos": [
-        { "id": "GPE-01", "nome": "Conceitos, objetivos e evolução da gestão de pessoas", "incidencia_pct": 25, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "GPE-02", "nome": "Motivação, liderança e clima organizacional", "incidencia_pct": 35, "prioridade": 1, "horas_estimadas": 5, "semana_sugerida": 2 },
-        { "id": "GPE-03", "nome": "Recrutamento, seleção e avaliação de desempenho", "incidencia_pct": 25, "prioridade": 2, "horas_estimadas": 4, "semana_sugerida": 3 },
-        { "id": "GPE-04", "nome": "Treinamento e desenvolvimento", "incidencia_pct": 15, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 4 }
-      ]
-    },
-    {
-      "id": "ARQ",
-      "nome": "Arquivologia",
-      "cor": "#7F8C8D",
-      "peso": 1,
-      "base_teorica": "pdf",
-      "topicos": [
-        { "id": "ARQ-01", "nome": "Conceitos de arquivo e documento de arquivo", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 1 },
-        { "id": "ARQ-02", "nome": "Princípios arquivísticos", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 2 },
-        { "id": "ARQ-03", "nome": "Teoria das três idades e ciclo vital dos documentos", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 3, "semana_sugerida": 3 },
-        { "id": "ARQ-04", "nome": "Gestão de documentos — fases e protocolo", "incidencia_pct": 24, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "ARQ-05", "nome": "Tabela de temporalidade e destinação de documentos", "incidencia_pct": 20, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 5 }
-      ]
-    },
-    {
-      "id": "INF",
+      "id": "IFRJ-INF",
       "nome": "Informática",
-      "cor": "#2980B9",
-      "peso": 1,
-      "base_teorica": "video",
-      "topicos": [
-        { "id": "INF-01", "nome": "Windows e conceitos de sistema operacional", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "INF-02", "nome": "Microsoft Word", "incidencia_pct": 16, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 },
-        { "id": "INF-03", "nome": "Microsoft Excel", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 3 },
-        { "id": "INF-04", "nome": "Internet, navegadores e correio eletrônico", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 4 },
-        { "id": "INF-05", "nome": "Segurança da informação", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 5 },
-        { "id": "INF-06", "nome": "Hardware, software e periféricos", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 3, "semana_sugerida": 6 }
-      ]
-    },
-    {
-      "id": "RLM",
-      "nome": "Raciocínio Lógico",
-      "cor": "#8E44AD",
-      "peso": 1,
-      "base_teorica": "video",
-      "topicos": [
-        { "id": "RLM-01", "nome": "Proposições, conectivos e tabelas-verdade", "incidencia_pct": 30, "prioridade": 1, "horas_estimadas": 9, "semana_sugerida": 1 },
-        { "id": "RLM-02", "nome": "Estruturas lógicas e diagramas", "incidencia_pct": 18, "prioridade": 1, "horas_estimadas": 6, "semana_sugerida": 2 },
-        { "id": "RLM-03", "nome": "Conjuntos e operações", "incidencia_pct": 14, "prioridade": 2, "horas_estimadas": 5, "semana_sugerida": 3 },
-        { "id": "RLM-04", "nome": "Porcentagem, razão e proporção", "incidencia_pct": 22, "prioridade": 1, "horas_estimadas": 7, "semana_sugerida": 4 },
-        { "id": "RLM-05", "nome": "Resolução de problemas e sequências", "incidencia_pct": 16, "prioridade": 2, "horas_estimadas": 6, "semana_sugerida": 5 }
-      ]
-    },
-    {
-      "id": "RED",
-      "nome": "Redação Oficial",
-      "cor": "#C0392B",
+      "cor": "#6366F1",
       "peso": 1,
       "base_teorica": "pdf",
+      "carater": "eliminatorio_classificatorio",
+      "nota_minima_pct": 40.0,
+      "questoes": 5,
+      "pontos_por_questao": 1,
+      "minimo_pontos": 2,
       "topicos": [
-        { "id": "RED-01", "nome": "Manual de Redação da Presidência — princípios e padrão ofício", "incidencia_pct": 55, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 1 },
-        { "id": "RED-02", "nome": "Tipos de expedientes oficiais (ofício, memorando, e-mail)", "incidencia_pct": 45, "prioridade": 1, "horas_estimadas": 4, "semana_sugerida": 2 }
+        {
+          "id": "IFRJ-INF-01",
+          "nome": "Internet e intranet: conceitos, tecnologias, ferramentas, aplicativos e procedimentos",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 1,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-02",
+          "nome": "Navegadores, correio eletrônico, grupos de discussão, busca, pesquisa e redes sociais",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 2,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-03",
+          "nome": "Sistemas operacionais Linux e Windows; software e hardware",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-04",
+          "nome": "Acesso remoto, transferência de informações e arquivos; áudio, vídeo e multimídia",
+          "incidencia_pct": 9,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 4,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-05",
+          "nome": "Edição de textos — Microsoft Office e LibreOffice",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 5,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-06",
+          "nome": "Planilhas — Microsoft Excel e LibreOffice Calc: elaboração, fórmulas e conceitos",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 6,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-07",
+          "nome": "Apresentações — PowerPoint e LibreOffice Impress: formatos, designs, comandos e conceitos",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 7,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-08",
+          "nome": "Redes de computadores, redes de comunicação e telecomunicações",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-09",
+          "nome": "Proteção e segurança; vírus, worms e pragas virtuais; antivírus, firewall e anti-spyware",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 9,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-10",
+          "nome": "Computação na nuvem (cloud computing)",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 3,
+          "semana_sugerida": 10,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-11",
+          "nome": "Informação, dados, representação de dados, conhecimentos, segurança e inteligência",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 11,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-INF-12",
+          "nome": "Banco de dados, base de dados, documentação e prototipação",
+          "incidencia_pct": 8,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 12,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        }
+      ]
+    },
+    {
+      "id": "IFRJ-ESP",
+      "nome": "Conhecimentos Específicos — Assistente em Administração",
+      "cor": "#009845",
+      "peso": 5,
+      "base_teorica": "pdf",
+      "carater": "eliminatorio_classificatorio",
+      "nota_minima_pct": 40.0,
+      "questoes": 30,
+      "pontos_por_questao": 1,
+      "minimo_pontos": 12,
+      "topicos": [
+        {
+          "id": "IFRJ-ESP-01",
+          "nome": "Estado, Governo e Sociedade: Estado contemporâneo, formação do Estado brasileiro e formas e sistemas de governo",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 1,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-02",
+          "nome": "Administração estratégica",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 2,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-03",
+          "nome": "Organização do Estado e da gestão; departamentalização, descentralização e desconcentração",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 3,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-04",
+          "nome": "Agentes públicos e sua gestão; normas legais e constitucionais aplicáveis",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 4,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-05",
+          "nome": "Serviço de atendimento ao cidadão",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 5,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-06",
+          "nome": "Comunicação interna e externa; relacionamento interpessoal e trabalho em equipe",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 6,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-07",
+          "nome": "Gestão de conflitos",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 4,
+          "semana_sugerida": 7,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-08",
+          "nome": "Governança na gestão pública",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 8,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-09",
+          "nome": "Administração Pública: conceito, princípios, finalidade, administração direta e indireta, entidades e órgãos públicos",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 9,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-10",
+          "nome": "Poderes e deveres do administrador público",
+          "incidencia_pct": 6,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 10,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-11",
+          "nome": "Ato administrativo: conceito, requisitos, atributos, classificação, espécies, motivação e invalidação",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 11,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-12",
+          "nome": "Procedimento administrativo",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 12,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-13",
+          "nome": "Contratos administrativos: conceito, características, espécies, inexecução e extinção",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 7,
+          "semana_sugerida": 13,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-14",
+          "nome": "Licitações: conceito, finalidade, princípios, modalidades, dispensa, inexigibilidade, procedimento, anulação e revogação — Leis nº 8.666/1993 e nº 14.133/2021",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 12,
+          "semana_sugerida": 14,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-15",
+          "nome": "Comunicações oficiais",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 5,
+          "semana_sugerida": 15,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-16",
+          "nome": "Raciocínio verbal e lógica das situações; relações entre pessoas, lugares, objetos e eventos fictícios",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 8,
+          "semana_sugerida": 16,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-17",
+          "nome": "Noções de matemática financeira",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 17,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        },
+        {
+          "id": "IFRJ-ESP-18",
+          "nome": "Rotinas e processos administrativos",
+          "incidencia_pct": 5,
+          "prioridade": 2,
+          "horas_estimadas": 6,
+          "semana_sugerida": 18,
+          "status": "pendente",
+          "reaberto": false,
+          "orfao": false
+        }
       ]
     }
   ]
