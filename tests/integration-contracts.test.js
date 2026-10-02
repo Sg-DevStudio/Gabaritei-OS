@@ -23,19 +23,11 @@ test('pedidos de edital usam um documento limitado por usuário e campos validad
   assert.doesNotMatch(firebaseSync, /addDoc\(pedidosCollection/);
 });
 
-test('Google Calendar recupera evento por propriedades privadas antes de inserir', () => {
-  const inicioUpsert = app.indexOf('async function upsertEventoGoogleCalendar');
-  const fimUpsert = app.indexOf('async function sincronizarGoogleCalendarSemana', inicioUpsert);
-  const corpoUpsert = app.slice(inicioUpsert, fimUpsert);
-
-  assert.ok(inicioUpsert >= 0 && fimUpsert > inicioUpsert);
-  assert.match(app, /privateExtendedProperty=' \+ encodeURIComponent\(valor\)/);
-  assert.match(app, /'localId=' \+ props\.localId/);
-  assert.ok(
-    corpoUpsert.indexOf('await buscarEventoGoogleCalendar(token, item)') <
-      corpoUpsert.indexOf('await inserirEventoGoogleCalendar(token, item)'),
-    'a busca remota deve acontecer antes do POST de inserção'
-  );
+test('Google Calendar removido sem afetar login Firebase e agenda interna', () => {
+  assert.doesNotMatch(app, /googleCalendar|Google Calendar|GOOGLE_CALENDAR_SCOPE/);
+  assert.doesNotMatch(indexHtml, /accounts\.google\.com\/gsi/);
+  assert.match(firebaseSync, /GoogleAuthProvider/);
+  assert.match(app, /function gerarIcs/);
 });
 
 test('IA não configurada aparece como recurso em breve e fica desativada', () => {
@@ -80,7 +72,7 @@ test('notificação do timer usa o service worker compatível com navegadores m�
 test('gravação remota remove o espelho hidratado e particiona estados grandes', () => {
   assert.match(firebaseSync, /window\.Store\.paraPersistencia/);
   assert.match(firebaseSync, /window\.RemoteStateCodec/);
-  assert.match(firebaseSync, /writeBatch\(db\)/);
+  assert.match(firebaseSync, /gravarPartesNoLote\(tx, info\.slot/);
   assert.match(firebaseSync, /runTransaction\(db/);
   assert.match(firebaseSync, /transacao\.get\(refEstado\)/);
   assert.match(firebaseSync, /estadoCanonicoParaGravacao/);

@@ -13,10 +13,21 @@
   let interno = null;     // {topicoId, modo, inicioEm, acumuladoMs, rodando, pomoFase, pomoCiclos, limiteMin}
   let intervalo = null;
   let aoTick = null;      // callback(estado)
+  let aoErro = null;
+  let persistenciaOk = true;
 
   function persistir() {
-    if (interno) localStorage.setItem(CHAVE, JSON.stringify(interno));
-    else localStorage.removeItem(CHAVE);
+    try {
+      if (interno) localStorage.setItem(CHAVE, JSON.stringify(interno));
+      else localStorage.removeItem(CHAVE);
+      persistenciaOk = true;
+      return true;
+    } catch (e) {
+      const avisar = persistenciaOk;
+      persistenciaOk = false;
+      if (avisar && aoErro) aoErro(e);
+      return false; // a contagem e os controles continuam em memória
+    }
   }
 
   function decorridoMs() {
@@ -34,6 +45,7 @@
       blocoId: interno.blocoId || null,
       revisaoId: interno.revisaoId || null,
       modo: interno.modo,
+      persistenciaOk: persistenciaOk,
       rodando: interno.rodando,
       decorridoMs: ms,
       decorridoMin: Math.floor(ms / 60000)
@@ -169,12 +181,14 @@
       }
       return estado();
     } catch (e) {
-      localStorage.removeItem(CHAVE);
+      interno = null;
+      try { localStorage.removeItem(CHAVE); } catch (_) { persistenciaOk = false; }
       return null;
     }
   }
 
   function aoAtualizar(fn) { aoTick = fn; }
+  function aoErroPersistencia(fn) { aoErro = fn; }
 
   function formatar(ms) {
     const total = Math.floor(ms / 1000);
@@ -185,5 +199,5 @@
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   }
 
-  window.Timer = { iniciar, pausar, retomar, finalizar, descartar, recuperar, estado, aoAtualizar, formatar, POMO_FOCO_MIN, POMO_PAUSA_MIN };
+  window.Timer = { iniciar, pausar, retomar, finalizar, descartar, recuperar, estado, aoAtualizar, aoErroPersistencia, formatar, POMO_FOCO_MIN, POMO_PAUSA_MIN };
 })();

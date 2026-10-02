@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v177-cards-semana';
+const CACHE = CACHE_PREFIXO + 'v178-integridade-geral';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -62,30 +62,29 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20261002c-cards-semana',
-  './js/domain.js?v=20261002c-cards-semana',
-  './js/store.js?v=20261002c-cards-semana',
+  './css/styles.css?v=20261002d-integridade-geral',
+  './js/domain.js?v=20261002d-integridade-geral',
+  './js/store.js?v=20261002d-integridade-geral',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261002c-cards-semana',
-  './js/timer.js?v=20260718a-integridade',
+  './js/firebase-sync.js?v=20261002d-integridade-geral',
+  './js/timer.js?v=20261002d-integridade-geral',
   './js/charts.js?v=20260615v-green-performance',
-  './data/catalogo-editais.js?v=20261002c-cards-semana',
+  './data/catalogo-editais.js?v=20261002d-integridade-geral',
   './data/carreiras.js?v=20260721-career-covers2',
   './assets/carreiras/capa-inss-tecnico.png',
   './assets/carreiras/capa-ifrj-assistente.svg',
   './assets/carreiras/capa-trf-tjaa.jpg?v=20260721-real1',
   './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
   './data/exemplo-trf3.json?v=20260718g-integridade-sync',
-  './js/app.js?v=20261002c-cards-semana',
+  './js/app.js?v=20261002d-integridade-geral',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'
 ];
 
-// Atualização automática: o SW novo assume assim que instala (skipWaiting) e,
-// no activate, assume o controle das abas abertas (clients.claim). A página
-// recarrega sozinha no controllerchange — sem card nem ação do usuário.
+// O worker assume o cache novo; a página só recarrega em um estado seguro,
+// sem timer, formulário ou diálogo em aberto.
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ESTATICOS)).then(() => self.skipWaiting()));
 });
@@ -110,13 +109,17 @@ self.addEventListener('fetch', (e) => {
   }
   e.respondWith(
     fetch(e.request)
-      .then((resp) => {
+      .then(async (resp) => {
+        if (resp.status >= 500 && url.origin === self.location.origin) {
+          const salvo = await caches.match(e.request);
+          if (salvo) return salvo;
+        }
         const copia = resp.clone();
         if (resp.ok && e.request.url.startsWith(self.location.origin)) {
           caches.open(CACHE).then((c) => c.put(e.request, copia));
         }
         return resp;
       })
-      .catch(() => caches.match(e.request))
+      .catch(async () => (await caches.match(e.request)) || Response.error())
   );
 });

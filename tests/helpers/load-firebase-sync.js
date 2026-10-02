@@ -7,11 +7,12 @@ const vm = require('node:vm');
 // ordem de respostas e falhas sem rede, CDN ou conta Firebase de produção.
 function loadFirebaseSync(initial, remote, options = {}) {
   const root = path.join(__dirname, '../..');
-  const documents = new Map();
+  const documents = options.documents || new Map();
   const storage = new Map();
+  const warnings = [];
   const timers = new Map();
   let current = initial;
-  let writes = 0;
+  let writes = 0, backupWrites = 0;
   let timerId = 0;
   let blockedRead;
   let releaseRead;
@@ -20,7 +21,7 @@ function loadFirebaseSync(initial, remote, options = {}) {
   const currentRef = 'users/aluno/state/current';
   if (remote) documents.set(currentRef, { state: remote });
   const context = {
-    console: { error() {}, warn() {}, log() {} }, TextEncoder, Date,
+    console: { error() {}, warn(...args) { warnings.push(args.join(" ")); }, log() {} }, TextEncoder, Date,
     window: { dispatchEvent() {}, addEventListener() {} },
     document: { addEventListener() {}, hidden: false }, navigator: {},
     CustomEvent: function () {},
@@ -51,7 +52,9 @@ function loadFirebaseSync(initial, remote, options = {}) {
         delete: ref => pending.set(ref, null)
       });
       pending.forEach((data, ref) => data == null ? documents.delete(ref) : documents.set(ref, data));
-      writes++; return result;
+      if (pending.has(currentRef)) writes++;
+      if (Array.from(pending.keys()).some(ref => /\/backup-[0-6]$/.test(ref))) backupWrites++;
+      return result;
     },
     writeBatch: () => ({ set() {}, delete() {}, commit: async () => {} }),
     onSnapshot: () => () => {},
@@ -80,6 +83,8 @@ function loadFirebaseSync(initial, remote, options = {}) {
     replace: value => { current = value; },
     release: () => releaseRead(),
     writes: () => writes,
+    backupWrites: () => backupWrites,
+    documents, warnings,
     timers,
     switchUser: () => vm.runInContext("usuario = {uid: 'outra-conta'}; refEstado = 'users/outra-conta/state/current';", context)
   };

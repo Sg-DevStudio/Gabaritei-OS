@@ -74,3 +74,16 @@ test('envio agendado usa o estado atual após uma restauração', async () => {
   assert.deepEqual(ids(h), ['restaurado']);
   assert.equal(h.writes(), 1);
 });
+
+test('dois aparelhos no mesmo dia não sobrescrevem o primeiro backup diário', async () => {
+  const documents = new Map();
+  const a = loadFirebaseSync(state(['primeiro'], '2026-10-02T10:00:00Z'), null, { documents });
+  await a.sync.sincronizarAgora();
+  await new Promise(setImmediate);
+  assert.equal(a.backupWrites(), 1, a.warnings.join('\n'));
+  const b = loadFirebaseSync(state(['segundo'], '2026-10-02T11:00:00Z'), null, { documents });
+  await b.sync.sincronizarAgora();
+  await new Promise(setImmediate);
+  assert.equal(b.backupWrites(), 0);
+  assert.deepEqual(ids(b), ['primeiro', 'segundo']);
+});

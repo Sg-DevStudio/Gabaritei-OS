@@ -307,7 +307,7 @@ test('registrar sessão em plano desatualizado não sobrescreve estrutura editad
   const carimboEstruturaAntiga = aparelhoAntigo.planos[0].estruturaAtualizadaEm;
   aparelhoAntigo.sessoes.push({ id: 's-nova', planoId: 'p1', data: '2026-07-18' });
   S.salvar(aparelhoAntigo);
-  assert.equal(aparelhoAntigo.planos[0].estruturaAtualizadaEm, carimboEstruturaAntiga);
+  assert.equal(aparelhoAntigo.planos[0].estruturaAtualizadaEm, carimboEstruturaNova, 'a aba antiga incorpora a edição já persistida sem criar uma edição falsa');
 
   const m = S.mesclarEstados(aparelhoAntigo, atual);
   assert.equal(m.planos[0].plano.concurso, 'EDITADO');

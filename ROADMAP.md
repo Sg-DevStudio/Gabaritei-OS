@@ -14,7 +14,7 @@
 App **PWA estático** (HTML/CSS/JS puro, sem build) de **planos de estudo para
 concursos**. O aluno escolhe um edital, o sistema gera um cronograma
 personalizado, agenda revisões (curva do esquecimento), acompanha desempenho e o
-guia do diagnóstico inicial até a reta final.
+guia do diagnóstico inicial até a prova.
 
 **Princípio-guia:** o app é um ótimo **organizador**; o maior risco é depender de
 **registro manual**. Toda evolução deve reduzir fricção e personalizar por
@@ -50,7 +50,7 @@ state = {
   agenda:    [ {id, planoId, data, disciplinaId, topicoId|null, duracaoMin, obs, feito, gerado} ],
   editais:   [ {id, titulo, banca, notaCorte, criadoEm, disciplinas} ],
   flashcards:[ {id, planoId, disciplinaId, nome, cards:[{id, frente, verso, sr}]} ],
-  config: { metaQuestoesSemana:100, tema, onboarding*, googleCalendar, ... }
+  config: { metaQuestoesSemana:100, tema, onboarding*, ... }
 }
 ```
 
@@ -126,7 +126,7 @@ vencidas + ciclo/reabertos), não na semana inteira.
   correspondente (`blocoAgendaConcluido` = `feito` OU tópico concluído OU sessão no dia).
 - **Modais automáticos:** "🎉 Meta do dia concluída" (1×/dia) e o convite ao
   **aprofundamento** ao concluir o plano (ver §6).
-- **Banners de modo:** 🏁 reta final ou 🎓 aprofundamento, conforme o horizonte (§6).
+- **Banner de aprofundamento:** disponível após a conclusão do plano (§6).
 - **Dia livre:** estado vazio com "Adiantar próxima matéria" e "Ver a semana toda".
 
 ### 📚 Planos (`#planos`)
@@ -138,7 +138,7 @@ de editais (cabe no tempo? reaproveita conteúdo?) e combinação de dois editai
 Plano atual, **check-in semanal** (RN10) com projeção de conclusão no ritmo real,
 **calendário/agenda** (semana e mês, com arrastar-e-soltar), e ações do plano:
 **Editar plano** (reabre o assistente preenchido), **Edital**, **Excluir**,
-**Recalcular plano agora**, e **Ativar modo reta final** (manual). O controle do modo
+**Recalcular plano agora**. O controle do modo
 **aprofundamento** aparece aqui só quando ativo (sem ativação manual — ver §6).
 
 ### ⏱️ Timer (`#timer`)
@@ -187,21 +187,13 @@ de atalhos no celular.
    `janela_prova`, o plano mira nela; sem data, segue o ritmo natural (long-term).
 5. **Estratégia** — Cronograma flexível × Ciclo de estudos; Ordem do edital × Incidência.
 
-### Modo reta final 🏁
-- **Liga sozinho** quando faltam **≤ 6 semanas** para a prova (`SEMANAS_RETA_FINAL`) e pode ser
-  **ativado manualmente** no Planejamento (modal + confirmação) — útil sem data marcada.
-- **Foco:** consolidar — banner no Hoje com prontidão, **chips para treinar questões dos
-  pontos fracos**, atalhos para simulado/revisão. Menos teoria nova.
-
 ### Modo aprofundamento 🎓 (automático)
 - **Proposto automaticamente** ao **concluir todo o cronograma** (ou 100% do edital),
-  havendo **tempo até a prova** e **fora** da reta final. Aparece um modal parabenizando.
+  havendo **tempo até a prova**. Aparece um modal parabenizando.
 - **Ao aceitar:** subentende **"já estudei" para todos os tópicos** (pendente/em_curso →
   `teoria_concluida`; `dominado` preservado; órfãos/ORF ignorados), agenda revisões e ativa o modo.
 - **Foco:** cobertura + retenção + aprofundar a alta incidência (banner no Hoje, % de cobertura).
-- **Exclusão mútua:** reta final **sobrepõe** o aprofundamento (foco oposto). Nas últimas
-  semanas o aprofundamento fica **dormente** (some de banner e card) e volta se a prova for
-  empurrada para além de 6 semanas. Aparece **uma vez por plano** (`aprofundamentoConvidado`).
+- O convite aparece **uma vez por plano** (`aprofundamentoConvidado`).
 
 ### Ciclo de estudos (alternativa ao cronograma)
 Fila ponderada de matérias (peso × incidência, com reforço para desempenho baixo) com meta
@@ -230,11 +222,8 @@ celebrações (confete) ao bater metas/recordes; heatmap de constância.
 
 ## 7. Estados de horizonte (resumo de prioridade)
 
-Em qualquer momento, **um** foco rege o Hoje, nesta prioridade:
-
-1. **Reta final** (prova ≤ 6 semanas, ou manual) → consolidar.
-2. **Aprofundamento** (plano concluído, com tempo, fora da reta final) → reter + aprofundar.
-3. **Plano normal** → seguir o cronograma e as revisões.
+O Hoje segue o cronograma/ciclo e as revisões. Após a conclusão do plano,
+propõe aprofundamento quando há tempo até a prova. O modo Reta Final foi removido.
 
 ---
 
@@ -243,7 +232,7 @@ Em qualquer momento, **um** foco rege o Hoje, nesta prioridade:
 - Assistente de plano reordenado com **projeção dinâmica de prazo** (rotina + bagagem + data).
 - **Ponto de partida** por tópico ("O que já sei").
 - **Revisão adaptativa por desempenho** + realimentação pelas questões do dia + transparência.
-- **Modo reta final** (automático ≤6 sem + ativação manual) e **modo aprofundamento** (automático ao concluir, com exclusão mútua).
+- **Modo aprofundamento** proposto automaticamente ao concluir o plano.
 - **Flashcards** com SM-2 + **geração por IA** (Cloud Function/Gemini).
 - **Timer persistente** (volta pausado) e "concluir tópico conta o estudo do dia".
 - **Editais versionados** (atualizar plano sem perder progresso) + catálogo global.

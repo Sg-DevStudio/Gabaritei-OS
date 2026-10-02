@@ -9,7 +9,10 @@
   'use strict';
 
   const CHAVE = 'estudos.v1';
+  const CHAVE_RECUPERACAO = 'estudos.recuperacao';
+  const CHAVE_CORROMPIDO = 'estudos.recuperacao-corrompido';
   const VERSAO_SCHEMA = 2;
+  let leituraBloqueada = false;
   // Base lida por esta aba: a cópia compartilhada pode ter mudado desde então.
   const basesLocais = new WeakMap();
 
@@ -272,8 +275,7 @@
         tema: 'claro',
         carreirasPersonalizadas: [],
         criadoEm: agora,
-        atualizadoEm: agora,
-        googleCalendar: { clientId: '', calendarId: 'primary', eventos: {} }
+        atualizadoEm: agora
       }
     };
   }
@@ -300,13 +302,13 @@
       .map(function (b) {
         const meta = Math.round(Number(b.metaMin));
         const feito = Math.round(Number(b.feitoMin));
-        return {
+        return Object.assign({}, b, {
           id: b.id || novoId('blc'),
           disciplinaId: String(b.disciplinaId),
           topicoId: b.topicoId || null,
           metaMin: meta > 0 ? meta : 60,
           feitoMin: feito > 0 ? Math.min(feito, meta > 0 ? meta : 60) : 0
-        };
+        });
       });
     return plano;
   }
@@ -401,12 +403,7 @@
     if (!Array.isArray(state.config.regrasAgenda)) state.config.regrasAgenda = [];
     if (!Array.isArray(state.config.historicoAjustesAgenda)) state.config.historicoAjustesAgenda = [];
     if (state.config.ultimoAjusteAgenda === undefined) state.config.ultimoAjusteAgenda = null;
-    if (!state.config.googleCalendar) state.config.googleCalendar = {};
-    if (state.config.googleCalendar.clientId === undefined) state.config.googleCalendar.clientId = '';
-    if (!state.config.googleCalendar.calendarId) state.config.googleCalendar.calendarId = 'primary';
-    if (!state.config.googleCalendar.eventos || Array.isArray(state.config.googleCalendar.eventos)) {
-      state.config.googleCalendar.eventos = {};
-    }
+    delete state.config.googleCalendar;
     if (!state.sessoes) state.sessoes = [];
     if (!state.revisoes) state.revisoes = [];
     if (!state.simulados) state.simulados = [];
@@ -483,21 +480,44 @@
   }
 
   function carregar() {
+    let bruto;
     try {
-      const bruto = localStorage.getItem(CHAVE);
+      bruto = localStorage.getItem(CHAVE);
       const state = bruto ? migrar(JSON.parse(bruto)) : estadoVazio();
+      leituraBloqueada = false;
       basesLocais.set(state, paraPersistencia(state));
       return state;
     } catch (e) {
-      console.error('Falha ao ler o estado salvo; iniciando vazio.', e);
-      return estadoVazio();
+      console.error('Falha ao ler o estado salvo; preservando a cópia original.', e);
+      leituraBloqueada = true;
+      try {
+        if (bruto) {
+          localStorage.setItem(CHAVE_CORROMPIDO, bruto);
+          leituraBloqueada = false;
+        }
+      } catch (_) { /* Sem espaço: salvar não pode substituir o original. */ }
+      const vazio = estadoVazio();
+      vazio.config.erroLeituraLocal = true;
+      return vazio;
     }
+  }
+
+  // Estados recebidos pela nuvem/restauração também precisam de uma base local
+  // observada. Comparar uma aba antiga diretamente com a última cópia persistida
+  // confundiria valores antigos com edições intencionais do usuário.
+  function normalizar(state) {
+    migrar(state);
+    if (!basesLocais.has(state)) basesLocais.set(state, paraPersistencia(state));
+    return state;
   }
 
   // Remove apenas os dados pessoais do app. Preferências visuais e o id técnico
   // do dispositivo ficam em chaves separadas e não expõem o plano do aluno.
   function limparLocal() {
     localStorage.removeItem(CHAVE);
+    localStorage.removeItem(CHAVE_RECUPERACAO);
+    localStorage.removeItem(CHAVE_CORROMPIDO);
+    leituraBloqueada = false;
   }
 
   function lerPersistidoCru() {
@@ -518,6 +538,27 @@
   }
 
   function carimbarItensAlterados(state, anterior, agora) {
+    const planosAntigos = mapaPorId(anterior && anterior.planos);
+    (state.planos || []).forEach(function (p) {
+      const antigo = planosAntigos[p.id];
+      carimbarCampos(p.plano, antigo && antigo.plano, agora, ['ciclo']);
+      const disciplinasAntigas = mapaPorId(antigo && antigo.disciplinas);
+      (p.disciplinas || []).forEach(function (d) {
+        const discAntiga = disciplinasAntigas[d.id];
+        carimbarCampos(d, discAntiga, agora, ['topicos']);
+        const topicosAntigos = mapaPorId(discAntiga && discAntiga.topicos);
+        (d.topicos || []).forEach(function (t) { carimbarCampos(t, topicosAntigos[t.id], agora); });
+      });
+      const ciclo = p.plano && p.plano.ciclo;
+      const cicloAntigo = antigo && antigo.plano && antigo.plano.ciclo;
+      const blocosAntigos = mapaPorId(cicloAntigo && cicloAntigo.blocos);
+      (ciclo && ciclo.blocos || []).forEach(function (b) {
+        const blocoAntigo = cicloAntigo && cicloAntigo.volta === ciclo.volta &&
+          (cicloAntigo.geracao || '') === (ciclo.geracao || '') ? blocosAntigos[b.id] : null;
+        carimbarCreditoCiclo(b, blocoAntigo);
+        carimbarCampos(b, blocosAntigos[b.id], agora);
+      });
+    });
     ['sessoes', 'revisoes', 'simulados', 'flashcards'].forEach(function (nome) {
       const antigos = mapaPorId(anterior && anterior[nome]);
       (state[nome] || []).forEach(function (item) {
@@ -544,6 +585,99 @@
         if (!antigo || assinaturaItem(card) !== assinaturaItem(antigo)) card.atualizadoEm = agora;
       });
     });
+  }
+
+  function carimbarCreditoCiclo(bloco, antigo) {
+    if (!antigo) {
+      bloco.creditosCiclo = { reset: 0, baseMin: bloco.feitoMin || 0, eventos: {} };
+      return;
+    }
+    const delta = (bloco.feitoMin || 0) - (antigo.feitoMin || 0);
+    if (!delta) {
+      if (!bloco.creditosCiclo) bloco.creditosCiclo = clonarJson(antigo.creditosCiclo || { reset: 0, baseMin: antigo.feitoMin || 0, eventos: {} });
+      return;
+    }
+    const base = antigo.creditosCiclo || { reset: 0, baseMin: antigo.feitoMin || 0, eventos: {} };
+    if (delta < 0) {
+      bloco.creditosCiclo = { reset: (base.reset || 0) + 1, baseMin: bloco.feitoMin || 0, eventos: {} };
+    } else {
+      bloco.creditosCiclo = clonarJson(base);
+      bloco.creditosCiclo.eventos[novoId('credito')] = delta;
+    }
+  }
+
+  function mesclarCreditoCiclo(bloco, a, b) {
+    if (!a.creditosCiclo && !b.creditosCiclo) return bloco;
+    const ca = a.creditosCiclo || { reset: 0, baseMin: a.feitoMin || 0, eventos: {} };
+    const cb = b.creditosCiclo || { reset: 0, baseMin: b.feitoMin || 0, eventos: {} };
+    let credito;
+    if ((ca.reset || 0) !== (cb.reset || 0)) credito = clonarJson(ca.reset > cb.reset ? ca : cb);
+    else if (ca.baseMin !== cb.baseMin) {
+      // Bases diferentes indicam restaurações/legado sem uma origem comum;
+      // usa a revisão de campo escolhida, sem somar valores já contabilizados.
+      credito = clonarJson(bloco.creditosCiclo || (ca.baseMin > cb.baseMin ? ca : cb));
+    } else {
+      credito = { reset: ca.reset || 0, baseMin: ca.baseMin || 0, eventos: Object.assign({}, ca.eventos, cb.eventos) };
+    }
+    bloco.creditosCiclo = credito;
+    bloco.feitoMin = Math.min(bloco.metaMin || 0, (credito.baseMin || 0) +
+      Object.values(credito.eventos || {}).reduce(function (total, min) { return total + min; }, 0));
+    return bloco;
+  }
+
+  // Relógio por campo: editar o nome num aparelho não apaga o status alterado
+  // no outro. A revisão cresce a partir da versão observada; datas só desempatem.
+  function carimbarCampos(item, antigo, agora, ignorados) {
+    if (!item) return;
+    const ignorar = new Set(['atualizadoEm', 'camposAtualizados'].concat(ignorados || []));
+    const campos = Object.assign({}, antigo && antigo.camposAtualizados, item.camposAtualizados);
+    Object.keys(antigo && antigo.camposAtualizados || {}).forEach(function (chave) {
+      const observado = antigo.camposAtualizados[chave], atual = campos[chave];
+      if (!atual || observado.rev > atual.rev || (observado.rev === atual.rev && observado.em > atual.em)) campos[chave] = clonarJson(observado);
+    });
+    new Set(Object.keys(item).concat(Object.keys(antigo || {}))).forEach(function (chave) {
+      if (ignorar.has(chave)) return;
+      if (antigo && stringifyEstavel(item[chave]) === stringifyEstavel(antigo[chave])) return;
+      campos[chave] = { rev: ((campos[chave] && campos[chave].rev) || 0) + 1, em: agora };
+      item.atualizadoEm = agora;
+    });
+    if (Object.keys(campos).length) item.camposAtualizados = campos;
+  }
+
+  function mesclarCampos(preferido, outro, ignorados, tipo) {
+    const resultado = clonarJson(preferido || outro);
+    if (!preferido || !outro) return resultado;
+    const ignorar = new Set(['atualizadoEm', 'camposAtualizados'].concat(ignorados || []));
+    const camposP = preferido.camposAtualizados || {}, camposO = outro.camposAtualizados || {};
+    const campos = Object.assign({}, camposP);
+    new Set(Object.keys(preferido).concat(Object.keys(outro), Object.keys(camposP), Object.keys(camposO))).forEach(function (chave) {
+      if (ignorar.has(chave)) return;
+      const p = camposP[chave], o = camposO[chave];
+      let usarOutro = false;
+      if (o || p) {
+        const revP = p && p.rev || 0, revO = o && o.rev || 0;
+        usarOutro = revO > revP || (revO === revP && (o && o.em || '') > (p && p.em || ''));
+        if (revO === revP && (o && o.em || '') === (p && p.em || '')) {
+          usarOutro = (stringifyEstavel(outro[chave]) || '') > (stringifyEstavel(preferido[chave]) || '');
+        }
+      } else if (tipo === 'topico' && chave === 'status') {
+        // Legado sem relógios: não desfaz conclusão. Reaberturas explícitas
+        // novas carregam seu próprio relógio e podem voltar a em_curso/pendente.
+        const ordem = { pendente: 0, em_curso: 1, teoria_concluida: 2, dominado: 3 };
+        usarOutro = (ordem[outro.status] || 0) > (ordem[preferido.status] || 0);
+      } else if (tipo === 'bloco' && chave === 'feitoMin') {
+        usarOutro = (outro.feitoMin || 0) > (preferido.feitoMin || 0);
+      }
+      if (usarOutro) {
+        if (Object.prototype.hasOwnProperty.call(outro, chave)) resultado[chave] = clonarJson(outro[chave]);
+        else delete resultado[chave];
+        if (o) campos[chave] = clonarJson(o);
+      }
+    });
+    if (Object.keys(campos).length) resultado.camposAtualizados = campos;
+    if (preferido.atualizadoEm || outro.atualizadoEm) resultado.atualizadoEm =
+      (preferido.atualizadoEm || '') > (outro.atualizadoEm || '') ? preferido.atualizadoEm : outro.atualizadoEm;
+    return resultado;
   }
 
   function entidadesDoEstado(state) {
@@ -626,6 +760,7 @@
 
   function salvar(state, opcoes) {
     opcoes = opcoes || {};
+    if (leituraBloqueada) return { ok: false, erro: 'A cópia local não pôde ser lida. Exporte os dados para recuperação antes de substituí-la.' };
     const anterior = lerPersistidoCru();
     const baseDaAba = basesLocais.get(state);
     migrar(state);
@@ -702,6 +837,7 @@
       return { ok: false, erro: 'O arquivo não parece ser um backup deste app (campo "versao" ou "sessoes" ausente).' };
     }
     try {
+      validarBackup(dados);
       const state = migrar(dados);
       if (opcoes.persistir !== false) {
         const persistencia = salvar(state);
@@ -713,13 +849,151 @@
     }
   }
 
+  function validarBackup(dados) {
+    function objeto(item, nome) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error(nome + ': objeto inválido.');
+    }
+    function id(valor, nome) {
+      if (typeof valor !== 'string' || !valor.trim() || valor.length > 500 || ['__proto__', 'constructor', 'prototype'].includes(valor)) {
+        throw new Error(nome + ': identificador inválido.');
+      }
+    }
+    function numero(valor, nome, max, inteiro) {
+      if (valor == null) return;
+      if (typeof valor !== 'number' || !Number.isFinite(valor) || valor < 0 ||
+          (max != null && valor > max) || (inteiro && !Number.isInteger(valor))) throw new Error(nome + ': número inválido.');
+    }
+    function data(valor, nome, obrigatoria) {
+      if (!obrigatoria && (valor == null || valor === '')) return;
+      if (typeof valor !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) throw new Error(nome + ': data inválida.');
+      const dt = new Date(valor + 'T12:00:00Z');
+      if (!Number.isFinite(dt.getTime()) || dt.toISOString().slice(0, 10) !== valor) throw new Error(nome + ': data inexistente.');
+    }
+    function lista(items, nome, validar) {
+      if (items == null) return;
+      if (!Array.isArray(items)) throw new Error(nome + ': lista inválida.');
+      const ids = new Set();
+      items.forEach(function (item, i) {
+        const caminho = nome + '[' + i + ']';
+        objeto(item, caminho); id(item.id, caminho);
+        if (ids.has(item.id)) throw new Error(caminho + ': identificador duplicado.');
+        ids.add(item.id);
+        if (item.planoId != null) id(item.planoId, caminho + '.planoId');
+        if (validar) validar(item, caminho);
+      });
+    }
+    function disciplinas(items, nome) {
+      lista(items, nome, function (d, caminho) {
+        if (!Array.isArray(d.topicos)) throw new Error(caminho + ': lista de tópicos inválida.');
+        numero(d.peso, caminho + '.peso');
+        lista(d.topicos, caminho + '.topicos', function (t, n) {
+          numero(t.horas_estimadas, n + '.horas_estimadas');
+          numero(t.incidencia_pct, n + '.incidencia_pct', 100);
+        });
+      });
+    }
+    objeto(dados, 'backup');
+    if (dados.config != null) {
+      objeto(dados.config, 'config');
+      numero(dados.config.metaQuestoesSemana, 'metaQuestoesSemana', 2000, true);
+      numero(dados.config.metaAcertoPct, 'metaAcertoPct', 100);
+    }
+    lista(dados.planos, 'planos', function (p, nome) {
+      objeto(p.plano, nome + '.plano');
+      if (!Array.isArray(p.disciplinas)) throw new Error(nome + ': lista de disciplinas inválida.');
+      disciplinas(p.disciplinas, nome + '.disciplinas');
+      if (p.plano.ciclo) {
+        objeto(p.plano.ciclo, nome + '.ciclo');
+        numero(p.plano.ciclo.volta, nome + '.volta', null, true);
+        lista(p.plano.ciclo.blocos, nome + '.blocos', function (b, n) {
+          id(b.disciplinaId, n + '.disciplinaId');
+          numero(b.metaMin, n + '.metaMin'); numero(b.feitoMin, n + '.feitoMin');
+          if (b.creditosCiclo) {
+            objeto(b.creditosCiclo, n + '.creditosCiclo');
+            numero(b.creditosCiclo.reset, n + '.reset', null, true); numero(b.creditosCiclo.baseMin, n + '.baseMin');
+            objeto(b.creditosCiclo.eventos, n + '.eventos');
+            Object.values(b.creditosCiclo.eventos).forEach(function (min) { numero(min, n + '.credito'); });
+          }
+        });
+      }
+    });
+    if (!dados.planos) disciplinas(dados.disciplinas, 'disciplinas');
+    lista(dados.sessoes, 'sessoes', function (s, nome) {
+      data(s.data, nome + '.data', true);
+      numero(s.duracaoMin, nome + '.duracaoMin');
+      numero(s.qFeitas, nome + '.qFeitas', null, true); numero(s.qCertas, nome + '.qCertas', null, true);
+      if ((s.qCertas || 0) > (s.qFeitas || 0)) throw new Error(nome + ': acertos superam questões.');
+    });
+    lista(dados.revisoes, 'revisoes', function (r, nome) {
+      id(r.topicoId, nome + '.topicoId');
+      data(r.dataAgendada, nome + '.dataAgendada', true); data(r.dataConcluida, nome + '.dataConcluida');
+      numero(r.resultadoPct, nome + '.resultadoPct', 100); numero(r.duracaoConcluidaMin, nome + '.duracaoConcluidaMin');
+    });
+    lista(dados.simulados, 'simulados', function (sim, nome) {
+      data(sim.data, nome + '.data', true); numero(sim.duracaoMin, nome + '.duracaoMin');
+      if (!Array.isArray(sim.acertos)) throw new Error(nome + ': resultados inválidos.');
+      const disciplinas = new Set();
+      sim.acertos.forEach(function (a) {
+        objeto(a, nome + '.acertos'); id(a.disciplinaId, nome + '.disciplinaId');
+        if (disciplinas.has(a.disciplinaId)) throw new Error(nome + ': disciplina repetida.');
+        disciplinas.add(a.disciplinaId);
+        numero(a.total, nome + '.total', null, true); numero(a.certas, nome + '.certas', null, true);
+        numero(a.brancas, nome + '.brancas', null, true);
+        numero(a.pontosAcerto, nome + '.pontosAcerto'); numero(a.penalidadeErro, nome + '.penalidadeErro'); numero(a.minimoPct, nome + '.minimoPct', 100);
+        if (!Number.isInteger(a.total) || !Number.isInteger(a.certas) || a.certas + (a.brancas || 0) > a.total) throw new Error(nome + ': contagem de questões inválida.');
+      });
+    });
+    lista(dados.agenda, 'agenda', function (a, nome) {
+      data(a.data, nome + '.data', true); id(a.disciplinaId, nome + '.disciplinaId');
+      numero(a.duracaoMin, nome + '.duracaoMin'); numero(a.feitoMin, nome + '.feitoMin');
+    });
+    lista(dados.flashcards, 'flashcards', function (deck, nome) { lista(deck.cards, nome + '.cards'); });
+    lista(dados.editais, 'editais', function (e, nome) { disciplinas(e.disciplinas, nome + '.disciplinas'); });
+    // Referências órfãs de planos excluídos são histórico legítimo. IDs válidos
+    // são preservados; os seletores impedem que entrem no plano ativo.
+    return true;
+  }
+
+  function guardarCopiaRecuperacao(state) {
+    try {
+      localStorage.setItem(CHAVE_RECUPERACAO, JSON.stringify(paraPersistencia(state)));
+      return { ok: true };
+    } catch (e) { return { ok: false, erro: e.message || String(e) }; }
+  }
+
+  function lerCopiaRecuperacao() {
+    try { return localStorage.getItem(CHAVE_CORROMPIDO) || localStorage.getItem(CHAVE_RECUPERACAO); }
+    catch (_) { return null; }
+  }
+
+  function prepararRestauracao(restaurado, anterior) {
+    const agora = agoraISO();
+    const planosAtuais = mapaPorId(anterior && anterior.planos);
+    (restaurado.planos || []).forEach(function (p) {
+      if (p.plano && p.plano.ciclo) p.plano.ciclo.geracao = novoId('ciclo-restaurado');
+    });
+    carimbarItensAlterados(restaurado, anterior, agora);
+    (restaurado.planos || []).forEach(function (p) {
+      p.estruturaRev = Math.max(Number(p.estruturaRev) || 0, Number(planosAtuais[p.id] && planosAtuais[p.id].estruturaRev) || 0) + 1;
+      p.atualizadoEm = agora;
+      p.estruturaAtualizadaEm = agora;
+      p.estruturaHash = assinaturaPlano(p);
+    });
+    // Restaurar é uma edição explícita sobre o estado atual, não um estado
+    // antigo que deve perder para ele na próxima sincronização.
+    basesLocais.set(restaurado, paraPersistencia(anterior));
+    return restaurado;
+  }
+
   function diasDesdeBackup(state) {
     if (!state.config.ultimoBackup) return null;
     return window.Dominio.diffDias(state.config.ultimoBackup, window.Dominio.hojeISO());
   }
 
   function temDados(state) {
-    return state.planos.length > 0 || state.sessoes.length > 0;
+    return ['planos', 'sessoes', 'simulados', 'revisoes', 'flashcards', 'agenda', 'editais'].some(function (nome) {
+      return Array.isArray(state && state[nome]) && state[nome].length > 0;
+    });
   }
 
   // Listas de registros de estudo que devem SOMAR entre dispositivos (e não ser
@@ -828,12 +1102,18 @@
     return resultado;
   }
 
-  function unirItensPorId(preferidos, complementares) {
+  function unirItensPorId(preferidos, complementares, tipo) {
     const resultado = Array.isArray(preferidos) ? preferidos : [];
     const ids = {};
-    resultado.forEach(function (item) { if (item && item.id) ids[item.id] = true; });
+    resultado.forEach(function (item, i) { if (item && item.id) ids[item.id] = i; });
     (Array.isArray(complementares) ? complementares : []).forEach(function (item) {
-      if (item && item.id && !ids[item.id]) { resultado.push(clonarJson(item)); ids[item.id] = true; }
+      if (!item || !item.id) return;
+      if (ids[item.id] === undefined) { ids[item.id] = resultado.length; resultado.push(clonarJson(item)); }
+      else if (tipo) {
+        const antigo = resultado[ids[item.id]];
+        const combinado = mesclarCampos(antigo, item, [], tipo);
+        resultado[ids[item.id]] = tipo === 'bloco' ? mesclarCreditoCiclo(combinado, antigo, item) : combinado;
+      }
     });
     return resultado;
   }
@@ -878,11 +1158,39 @@
         discPorId[d.id] = copia;
         return;
       }
-      const disc = discPorId[d.id];
+      const antiga = discPorId[d.id];
+      const disc = mesclarCampos(antiga, d, ['topicos']);
+      preferido.disciplinas[preferido.disciplinas.indexOf(antiga)] = disc;
+      discPorId[d.id] = disc;
       disc.topicos = unirItensPorId(disc.topicos, (d.topicos || []).filter(function (t) {
         return !t || !t.id || !entidadeExcluida(lapides, 'top', preferido.id, t.id);
-      }));
+      }), 'topico');
     });
+
+    if (preferido.plano && complementar.plano) {
+      const cicloP = preferido.plano.ciclo, cicloO = complementar.plano.ciclo;
+      preferido.plano = mesclarCampos(preferido.plano, complementar.plano, ['ciclo']);
+      if (cicloP && cicloO) {
+        preferido.plano.ciclo = cicloP;
+        // Nunca ressuscita blocos de um ciclo regenerado/removido. Progresso é
+        // mesclado somente na mesma estrutura e na mesma volta.
+        const ids = function (c) { return (c.blocos || []).map(function (b) { return b.id; }).sort().join('|'); };
+        if (ids(cicloP) === ids(cicloO) && (cicloP.geracao || '') === (cicloO.geracao || '')) {
+          if ((cicloO.volta || 1) > (cicloP.volta || 1)) preferido.plano.ciclo = clonarJson(cicloO);
+          else if ((cicloO.volta || 1) === (cicloP.volta || 1)) {
+            cicloP.blocos = unirItensPorId(cicloP.blocos, cicloO.blocos, 'bloco');
+            const ativos = cicloP.blocos.filter(function (b) { return (b.voltaInicio || 1) <= (cicloP.volta || 1); });
+            if (ativos.length && ativos.every(function (b) { return b.feitoMin >= b.metaMin; })) {
+              cicloP.volta = (cicloP.volta || 1) + 1;
+              cicloP.blocos.forEach(function (b) {
+                b.feitoMin = 0;
+                b.creditosCiclo = { reset: 0, baseMin: 0, eventos: {} };
+              });
+            }
+          }
+        }
+      }
+    }
 
     preferido.links = Array.isArray(preferido.links) ? preferido.links : [];
     const chavesLink = {};
@@ -961,7 +1269,8 @@
         const atual = merged.planos[idsP[p.id]];
         const dataP = p.estruturaAtualizadaEm || p.atualizadoEm || '';
         const dataAtual = (atual && (atual.estruturaAtualizadaEm || atual.atualizadoEm)) || '';
-        const pMaisNovo = dataP > dataAtual;
+        const revP = Number(p.estruturaRev) || 0, revAtual = Number(atual && atual.estruturaRev) || 0;
+        const pMaisNovo = revP > revAtual || (revP === revAtual && dataP > dataAtual);
         const preferido = pMaisNovo ? copiaOutroPlano : atual;
         const complementar = pMaisNovo ? atual : copiaOutroPlano;
         merged.planos[idsP[p.id]] = mesclarEstruturaPlano(preferido, complementar, tombEntidades);
@@ -1043,8 +1352,8 @@
   }
 
   window.Store = {
-    carregar, salvar, limparLocal, estadoVazio, normalizar: migrar, hidratar, novoId,
-    ativarPlano, removerPlano, exportarBackup, importarBackup, diasDesdeBackup, temDados,
+    carregar, salvar, limparLocal, estadoVazio, normalizar, hidratar, novoId,
+    ativarPlano, removerPlano, exportarBackup, importarBackup, validarBackup, guardarCopiaRecuperacao, lerCopiaRecuperacao, prepararRestauracao, diasDesdeBackup, temDados,
     mesclarEstados, contarRegistros, marcarRemovido, paraPersistencia, estadosEquivalentes,
     limparLapidesDeEntidadesPresentes, geracaoSync, adotarGeracaoOficial,
     corrigirAcentosTexto, normalizarAcentosEdital, normalizarAcentosConteudo

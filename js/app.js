@@ -76,7 +76,6 @@
   let comparacaoIds = []; // editais selecionados p/ comparar na aba Planos (máx. 2)
   let adminBusca = '';
   let adminPedidosGlobais = null;
-  let googleCalendarToken = null;
   let catalogoGlobalTentado = false;
   // true quando a tentativa de carregar o catálogo global terminou (sucesso, falha
   // ou ausência de Firebase). Só então o fallback empacotado (data/) pode aparecer —
@@ -460,6 +459,8 @@
     if (!u || !u.uid) return;
     const ultimo = localStorage.getItem(CHAVE_ULTIMO_USUARIO);
     if (ultimo && ultimo !== u.uid) {
+      window.Store.limparLocal();
+      window.Timer.descartar();
       state = window.Store.estadoVazio();
       window.Store.salvar(state, { marcarAlterado: false });
     }
@@ -1755,7 +1756,7 @@
     const hoje = D.hojeISO();
     const data = dados.data || hoje; // data real do estudo (pode ser de outro dia)
     const metaAntes = D.metaSemanal(state, hoje);
-    const streakAntes = D.streak(D.sessoesDoPlano(state), hoje);
+    const streakAntes = D.streak(D.atividadesDoPlano(state), hoje);
 
     const sessao = {
       id: window.Store.novoId('ses'), planoId: state.planoAtivoId, data: data, registradoEm: new Date().toISOString(),
@@ -1872,7 +1873,7 @@
     }
 
     // RN07 — sugestão de reestudo (o usuário decide)
-    const streakDepois = D.streak(D.sessoesDoPlano(state), hoje);
+    const streakDepois = D.streak(D.atividadesDoPlano(state), hoje);
     const ganhouDia = streakDepois.atual > streakAntes.atual;
     if (ganhouDia && streakDepois.atual > streakAntes.recorde) {
       confete();
@@ -1935,7 +1936,7 @@
     // Constância = dias de estudo do PLANO ativo (igual às demais métricas). Sem
     // isso, sessões de outros planos (ex.: órfãs de um plano excluído) inflavam o
     // número aqui e divergiam da faixa/heatmap da tela de Desempenho.
-    const ses = D.sessoesDoPlano(state);
+    const ses = D.atividadesDoPlano(state);
     const dias = D.heatmapDias(ses, hoje, nDias);
     const st = D.streak(ses, hoje);
     const recordeAnterior = recordeAntesDeHoje(ses, hoje);
@@ -1953,8 +1954,8 @@
     }
     html += '<div class="heatmap">' +
       dias.map(function (d) {
-        const n = d.minutos === 0 ? 0 : d.minutos < 30 ? 1 : d.minutos < 60 ? 2 : d.minutos < 120 ? 3 : 4;
-        return '<span class="heatmap-celula' + (n > 0 ? ' heatmap-n' + n : '') + '" title="' + D.formatarDataBR(d.data) + ' — ' + D.formatarMin(d.minutos) + '"></span>';
+        const n = d.minutos === 0 ? (d.questoes > 0 ? 1 : 0) : d.minutos < 30 ? 1 : d.minutos < 60 ? 2 : d.minutos < 120 ? 3 : 4;
+        return '<span class="heatmap-celula' + (n > 0 ? ' heatmap-n' + n : '') + '" title="' + D.formatarDataBR(d.data) + ' — ' + D.formatarMin(d.minutos) + (d.questoes ? ' · ' + d.questoes + ' questões' : '') + '"></span>';
       }).join('') + '</div>';
     html += '<div class="heatmap-legenda">menos <span class="heatmap-celula"></span><span class="heatmap-celula heatmap-n1"></span><span class="heatmap-celula heatmap-n2"></span><span class="heatmap-celula heatmap-n3"></span><span class="heatmap-celula heatmap-n4"></span> mais</div>';
     html += '</div>';
@@ -1963,9 +1964,9 @@
 
   function constanciaFaixaHtml(nDias) {
     const hoje = D.hojeISO();
-    const dias = D.heatmapDias(D.sessoesDoPlano(state), hoje, nDias || 30);
-    const st = D.streak(D.sessoesDoPlano(state), hoje);
-    const recordeAnterior = recordeAntesDeHoje(D.sessoesDoPlano(state), hoje);
+    const dias = D.heatmapDias(D.atividadesDoPlano(state), hoje, nDias || 30);
+    const st = D.streak(D.atividadesDoPlano(state), hoje);
+    const recordeAnterior = recordeAntesDeHoje(D.atividadesDoPlano(state), hoje);
     const extras = emojisConstancia(st, recordeAnterior);
     const inicio = dias.length ? dias[0].data : hoje;
     const fim = dias.length ? dias[dias.length - 1].data : hoje;
@@ -1974,11 +1975,11 @@
       '<p>Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia' : ' dias') + '</strong> sem falhar! Seu recorde é de <strong>' + st.recorde + (st.recorde === 1 ? ' dia' : ' dias') + '</strong>.</p></div>' +
       '<div class="constancia-periodo"><button class="botao-mini botao-quieto" type="button" disabled>‹</button><span>' + D.formatarDataBR(inicio).slice(0, 5) + ' ~ ' + D.formatarDataBR(fim).slice(0, 5) + '</span><button class="botao-mini botao-quieto" type="button" disabled>›</button></div></div>' +
       '<div class="constancia-trilho">' + dias.map(function (d) {
-        const fez = d.minutos > 0;
+        const fez = d.minutos > 0 || d.questoes > 0;
         const folga = !fez && diaFolgaRotina(d.data);
         const classe = fez ? 'feito' : (folga ? 'folga' : 'falha');
         const simbolo = fez ? '✓' : (folga ? '•' : '×');
-        const titulo = D.formatarDataBR(d.data) + ' — ' + (folga ? 'folga planejada' : D.formatarMin(d.minutos));
+        const titulo = D.formatarDataBR(d.data) + ' — ' + (folga ? 'folga planejada' : D.formatarMin(d.minutos) + (d.questoes ? ' · ' + d.questoes + ' questões' : ''));
         return '<span class="constancia-dia constancia-' + classe + '" aria-label="' + esc(titulo) + '">' + simbolo + '</span>';
       }).join('') + '</div></div>';
   }
@@ -3208,6 +3209,7 @@
   function abrirConcluirRevisao(revisaoId, duracaoMin) {
     const rev = state.revisoes.find(function (r) { return r.id === revisaoId; });
     if (!rev) return;
+    const planoId = state.planoAtivoId;
     const durIni = duracaoMin && duracaoMin > 0 ? Math.min(300, Math.round(duracaoMin)) : 15;
     const m = abrirModal(
       '<h3>Concluir revisão ' + esc(rev.tipo) + '</h3>' +
@@ -3226,11 +3228,25 @@
     m.querySelector('#rev-cancelar').addEventListener('click', fecharModal);
     m.querySelector('#form-rev').addEventListener('submit', function (e) {
       e.preventDefault();
-      const feitas = parseInt(m.querySelector('#rev-feitas').value, 10) || 0;
-      const certas = parseInt(m.querySelector('#rev-certas').value, 10) || 0;
-      const dur = parseInt(m.querySelector('#rev-dur').value, 10) || 15;
+      const feitas = Number(m.querySelector('#rev-feitas').value);
+      const certas = Number(m.querySelector('#rev-certas').value);
+      const dur = Number(m.querySelector('#rev-dur').value);
       const erroEl = m.querySelector('#rev-erro');
       if (certas > feitas) { erroEl.textContent = 'Acertos não podem superar as questões feitas.'; erroEl.classList.remove('oculto'); return; }
+      if (![feitas, certas, dur].every(Number.isInteger) || feitas < 0 || feitas > 999 || certas < 0 || dur < 1 || dur > 300) {
+        erroEl.textContent = 'Informe questões entre 0 e 999 e tempo entre 1 e 300 minutos.';
+        erroEl.classList.remove('oculto'); return;
+      }
+      const rev = state.revisoes.find(function (r) { return r && r.id === revisaoId; });
+      if (!rev || state.planoAtivoId !== planoId || (rev.planoId && rev.planoId !== planoId) || !D.topicoPorId(state, rev.topicoId)) {
+        erroEl.textContent = 'O plano ou a revisão mudou. Feche esta janela e abra a revisão novamente.';
+        erroEl.classList.remove('oculto'); return;
+      }
+      if (rev.dataConcluida) {
+        erroEl.textContent = 'Esta revisão já foi concluída. Nenhuma sessão adicional foi criada.';
+        erroEl.classList.remove('oculto'); return;
+      }
+
 
       rev.dataConcluida = D.hojeISO();
       rev.resultadoPct = feitas > 0 ? Math.round((certas / feitas) * 100) : null;
@@ -4812,18 +4828,18 @@
 
   function telaStats() {
     const hoje = D.hojeISO();
-    if (D.sessoesDoPlano(state).length === 0) {
+    if (D.atividadesDoPlano(state).length === 0) {
       return '<h1>Desempenho</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Sem dados ainda</strong>' +
-        'Registre a primeira sessão de estudo e os números aparecem aqui.</div></div>';
+        'Registre uma sessão ou simulado e os números aparecem aqui.</div></div>';
     }
-    const st = D.streak(D.sessoesDoPlano(state), hoje); // constância do plano ativo (consistente com a faixa/heatmap)
+    const st = D.streak(D.atividadesDoPlano(state), hoje); // constância do plano ativo (consistente com a faixa/heatmap)
     const meta = D.metaSemanal(state, hoje);
     const prog = D.progressoEdital(state);
     const geral = D.desempenhoGeral(state);
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
-    let totalMin = 0, totalQ = 0, totalC = 0;
-    D.sessoesDoPlano(state).forEach(function (s) { totalMin += s.duracaoMin || 0; totalQ += s.qFeitas || 0; totalC += s.qCertas || 0; });
+    const totais = D.totaisEstudo(state);
+    const totalMin = totais.minutos, totalQ = totais.qFeitas, totalC = totais.qCertas;
 
     const statsMobile = window.matchMedia && window.matchMedia('(max-width: 560px)').matches;
     let html = '<h1>Desempenho</h1><div class="linha-cards stats-kpis">' +
@@ -4831,7 +4847,7 @@
       '<div class="card-kpi-extra">' + D.formatarMin(meta.minutos) + ' nesta semana</div></div>' +
       '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + totalQ + '</div>' +
       '<div class="card-kpi-extra">' + (totalQ > 0 ? Math.round((totalC / totalQ) * 100) + '% de acerto' : '—') + '</div></div>' +
-      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">Desempenho × meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
+      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">Desempenho ponderado × meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
       '<div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
       '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">⚡ Constância</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
       '<div class="card-kpi-extra">recorde: ' + st.recorde + ' · edital: ' + prog.pct + '%</div></div>' +
@@ -4873,7 +4889,7 @@
           : '<div class="grafico-box grafico-scroll" style="height:' + hTop + 'px">' + canvasGraficoHtml('graf-topicos', 'Desempenho por tópico. ' + resumoTopicos) + '</div>') + '</div>'
         : '<div class="estado-vazio" style="padding:1.5rem"><span class="bolha bolha-pendente"></span><strong>Sem questões por tópico</strong>Registre questões nas sessões para ver o gráfico.</div>') +
       '</div>';
-    html += '<div class="card stats-horas-disc-card"><h3>Disciplinas × horas de estudo</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px">' + canvasGraficoHtml('graf-horas-disc', 'Horas de estudo por disciplina. ' + resumoHoras) + '</div></div>';
+    html += '<div class="card stats-horas-disc-card"><h3>Horas por disciplina (sessões)</h3><div class="grafico-box grafico-scroll" style="height:' + hDisc + 'px">' + canvasGraficoHtml('graf-horas-disc', 'Horas de estudo por disciplina. ' + resumoHoras) + '</div></div>';
     if (!window.Graficos.disponivel()) {
       html += '<div class="aviso aviso-info">Os gráficos precisam de internet na primeira carga (Chart.js via CDN). Os demais números continuam funcionando offline.</div>';
     }
@@ -5194,6 +5210,7 @@
       '<p class="sub">Baixe uma cópia completa em JSON. Ela funciona mesmo sem Firebase e pode restaurar seus planos e registros neste ou em outro aparelho.</p>' +
       '<div class="modal-acoes" style="justify-content:flex-start">' +
       '<button class="botao-secundario" id="backup-exportar"' + (modoDemo ? ' disabled' : '') + '>Baixar backup (.json)</button>' +
+      (window.Store.lerCopiaRecuperacao() && !modoDemo ? '<button class="botao-quieto" id="backup-recuperacao">Baixar cópia de recuperação</button>' : '') +
       '<button class="botao-quieto" id="backup-importar"' + (modoDemo ? ' disabled' : '') + '>Restaurar backup</button>' +
       '<input id="backup-arquivo" class="oculto" type="file" accept=".json,application/json">' +
       '</div>' + (modoDemo ? '<p class="sub">Saia do modo exemplo para usar backups dos seus dados reais.</p>' : '') + '</div>';
@@ -5742,9 +5759,6 @@
   function finalizarTrocaPlano(troca, entradaNova) {
     if (!troca || !entradaNova) return null;
     const resumo = aplicarAproveitamentoHistorico(troca, entradaNova);
-    excluirEventosPlanoGoogleCalendar(troca.origemId).catch(function () {
-      console.warn('Não consegui limpar todos os eventos do plano anterior no Google Calendar.');
-    });
     limparDadosVinculados(troca.origemId);
     window.Store.removerPlano(state, troca.origemId);
     window.Store.ativarPlano(state, entradaNova.id);
@@ -7328,6 +7342,12 @@
         ? 'Backup baixado. O armazenamento local está cheio; guarde este arquivo.'
         : 'Backup baixado', persistencia && persistencia.ok === false ? 'erro' : 'sucesso');
     });
+    const backupRecuperacao = raiz.querySelector('#backup-recuperacao');
+    if (backupRecuperacao) backupRecuperacao.addEventListener('click', function () {
+      if (modoDemo) return;
+      const copia = window.Store.lerCopiaRecuperacao();
+      if (copia) baixarArquivo('gabaritei-recuperacao.json', copia, 'application/json');
+    });
     const backupImportar = raiz.querySelector('#backup-importar');
     const backupArquivo = raiz.querySelector('#backup-arquivo');
     if (backupImportar && backupArquivo) {
@@ -7344,13 +7364,18 @@
           if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
           confirmar({
             titulo: 'Restaurar este backup?',
-            mensagem: 'Os dados atuais serão substituídos pelo conteúdo do arquivo. Uma nova cópia será sincronizada com a nuvem.',
+            mensagem: 'O arquivo contém ' + resultado.state.planos.length + ' plano(s) e ' + resultado.state.sessoes.length + ' sessão(ões). Os dados atuais serão substituídos; uma cópia de segurança local será guardada antes da restauração.',
             confirmar: 'Restaurar',
             perigo: true,
             icone: '↺'
           }).then(function (ok) {
             if (!ok) return;
             const anterior = state;
+            const seguranca = window.Store.guardarCopiaRecuperacao(anterior);
+            if (!seguranca.ok) {
+              toast('Não foi possível criar a cópia de segurança. Baixe um backup dos dados atuais antes de restaurar.', 'erro');
+              return;
+            }
             const restaurado = resultado.state;
             const agora = new Date().toISOString();
             const idsRestaurados = {};
@@ -7382,6 +7407,7 @@
               parseInt(anterior.config && anterior.config.rev, 10) || 0
             );
             if (window.Store.temDados(restaurado)) delete restaurado.config.apagadoEm;
+            window.Store.prepararRestauracao(restaurado, anterior);
             state = restaurado;
             salvar();
             render();
@@ -9522,6 +9548,8 @@
         if (!ok) return;
         try {
           const backup = await window.FirebaseSync.lerBackupNuvem(btn.getAttribute('data-bk'));
+          window.Store.validarBackup(backup);
+          if (!window.Store.guardarCopiaRecuperacao(state).ok) throw new Error('Baixe um backup dos dados atuais antes de restaurar: não há espaço para a cópia de segurança.');
           // Restauração explícita anistia as lápides do que o backup traz de
           // volta — sem isso, um plano/sessão excluído depois do backup seria
           // filtrado de novo pela própria mescla.
@@ -9548,6 +9576,7 @@
             p.estruturaAtualizadaEm = agoraRestore;
             p.estruturaRev = (parseInt(p.estruturaRev, 10) || 0) + 1;
           });
+          window.Store.prepararRestauracao(backup, state);
           state = window.Store.mesclarEstados(backup, state);
           window.Store.salvar(state);
           if (window.FirebaseSync) window.FirebaseSync.agendarEnvio(state);
@@ -9609,7 +9638,6 @@
       ? 'O plano "' + p.plano.concurso + '" e o calendário dele serão excluídos. Suas estatísticas de questões e simulados ficam guardadas.'
       : 'O plano "' + p.plano.concurso + '" será excluído. As sessões registradas nele ficam guardadas, mas deixam de aparecer.';
     if (!(await confirmar({ titulo: 'Excluir plano?', mensagem: msg, confirmar: 'Excluir', perigo: true, icone: '🗑️' }))) return false;
-    const calendar = limparHistorico ? await excluirEventosPlanoGoogleCalendar(planoId) : { removidos: 0, pendentes: 0 };
     if (limparHistorico) limparDadosVinculados(planoId);
     window.Store.removerPlano(state, planoId);
     // Cronômetro em aberto do plano que acabou de sair: sem tópico/plano onde
@@ -9630,9 +9658,7 @@
     render();
     pulaRecalcSemanal = false;
     toast('Plano excluído' + (limparHistorico ? ' com os dados vinculados' : '') +
-      (calendar.removidos ? ' e Calendar limpo' : '') +
-      (timerDescartado ? ' · cronômetro em aberto descartado' : '') +
-      (calendar.pendentes ? ' · Calendar pendente de autorizacao' : ''), calendar.pendentes ? 'erro' : 'sucesso');
+      (timerDescartado ? ' · cronômetro em aberto descartado' : ''), 'sucesso');
     return true;
   }
 
@@ -11623,6 +11649,7 @@
       limparCronogramasPlanoAtivo();
       state.plano.modoPlanejamento = 'ciclo';
       ciclo.blocos = blocos;
+      ciclo.geracao = window.Store.novoId('ciclo');
       ciclo.volta = 1;
       salvar(); render();
       toast('Ciclo gerado pelas suas matérias — ajuste à vontade.', 'sucesso');
@@ -11641,7 +11668,8 @@
   function reiniciarVoltaCiclo() {
     const ciclo = state.plano.ciclo;
     if (!ciclo || !ciclo.blocos || ciclo.blocos.length === 0) return;
-    ciclo.blocos.forEach(function (b) { b.feitoMin = 0; });
+    ciclo.blocos.forEach(function (b) { b.feitoMin = 0; delete b.creditosCiclo; });
+    ciclo.geracao = window.Store.novoId('ciclo');
     ciclo.volta = 1;
     salvar(); render();
     toast('Volta reiniciada — bora começar de novo!', 'sucesso');
@@ -12166,296 +12194,9 @@
     toast('Semana ' + r.semana.semana + ' gerada respeitando sua rotina' + extra, r.pendentes > 0 ? 'erro' : 'sucesso');
   }
 
-  // ================= Sincronizacao semanal com Google Calendar =================
-  const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
-
-  function googleCalendarConfig() {
-    if (!state.config.googleCalendar) state.config.googleCalendar = { clientId: '', calendarId: 'primary', eventos: {} };
-    if (!state.config.googleCalendar.calendarId) state.config.googleCalendar.calendarId = 'primary';
-    if (!state.config.googleCalendar.eventos) state.config.googleCalendar.eventos = {};
-    return state.config.googleCalendar;
-  }
-
-  function googleCalendarEventos() {
-    return googleCalendarConfig().eventos;
-  }
-
-  function fusoHorarioLocal() {
-    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo'; }
-    catch (e) { return 'America/Sao_Paulo'; }
-  }
-
-  function obterTokenGoogleCalendar() {
-    const cfg = googleCalendarConfig();
-    if (!cfg.clientId) {
-      toast('Informe o Client ID OAuth em Configuracoes > Google Calendar.', 'erro');
-      if (location.hash !== '#ajustes') location.hash = '#ajustes';
-      return Promise.reject(new Error('Client ID OAuth ausente'));
-    }
-    if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
-      toast('Google Identity ainda esta carregando. Tente de novo em alguns segundos.', 'erro');
-      return Promise.reject(new Error('Google Identity indisponivel'));
-    }
-    if (googleCalendarToken && googleCalendarToken.expiraEm > Date.now() + 60000) {
-      return Promise.resolve(googleCalendarToken.accessToken);
-    }
-    return new Promise(function (resolve, reject) {
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: cfg.clientId,
-        scope: GOOGLE_CALENDAR_SCOPE,
-        callback: function (resp) {
-          if (!resp || resp.error) {
-            reject(new Error(resp && resp.error ? resp.error : 'Autorizacao cancelada'));
-            return;
-          }
-          googleCalendarToken = {
-            accessToken: resp.access_token,
-            expiraEm: Date.now() + ((parseInt(resp.expires_in, 10) || 3600) * 1000)
-          };
-          resolve(googleCalendarToken.accessToken);
-        }
-      });
-      try {
-        tokenClient.requestAccessToken({ prompt: googleCalendarToken ? '' : 'consent' });
-      } catch (e) {
-        reject(e);
-      }
-    });
-  }
-
-  async function googleCalendarRequest(token, path, opcoes) {
-    opcoes = opcoes || {};
-    const headers = Object.assign({
-      Authorization: 'Bearer ' + token,
-      Accept: 'application/json'
-    }, opcoes.headers || {});
-    if (opcoes.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
-    const resp = await fetch('https://www.googleapis.com/calendar/v3' + path, Object.assign({}, opcoes, { headers: headers }));
-    let dados = null;
-    if (resp.status !== 204) {
-      const texto = await resp.text();
-      if (texto) {
-        try { dados = JSON.parse(texto); } catch (e) { dados = { message: texto }; }
-      }
-    }
-    if (!resp.ok) {
-      const erro = new Error((dados && dados.error && dados.error.message) || (dados && dados.message) || ('HTTP ' + resp.status));
-      erro.status = resp.status;
-      throw erro;
-    }
-    return dados;
-  }
-
-  function calendarPathEventos(sufixo) {
-    const calId = encodeURIComponent(googleCalendarConfig().calendarId || 'primary');
-    return '/calendars/' + calId + '/events' + (sufixo || '');
-  }
-
-  async function buscarEventoGoogleCalendar(token, item) {
-    const props = item && item.payload && item.payload.extendedProperties &&
-      item.payload.extendedProperties.private;
-    if (!props || !props.localId) return null;
-    const filtros = [
-      'gabaritei=1',
-      'tipo=' + (props.tipo || item.tipo || ''),
-      'planoId=' + (props.planoId || item.planoId || ''),
-      'localId=' + props.localId
-    ];
-    const query = filtros.map(function (valor) {
-      return 'privateExtendedProperty=' + encodeURIComponent(valor);
-    });
-    query.push('showDeleted=false', 'singleEvents=true', 'maxResults=10');
-    const dados = await googleCalendarRequest(token, calendarPathEventos('?' + query.join('&')), { method: 'GET' });
-    const itens = dados && Array.isArray(dados.items) ? dados.items : [];
-    return itens.find(function (evento) {
-      return evento && evento.id && evento.status !== 'cancelled';
-    }) || null;
-  }
-
-  function intervaloBlocoCalendar(bloco, cursores) {
-    const dur = Math.max(5, bloco.duracaoMin || 60);
-    let iniMin;
-    if (bloco.horaInicio) iniMin = hhmmParaMin(bloco.horaInicio);
-    else iniMin = cursores[bloco.data] == null ? 480 : cursores[bloco.data];
-    const fimMin = iniMin + dur;
-    cursores[bloco.data] = fimMin;
-    return { inicio: minParaHHMM(iniMin), fim: minParaHHMM(fimMin) };
-  }
-
-  function eventoCalendarDoBloco(bloco, cursores, semanaInicio) {
-    const d = D.disciplinaPorId(state, bloco.disciplinaId);
-    const t = bloco.topicoId ? D.topicoPorId(state, bloco.topicoId) : null;
-    const h = intervaloBlocoCalendar(bloco, cursores);
-    const tz = fusoHorarioLocal();
-    const partesDesc = [
-      state.plano ? state.plano.concurso : '',
-      t ? 'Tópico: ' + t.nome : '',
-      bloco.obs ? 'Observação: ' + bloco.obs : '',
-      'Sincronizado pelo Gabaritei OS'
-    ].filter(Boolean);
-    return {
-      uid: 'agd:' + bloco.id,
-      planoId: bloco.planoId || state.planoAtivoId || '',
-      semanaInicio: semanaInicio,
-      tipo: 'agenda',
-      payload: {
-        summary: 'Estudo: ' + (d ? d.nome : bloco.disciplinaId),
-        description: partesDesc.join('\n'),
-        start: { dateTime: bloco.data + 'T' + h.inicio + ':00', timeZone: tz },
-        end: { dateTime: bloco.data + 'T' + h.fim + ':00', timeZone: tz },
-        reminders: { useDefault: true },
-        extendedProperties: { private: { gabaritei: '1', tipo: 'agenda', planoId: bloco.planoId || state.planoAtivoId || '', localId: bloco.id } }
-      }
-    };
-  }
-
-  function eventoCalendarDaRevisao(revisao, semanaInicio) {
-    const t = D.topicoPorId(state, revisao.topicoId);
-    const d = D.disciplinaDoTopico(state, revisao.topicoId);
-    return {
-      uid: 'rev:' + revisao.id,
-      planoId: revisao.planoId || state.planoAtivoId || '',
-      semanaInicio: semanaInicio,
-      tipo: 'revisao',
-      payload: {
-        summary: 'Revisão ' + revisao.tipo + ': ' + (t ? t.nome : revisao.topicoId),
-        description: [d ? d.nome : '', state.plano ? state.plano.concurso : '', 'Sincronizado pelo Gabaritei OS'].filter(Boolean).join('\n'),
-        start: { date: revisao.dataAgendada },
-        end: { date: D.addDias(revisao.dataAgendada, 1) },
-        reminders: { useDefault: true },
-        extendedProperties: { private: { gabaritei: '1', tipo: 'revisao', planoId: revisao.planoId || state.planoAtivoId || '', localId: revisao.id } }
-      }
-    };
-  }
-
-  function eventosCalendarDaSemana(semanaInicio) {
-    const fim = D.addDias(semanaInicio, 7);
-    const cursores = {};
-    const blocos = doAtivo(state.agenda)
-      .filter(function (a) { return a.data >= semanaInicio && a.data < fim; })
-      .sort(compararAgenda);
-    const eventos = blocos.map(function (b) { return eventoCalendarDoBloco(b, cursores, semanaInicio); });
-    D.revisoesVisiveis(state)
-      .filter(function (r) { return !r.dataConcluida && r.dataAgendada >= semanaInicio && r.dataAgendada < fim && D.topicoPorId(state, r.topicoId); })
-      .forEach(function (r) { eventos.push(eventoCalendarDaRevisao(r, semanaInicio)); });
-    return eventos;
-  }
-
-  async function inserirEventoGoogleCalendar(token, item) {
-    return googleCalendarRequest(token, calendarPathEventos('?sendUpdates=none'), {
-      method: 'POST',
-      body: JSON.stringify(item.payload)
-    });
-  }
-
-  async function atualizarEventoGoogleCalendar(token, eventId, item) {
-    return googleCalendarRequest(token, calendarPathEventos('/' + encodeURIComponent(eventId) + '?sendUpdates=none'), {
-      method: 'PUT',
-      body: JSON.stringify(item.payload)
-    });
-  }
-
-  async function excluirEventoGoogleCalendar(token, eventId) {
-    try {
-      await googleCalendarRequest(token, calendarPathEventos('/' + encodeURIComponent(eventId) + '?sendUpdates=none'), { method: 'DELETE' });
-    } catch (e) {
-      if (e.status !== 404 && e.status !== 410) throw e;
-    }
-  }
-
-  async function upsertEventoGoogleCalendar(token, item) {
-    const mapa = googleCalendarEventos();
-    const existente = mapa[item.uid];
-    let salvo;
-    if (existente && existente.eventId) {
-      try {
-        salvo = await atualizarEventoGoogleCalendar(token, existente.eventId, item);
-      } catch (e) {
-        if (e.status !== 404 && e.status !== 410) throw e;
-      }
-    }
-    // Se o mapa local foi apagado/restaurado, recupera o evento remoto pelas
-    // propriedades privadas antes de inserir. Assim uma nova sincronização não
-    // duplica eventos que já existem no Calendar.
-    if (!salvo) {
-      const remoto = await buscarEventoGoogleCalendar(token, item);
-      if (remoto) {
-        try {
-          salvo = await atualizarEventoGoogleCalendar(token, remoto.id, item);
-        } catch (e) {
-          if (e.status !== 404 && e.status !== 410) throw e;
-        }
-      }
-    }
-    if (!salvo) salvo = await inserirEventoGoogleCalendar(token, item);
-    mapa[item.uid] = {
-      eventId: salvo.id,
-      htmlLink: salvo.htmlLink || '',
-      planoId: item.planoId,
-      semanaInicio: item.semanaInicio,
-      tipo: item.tipo,
-      atualizadoEm: new Date().toISOString()
-    };
-    return salvo;
-  }
-
-  async function sincronizarGoogleCalendarSemana() {
-    if (!state.planoAtivoId) { toast('Escolha um plano antes de sincronizar o Calendar.', 'erro'); return; }
-    const inicioAlvo = agendaModo === 'semana' ? agendaRef : D.segundaDaSemana(D.hojeISO());
-    if (inicioAlvo === D.segundaDaSemana(D.hojeISO())) verificarRecalculoSemanal();
-    const gerada = gerarBlocosSemanaAgenda(inicioAlvo);
-    const semanaInicio = gerada && gerada.inicio ? gerada.inicio : inicioAlvo;
-    const eventos = eventosCalendarDaSemana(semanaInicio);
-    if (eventos.length === 0) { toast('Nada nesta semana para sincronizar.', 'erro'); return; }
-    const token = await obterTokenGoogleCalendar();
-    const mapa = googleCalendarEventos();
-    const ativos = new Set(eventos.map(function (e) { return e.uid; }));
-    const antigos = Object.keys(mapa).filter(function (uid) {
-      const info = mapa[uid];
-      return info && info.planoId === state.planoAtivoId && info.semanaInicio === semanaInicio && !ativos.has(uid);
-    });
-    let removidos = 0, salvos = 0;
-    for (const uid of antigos) {
-      if (mapa[uid] && mapa[uid].eventId) await excluirEventoGoogleCalendar(token, mapa[uid].eventId);
-      delete mapa[uid];
-      removidos++;
-    }
-    for (const item of eventos) {
-      await upsertEventoGoogleCalendar(token, item);
-      salvos++;
-    }
-    salvar();
-    agendaRef = semanaInicio;
-    agendaModo = 'semana';
-    render();
-    toast('Google Calendar sincronizado: ' + salvos + ' eventos' + (removidos ? ' · ' + removidos + ' removidos' : ''), 'sucesso');
-  }
-
-  async function excluirEventosPlanoGoogleCalendar(planoId) {
-    const mapa = googleCalendarEventos();
-    const uids = Object.keys(mapa).filter(function (uid) { return mapa[uid] && mapa[uid].planoId === planoId; });
-    if (uids.length === 0) return { removidos: 0, pendentes: 0 };
-    const cfg = googleCalendarConfig();
-    if (!cfg.clientId) return { removidos: 0, pendentes: uids.length };
-    try {
-      const token = await obterTokenGoogleCalendar();
-      let removidos = 0;
-      for (const uid of uids) {
-        if (mapa[uid] && mapa[uid].eventId) await excluirEventoGoogleCalendar(token, mapa[uid].eventId);
-        delete mapa[uid];
-        removidos++;
-      }
-      return { removidos: removidos, pendentes: 0 };
-    } catch (e) {
-      console.warn('Falha ao limpar eventos do Google Calendar', e);
-      return { removidos: 0, pendentes: uids.length };
-    }
-  }
-
   // ================= Exportar para o calendário (.ics) =================
   // Gera um arquivo iCalendar com os blocos do cronograma e as revisões.
-  // Zero custo / sem API: o aluno importa no Google Calendar, Apple ou Outlook.
-  // A arquitetura fica pronta para uma sincronização por API numa fase futura.
+  // Arquivo aberto para importar em aplicativos de calendário, sem integração externa.
   function baixarArquivo(nome, conteudo, mime) {
     const blob = new Blob([conteudo], { type: mime || 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -12525,11 +12266,10 @@
 
   function abrirExportarCalendario() {
     const m = abrirModal('<h3>Exportar para o calendário</h3>' +
-      '<p class="sub">Gera um arquivo <strong>.ics</strong> com seus blocos de estudo e revisões — importável no Google Calendar, Apple ou Outlook. Custo zero, sem login.</p>' +
+      '<p class="sub">Gera um arquivo <strong>.ics</strong> com seus blocos de estudo e revisões — compatível com aplicativos de calendário. Sem login ou integração externa.</p>' +
       '<label class="check-inline"><input type="checkbox" id="ics-blocos" checked> Blocos do cronograma</label><br>' +
       '<label class="check-inline"><input type="checkbox" id="ics-revisoes" checked> Revisões (24h · 3d · 7d · 14d · 30d · reforço)</label>' +
-      '<details style="margin-top:0.7rem"><summary style="cursor:pointer;font-weight:700;font-size:0.88rem">Como importar no Google Calendar</summary>' +
-      '<p class="sub" style="margin-top:0.4rem">No computador: Google Calendar → ⚙ Configurações → <em>Importar e exportar</em> → escolha o arquivo .ics → <em>Importar</em>. O app continua sendo a fonte do plano; reexporte quando o cronograma mudar.</p></details>' +
+      '<p class="sub">Escolha a opção de importar arquivo .ics no seu calendário. Reexporte quando o cronograma mudar.</p>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="ics-cancelar">Fechar</button>' +
       '<button id="ics-baixar">Baixar .ics</button></div>');
     m.querySelector('#ics-cancelar').addEventListener('click', fecharModal);
@@ -12712,7 +12452,7 @@
       perfilMetasHtml() +
       '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
       '<strong style="display:block;font-size:0.95rem">Calendário</strong>' +
-      '<p class="sub" style="margin:0.3rem 0 0">Exporte um arquivo <strong>.ics</strong> para importar no Google Calendar, Apple ou Outlook.</p>' +
+      '<p class="sub" style="margin:0.3rem 0 0">Exporte um arquivo <strong>.ics</strong> para importar em um aplicativo de calendário.</p>' +
       '<div class="modal-acoes" style="justify-content:flex-start;margin-top:0.75rem">' +
       '<button type="button" class="botao-secundario" id="pf-exportar-cal"' + (temPlano ? '' : ' disabled') + '>Exportar calendário (.ics)</button>' +
       '</div></div>' +
@@ -13364,6 +13104,12 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fabFechar(); });
 
   window.Timer.aoAtualizar(tratarTickTimer);
+  window.Timer.aoErroPersistencia(function () {
+    toast('O timer continua contando, mas não conseguiu salvar a recuperação neste aparelho. Registre o estudo antes de fechar a página.', 'erro');
+  });
+  window.GabariteiAtualizacaoSegura = function () {
+    return !window.Timer.estado() && !document.querySelector('[role="dialog"], form');
+  };
 
   // Ao sair do app (segundo plano) com o cronômetro rodando, o contador
   // aparece na bandeja; ao voltar, a notificação some (o relógio está na tela).

@@ -1,6 +1,10 @@
 name: firebase deploy
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/**'
   workflow_dispatch:
     inputs:
       deploy_functions:
@@ -25,14 +29,22 @@ jobs:
       - name: Instalar ferramentas
         run: npm ci
       - name: Instalar dependências das Functions
-        if: ${{ inputs.deploy_functions }}
+        if: ${{ github.event_name == 'push' || inputs.deploy_functions }}
         run: npm ci --prefix functions
+      - name: Validar alterações antes de publicar
+        if: ${{ github.event_name == 'push' || inputs.deploy_functions }}
+        run: |
+          npm test
+          node --check functions/index.js
+          node -e "const f=require('./functions/index.js'); if(!f.gerarFlashcards || !f.lembreteEstudo) process.exit(1)"
+          npm audit --omit=dev --audit-level=high --prefix functions
       - name: Autenticar no Firebase
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       - name: Publicar regras
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: npx firebase deploy --project app-gestao-estudos --only firestore:rules --non-interactive
       - name: Publicar Functions
-        if: ${{ inputs.deploy_functions }}
+        if: ${{ github.event_name == 'push' || inputs.deploy_functions }}
         run: npx firebase deploy --project app-gestao-estudos --only functions --non-interactive

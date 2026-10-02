@@ -17,8 +17,8 @@ admin.initializeApp();
 setGlobalOptions({ region: 'us-central1', maxInstances: 5 });
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
-// Modelo configurável; o padrão é rápido e elegível ao free tier do Gemini.
-const GEMINI_MODEL = defineString('GEMINI_MODEL', { default: 'gemini-2.0-flash' });
+// Modelo escolhido na configuração do serviço; não fixa uma versão que pode ser descontinuada.
+const GEMINI_MODEL = defineString('GEMINI_MODEL', { default: '' });
 
 const LIMITE_MATERIAL = 20000; // ~caracteres; evita estourar custo/contexto
 const MIN_MATERIAL = 30;
@@ -107,9 +107,9 @@ exports.gerarFlashcards = onCall({ secrets: [GEMINI_API_KEY] }, async (request) 
     throw new HttpsError('invalid-argument', 'Material muito longo (máximo ~' + LIMITE_MATERIAL + ' caracteres). Divida em partes.');
   }
 
+  const model = String(GEMINI_MODEL.value() || '').trim();
+  if (!model) throw new HttpsError('failed-precondition', 'O serviço de IA ainda não foi configurado.');
   await consumirCotaIA(request.auth.uid);
-
-  const model = GEMINI_MODEL.value();
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
     encodeURIComponent(model) + ':generateContent?key=' + GEMINI_API_KEY.value();
   const body = {
@@ -125,6 +125,7 @@ exports.gerarFlashcards = onCall({ secrets: [GEMINI_API_KEY] }, async (request) 
   try {
     resp = await fetch(url, {
       method: 'POST',
+      signal: AbortSignal.timeout(60000),
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
@@ -211,11 +212,13 @@ function hojeISO() {
 
 // Maior data de sessão registrada no estado do usuário (YYYY-MM-DD) ou ''.
 function ultimaSessaoISO(state) {
-  const sessoes = (state && Array.isArray(state.sessoes)) ? state.sessoes : [];
+  const sessoes = ['sessoes', 'simulados'].flatMap(k => state && Array.isArray(state[k]) ? state[k] : []);
+  const removidos = new Set(state && state.config && state.config.removidos || []);
+  const hoje = hojeISO();
   let max = '';
   for (const s of sessoes) {
     const d = s && typeof s.data === 'string' ? s.data : '';
-    if (d > max) max = d;
+    if (!removidos.has(s && s.id) && d <= hoje && d > max) max = d;
   }
   return max;
 }
@@ -240,6 +243,7 @@ exports.lembreteEstudo = onSchedule(
         if (tokens.length === 0) continue;
 
         const state = await db.runTransaction(tx => lerEstadoEstudo(userRef, tx));
+        if (!state || !state.config || state.config.lembretesPush !== true) continue;
         if (ultimaSessaoISO(state) === hoje) continue; // já estudou hoje
 
         const msg = escolherMensagem();

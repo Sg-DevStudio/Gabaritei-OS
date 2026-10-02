@@ -35,8 +35,8 @@ em [`CLAUDE.md`](CLAUDE.md).
   heatmap, burndown do edital e projeção dinâmica de término.
 - **Edital verticalizado** — status e incidência por tópico, progresso por
   disciplina, **conciliação de dois concursos** e geração de **plano combinado**.
-- **Reta final & prontidão** — nas últimas semanas o foco vira consolidação;
-  o app mede se as revisões cabem antes da prova.
+- **Prontidão** — acompanha se as revisões cabem antes da prova e distingue
+  agendamento de evidência recente de aprendizado.
 - **PWA** — instalável, abre offline, sincroniza PC/celular via Firebase.
 
 ## Como usar
@@ -102,8 +102,7 @@ Toda a lógica é **pura e testável** (sem DOM), em `window.Dominio`.
 
 Técnicas complementares: **espaçamento adaptativo** das revisões (fator por
 desempenho, no espírito do SM-2), **ciclo de estudos** ponderado, **flashcards
-SM-2**, **conciliação/combinação** de editais, **reta final** automática
-(≤6 semanas até a prova) e **prontidão para a prova**.
+SM-2**, **conciliação/combinação** de editais, **estatísticas semanais por plano** (segunda a domingo) e **prontidão para a prova**.
 
 ## Estrutura
 
@@ -199,3 +198,21 @@ use `firebase deploy --only functions`.
 
 Ver [`LICENSE`](LICENSE).
 </content>
+
+## Integridade e recuperação
+
+- Cards, evolução semanal e totais usam sessões e simulados do plano ativo.
+  O histórico de planos excluídos permanece guardado sem entrar nas métricas.
+- Edições de campos de tópicos e disciplinas são mescladas por revisão; blocos
+  do ciclo preservam progresso da mesma volta e a entrada gradual de matérias.
+- A conclusão de revisão revalida o plano e a revisão após sincronizações.
+- Backups importados são validados antes da substituição. A cópia anterior fica
+  disponível em Configurações → Baixar cópia de recuperação.
+- Falhas de armazenamento não interrompem a contagem do timer; um aviso informa
+  quando a recuperação não pôde ser salva.
+- Atualizações aguardam o fechamento de formulários e o encerramento do timer.
+- A integração com Google Calendar foi removida. A agenda interna e a exportação
+  genérica de arquivo `.ics` continuam disponíveis.
+- A geração de flashcards por IA permanece sinalizada como indisponível na UI.
+  Para habilitar o backend, configure `GEMINI_API_KEY` e `GEMINI_MODEL`; chamadas
+  externas têm limite de 60 segundos.

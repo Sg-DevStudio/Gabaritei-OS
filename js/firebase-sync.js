@@ -21,8 +21,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
-  updateDoc,
-  writeBatch
+  updateDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 import {
   getFunctions,
@@ -680,6 +679,15 @@ function informacoesBackupAgora() {
   };
 }
 
+function dataBackupNoFuso(iso) {
+  const data = new Date(iso);
+  if (!Number.isFinite(data.getTime())) return '';
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: FUSO_APP, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(data).reduce(function (acc, parte) { acc[parte.type] = parte.value; return acc; }, {});
+  return partes.year + '-' + partes.month + '-' + partes.day;
+}
+
 async function talvezSnapshotDiario(stateLimpo) {
   try {
     if (!usuario || !temDados(stateLimpo)) return;
@@ -687,20 +695,23 @@ async function talvezSnapshotDiario(stateLimpo) {
     const chaveSnapshot = chaveSnapshotUsuario(usuario.uid);
     if (localStorage.getItem(chaveSnapshot) === info.hoje) return;
     const slotRef = doc(db, 'users', usuario.uid, 'state', info.slot);
-    const anterior = await getDoc(slotRef);
-    const dadosAnteriores = anterior.exists() ? (anterior.data() || {}) : {};
-    const lote = writeBatch(db);
-    const codificado = gravarPartesNoLote(lote, info.slot, stateLimpo, dadosAnteriores.chunks);
-    lote.set(slotRef, {
-      formato: codificado.formato,
-      chunks: codificado.partes.length,
-      criadoEm: new Date().toISOString(),
-      clientId: idDispositivo(),
-      rev: revDe(stateLimpo),
-      resumo: resumoEstado(stateLimpo),
-      savedAt: serverTimestamp()
+    // A decisão de criar o snapshot é global por conta, não por aparelho.
+    // Dois dispositivos no mesmo dia não podem sobrescrever o backup entre si.
+    await runTransaction(db, async function (tx) {
+      const anterior = await tx.get(slotRef);
+      const dadosAnteriores = anterior.exists() ? (anterior.data() || {}) : {};
+      if (dadosAnteriores.criadoEm && dataBackupNoFuso(dadosAnteriores.criadoEm) === info.hoje) return;
+      const codificado = gravarPartesNoLote(tx, info.slot, stateLimpo, dadosAnteriores.chunks);
+      tx.set(slotRef, {
+        formato: codificado.formato,
+        chunks: codificado.partes.length,
+        criadoEm: new Date().toISOString(),
+        clientId: idDispositivo(),
+        rev: revDe(stateLimpo),
+        resumo: resumoEstado(stateLimpo),
+        savedAt: serverTimestamp()
+      });
     });
-    await lote.commit();
     localStorage.setItem(chaveSnapshot, info.hoje);
   } catch (e) {
     console.warn('Backup diário na nuvem não gravado:', e && e.message ? e.message : e);

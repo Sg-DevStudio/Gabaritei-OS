@@ -230,13 +230,59 @@
     return { ok: true, alterou, topico };
   }
 
-  // Registros do plano ativo (itens antigos sem planoId contam — schema v1)
+  // Um único filtro para cards, gráficos e demais funções. Dados de planos
+  // excluídos ficam preservados no histórico, sem contaminar o plano atual.
   function doPlanoAtivo(state, lista) {
-    if (!state.planoAtivoId) return lista;
-    return lista.filter((x) => !x.planoId || x.planoId === state.planoAtivoId);
+    const config = state.config || {};
+    const excluidos = config.planosExcluidos || {};
+    const removidos = new Set(config.removidos || []);
+    const planoId = state.planoAtivoId;
+    const planos = state.planos || [];
+    if (Array.isArray(state.planos) && (!planoId || !planos.some(p => p && p.id === planoId))) return [];
+    if (planoId && excluidos[planoId]) return [];
+    const disciplinas = state.disciplinas || [];
+    const outros = planos.filter(p => p && p.id !== planoId && !excluidos[p.id]);
+    function contem(p, item) {
+      const ds = p.disciplinas || [];
+      if (Array.isArray(item.acertos)) return item.acertos.length > 0 &&
+        item.acertos.every(a => a && ds.some(d => d.id === a.disciplinaId));
+      if (item.disciplinaId) return ds.some(d => d.id === item.disciplinaId);
+      return !!item.topicoId && ds.some(d => (d.topicos || []).some(t => t && !t.orfao && t.id === item.topicoId));
+    }
+    return (Array.isArray(lista) ? lista : []).filter(function (item) {
+      if (!item || removidos.has(item.id)) return false;
+      if (item.planoId) return item.planoId === planoId && !excluidos[item.planoId];
+      // Funções de domínio também recebem estados v1 ainda não migrados.
+      if (!Array.isArray(state.planos) && !planoId) return true;
+      if (Object.keys(excluidos).length) return false;
+      return contem({ disciplinas: disciplinas }, item) && !outros.some(p => contem(p, item));
+    });
   }
 
   function sessoesDoPlano(state) { return doPlanoAtivo(state, state.sessoes); }
+
+  // Simulados agregam questões, tempo informado e constância; não criam
+  // sessões fictícias no histórico nem resultados de tópicos não informados.
+  function atividadesDoPlano(state) {
+    return sessoesDoPlano(state).concat(doPlanoAtivo(state, state.simulados).map(function (sim) {
+      return { id: 'sim:' + sim.id, data: sim.data, duracaoMin: Math.max(0, Number(sim.duracaoMin) || 0),
+        qFeitas: (sim.acertos || []).reduce((n, a) => n + (a.total || 0), 0),
+        qCertas: (sim.acertos || []).reduce((n, a) => n + (a.certas || 0), 0) };
+    }));
+  }
+
+  function totaisEstudo(state, inicio, fim) {
+    let minutos = 0, qFeitas = 0, qCertas = 0;
+    atividadesDoPlano(state).forEach(function (a) {
+      if ((inicio && a.data < inicio) || (fim && a.data >= fim)) return;
+      minutos += Math.max(0, Number(a.duracaoMin) || 0);
+      const feitas = Math.max(0, Number(a.qFeitas) || 0);
+      qFeitas += feitas;
+      qCertas += Math.min(feitas, Math.max(0, Number(a.qCertas) || 0));
+    });
+    return { minutos: minutos, qFeitas: qFeitas, qCertas: qCertas,
+      pctAcertos: qFeitas > 0 ? Math.round(qCertas / qFeitas * 100) : null };
+  }
 
   // ---------- RN01 — Teoria concluída agenda revisões (curva 1-3-7-14-30) ----------
   // Ausência do campo mantém o comportamento dos planos já existentes.
@@ -1137,29 +1183,25 @@
   // pendente daquela disciplina. Fecha a volta (reset + volta++) quando completa.
   function avancarCiclo(ciclo, disciplinaId, minutos) {
     const res = { creditou: false, completouBloco: false, completouVolta: false };
-    if (!ciclo || !Array.isArray(ciclo.blocos) || ciclo.blocos.length === 0) return res;
-    minutos = Math.max(0, Math.round(Number(minutos) || 0));
-    if (!minutos || !disciplinaId) return res;
-
-    const atual = blocoCicloAtual(ciclo);
-    let alvo = (atual && atual.disciplinaId === disciplinaId) ? atual : null;
-    if (!alvo) {
-      alvo = ciclo.blocos.find(function (b) {
-        return b.disciplinaId === disciplinaId && (b.feitoMin || 0) < (b.metaMin || 0);
-      }) || null;
-    }
-    if (!alvo) return res; // estudou algo fora do ciclo
-
-    const completoAntes = (alvo.feitoMin || 0) >= (alvo.metaMin || 0);
-    alvo.feitoMin = Math.min(alvo.metaMin || 0, (alvo.feitoMin || 0) + minutos);
-    res.creditou = true;
-    if (!completoAntes && alvo.feitoMin >= (alvo.metaMin || 0)) res.completouBloco = true;
-
-    // volta inteira concluída → zera e incrementa
-    if (!blocoCicloAtual(ciclo)) {
-      ciclo.blocos.forEach(function (b) { b.feitoMin = 0; });
-      ciclo.volta = (ciclo.volta || 1) + 1;
-      res.completouVolta = true;
+    if (!ciclo || !Array.isArray(ciclo.blocos) || !ciclo.blocos.length || !disciplinaId) return res;
+    let restante = Math.max(0, Math.round(Number(minutos) || 0));
+    if (!Number.isFinite(restante)) return res;
+    while (restante > 0) {
+      const atual = blocoCicloAtual(ciclo);
+      const alvo = atual && atual.disciplinaId === disciplinaId ? atual :
+        blocosAtivosCiclo(ciclo).find(b => b.disciplinaId === disciplinaId && (b.feitoMin || 0) < b.metaMin);
+      if (!alvo) break; // não adianta blocos de disciplinas ainda fora da rampa
+      const credito = Math.min(restante, alvo.metaMin - (alvo.feitoMin || 0));
+      if (!(credito > 0)) break;
+      alvo.feitoMin = (alvo.feitoMin || 0) + credito;
+      restante -= credito;
+      res.creditou = true;
+      if (alvo.feitoMin >= alvo.metaMin) res.completouBloco = true;
+      if (!blocoCicloAtual(ciclo)) {
+        ciclo.blocos.forEach(b => { b.feitoMin = 0; delete b.creditosCiclo; });
+        ciclo.volta = (ciclo.volta || 1) + 1;
+        res.completouVolta = true;
+      }
     }
     return res;
   }
@@ -1489,56 +1531,14 @@
     hoje = hoje || hojeISO();
     const inicio = segundaDaSemana(hoje);
     const fim = addDias(inicio, 7);
-    let minutos = 0, qFeitas = 0, qCertas = 0;
-    const planoId = state.planoAtivoId;
-    const config = state.config || {};
-    const excluidos = config.planosExcluidos || {};
-    const removidos = new Set(config.removidos || []);
-    const planos = state.planos || [];
-    const temPlano = !!state.plano && (!planoId || !excluidos[planoId]) &&
-      (!planoId || !Array.isArray(state.planos) || planos.some(p => p && p.id === planoId));
-    // Legado sem planoId só conta quando o vínculo é inequívoco. O histórico
-    // preservado de um plano excluído não pode virar progresso do próximo plano.
-    const disciplinas = state.disciplinas || [];
-    const topicos = new Set(disciplinas.flatMap(d => (d.topicos || []).filter(t => !t.orfao).map(t => t.id)));
-    const outrosPlanos = planos.filter(p => p && p.id !== planoId && !excluidos[p.id]);
-    function daSemana(item, simulado) {
-      if (!temPlano || !item || removidos.has(item.id) ||
-          !(item.data >= inicio && item.data < fim)) return false;
-      if (item.planoId) return !!planoId && item.planoId === planoId && !excluidos[item.planoId];
-      if (Object.keys(excluidos).length) return false;
-      if (simulado) {
-        const ids = (item.acertos || []).map(a => a.disciplinaId);
-        return ids.length > 0 && ids.every(id => disciplinas.some(d => d.id === id)) &&
-          !outrosPlanos.some(p => (p.disciplinas || []).some(d => ids.includes(d.id)));
-      }
-      return topicos.has(item.topicoId) &&
-        !outrosPlanos.some(p => (p.disciplinas || []).some(d => (d.topicos || []).some(t => t.id === item.topicoId)));
-    }
-    for (const s of (state.sessoes || [])) {
-      if (daSemana(s, false)) {
-        minutos += s.duracaoMin || 0;
-        qFeitas += s.qFeitas || 0;
-        qCertas += s.qCertas || 0;
-      }
-    }
-    // Simulados da semana também são questões resolvidas: entram na contagem e,
-    // sobretudo, na margem de acertos (qCertas/qFeitas) — antes só as sessões
-    // de estudo contavam e os simulados ficavam de fora desse cálculo.
-    for (const sim of (state.simulados || [])) {
-      if (daSemana(sim, true)) {
-        for (const a of (sim.acertos || [])) {
-          qFeitas += a.total || 0;
-          qCertas += a.certas || 0;
-        }
-      }
-    }
+    const totais = totaisEstudo(state, inicio, fim);
+    const minutos = totais.minutos, qFeitas = totais.qFeitas, qCertas = totais.qCertas;
     let horasAlvo = 0;
     if (state.plano && state.plano.ritmos) {
       const r = state.plano.ritmos[state.plano.ritmoAtivo || 'sustentavel'];
       horasAlvo = r ? (r.h_semana || r.h_semana_exigidas || 0) : 0;
     }
-    const questoesAlvo = (state.config && state.config.metaQuestoesSemana) || 100;
+    const questoesAlvo = state.config && state.config.metaQuestoesSemana != null ? state.config.metaQuestoesSemana : 100;
     const pctAcertos = qFeitas > 0 ? Math.round(qCertas / qFeitas * 100) : null;
     return { inicio, minutos, qFeitas, qCertas, pctAcertos, horasAlvo, questoesAlvo };
   }
@@ -1564,12 +1564,17 @@
 
   // ---------- Heatmap de constância (minutos por dia) ----------
   function heatmapDias(sessoes, hoje, nDias) {
-    const porDia = {};
-    for (const s of sessoes) porDia[s.data] = (porDia[s.data] || 0) + (s.duracaoMin || 0);
+    const porDia = {}, questoes = {};
+    for (const s of sessoes) {
+      porDia[s.data] = (porDia[s.data] || 0) + (s.duracaoMin || 0);
+      questoes[s.data] = (questoes[s.data] || 0) + (s.qFeitas || 0);
+    }
     const dias = [];
     for (let i = nDias - 1; i >= 0; i--) {
       const d = addDias(hoje, -i);
-      dias.push({ data: d, minutos: porDia[d] || 0 });
+      const dia = { data: d, minutos: porDia[d] || 0 };
+      if (questoes[d] > 0) dia.questoes = questoes[d];
+      dias.push(dia);
     }
     return dias;
   }
@@ -1577,17 +1582,12 @@
   // ---------- Série semanal para gráficos ----------
   function serieSemanal(state, hoje, nSemanas) {
     const serie = [];
-    const sessoes = sessoesDoPlano(state);
     const inicioAtual = segundaDaSemana(hoje);
     for (let i = nSemanas - 1; i >= 0; i--) {
       const ini = addDias(inicioAtual, -7 * i);
       const fim = addDias(ini, 7);
-      let minutos = 0, feitas = 0, certas = 0;
-      for (const s of sessoes) {
-        if (s.data >= ini && s.data < fim) {
-          minutos += s.duracaoMin || 0; feitas += s.qFeitas || 0; certas += s.qCertas || 0;
-        }
-      }
+      const totais = totaisEstudo(state, ini, fim);
+      const minutos = totais.minutos, feitas = totais.qFeitas, certas = totais.qCertas;
       serie.push({ inicio: ini, horas: Math.round((minutos / 60) * 10) / 10, qFeitas: feitas, pct: feitas > 0 ? Math.round((certas / feitas) * 100) : null });
     }
     return serie;
@@ -2719,7 +2719,7 @@
   // ---------- Conquistas (gamificação leve, derivada dos dados existentes) ----------
   function conquistas(state, hoje) {
     hoje = hoje || hojeISO();
-    const ses = sessoesDoPlano(state);
+    const ses = atividadesDoPlano(state);
     const totalQ = ses.reduce(function (n, s) { return n + (s.qFeitas || 0); }, 0);
     const horas = ses.reduce(function (n, s) { return n + (s.duracaoMin || 0); }, 0) / 60;
     const st = streak(ses, hoje);
@@ -3041,7 +3041,7 @@
     sugestoesRevisaoAtivas, revisoesVisiveis,
     CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig, validarEsquemaRevisao,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,
-    topicoPorId, topicoExisteEmAlgumPlano, disciplinaDoTopico, disciplinaPorId, excluirDisciplina, renomearTopico, doPlanoAtivo, sessoesDoPlano,
+    topicoPorId, topicoExisteEmAlgumPlano, disciplinaDoTopico, disciplinaPorId, excluirDisciplina, renomearTopico, doPlanoAtivo, sessoesDoPlano, atividadesDoPlano, totaisEstudo,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, streak, semaforo,
