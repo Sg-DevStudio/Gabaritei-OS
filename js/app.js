@@ -6749,7 +6749,7 @@
       h += '<div class="editor-disc" data-di="' + di + '"><div class="editor-disc-cab">' +
         '<input class="ed-d-nome" data-di="' + di + '" type="text" value="' + esc(d.nome) + '" placeholder="Disciplina">' +
         '<input class="ed-d-cor" data-di="' + di + '" type="color" value="' + esc(/^#/.test(d.cor) ? d.cor : '#3B82F6') + '" title="Cor">' +
-        '<label class="mini-rot">peso<input class="ed-d-peso" data-di="' + di + '" type="number" min="1" max="5" value="' + (d.peso || 1) + '"></label>' +
+        '<label class="mini-rot">peso<input class="ed-d-peso" data-di="' + di + '" type="number" min="1" value="' + (d.peso || 1) + '"></label>' +
         '<select class="ed-d-dif" data-di="' + di + '">' +
         ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
         '</select>' +
@@ -6821,7 +6821,7 @@
       h += '<div class="editor-disc" data-di="' + di + '"><div class="editor-disc-cab">' +
         '<input class="ed-d-nome" data-di="' + di + '" type="text" value="' + esc(d.nome) + '" placeholder="Disciplina">' +
         '<input class="ed-d-cor" data-di="' + di + '" type="color" value="' + esc(/^#/.test(d.cor) ? d.cor : '#3B82F6') + '" title="Cor">' +
-        '<label class="mini-rot">peso<input class="ed-d-peso" data-di="' + di + '" type="number" min="1" max="5" value="' + (d.peso || 1) + '"></label>' +
+        '<label class="mini-rot">peso<input class="ed-d-peso" data-di="' + di + '" type="number" min="1" value="' + (d.peso || 1) + '"></label>' +
         '<select class="ed-d-dif" data-di="' + di + '">' +
         ['facil', 'media', 'dificil'].map(function (k) { return '<option value="' + k + '"' + (d.dificuldade === k ? ' selected' : '') + '>' + (k === 'facil' ? 'Fácil' : k === 'media' ? 'Média' : 'Difícil') + '</option>'; }).join('') +
         '</select>' +
