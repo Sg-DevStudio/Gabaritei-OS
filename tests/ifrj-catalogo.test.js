@@ -29,7 +29,7 @@ test('IFRJ público e exportável mantém estrutura e conteúdo do PDF retificad
   assert.deepEqual(ifrj.janelaProva, { inicio: '', fim: '' });
   ifrj.disciplinas.forEach(d => {
     assert.equal(d.topicos.reduce((n, t) => n + t.incidencia_pct, 0), 100);
-    assert(d.peso >= 1 && d.peso <= 5);
+    assert.equal(d.peso, d.questoes);
     assert(d.topicos.every(t => t.status === 'pendente' && t.semana_sugerida > 0));
   });
   const validated = D.validarPlano({ versao: 1, plano: { concurso: ifrj.titulo, banca: ifrj.banca, meta: { corte_pct: ifrj.notaCorte } }, disciplinas: ifrj.disciplinas, cronograma: {} });
@@ -52,6 +52,47 @@ test('catálogo oferece IFRJ a uma conta vazia e sobrepõe apenas sua cópia pes
   ctx.state.editais.push({ ...ifrj, titulo: 'Meu IFRJ' });
   assert.equal(ctx.editaisDoCatalogo().find(e => e.id === ifrj.id).titulo, 'Meu IFRJ');
   assert.equal(ifrj.titulo, 'IFRJ — Assistente em Administração (base: Edital 2022)');
+});
+
+test('ciclo do IFRJ conserva a participação na prova ao dividir cotas em sessões curtas', () => {
+  const state = { plano: {}, disciplinas: JSON.parse(JSON.stringify(ifrj.disciplinas)), sessoes: [] };
+  const blocks = D.sugerirCiclo(state, { minutosSemana: 600, minBloco: 30, maxBloco: 75 });
+  const minutes = id => blocks.filter(b => b.disciplinaId === id).reduce((n, b) => n + b.metaMin, 0);
+  assert.deepEqual(state.disciplinas.map(d => minutes(d.id)), [95, 85, 60, 360]);
+  assert.equal(blocks.reduce((n, b) => n + b.metaMin, 0), 600);
+  assert(blocks.every(b => b.metaMin >= 30 && b.metaMin <= 75 && b.voltaInicio === 1));
+  assert.equal(new Set(blocks.map(b => b.id)).size, blocks.length);
+  assert(blocks.filter(b => b.disciplinaId === 'IFRJ-ESP').length > 1);
+  const cycle = { volta: 1, blocos: blocks };
+  blocks.forEach((b, i) => {
+    const result = D.avancarCiclo(cycle, b.disciplinaId, b.metaMin);
+    assert.equal(result.completouBloco, true);
+    assert.equal(result.completouVolta, i === blocks.length - 1);
+  });
+  assert.equal(cycle.volta, 2);
+});
+
+test('ciclo respeita limites quando a cota não pode ser dividida entre mínimo e máximo', () => {
+  const state = { plano: {}, disciplinas: [ifrj.disciplinas[0]], sessoes: [] };
+  const blocks = D.sugerirCiclo(state, { minutosSemana: 80, minBloco: 60, maxBloco: 75 });
+  assert.equal(blocks.length, 1);
+  assert.equal(blocks[0].metaMin, 75);
+});
+
+test('cotas do IFRJ continuam adaptando o tempo ao desempenho e ao conteúdo estudado', () => {
+  const state = { plano: {}, disciplinas: JSON.parse(JSON.stringify(ifrj.disciplinas)), sessoes: [] };
+  function minutes(id) {
+    return D.sugerirCiclo(state, { minutosSemana: 600, minBloco: 30, maxBloco: 75 })
+      .filter(b => b.disciplinaId === id).reduce((n, b) => n + b.metaMin, 0);
+  }
+  const initialPortuguese = minutes('IFRJ-POR');
+  state.sessoes.push({ topicoId: 'IFRJ-POR-01', tipo: 'questoes', qFeitas: 10, qCertas: 0, data: '2026-10-02' });
+  assert(minutes('IFRJ-POR') > initialPortuguese);
+  state.sessoes = [];
+  const initialSpecific = minutes('IFRJ-ESP');
+  state.disciplinas.find(d => d.id === 'IFRJ-ESP').topicos.forEach(t => { t.status = 'teoria_concluida'; });
+  assert(minutes('IFRJ-ESP') < initialSpecific);
+  assert(minutes('IFRJ-POR') > initialPortuguese);
 });
 
 test('aluno salva personalização do IFRJ com capa e crédito sem modificar o modelo público', () => {

@@ -1104,15 +1104,33 @@
     const promovida = promoverVariedadeLargada(ordenados, ordenados, function (p) {
       return { peso: (p.disc && p.disc.peso) || 1, volume: ((p.disc && p.disc.topicos) || []).length };
     });
-    return ordenados.map(function (p, rank) {
+    // O limite de duração vale por bloco, não pela cota da disciplina. Cortar
+    // cada cota em maxBloco igualava matérias de pesos muito diferentes.
+    const cotas = ordenados.map(function (p, rank) {
       const bruto = (p.peso / somaPesos) * minutosSemana;
-      // múltiplos de 30, entre 30min e 2h (blocos digeríveis; o resto vira mais voltas)
-      const metaMin = Math.min(maxBloco, Math.max(minBloco, Math.round(bruto / 5) * 5));
+      const metaTotal = Math.max(minBloco, Math.round(bruto / 5) * 5);
+      let quantidade = Math.max(1, Math.ceil(metaTotal / maxBloco));
+      // Quando não há divisão que satisfaça mínimo e máximo simultaneamente,
+      // preserva os limites com a menor redução possível da cota.
+      while (quantidade > 1 && metaTotal / quantidade < minBloco) quantidade--;
+      const total = Math.min(metaTotal, quantidade * maxBloco);
+      const baseMin = Math.floor(total / quantidade);
+      const resto = total - baseMin * quantidade;
       const topico = topicoSugerido(p.disc);
-      const voltaInicio = (total <= 4 || rank < LARGADA_PLANO || p === promovida)
+      const voltaInicio = (ordenados.length <= 4 || rank < LARGADA_PLANO || p === promovida)
         ? 1 : 1 + Math.ceil((rank - 2) / 2);
-      return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: topico ? topico.id : null, metaMin: metaMin, feitoMin: 0, voltaInicio: voltaInicio };
+      return Array.from({ length: quantidade }, function (_, i) {
+        return { id: novoIdBloco(), disciplinaId: p.disc.id, topicoId: topico ? topico.id : null,
+          metaMin: baseMin + (i < resto ? 1 : 0), feitoMin: 0, voltaInicio: voltaInicio };
+      });
     });
+    // Intercala as cotas para evitar uma sequência inteira da mesma matéria.
+    const blocos = [];
+    const maiorCota = Math.max.apply(null, cotas.map(function (c) { return c.length; }));
+    for (let i = 0; i < maiorCota; i++) {
+      cotas.forEach(function (c) { if (c[i]) blocos.push(c[i]); });
+    }
+    return blocos;
   }
 
   // Credita `minutos` ao bloco atual (se a disciplina bate) ou ao próximo bloco

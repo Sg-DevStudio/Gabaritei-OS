@@ -15,11 +15,12 @@ function stateCiclo(nDiscs) {
   return { plano: { meta: { corte_pct: 70 }, ordemAtaque: 'incidencia' }, disciplinas, sessoes: [] };
 }
 
-test('sugerirCiclo: um bloco por disciplina (fora ORF), metaMin dentro de [min,max]', () => {
+test('sugerirCiclo: cobre todas as disciplinas (fora ORF), metaMin dentro de [min,max]', () => {
   const st = stateCiclo(3);
   st.disciplinas.push({ id: 'ORF', nome: 'Órfãos', topicos: [] }); // deve ser ignorada
   const blocos = D.sugerirCiclo(st, { minutosSemana: 600, minBloco: 30, maxBloco: 75 });
-  assert.equal(blocos.length, 3, 'ORF não entra no ciclo');
+  assert.equal(new Set(blocos.map(b => b.disciplinaId)).size, 3, 'ORF não entra no ciclo');
+  assert.equal(blocos.reduce((n, b) => n + b.metaMin, 0), 600);
   blocos.forEach((b) => {
     assert.ok(b.metaMin >= 30 && b.metaMin <= 75, 'metaMin dentro da faixa: ' + b.metaMin);
     assert.equal(b.feitoMin, 0);
@@ -75,6 +76,8 @@ test('sugerirCiclo: tópico com bagagem ("já estudei") fica atrás do inédito'
     sessoes: []
   };
   const blocos = D.sugerirCiclo(st, { minutosSemana: 600, minBloco: 30, maxBloco: 75 });
-  assert.equal(blocos.length, 1);
+  assert.equal(new Set(blocos.map(b => b.disciplinaId)).size, 1);
+  assert.ok(blocos.every(b => b.topicoId === 'novo'));
   assert.equal(blocos[0].topicoId, 'novo', 'inédito vem antes mesmo com incidência menor que o de bagagem');
 });
+
