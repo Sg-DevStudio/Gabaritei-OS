@@ -24,7 +24,7 @@ test('IFRJ público e exportável mantém estrutura e conteúdo do PDF retificad
   for (const item of ['9.394/1996', '8.069/1990', '13.185/2015', '16/2011', '8.027/1990', '8.666/1993', '14.133/2021', 'matemática financeira', 'Governança']) assert(names.includes(item), item);
   assert(!names.includes('PCCTAE'));
   assert(!ifrj.fonte.includes('IFPA'));
-  assert.match(ifrj.observacoes, /sem análise de incidência/);
+  assert.match(ifrj.observacoes, /amostra histórica/);
   assert.equal(ifrj.metaDesempenho, true);
   assert.deepEqual(ifrj.janelaProva, { inicio: '', fim: '' });
   ifrj.disciplinas.forEach(d => {
