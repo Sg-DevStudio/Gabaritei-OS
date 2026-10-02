@@ -18,7 +18,7 @@ function state() {
 
 test('controle é apresentado na mesma linha de Editar plano, Edital e Excluir', () => {
   const context = { state: state(), D, esc: String, planoAtivoEntry: () => ({}), atualizacaoEditalPendente: () => null,
-    fotoPlanoAtivoHtml: () => '', modoRetaFinalControleHtml: () => '', modoAprofundamentoControleHtml: () => '' };
+    fotoPlanoAtivoHtml: () => '', modoAprofundamentoControleHtml: () => '' };
   vm.createContext(context);
   const start = source.indexOf('  function planoAtualHtml()');
   const end = source.indexOf('  // Controle do modo aprofundamento', start);

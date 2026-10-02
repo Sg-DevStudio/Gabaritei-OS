@@ -1195,18 +1195,17 @@
         }
       }
     }
-    // reabertos primeiro pelos mais urgentes (mais cai + pior desempenho + prova perto)
+    // reabertos primeiro pelos mais urgentes (mais cai + pior desempenho)
     reabertos.sort((a, b) => urgenciaTopico(state, b.topicoId, hoje) - urgenciaTopico(state, a.topicoId, hoje));
     for (const r of reabertos) fila.push(r);
     return fila;
   }
 
   // ---------- Urgência do tópico (fila do dia: 80/20 DINÂMICO) ----------
-  // Combina os três sinais que, juntos, dizem o que rende mais HOJE rumo à
+  // Combina os sinais que dizem o que rende mais HOJE rumo à
   // aprovação — em vez de atacar só pela ordem do calendário:
   //   • incidência (80/20): o que mais cai pesa mais;
   //   • déficit de desempenho: quanto falta para a meta de corte (com amostra);
-  //   • proximidade da prova: na reta final, aperta o que ainda não fixou.
   // Score multiplicativo (cada fator ~1 = neutro) para a UI ordenar e destacar.
   // Não persiste nada — é derivado do estado a cada render.
   function urgenciaTopico(state, topicoId, hoje, metaPct) {
@@ -1228,17 +1227,10 @@
       fDef = 1.1; // sem base ainda: leve urgência (precisa diagnosticar)
     }
 
-    // 3) proximidade da prova: a reta final prioriza o que ainda não está no ponto
-    const rf = retaFinalInfo(state, hoje);
-    let fProx = 1;
-    if (rf && rf.prazo && !rf.passou && rf.semanas != null) {
-      fProx = rf.semanas <= 2 ? 1.5 : rf.semanas <= 6 ? 1.25 : rf.semanas <= 12 ? 1.1 : 1;
-    }
-
     // tópico dominado praticamente sai da frente (já fixado)
     const fStatus = t.status === 'dominado' ? 0.3 : 1;
 
-    return Math.round(fInc * fDef * fProx * fStatus * 1000) / 1000;
+    return Math.round(fInc * fDef * fStatus * 1000) / 1000;
   }
 
   // ---------- RN07 — Sugestão de reestudo (>50% de erro) ----------
@@ -1494,11 +1486,37 @@
 
   // ---------- Metas da semana ----------
   function metaSemanal(state, hoje) {
+    hoje = hoje || hojeISO();
     const inicio = segundaDaSemana(hoje);
     const fim = addDias(inicio, 7);
     let minutos = 0, qFeitas = 0, qCertas = 0;
-    for (const s of sessoesDoPlano(state)) {
-      if (s.data >= inicio && s.data < fim) {
+    const planoId = state.planoAtivoId;
+    const config = state.config || {};
+    const excluidos = config.planosExcluidos || {};
+    const removidos = new Set(config.removidos || []);
+    const planos = state.planos || [];
+    const temPlano = !!state.plano && (!planoId || !excluidos[planoId]) &&
+      (!planoId || !Array.isArray(state.planos) || planos.some(p => p && p.id === planoId));
+    // Legado sem planoId só conta quando o vínculo é inequívoco. O histórico
+    // preservado de um plano excluído não pode virar progresso do próximo plano.
+    const disciplinas = state.disciplinas || [];
+    const topicos = new Set(disciplinas.flatMap(d => (d.topicos || []).filter(t => !t.orfao).map(t => t.id)));
+    const outrosPlanos = planos.filter(p => p && p.id !== planoId && !excluidos[p.id]);
+    function daSemana(item, simulado) {
+      if (!temPlano || !item || removidos.has(item.id) ||
+          !(item.data >= inicio && item.data < fim)) return false;
+      if (item.planoId) return !!planoId && item.planoId === planoId && !excluidos[item.planoId];
+      if (Object.keys(excluidos).length) return false;
+      if (simulado) {
+        const ids = (item.acertos || []).map(a => a.disciplinaId);
+        return ids.length > 0 && ids.every(id => disciplinas.some(d => d.id === id)) &&
+          !outrosPlanos.some(p => (p.disciplinas || []).some(d => ids.includes(d.id)));
+      }
+      return topicos.has(item.topicoId) &&
+        !outrosPlanos.some(p => (p.disciplinas || []).some(d => (d.topicos || []).some(t => t.id === item.topicoId)));
+    }
+    for (const s of (state.sessoes || [])) {
+      if (daSemana(s, false)) {
         minutos += s.duracaoMin || 0;
         qFeitas += s.qFeitas || 0;
         qCertas += s.qCertas || 0;
@@ -1507,8 +1525,8 @@
     // Simulados da semana também são questões resolvidas: entram na contagem e,
     // sobretudo, na margem de acertos (qCertas/qFeitas) — antes só as sessões
     // de estudo contavam e os simulados ficavam de fora desse cálculo.
-    for (const sim of doPlanoAtivo(state, state.simulados || [])) {
-      if (sim.data >= inicio && sim.data < fim) {
+    for (const sim of (state.simulados || [])) {
+      if (daSemana(sim, true)) {
         for (const a of (sim.acertos || [])) {
           qFeitas += a.total || 0;
           qCertas += a.certas || 0;
@@ -1521,7 +1539,8 @@
       horasAlvo = r ? (r.h_semana || r.h_semana_exigidas || 0) : 0;
     }
     const questoesAlvo = (state.config && state.config.metaQuestoesSemana) || 100;
-    return { inicio, minutos, qFeitas, qCertas, horasAlvo, questoesAlvo };
+    const pctAcertos = qFeitas > 0 ? Math.round(qCertas / qFeitas * 100) : null;
+    return { inicio, minutos, qFeitas, qCertas, pctAcertos, horasAlvo, questoesAlvo };
   }
 
   // ---------- Progresso do edital ----------
@@ -2470,24 +2489,6 @@
     };
   }
 
-  // ---------- Modo reta final ----------
-  // Nas últimas semanas antes da prova, o foco deixa de ser "ver matéria nova" e
-  // passa a ser consolidar: questões, simulados e revisão do que mais cai. Liga
-  // sozinho quando a prova está a <= 6 semanas (porData) e pode ser ligado
-  // manualmente pelo aluno (manual) — útil quando não há data marcada.
-  const SEMANAS_RETA_FINAL = 6;
-  function retaFinalInfo(state, hoje) {
-    const manual = !!(state && state.plano && state.plano.modoRetaFinal);
-    const prazo = prazoProva(state);
-    hoje = hoje || hojeISO();
-    if (!prazo) return { ativa: manual, manual: manual, porData: false, semanas: null, dias: null, prazo: null };
-    const dias = diffDias(hoje, prazo);
-    if (dias <= 0) return { ativa: manual, manual: manual, porData: false, passou: true, semanas: 0, dias: dias, prazo: prazo };
-    const semanas = Math.ceil(dias / 7);
-    const porData = semanas <= SEMANAS_RETA_FINAL;
-    return { ativa: manual || porData, manual: manual, porData: porData, passou: false, semanas: semanas, dias: dias, prazo: prazo };
-  }
-
   // ---------- RN12 — Cobertura vs. prova: tópicos que NÃO devem ser alcançados ----------
   // Confronta o que falta de TEORIA com a data da prova e devolve a lista de
   // tópicos em risco (com incidência) para o aluno decidir. Dois modos:
@@ -3043,7 +3044,7 @@
     topicoPorId, topicoExisteEmAlgumPlano, disciplinaDoTopico, disciplinaPorId, excluirDisciplina, renomearTopico, doPlanoAtivo, sessoesDoPlano,
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
-    reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, retaFinalInfo, streak, semaforo,
+    reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, streak, semaforo,
     cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     grupoCognitivoDisciplina, promoverVariedadeLargada, LARGADA_PLANO, ordenarSemRepetirVizinho, continuarTopicoEmCursoNaAgenda,

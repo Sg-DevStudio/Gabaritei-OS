@@ -356,6 +356,11 @@
   }
 
   function migrar(state) {
+    // O modo foi removido: backups e sincronizações antigos não o reativam.
+    if (state.plano) delete state.plano.modoRetaFinal;
+    (state.planos || []).forEach(function (p) {
+      if (p && p.plano) delete p.plano.modoRetaFinal;
+    });
     // ponto único para migrações de schema
     if (!state.config) state.config = { ultimoBackup: null, metaQuestoesSemana: 100 };
     if (!state.config.criadoEm) state.config.criadoEm = agoraISO();

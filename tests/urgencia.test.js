@@ -45,10 +45,12 @@ test('urgência: dominado afunda mesmo com incidência alta', () => {
   assert.ok(D.urgenciaTopico(st, 't-dom', HOJE) < D.urgenciaTopico(st, 't-cold', HOJE));
 });
 
-test('urgência: reta final aumenta a urgência', () => {
+test('urgência: data próxima e flag antiga não ativam um modo de estudo', () => {
   const longe = mkState();
-  const reta = mkState({ prazo: '2026-07' });
-  assert.ok(D.urgenciaTopico(reta, 't-hot', HOJE) > D.urgenciaTopico(longe, 't-hot', HOJE));
+  const perto = mkState({ prazo: '2026-07' });
+  perto.plano.modoRetaFinal = true;
+  assert.equal(D.urgenciaTopico(perto, 't-hot', HOJE), D.urgenciaTopico(longe, 't-hot', HOJE));
+  assert.equal(D.retaFinalInfo, undefined);
 });
 
 test('urgência: tópico inexistente → 0', () => {

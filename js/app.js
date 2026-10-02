@@ -2118,47 +2118,9 @@
       '</div>';
   }
 
-  // Banner do modo reta final: aparece nas últimas semanas antes da prova com
-  // foco em consolidar (questões, simulados, revisão do que mais cai e dos pontos
-  // fracos). Vazio quando não há prova marcada ou ainda está longe.
-  function retaFinalBannerHtml(hoje) {
-    if (!state.plano) return '';
-    const rf = D.retaFinalInfo(state, hoje);
-    if (!rf.ativa) return '';
-    const pr = D.prontidaoProva(state, hoje);
-    const fracos = D.pioresTopicos(state, 3);
-    // título: o countdown só aparece quando a prova está perto de verdade (porData);
-    // se foi ligado manualmente (data longe ou sem data), foco direto, sem contagem.
-    const titulo = rf.porData
-      ? 'Reta final — falta ' + (rf.semanas <= 1 ? 'menos de 1 semana' : 'cerca de ' + rf.semanas + ' semanas')
-      : 'Reta final — foco total em consolidar';
-    let foco = '';
-    if (fracos.length) {
-      foco = '<div class="reta-final-fracos"><span class="reta-final-foco-rotulo">Treine questões dos seus pontos fracos:</span>' +
-        fracos.map(function (f) {
-          return '<button type="button" class="botao-mini reta-final-chip" data-acao="registrar" data-id="' + esc(f.topico.id) + '" data-tipo="questoes" title="Registrar questões de ' + esc(f.topico.nome) + '">' +
-            esc(nomeDiscCurto(f.disciplina.nome)) + ' · ' + esc(f.topico.nome) + ' (' + f.pct + '%)</button>';
-        }).join('') + '</div>';
-    } else {
-      foco = '<p class="reta-final-foco-rotulo">Priorize <strong>questões dos tópicos de maior incidência</strong> e simulados — é o que mais rende agora.</p>';
-    }
-    return '<div class="card reta-final-card">' +
-      '<div class="reta-final-cab"><span class="reta-final-emoji" aria-hidden="true">🏁</span>' +
-      '<div><h3>' + esc(titulo) + '</h3>' +
-      '<p class="sub">Hora de <strong>consolidar</strong>: menos teoria nova, mais questões, simulados e revisão do que mais cai.' +
-      (pr ? ' Há <strong>' + pr.pct + '%</strong> dos tópicos com ciclo concluído ou previsto até a prova; ' + pr.revisoesAtrasadas + ' revisões estão atrasadas.' : '') + '</p></div></div>' +
-      foco +
-      '<div class="reta-final-acoes">' +
-      '<a class="botao-mini" href="#simulados">Fazer um simulado</a>' +
-      '<a class="botao-mini botao-quieto" href="#revisoes">Revisar o que vence</a></div>' +
-      '</div>';
-  }
-
-  // Banner do modo aprofundamento (Hoje). Aparece quando o aluno ativou o modo e
-  // a prova NÃO está na reta final (a reta final tem prioridade e foco oposto).
+  // Aprofundamento mantém cobertura e retenção do conteúdo estudado.
   function aprofundamentoBannerHtml(hoje) {
     if (!state.plano || !state.plano.modoAprofundamento) return '';
-    if (D.retaFinalInfo(state, hoje).ativa) return ''; // reta final assume
     const prog = D.progressoEdital(state);
     // tópicos de maior incidência ainda não dominados → onde aprofundar
     const alvos = [];
@@ -2171,15 +2133,15 @@
     });
     alvos.sort(function (a, b) { return b.inc - a.inc; });
     const chips = alvos.slice(0, 3).filter(function (x) { return x.inc > 0; }).map(function (x) {
-      return '<button type="button" class="botao-mini reta-final-chip" data-acao="registrar" data-id="' + esc(x.t.id) + '" data-tipo="questoes" title="Aprofundar ' + esc(x.t.nome) + ' com questões">' +
+      return '<button type="button" class="botao-mini aprof-chip" data-acao="registrar" data-id="' + esc(x.t.id) + '" data-tipo="questoes" title="Aprofundar ' + esc(x.t.nome) + ' com questões">' +
         esc(nomeDiscCurto(x.d.nome)) + ' · ' + esc(x.t.nome) + (x.inc ? ' (' + x.inc + '%)' : '') + '</button>';
     }).join('');
     return '<div class="card aprof-card">' +
-      '<div class="reta-final-cab"><span class="reta-final-emoji" aria-hidden="true">🎓</span>' +
+      '<div class="aprof-cab"><span class="aprof-emoji" aria-hidden="true">🎓</span>' +
       '<div><h3>Modo aprofundamento</h3>' +
       '<p class="sub">Sem pressa de relógio: foque em <strong>cobrir o edital</strong> e <strong>reter</strong>. Já são <strong>' + prog.pct + '%</strong> de cobertura — depois de cobrir, aprofunde o que mais cai.</p></div></div>' +
-      (chips ? '<span class="reta-final-foco-rotulo">Aprofunde a alta incidência com questões:</span><div class="reta-final-fracos">' + chips + '</div>' : '') +
-      '<div class="reta-final-acoes">' +
+      (chips ? '<span class="aprof-foco-rotulo">Aprofunde a alta incidência com questões:</span><div class="aprof-alvos">' + chips + '</div>' : '') +
+      '<div class="aprof-acoes">' +
       '<a class="botao-mini" href="#revisoes">Revisar e fixar</a>' +
       '<a class="botao-mini botao-quieto" href="#simulados">Treinar com simulado</a></div>' +
       '</div>';
@@ -2195,7 +2157,7 @@
     if (state.plano) { if (sincronizarAgendaComCronograma(true) > 0) salvar(); }
     const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
     // Fila por urgência (80/20 dinâmico): hoje ataca primeiro o que mais rende —
-    // incidência × déficit de desempenho × proximidade da prova. Itens já feitos
+    // incidência × déficit de desempenho. Itens já feitos
     // afundam. Cache local por id (não muta o estado, que seria persistido).
     const urgCache = {};
     function urgDe(a) {
@@ -2317,8 +2279,6 @@
 
     html += linksApoioHojeHtml();
 
-    // Modo reta final: nas últimas semanas, banner de foco em consolidação.
-    html += retaFinalBannerHtml(hoje);
     // Modo aprofundamento (manual): foco em cobertura + retenção quando há tempo.
     html += aprofundamentoBannerHtml(hoje);
 
@@ -2344,10 +2304,10 @@
       '<button type="button" class="meta-q-editar" data-editar-meta title="Ajustar a meta semanal de questões"> / ' + meta.questoesAlvo + ' <span aria-hidden="true">✎</span></button></div>' +
       '<div class="barra' + (pctQ >= 100 ? ' barra-verde' : '') + '" style="margin-top:0.4rem"><span style="width:' + pctQ + '%"></span></div></div>';
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
-    const pctSemana = meta.qFeitas > 0 ? Math.round((meta.qCertas / meta.qFeitas) * 100) : D.desempenhoGeral(state);
-    html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Margem de acertos' + (meta.qFeitas > 0 ? ' na semana' : '') + '</div>' +
+    const pctSemana = meta.pctAcertos;
+    html += '<div class="card card-kpi"><div class="card-kpi-rotulo">Margem de acertos na semana</div>' +
       '<div class="card-kpi-valor card-kpi-valor-compacto">' + (pctSemana === null ? '—' : pctSemana + '%') + '</div>' +
-      '<div class="msg-coach">' + mensagemCoach(pctSemana, metaPct) + '</div></div>';
+      '<div class="msg-coach">' + (pctSemana === null ? 'Registre questões ou um simulado nesta semana para acompanhar seus acertos.' : mensagemCoach(pctSemana, metaPct)) + '</div></div>';
     html += '</div>';
 
     html += painelDisciplinasHojeHtml();
@@ -8851,7 +8811,6 @@
       (D.sugestoesRevisaoAtivas(state) ? 'Desativar sugestões de revisão' : 'Ativar sugestões de revisão') + '</button>' +
       '<button class="botao-mini botao-perigo" id="pl-acao-excluir">Excluir</button>' +
       '</div>' +
-      modoRetaFinalControleHtml() +
       modoAprofundamentoControleHtml() +
       (state.plano.combinado ? enfaseBannerHtml() : '') +
       '</div>';
@@ -8860,11 +8819,8 @@
   // Controle do modo aprofundamento no card do plano. NÃO há ativação manual: o
   // modo é proposto automaticamente quando o aluno conclui todo o cronograma
   // (ver talvezConvidarAprofundamento). Aqui só mostramos o estado ativo + sair.
-  // A reta final SOBREPÕE o aprofundamento (foco oposto): nas últimas semanas o
-  // aprofundamento fica dormente e nem aparece aqui — quem manda é a reta final.
   function modoAprofundamentoControleHtml() {
     if (!(state.plano && state.plano.modoAprofundamento)) return '';
-    if (D.retaFinalInfo(state, D.hojeISO()).ativa) return '';
     return '<div class="modo-controle modo-controle-aprof-ativo">' +
       '<span class="modo-controle-txt">🎓 <strong>Modo aprofundamento ativo</strong> — foco em reter e aprofundar o que mais cai.</span>' +
       '<button type="button" class="botao-mini botao-quieto" id="pl-aprof-desativar">Desativar</button></div>';
@@ -8881,10 +8837,9 @@
     const prog = D.progressoEdital(state);
     const concluiu = (sem && sem.encerrado) || (prog.total > 0 && prog.pct === 100);
     if (!concluiu) return false;
-    // precisa ainda haver tempo até a prova (sem data = há tempo) e não estar na reta final
+    // precisa ainda haver tempo até a prova (sem data = há tempo)
     const prazo = D.prazoProva(state);
     if (prazo && prazo <= hoje) return false;
-    if (D.retaFinalInfo(state, hoje).ativa) return false;
 
     state.plano.aprofundamentoConvidado = true;
     salvar();
@@ -8908,7 +8863,6 @@
     m.querySelector('#aprof-depois').addEventListener('click', fecharModal);
     m.querySelector('#aprof-sim').addEventListener('click', function () {
       state.plano.modoAprofundamento = true;
-      delete state.plano.modoRetaFinal; // modos opostos
       // subentende "já estudei" para todos os tópicos do plano e agenda revisões
       const idsAprofundar = [];
       state.disciplinas.forEach(function (d) {
@@ -8924,48 +8878,6 @@
       toast('Modo aprofundamento ativado 🎓 — bora reter e aprofundar!', 'sucesso');
     });
     return true;
-  }
-
-  // Controle do modo reta final dentro do card do plano (Planejamento).
-  function modoRetaFinalControleHtml() {
-    const rf = D.retaFinalInfo(state, D.hojeISO());
-    if (rf.ativa) {
-      const motivo = rf.manual
-        ? 'ativado por você'
-        : 'ligado automaticamente — falta ' + (rf.semanas <= 1 ? 'menos de 1 semana' : 'cerca de ' + rf.semanas + ' semanas');
-      return '<div class="modo-controle modo-controle-ativo">' +
-        '<span class="modo-controle-txt">🏁 <strong>Modo reta final ativo</strong> — ' + motivo + '.</span>' +
-        (rf.manual ? '<button type="button" class="botao-mini botao-quieto" id="pl-reta-desativar">Desativar</button>' : '') +
-        '</div>';
-    }
-    return '<div class="modo-controle">' +
-      '<span class="modo-controle-txt">🏁 Prova chegando? O <strong>modo reta final</strong> foca tudo em questões, simulados e revisão do que mais cai.</span>' +
-      '<button type="button" class="botao-mini botao-secundario" id="pl-reta-ativar">Ativar modo reta final</button></div>';
-  }
-
-  // Modal explicativo do modo reta final (com confirmação).
-  function abrirModoRetaFinal() {
-    if (!state.plano) { toast('Crie ou ative um plano primeiro.', 'erro'); return; }
-    const m = abrirModal(
-      '<h3>🏁 Modo reta final</h3>' +
-      '<p class="sub">Ative quando a prova está chegando. O foco deixa de ser ver matéria nova e passa a ser <strong>consolidar</strong>:</p>' +
-      '<ul class="modo-lista">' +
-      '<li>📝 <strong>Mais questões e simulados</strong> — treinar do jeito da prova.</li>' +
-      '<li>🔁 <strong>Revisão intensiva</strong> dos tópicos que mais caem e dos seus pontos fracos.</li>' +
-      '<li>🎯 <strong>Menos teoria nova</strong>: a prioridade é fixar o que você já viu.</li>' +
-      '</ul>' +
-      '<p class="sub">Um painel no Hoje passa a guiar esse foco. Se a prova já tem data marcada, o modo liga sozinho nas últimas 6 semanas — aqui você pode ligar antes. Quer continuar?</p>' +
-      '<div class="modal-acoes">' +
-      '<button type="button" class="botao-quieto" id="reta-cancelar">Agora não</button>' +
-      '<button type="button" id="reta-confirmar">Ativar modo reta final</button></div>'
-    );
-    m.querySelector('#reta-cancelar').addEventListener('click', fecharModal);
-    m.querySelector('#reta-confirmar').addEventListener('click', function () {
-      state.plano.modoRetaFinal = true;
-      delete state.plano.modoAprofundamento; // modos opostos: um desliga o outro
-      salvar(); fecharModal(); render();
-      toast('Modo reta final ativado 🏁', 'sucesso');
-    });
   }
 
   // Card próprio para ritmo ativo + geração do plano (logo abaixo do plano atual)
@@ -9783,7 +9695,7 @@
   // edital enxuto fecha em menos meses e um grande (ex.: Receita) em mais, no mesmo
   // ritmo. Acelerado é mais intenso → menos meses que Equilibrado, que é < base.
   const RITMOS_PLANO = [
-    { nome: 'Acelerado', dica: 'reta final / pós-edital', hSemana: 28 },
+    { nome: 'Acelerado', dica: 'ritmo intensivo / pós-edital', hSemana: 28 },
     { nome: 'Equilibrado', dica: 'ritmo regular', hSemana: 18 },
     { nome: 'Sustentável', dica: 'pré-edital', hSemana: 12 }
   ];
@@ -11338,23 +11250,13 @@
     let cabecalho, acoes;
     if (alerta.modo === 'ciclo') {
       const vr = alerta.voltasRestantes;
-      // Na reta final o app prega consolidar, não abrir matéria nova: adapta o tom
-      // e remove o "Adicionar ao ciclo" para não contradizer o modo reta final.
-      if (D.retaFinalInfo(state, D.hojeISO()).ativa) {
-        cabecalho = '<div class="dialogo-icone" aria-hidden="true">🏁</div>' +
-          '<h3>' + top.length + ' tópico' + (plural ? 's' : '') + ' não deve' + (plural ? 'm' : '') + ' ser visto' + (plural ? 's' : '') + ' a tempo</h3>' +
-          '<p class="sub dialogo-msg">Você está na reta final — é esperado deixar os de menor incidência de fora. ' +
-          'Em vez de abrir matéria nova, foque em consolidar o que já viu (questões, simulados e revisão).</p>';
-        acoes = '<button type="button" data-cob="fechar">Entendi</button>';
-      } else {
-        cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
-          '<h3>' + top.length + ' tópico' + (plural ? 's' : '') + ' pode' + (plural ? 'm' : '') + ' ficar de fora do ciclo</h3>' +
-          '<p class="sub dialogo-msg">No seu ritmo restam ~' + vr + ' volta' + (vr > 1 ? 's' : '') +
-          ' até a prova. Estes tópicos (de menor incidência) não devem ser alcançados pelo ciclo. ' +
-          'Você decide: adicioná-los agora ou seguir focado no que mais cai.</p>';
-        acoes = '<button type="button" class="botao-quieto" data-cob="fechar">Manter como está</button>' +
-          '<button type="button" data-cob="addciclo">Adicionar ao ciclo</button>';
-      }
+      cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
+        '<h3>' + top.length + ' tópico' + (plural ? 's' : '') + ' pode' + (plural ? 'm' : '') + ' ficar de fora do ciclo</h3>' +
+        '<p class="sub dialogo-msg">No seu ritmo restam ~' + vr + ' volta' + (vr > 1 ? 's' : '') +
+        ' até a prova. Estes tópicos (de menor incidência) não devem ser alcançados pelo ciclo. ' +
+        'Você decide: adicioná-los agora ou seguir focado no que mais cai.</p>';
+      acoes = '<button type="button" class="botao-quieto" data-cob="fechar">Manter como está</button>' +
+        '<button type="button" data-cob="addciclo">Adicionar ao ciclo</button>';
     } else {
       const sa = alerta.semanasApos;
       cabecalho = '<div class="dialogo-icone" aria-hidden="true">🔴</div>' +
@@ -11474,12 +11376,6 @@
     const acaoExcluir = raiz.querySelector('#pl-acao-excluir');
     if (acaoExcluir) acaoExcluir.addEventListener('click', async function () {
       if (state.planoAtivoId) await excluirPlano(state.planoAtivoId, true);
-    });
-    const retaAtivar = raiz.querySelector('#pl-reta-ativar');
-    if (retaAtivar) retaAtivar.addEventListener('click', abrirModoRetaFinal);
-    const retaDesativar = raiz.querySelector('#pl-reta-desativar');
-    if (retaDesativar) retaDesativar.addEventListener('click', function () {
-      if (state.plano) { delete state.plano.modoRetaFinal; salvar(); render(); toast('Modo reta final desativado', 'sucesso'); }
     });
     const aprofDesativar = raiz.querySelector('#pl-aprof-desativar');
     if (aprofDesativar) aprofDesativar.addEventListener('click', function () {
@@ -12251,7 +12147,7 @@
     // Passe final de intercalação, POR DIA. A fila da semana já vem alternada, mas
     // três coisas podem juntar dois blocos da mesma matéria num dia: o corte da
     // fila em dias, o preenchimento das sobras e as regras de troca acima. E na
-    // reta final, quando quase só resta uma matéria pendente, as poucas de outra
+    // fase com quase só uma matéria pendente, as poucas de outra
     // disciplina precisam ser ESPALHADAS pelo dia em vez de ficarem no fim dele —
     // era o caso de "PCI, PCI, PCI, PCI, RLM". Só mexe na ORDEM de exibição: os
     // blocos, suas durações e a carga do dia ficam exatamente como estavam.
@@ -12978,7 +12874,23 @@
     if (logout) logout.classList.toggle('oculto', !conectado);
   }
 
+  let ultimaDataRender = null;
+
+  function atualizarDataDaTela() {
+    if (ultimaDataRender !== D.hojeISO()) render();
+  }
+
+  function agendarAtualizacaoDiaria() {
+    const agora = new Date();
+    const proximoDia = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1);
+    setTimeout(function () {
+      if (!document.hidden) atualizarDataDaTela();
+      agendarAtualizacaoDiaria();
+    }, Math.max(1000, proximoDia.getTime() - agora.getTime()));
+  }
+
   function render() {
+    ultimaDataRender = D.hojeISO();
     aplicarTema();
     const conteudo = document.getElementById('conteudo');
     if (!usuarioLogado() && !modoDemo) {
@@ -13460,6 +13372,7 @@
     if (document.hidden) { if (e && e.rodando) mostrarNotificacaoTimer(e, true); }
     else {
       limparNotificacaoTimer();
+      atualizarDataDaTela();
       if (usuarioLogado() && !modoDemo && disciplinasPausadasPlano().some(function (d) {
         return D.pausaDisciplinaExpirada(d, D.hojeISO());
       })) render();
@@ -13485,6 +13398,8 @@
   if (migrarRevisoesEmPilha() > 0) window.Store.salvar(state, { marcarAlterado: false });
 
   render();
+
+  agendarAtualizacaoDiaria();
 
   // Se o Firebase não confirmar a sessão (offline/CDN bloqueado), libera os dados
   // locais do último usuário. Sem dados locais, cai na tela de login normalmente.
@@ -13574,4 +13489,3 @@
   // indisponível offline de propósito; o resto do site continua funcionando.
   if (!window.FirebaseSync || !window.FirebaseSync.carregarCatalogoGlobal) catalogoGlobalCarregado = true;
 })();
-
