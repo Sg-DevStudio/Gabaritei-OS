@@ -10,11 +10,11 @@ const ctx = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(root, 'data/catalogo-editais.js'), 'utf8'), ctx);
 const bases = JSON.parse(JSON.stringify(ctx.window.CATALOGO_EDITAIS_BASE));
 const ifrj = bases.find(e => e.id === 'edital-ifrj-assistente-administracao-2022');
-const cpii = bases.find(e => e.id === 'edital-cpii-assistente-administracao-2023');
+const cpii = JSON.parse(fs.readFileSync(path.join(root, 'data/edital-cpii-assistente-administracao.json')));
 
-test('CPII disponível no catálogo respeita pontos oficiais e separa cotas de específicos', () => {
+test('modelo CPII sai do catálogo e sua referência histórica preserva os pontos oficiais', () => {
+  assert(!bases.some(e => e.id === cpii.id));
   assert(cpii);
-  assert.deepEqual(cpii, JSON.parse(fs.readFileSync(path.join(root, 'data/edital-cpii-assistente-administracao.json'))));
   assert.match(cpii.banca, /Colégio Pedro II/);
   const blocks = cpii.estruturaProva.blocos;
   assert.equal(blocks.reduce((n, b) => n + b.questoes, 0), 75);

@@ -12358,11 +12358,32 @@
     m.querySelector('#feedback-fechar').addEventListener('click', fecharModal);
   }
 
+  function telaFerramentas() {
+    const ferramentas = window.FERRAMENTAS_ESTUDANTE || [];
+    function linkExterno(url, texto, classe) {
+      return '<a class="' + classe + '" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(texto) + '<span class="sr-only"> (abre em nova aba)</span></a>';
+    }
+    return '<div class="ferramentas-intro"><span class="etiqueta">KIT DE ESTUDOS</span>' +
+      '<h1>Ferramentas</h1><p class="sub">Organize suas ideias, revise melhor e encontre boas leituras. Escolha o que ajuda na sua rotina — você não precisa usar tudo.</p></div>' +
+      '<div class="ferramentas-grid">' + ferramentas.map(function (f, i) {
+        return '<article class="card ferramenta-card" aria-labelledby="ferramenta-' + i + '">' +
+          '<div class="ferramenta-capa"><img src="assets/ferramentas/mesa-estudos.webp" alt="" width="1672" height="941" loading="lazy" style="object-position:' + esc(f.posicao) + '">' +
+          '<span class="ferramenta-categoria">' + esc(f.categoria) + '</span></div>' +
+          '<div class="ferramenta-corpo"><h2 id="ferramenta-' + i + '">' + esc(f.nome) + '</h2>' +
+          '<p class="ferramenta-foco">' + esc(f.foco) + '</p><p>' + esc(f.descricao) + '</p>' +
+          '<details><summary>Como usar nos estudos</summary><ol>' + f.passos.map(function (passo) { return '<li>' + esc(passo) + '</li>'; }).join('') + '</ol>' +
+          '<p class="ferramenta-dica">' + esc(f.dica) + '</p></details>' +
+          '<div class="ferramenta-acoes">' + linkExterno(f.url, 'Abrir ' + f.nome, 'botao ferramenta-abrir') +
+          (f.guia ? linkExterno(f.guia, 'Guia de uso', 'ferramenta-guia') : '') + '</div></div></article>';
+      }).join('') + '</div><p class="sub ferramentas-rodape">Seleção consultada em 02/10/2026. Recursos e condições de acesso podem mudar. Os serviços abrem em outra aba. Foto de estudo gerada para esta seção.</p>';
+  }
+
   function telaMais() {
     const itens = [
       ['#stats', 'Desempenho'],
       ['#simulados', 'Simulados'],
       ['#timer', 'Timer'],
+      ['#ferramentas', 'Ferramentas'],
       ['#ajustes', 'Configurações']
     ];
     return '<h1 class="sr-only">Mais opções</h1><div class="card card-quieto mais-menu mais-menu-anima">' +
@@ -12540,6 +12561,7 @@
     edital: { render: telaEdital, ligar: ligarEdital },
     simulados: { render: telaSimulados, ligar: ligarSimulados },
     stats: { render: telaStats, ligar: ligarStats },
+    ferramentas: { render: telaFerramentas, ligar: function () {} },
     disciplina: { render: telaDisciplinaDetalhe, ligar: ligarDisciplinaDetalhe },
     historico: { render: telaHistorico, ligar: ligarHistorico },
     ajustes: { render: telaAjustes, ligar: ligarAjustes },

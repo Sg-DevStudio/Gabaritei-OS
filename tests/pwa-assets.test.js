@@ -58,7 +58,7 @@ test('ativar a PWA remove só versões próprias e o cache legado conhecido', as
     importScripts() { throw new Error('Messaging opcional indisponível'); },
     console: { warn() {} },
     caches: {
-      keys: async () => ['gabaritei-os-v178-integridade-geral', 'gabaritei-os-v177-cards-semana', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v174-plano-ifrj', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
+      keys: async () => ['gabaritei-os-v179-ferramentas', 'gabaritei-os-v178-integridade-geral', 'gabaritei-os-v177-cards-semana', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v174-plano-ifrj', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
       delete: async name => { deleted.push(name); }
     }
   };
@@ -66,5 +66,5 @@ test('ativar a PWA remove só versões próprias e o cache legado conhecido', as
   let pending;
   handlers.activate({ waitUntil: promise => { pending = promise; } });
   await pending;
-  assert.deepEqual(deleted.sort(), ['estudos-v172-continuidade-disciplina', 'gabaritei-os-v174-plano-ifrj', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v177-cards-semana']);
+  assert.deepEqual(deleted.sort(), ['estudos-v172-continuidade-disciplina', 'gabaritei-os-v174-plano-ifrj', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v177-cards-semana', 'gabaritei-os-v178-integridade-geral']);
 });
