@@ -87,3 +87,28 @@ test('dois aparelhos no mesmo dia não sobrescrevem o primeiro backup diário', 
   assert.equal(b.backupWrites(), 0);
   assert.deepEqual(ids(b), ['primeiro', 'segundo']);
 });
+
+
+test('troca de conta durante transação não grava nem aplica dados da conta anterior', async () => {
+  const h = loadFirebaseSync(state(['anterior'], '2026-10-03T10:00:00Z'), null, { delayTransactionRead: true });
+  const pending = h.flushWrite();
+  h.switchUser(); h.replace(state(['outra-conta'], '2026-10-03T12:00:00Z', 3));
+  h.release(); await pending;
+  assert.deepEqual(ids(h), ['outra-conta']);
+  assert.equal(h.writes(), 0);
+  assert.equal(h.documents.has('users/outra-conta/state/current'), false);
+  assert.equal(Array.from(h.documents.keys()).some(key => key.startsWith('users/outra-conta/')), false);
+});
+
+
+test('resposta de gravação já concluída não mistura contas após troca de sessão', async () => {
+  const h = loadFirebaseSync(state(['anterior'], '2026-10-03T10:00:00Z'), null, { delayTransactionCommit: true });
+  const pending = h.flushWrite();
+  for (let i = 0; i < 30 && !h.writes(); i++) await Promise.resolve();
+  assert.equal(h.writes(), 1);
+  h.switchUser(); h.replace(state(['outra-conta'], '2026-10-03T12:00:00Z', 3));
+  h.releaseCommit(); await pending;
+  assert.deepEqual(ids(h), ['outra-conta']);
+  assert.equal(h.documents.has('users/outra-conta/state/current'), false);
+  assert.notEqual(h.sync.status().estado, 'sincronizado');
+});

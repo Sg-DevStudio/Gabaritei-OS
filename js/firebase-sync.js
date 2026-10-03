@@ -323,8 +323,17 @@ function gravarPartesNoLote(lote, prefixo, estadoLimpo, apagarAte) {
 }
 
 async function gravarEstadoTransacional(stateLimpo) {
+  const referenciaGravacao = refEstado;
+  const usuarioGravacao = usuario;
+  function validarConta() {
+    if (referenciaGravacao !== refEstado || usuarioGravacao !== usuario) {
+      throw new Error('A conta mudou durante a sincronização.');
+    }
+  }
   return runTransaction(db, async function (transacao) {
+    validarConta();
     const snap = await transacao.get(refEstado);
+    validarConta();
     const dadosRemotos = snap.exists() ? (snap.data() || {}) : null;
     const chunksAnteriores = dadosRemotos && dadosRemotos.formato === codecRemoto().FORMATO
       ? (parseInt(dadosRemotos.chunks, 10) || 0)
@@ -335,6 +344,7 @@ async function gravarEstadoTransacional(stateLimpo) {
       })
       : null;
 
+    validarConta();
     const canonico = estadoCanonicoParaGravacao(stateLimpo, remoto);
     if (!canonico.config) canonico.config = {};
     const agora = new Date().toISOString();
@@ -382,6 +392,9 @@ function gravarRemoto(state) {
   // mais lenta, de terminar por último e regredir o documento inteiro.
   estadoPendenteGravacao = state;
   if (promessaGravacao) return promessaGravacao;
+  const referenciaGravacao = refEstado;
+  const usuarioGravacao = usuario;
+  const mesmaConta = () => referenciaGravacao === refEstado && usuarioGravacao === usuario;
   promessaGravacao = (async function () {
     enviando = true;
     ultimoErroGravacao = null;
@@ -391,7 +404,9 @@ function gravarRemoto(state) {
         const proximo = estadoPendenteGravacao;
         estadoPendenteGravacao = null;
         const stateLimpo = prepararEstadoRemoto(proximo);
+        if (!mesmaConta()) return;
         const resultado = await gravarEstadoTransacional(stateLimpo);
+        if (!mesmaConta()) return;
         numeroChunksAtuais = resultado.chunks;
 
         // A transação pode ter encontrado registros enviados por outro aparelho.
@@ -413,6 +428,8 @@ function gravarRemoto(state) {
       }
       definirStatus('sincronizado', 'Sincronizado com Firebase');
     } catch (e) {
+      // A resposta antiga não pode alterar os dados/status da nova sessão.
+      if (!mesmaConta()) return;
       estadoPendenteGravacao = null;
       ultimoErroGravacao = e;
       console.error('Falha ao salvar no Firebase.', e);
@@ -421,7 +438,11 @@ function gravarRemoto(state) {
     } finally {
       enviando = false;
       promessaGravacao = null;
-      if (snapshotPendenteDuranteEnvio) {
+      if (!mesmaConta()) {
+        if (estadoPendenteGravacao && usuario && refEstado && opcoes) {
+          agendarEnvio(opcoes.obterEstado());
+        }
+      } else if (snapshotPendenteDuranteEnvio) {
         snapshotPendenteDuranteEnvio = false;
         setTimeout(function () { reconciliarComRemoto(true); }, 0);
       }
@@ -538,6 +559,9 @@ function iniciar(novasOpcoes) {
   // assim quem ja esta logado entra direto sem ver a tela de login piscar.
   definirStatus('autenticando', 'Verificando sua sessão…');
   onAuthStateChanged(auth, function (user) {
+    if (envioPendente) { clearTimeout(envioPendente); envioPendente = null; }
+    estadoPendenteGravacao = null;
+    snapshotPendenteDuranteEnvio = false;
     usuario = user;
     reconciliadoOk = false; // nova sessão/usuário: exige nova leitura da nuvem
     numeroChunksAtuais = 0;

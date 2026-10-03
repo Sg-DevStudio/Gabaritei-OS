@@ -16,10 +16,13 @@ function loadFirebaseSync(initial, remote, options = {}) {
   let timerId = 0;
   let blockedRead;
   let releaseRead;
-  if (options.delayRead) blockedRead = new Promise(resolve => { releaseRead = resolve; });
+  if (options.delayRead || options.delayTransactionRead) blockedRead = new Promise(resolve => { releaseRead = resolve; });
   const snapshot = data => ({ exists: () => data != null, data: () => data });
   const currentRef = 'users/aluno/state/current';
   if (remote) documents.set(currentRef, { state: remote });
+  let releaseCommit;
+  const blockedCommit = options.delayTransactionCommit
+    ? new Promise(resolve => { releaseCommit = resolve; }) : null;
   const context = {
     console: { error() {}, warn(...args) { warnings.push(args.join(" ")); }, log() {} }, TextEncoder, Date,
     window: { dispatchEvent() {}, addEventListener() {} },
@@ -47,13 +50,20 @@ function loadFirebaseSync(initial, remote, options = {}) {
       if (options.failWrites) throw new Error('permission-denied simulado');
       const pending = new Map();
       const result = await callback({
-        get: async ref => snapshot(documents.get(ref)),
+        get: async ref => {
+          const result = snapshot(documents.get(ref));
+          if (ref === currentRef && options.delayTransactionRead && blockedRead) {
+            const pendingRead = blockedRead; blockedRead = null; await pendingRead;
+          }
+          return result;
+        },
         set: (ref, data) => pending.set(ref, data),
         delete: ref => pending.set(ref, null)
       });
       pending.forEach((data, ref) => data == null ? documents.delete(ref) : documents.set(ref, data));
       if (pending.has(currentRef)) writes++;
       if (Array.from(pending.keys()).some(ref => /\/backup-[0-6]$/.test(ref))) backupWrites++;
+      if (blockedCommit) await blockedCommit;
       return result;
     },
     writeBatch: () => ({ set() {}, delete() {}, commit: async () => {} }),
@@ -82,6 +92,8 @@ function loadFirebaseSync(initial, remote, options = {}) {
     state: () => current,
     replace: value => { current = value; },
     release: () => releaseRead(),
+    releaseCommit: () => releaseCommit(),
+    flushWrite: () => vm.runInContext("gravarRemoto(opcoes.obterEstado())", context),
     writes: () => writes,
     backupWrites: () => backupWrites,
     documents, warnings,
