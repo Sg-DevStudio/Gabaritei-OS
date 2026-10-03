@@ -12358,24 +12358,41 @@
     m.querySelector('#feedback-fechar').addEventListener('click', fecharModal);
   }
 
+  let categoriaFerramentas = 'Todas';
+
   function telaFerramentas() {
-    const ferramentas = window.FERRAMENTAS_ESTUDANTE || [];
+    const todas = window.FERRAMENTAS_ESTUDANTE || [];
+    const categorias = ['Todas'].concat(Array.from(new Set(todas.map(function (f) { return f.categoria; }))));
+    const ferramentas = todas.filter(function (f) { return categoriaFerramentas === 'Todas' || f.categoria === categoriaFerramentas; });
     function linkExterno(url, texto, classe) {
       return '<a class="' + classe + '" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(texto) + '<span class="sr-only"> (abre em nova aba)</span></a>';
     }
     return '<div class="ferramentas-intro"><span class="etiqueta">KIT DE ESTUDOS</span>' +
       '<h1>Ferramentas</h1><p class="sub">Organize suas ideias, revise melhor e encontre boas leituras. Escolha o que ajuda na sua rotina — você não precisa usar tudo.</p></div>' +
+      '<div class="ferramentas-filtros" role="group" aria-label="Filtrar ferramentas por categoria">' + categorias.map(function (c) { return '<button type="button" data-ferramenta-categoria="' + esc(c) + '" aria-pressed="' + (c === categoriaFerramentas) + '">' + esc(c) + '</button>'; }).join('') + '</div><p class="sub ferramentas-contagem" role="status">' + ferramentas.length + ' ferramentas · ' + esc(categoriaFerramentas) + '</p>' +
       '<div class="ferramentas-grid">' + ferramentas.map(function (f, i) {
         return '<article class="card ferramenta-card" aria-labelledby="ferramenta-' + i + '">' +
-          '<div class="ferramenta-capa"><img src="assets/ferramentas/mesa-estudos.webp" alt="" width="1672" height="941" loading="lazy" style="object-position:' + esc(f.posicao) + '">' +
+          '<div class="ferramenta-capa ferramenta-marca-' + esc(f.marca) + '"><img src="' + esc(f.imagem) + '" alt="Logo de ' + esc(f.nomeAtual || f.nome) + '" width="240" height="96" loading="lazy" decoding="async">' +
           '<span class="ferramenta-categoria">' + esc(f.categoria) + '</span></div>' +
           '<div class="ferramenta-corpo"><h2 id="ferramenta-' + i + '">' + esc(f.nome) + '</h2>' +
+          (f.nomeAtual ? '<p class="ferramenta-nome-atual">Agora: ' + esc(f.nomeAtual) + '</p>' : '') +
           '<p class="ferramenta-foco">' + esc(f.foco) + '</p><p>' + esc(f.descricao) + '</p>' +
           '<details><summary>Como usar nos estudos</summary><ol>' + f.passos.map(function (passo) { return '<li>' + esc(passo) + '</li>'; }).join('') + '</ol>' +
           '<p class="ferramenta-dica">' + esc(f.dica) + '</p></details>' +
           '<div class="ferramenta-acoes">' + linkExterno(f.url, 'Abrir ' + f.nome, 'botao ferramenta-abrir') +
           (f.guia ? linkExterno(f.guia, 'Guia de uso', 'ferramenta-guia') : '') + '</div></div></article>';
-      }).join('') + '</div><p class="sub ferramentas-rodape">Seleção consultada em 02/10/2026. Recursos e condições de acesso podem mudar. Os serviços abrem em outra aba. Foto de estudo gerada para esta seção.</p>';
+      }).join('') + '</div><p class="sub ferramentas-rodape">Seleção consultada em 03/10/2026. Recursos e condições de acesso podem mudar. Os serviços abrem em outra aba. Logos identificam os serviços; esta seleção é independente.</p>';
+  }
+
+  function ligarFerramentas(raiz) {
+    raiz.querySelectorAll('[data-ferramenta-categoria]').forEach(function (botao) {
+      botao.addEventListener('click', function () {
+        categoriaFerramentas = botao.getAttribute('data-ferramenta-categoria');
+        render();
+        const selecionado = document.querySelector('[data-ferramenta-categoria][aria-pressed="true"]');
+        if (selecionado) selecionado.focus();
+      });
+    });
   }
 
   function telaMais() {
@@ -12561,7 +12578,7 @@
     edital: { render: telaEdital, ligar: ligarEdital },
     simulados: { render: telaSimulados, ligar: ligarSimulados },
     stats: { render: telaStats, ligar: ligarStats },
-    ferramentas: { render: telaFerramentas, ligar: function () {} },
+    ferramentas: { render: telaFerramentas, ligar: ligarFerramentas },
     disciplina: { render: telaDisciplinaDetalhe, ligar: ligarDisciplinaDetalhe },
     historico: { render: telaHistorico, ligar: ligarHistorico },
     ajustes: { render: telaAjustes, ligar: ligarAjustes },
