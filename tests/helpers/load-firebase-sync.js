@@ -10,13 +10,14 @@ function loadFirebaseSync(initial, remote, options = {}) {
   const documents = options.documents || new Map();
   const storage = new Map();
   const warnings = [];
+  const reads = [];
   const timers = new Map();
   let current = initial;
   let writes = 0, backupWrites = 0;
   let timerId = 0;
   let blockedRead;
   let releaseRead;
-  if (options.delayRead || options.delayTransactionRead) blockedRead = new Promise(resolve => { releaseRead = resolve; });
+  if (options.delayRead || options.delayTransactionRead || options.delayReadRef) blockedRead = new Promise(resolve => { releaseRead = resolve; });
   const snapshot = data => ({ exists: () => data != null, data: () => data });
   const currentRef = 'users/aluno/state/current';
   if (remote) documents.set(currentRef, { state: remote });
@@ -40,8 +41,9 @@ function loadFirebaseSync(initial, remote, options = {}) {
     doc: (_db, ...segments) => segments.join('/'), collection: () => ({}),
     serverTimestamp: () => new Date(),
     getDoc: async ref => {
+      reads.push(ref);
       const result = snapshot(documents.get(ref));
-      if (ref === currentRef && blockedRead) {
+      if ((ref === currentRef || ref === options.delayReadRef) && blockedRead) {
         const pending = blockedRead; blockedRead = null; await pending;
       }
       return result;
@@ -96,7 +98,7 @@ function loadFirebaseSync(initial, remote, options = {}) {
     flushWrite: () => vm.runInContext("gravarRemoto(opcoes.obterEstado())", context),
     writes: () => writes,
     backupWrites: () => backupWrites,
-    documents, warnings,
+    documents, warnings, reads,
     timers,
     switchUser: () => vm.runInContext("usuario = {uid: 'outra-conta'}; refEstado = 'users/outra-conta/state/current';", context)
   };

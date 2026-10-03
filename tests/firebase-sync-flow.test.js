@@ -112,3 +112,61 @@ test('resposta de gravação já concluída não mistura contas após troca de s
   assert.equal(h.documents.has('users/outra-conta/state/current'), false);
   assert.notEqual(h.sync.status().estado, 'sincronizado');
 });
+
+
+test('troca de conta durante leitura retoma a reconciliação solicitada pela nova conta', async () => {
+  const h = loadFirebaseSync(state(['anterior'], '2026-10-03T10:00:00Z'), state(['remoto-antigo'], '2026-10-03T11:00:00Z', 2), { delayRead: true });
+  const pending = h.sync.sincronizarAgora();
+  h.switchUser(); h.replace(state(['nova'], '2026-10-03T12:00:00Z', 3));
+  h.documents.set('users/outra-conta/state/current', { state: state(['remoto-novo'], '2026-10-03T13:00:00Z', 4) });
+  await h.sync.sincronizarAgora();
+  h.release(); await pending;
+  const deferred = Array.from(h.timers.values()).find(t => t.delay === 0);
+  assert.ok(deferred, 'a reconciliação da nova conta precisa ser retomada');
+  deferred.fn();
+  for (let i = 0; i < 50; i++) await Promise.resolve();
+  assert.deepEqual(ids(h), ['nova', 'remoto-novo']);
+  assert.equal(h.sync.status().estado, 'sincronizado');
+});
+
+for (const action of ['listarBackupsNuvem', 'lerBackupNuvem']) {
+  test(action + ': resposta da conta anterior é rejeitada após troca de sessão', async () => {
+    const backupRef = 'users/aluno/state/backup-0';
+    const documents = new Map([[backupRef, { state: state(['backup-antigo'], '2026-10-03T10:00:00Z'), criadoEm: '2026-10-03T10:00:00Z' }]]);
+    const h = loadFirebaseSync(state([], '2026-10-03T12:00:00Z'), null, { documents, delayReadRef: backupRef });
+    const pending = h.sync[action]('backup-0');
+    const rejected = assert.rejects(pending, /conta mudou/i);
+    h.switchUser(); h.release();
+    await rejected;
+    assert.deepEqual(ids(h), []);
+  });
+}
+
+
+test('backup particionado descarta a resposta quando a conta muda durante a leitura das partes', async () => {
+  const codec = require('../js/remote-state.js');
+  const backup = state(['backup-antigo'], '2026-10-03T10:00:00Z', 2);
+  const encoded = codec.codificar(backup);
+  const backupRef = 'users/aluno/state/backup-0';
+  const chunkRef = 'users/aluno/state/' + codec.idParte('backup-0', 0);
+  const documents = new Map([[backupRef, { formato: codec.FORMATO, chunks: encoded.partes.length, rev: 2 }]]);
+  encoded.partes.forEach((payload, index) => documents.set('users/aluno/state/' + codec.idParte('backup-0', index), { payload, index, rev: 2 }));
+  const h = loadFirebaseSync(state([], '2026-10-03T12:00:00Z'), null, { documents, delayReadRef: chunkRef });
+  const pending = h.sync.lerBackupNuvem('backup-0');
+  const rejected = assert.rejects(pending, /conta mudou/i);
+  for (let i = 0; i < 20 && !h.reads.includes(chunkRef); i++) await Promise.resolve();
+  assert.ok(h.reads.includes(chunkRef));
+  h.switchUser(); h.release(); await rejected;
+  assert.equal(h.reads.some(ref => ref.startsWith('users/outra-conta/')), false);
+});
+
+test('consulta e restauração de backup continuam funcionando na mesma conta', async () => {
+  const backup = state(['salva'], '2026-10-03T10:00:00Z');
+  const documents = new Map([['users/aluno/state/backup-0', { state: backup, criadoEm: '2026-10-03T10:00:00Z' }]]);
+  const h = loadFirebaseSync(state([], '2026-10-03T12:00:00Z'), null, { documents });
+  const list = await h.sync.listarBackupsNuvem();
+  assert.equal(list.length, 1);
+  assert.equal(list[0].id, 'backup-0');
+  const restored = await h.sync.lerBackupNuvem('backup-0');
+  assert.deepEqual(Array.from(restored.sessoes, s => s.id), ['salva']);
+});

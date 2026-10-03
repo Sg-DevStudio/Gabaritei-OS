@@ -509,7 +509,16 @@ async function reconciliarComRemoto(silencioso) {
     definirStatus('erro', 'Verifique Auth, Firestore e regras');
   } finally {
     reconciliando = false;
-    if (referenciaLida !== refEstado) return;
+    if (referenciaLida !== refEstado) {
+      // A nova sessão pode ter solicitado sync enquanto a leitura antiga
+      // ainda ocupava a fila. Libera e retoma esse pedido, sem aplicar a resposta antiga.
+      const retomar = reconciliarDepois && refEstado && usuario;
+      reconciliarDepois = false;
+      if (retomar) setTimeout(function () {
+        reconciliarComRemoto(true).then(observarMudancas);
+      }, 0);
+      return;
+    }
     if (reconciliou) {
       tentativasReconciliacao = 0;
     } else {
@@ -742,15 +751,23 @@ async function talvezSnapshotDiario(stateLimpo) {
   }
 }
 
+function validarSessaoBackup(usuarioInicial) {
+  if (!usuario || usuario !== usuarioInicial) {
+    throw new Error('A conta mudou durante a consulta do backup. Abra os backups novamente.');
+  }
+}
+
 // Lista os backups diários existentes (id, data e nº de registros de estudo).
 async function listarBackupsNuvem() {
   if (!usuario) throw new Error('Entre para ver os backups na nuvem.');
+  const usuarioInicial = usuario;
   const snaps = await Promise.all(Array.from({ length: 7 }, function (_, dia) {
     const id = 'backup-' + dia;
-    return getDoc(doc(db, 'users', usuario.uid, 'state', id)).then(function (snap) {
+    return getDoc(doc(db, 'users', usuarioInicial.uid, 'state', id)).then(function (snap) {
       return { id, snap };
     });
   }));
+  validarSessaoBackup(usuarioInicial);
   const lista = [];
   snaps.forEach(function (item) {
     if (!item.snap.exists()) return;
@@ -774,9 +791,12 @@ async function listarBackupsNuvem() {
 async function lerBackupNuvem(id) {
   if (!usuario) throw new Error('Entre para restaurar backups.');
   if (!/^backup-[0-6]$/.test(String(id))) throw new Error('Backup inválido.');
-  const snap = await getDoc(doc(db, 'users', usuario.uid, 'state', String(id)));
+  const usuarioInicial = usuario;
+  const snap = await getDoc(doc(db, 'users', usuarioInicial.uid, 'state', String(id)));
+  validarSessaoBackup(usuarioInicial);
   if (!snap.exists()) throw new Error('Backup não encontrado.');
   const estado = await lerEstadoDoDocumento(snap.data() || {}, String(id));
+  validarSessaoBackup(usuarioInicial);
   if (!estado) throw new Error('Backup não encontrado.');
   return window.Store.normalizar(JSON.parse(JSON.stringify(estado)));
 }
