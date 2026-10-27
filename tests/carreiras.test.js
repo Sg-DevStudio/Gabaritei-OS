@@ -29,25 +29,35 @@ function carregarEditaisBase() {
   return contexto.window.CATALOGO_EDITAIS_BASE;
 }
 
-test('catálogo de carreiras continua restrito a TRF e TRT', function () {
+test('catálogo inclui carreiras TRF e TRT e a preparação específica do TRF2', function () {
   const carreiras = carregarCarreiras();
 
-  assert.equal(carreiras.length, 2);
+  assert.equal(carreiras.length, 3);
   assert.deepEqual(
     Array.from(carreiras, function (c) { return c.id; }).sort(),
-    ['carreira-trf-tjaa', 'carreira-trt-tjaa']
+    ['carreira-trf-tjaa', 'carreira-trf2-tjaa-2024', 'carreira-trt-tjaa']
   );
   carreiras.forEach(function (c) {
     assert.equal(c.tipoCatalogo, 'carreira');
     assert.match(c.cargo, /Técnico Judiciário/);
     assert.match(c.area, /Administrativa/);
-    assert.match(c.foto, /^assets\/carreiras\/.+\.jpg\?v=\d{8}-[a-z0-9-]+$/);
-    assert.ok(fs.statSync(path.join(__dirname, '..', c.foto.split('?')[0])).size > 10000);
+    assert.ok(fs.statSync(path.join(__dirname, '..', c.foto.split('?')[0])).size > 1000);
     assert.ok(c.fotoAlt.length > 20);
-    assert.match(c.fotoCredito, /Wikimedia Commons/);
-    assert.match(c.fotoFonte, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
     assert.ok(c.metodologia.length > 80);
-    assert.ok(c.baseEditais.length >= 4);
+    if (c.id === 'carreira-trf2-tjaa-2024') {
+      assert.match(c.foto, /^assets\/carreiras\/.+\.svg$/);
+      assert.match(c.fotoCredito, /TRF2/);
+      assert.match(c.fotoFonte, /^https:\/\//);
+      assert.ok(c.baseEditais.some(function (base) { return /1\/2024/.test(base); }));
+      assert.equal(c.metaDesempenho, true);
+      assert.equal(c.janelaProva.inicio, '');
+      assert.equal(c.janelaProva.fim, '');
+    } else {
+      assert.match(c.foto, /^assets\/carreiras\/.+\.jpg\?v=\d{8}-[a-z0-9-]+$/);
+      assert.match(c.fotoCredito, /Wikimedia Commons/);
+      assert.match(c.fotoFonte, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
+      assert.ok(c.baseEditais.length >= 4);
+    }
   });
 });
 
@@ -126,7 +136,7 @@ test('carreira personalizada substitui o modelo-base e novas carreiras são acre
   ];
   const resultado = D.mesclarCatalogoCarreiras(base, personalizadas);
 
-  assert.equal(resultado.length, 3);
+  assert.equal(resultado.length, base.length + 1);
   const trfMesclado = resultado.find(function (c) { return c.id === trf.id; });
   assert.equal(trfMesclado.titulo, 'Minha versão TRF');
   assert.equal(trfMesclado._personalizada, true);
