@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v182-backups-contas';
+const CACHE = CACHE_PREFIXO + 'v183-planos-especificos';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -62,22 +62,23 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20261003c-backups-contas',
-  './js/domain.js?v=20261003c-backups-contas',
-  './js/store.js?v=20261003c-backups-contas',
+  './css/styles.css?v=20261027-planos-especificos',
+  './js/domain.js?v=20261027-planos-especificos',
+  './js/store.js?v=20261027-planos-especificos',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261003c-backups-contas',
-  './js/timer.js?v=20261003c-backups-contas',
+  './js/firebase-sync.js?v=20261027-planos-especificos',
+  './js/timer.js?v=20261027-planos-especificos',
   './js/charts.js?v=20260615v-green-performance',
-  './data/catalogo-editais.js?v=20261003c-backups-contas',
-  './data/carreiras.js?v=20260721-career-covers2',
+  './data/catalogo-editais.js?v=20261027-planos-especificos',
+  './data/carreiras.js?v=20261027-planos-especificos',
   './assets/carreiras/capa-inss-tecnico.png',
   './assets/carreiras/capa-ifrj-assistente.svg',
+  './assets/carreiras/capa-trf2-tjaa.svg',
   './assets/carreiras/capa-trf-tjaa.jpg?v=20260721-real1',
   './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
   './data/exemplo-trf3.json?v=20260718g-integridade-sync',
-  './data/ferramentas.js?v=20261003c-backups-contas',
+  './data/ferramentas.js?v=20261027-planos-especificos',
   './assets/ferramentas/logo-anki.png',
   './assets/ferramentas/logo-gutenberg.jpg',
   './assets/ferramentas/logo-notebooklm.svg',
@@ -85,7 +86,7 @@ const ESTATICOS = [
   './assets/ferramentas/logo-scielo.svg',
   './assets/ferramentas/logo-trello.svg',
   './assets/ferramentas/logo-zlibrary.png',
-  './js/app.js?v=20261003c-backups-contas',
+  './js/app.js?v=20261027-planos-especificos',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

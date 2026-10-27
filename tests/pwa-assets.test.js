@@ -40,6 +40,7 @@ test('service worker mantém disponíveis offline o plano de exemplo e os ícone
   [
     './data/exemplo-trf3.json?v=20260718g-integridade-sync',
     './assets/carreiras/capa-inss-tecnico.png',
+    './assets/carreiras/capa-trf2-tjaa.svg',
     './assets/carreiras/capa-trf-tjaa.jpg?v=20260721-real1',
     './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
     './icons/icone.svg',
@@ -58,7 +59,7 @@ test('ativar a PWA remove só versões próprias e o cache legado conhecido', as
     importScripts() { throw new Error('Messaging opcional indisponível'); },
     console: { warn() {} },
     caches: {
-      keys: async () => ['gabaritei-os-v182-backups-contas', 'gabaritei-os-v181-sync-contas', 'gabaritei-os-v180-logos-ferramentas', 'gabaritei-os-v179-ferramentas', 'gabaritei-os-v178-integridade-geral', 'gabaritei-os-v177-cards-semana', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v174-plano-ifrj', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
+      keys: async () => ['gabaritei-os-v183-planos-especificos', 'gabaritei-os-v181-sync-contas', 'gabaritei-os-v180-logos-ferramentas', 'gabaritei-os-v179-ferramentas', 'gabaritei-os-v178-integridade-geral', 'gabaritei-os-v177-cards-semana', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v174-plano-ifrj', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
       delete: async name => { deleted.push(name); }
     }
   };

@@ -106,8 +106,25 @@
     return normalizarBusca(s || 'edital').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 54) || 'edital';
   }
 
-  function normalizarEditalCatalogo(e, origem) {
+  // Correção dos dois planos específicos que foram publicados como carreiras.
+  // Mantém os ids para preservar vínculos de estudo e também corrige cópias
+  // antigas do Firebase/perfil, sem mudar as trilhas multiconcurso TRF e TRT.
+  function planoEspecificoReclassificado(e) {
+    return !!(e && (e.id === 'carreira-trf2-tjaa-2024' || e.id === 'carreira-mvpqta7j-nt9g8'));
+  }
+
+  function corrigirClassificacaoCatalogo(e) {
     const c = clonarJson(e);
+    if (planoEspecificoReclassificado(c)) {
+      c.tipoCatalogo = 'concurso';
+      c.metaDesempenho = true;
+      c.tipoCorte = 'meta';
+    }
+    return c;
+  }
+
+  function normalizarEditalCatalogo(e, origem) {
+    const c = corrigirClassificacaoCatalogo(e);
     if (window.Store && window.Store.normalizarAcentosEdital) window.Store.normalizarAcentosEdital(c);
     c.id = c.id || ((origem === 'global' ? 'global-' : 'edt-') + slugCatalogo(c.titulo));
     c.disciplinas = Array.isArray(c.disciplinas) ? c.disciplinas : [];
@@ -145,7 +162,7 @@
   }
 
   function ehItemCarreira(e) {
-    return !!(e && e.tipoCatalogo === 'carreira');
+    return !!(e && e.tipoCatalogo === 'carreira' && !planoEspecificoReclassificado(e));
   }
 
   function carreirasGlobais() {
@@ -293,7 +310,7 @@
   }
 
   function limparEditalParaCatalogo(e) {
-    const c = clonarJson(e);
+    const c = corrigirClassificacaoCatalogo(e);
     delete c._global;
     return c;
   }
@@ -5964,7 +5981,7 @@
   }
 
   function ehPlanoCarreira(e) {
-    return !!(e && e.tipoCatalogo === 'carreira');
+    return !!(e && e.tipoCatalogo === 'carreira' && !planoEspecificoReclassificado(e));
   }
 
   function catalogoCard(e) {
