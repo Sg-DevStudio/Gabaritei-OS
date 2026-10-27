@@ -46,7 +46,7 @@ function extract(name, next) {
 }
 
 test('catálogo oferece IFRJ a uma conta vazia e sobrepõe apenas sua cópia pessoal', () => {
-  const ctx = { catalogoEditaisBase: bases, catalogoGlobalEditais: [], state: { editais: [] }, ehItemCarreira: () => false, normalizarEditalCatalogo: e => e, carreirasDoCatalogo: () => [] };
+  const ctx = { catalogoEditaisBase: bases, catalogoGlobalEditais: [], state: { editais: [] }, ehItemCarreira: () => false, itemCatalogoExcluido: () => false, normalizarEditalCatalogo: e => e, carreirasDoCatalogo: () => [] };
   vm.runInNewContext(extract('editaisDoCatalogo', 'editaisDoCatalogoAdmin'), ctx);
   assert(ctx.editaisDoCatalogo().some(e => e.id === ifrj.id));
   ctx.state.editais.push({ ...ifrj, titulo: 'Meu IFRJ' });

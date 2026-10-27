@@ -205,6 +205,26 @@
     return carreirasDoCatalogo().find(function (e) { return e.id === id; }) || null;
   }
 
+  function itemCatalogoExcluido(e) {
+    return !!(e && [catalogoGlobalEditais || [], state.editais || []].some(function (lista) {
+      return lista.some(function (item) { return item.id === e.id && item.excluidoDoCatalogo; });
+    }));
+  }
+
+  function removerEditalDoCatalogo(id) {
+    const e = editalPorId(id);
+    if (!e) return null;
+    const temBase = catalogoEditaisBase.some(function (base) { return base.id === id; });
+    state.editais = (state.editais || []).filter(function (item) { return item.id !== id; });
+    catalogoGlobalEditais = (catalogoGlobalEditais || []).filter(function (item) { return item.id !== id; });
+    // O registro de exclusão prevalece sobre a cópia distribuída com o app e
+    // sobre cópias antigas de outros aparelhos. Não toca nos planos de estudo.
+    if (temBase) state.editais.push(Object.assign(clonarJson(e), {
+      excluidoDoCatalogo: true, atualizadoEm: new Date().toISOString()
+    }));
+    return { removerId: temBase ? null : id };
+  }
+
   function editaisDoCatalogo() {
     const mapa = new Map();
     // 1) planos-base distribuídos com o produto. Continuam disponíveis offline e
@@ -224,7 +244,7 @@
     // offline. Entram por último para não serem apagados por uma publicação do
     // catálogo administrativo de concursos.
     carreirasDoCatalogo().forEach(function (e) { mapa.set(e.id, e); });
-    return Array.from(mapa.values());
+    return Array.from(mapa.values()).filter(function (e) { return !itemCatalogoExcluido(e); });
   }
 
   // Lista para o PAINEL DO ADMIN (Configurações): mostra só o catálogo real
@@ -242,7 +262,7 @@
     (state.editais || []).forEach(function (e) {
       if (!ehItemCarreira(e)) mapa.set(e.id, normalizarEditalCatalogo(e, 'perfil'));
     });
-    return Array.from(mapa.values());
+    return Array.from(mapa.values()).filter(function (e) { return !itemCatalogoExcluido(e); });
   }
 
   function editalPorId(id) {
@@ -5318,7 +5338,6 @@
   function adminEditalCard(e, arquivado) {
     const global = !!e._global;
     const base = !!e._base;
-    const podeExcluir = !base;
     return '<div class="plano-mini">' +
       '<div class="plano-mini-top">' +
       '<div class="plano-mini-tit"><strong>' + esc(e.titulo) + '</strong>' +
@@ -5327,9 +5346,8 @@
       '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
       contarTopicosEdital(e) + ' tóp · ' + cortesResumoEdital(e) + ' · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
-      '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Começar a estudar</button>' +
       '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">Editar</button>' +
-      (podeExcluir ? '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button>' : '') + '</div></div>';
+      '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button></div></div>';
   }
 
   function pedidosEditalHtml() {
@@ -5513,7 +5531,7 @@
     const idsBase = {};
     catalogoEditaisBase.forEach(function (e) { idsBase[e.id] = true; });
     const personalizados = (state.editais || []).filter(function (e) { return idsBase[e.id] && !ehItemCarreira(e); });
-    const lista = catalogoEditaisBase.map(function (base) {
+    const lista = catalogoEditaisBase.filter(function (base) { return !itemCatalogoExcluido(base); }).map(function (base) {
       return personalizados.find(function (e) { return e.id === base.id; }) || base;
     });
     if (!lista.length) return '';
@@ -5934,23 +5952,16 @@
     raiz.querySelectorAll('[data-ed-editar]').forEach(function (b) {
       b.addEventListener('click', function () { abrirEditorEdital(b.getAttribute('data-ed-editar'), 'editar'); });
     });
-    raiz.querySelectorAll('[data-ed-plano]').forEach(function (b) {
-      b.addEventListener('click', function () { criarPlanoDeEdital(b.getAttribute('data-ed-plano')); });
-    });
     raiz.querySelectorAll('[data-ed-excluir]').forEach(function (b) {
       b.addEventListener('click', function () {
         const id = b.getAttribute('data-ed-excluir');
-        // o edital pode estar só no catálogo global (não no perfil) — procura nos dois
-        const e = (state.editais || []).find(function (x) { return x.id === id; }) ||
-          (catalogoGlobalEditais || []).find(function (x) { return x.id === id; });
+        const e = editalPorId(id);
         if (!e) return;
         confirmar({ titulo: 'Excluir edital?', mensagem: 'O edital "' + e.titulo + '" será removido do catálogo global. Os planos já criados a partir dele continuam existindo.', confirmar: 'Excluir', perigo: true, icone: '🗑️' }).then(function (ok) {
           if (!ok) return;
-          // remove do perfil e do catálogo global em memória; publicarCatalogoAdmin
-          // republica a união já sem ele (removerId garante a exclusão).
-          state.editais = (state.editais || []).filter(function (x) { return x.id !== id; });
-          catalogoGlobalEditais = (catalogoGlobalEditais || []).filter(function (x) { return x.id !== id; });
-          salvar(); publicarCatalogoAdmin({ toast: true, permitirVazio: true, removerId: id }).finally(render);
+          const exclusao = removerEditalDoCatalogo(id);
+          if (!exclusao) return;
+          salvar(); publicarCatalogoAdmin({ toast: true, permitirVazio: true, removerId: exclusao.removerId }).finally(render);
           toast('Edital excluído');
         });
       });

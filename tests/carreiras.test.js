@@ -217,3 +217,29 @@ test('cópias antigas do TRF2 e da UFRJ entram em Concursos sem duplicar nem per
   vm.runInNewContext(appSource.slice(limparInicio, appSource.indexOf('\n  // Plano combinado', limparInicio)), contexto);
   assert.equal(contexto.limparEditalParaCatalogo(ufrj).tipoCatalogo, 'concurso');
 });
+
+
+test('excluir um plano distribuído preserva os estudos e impede seu retorno por cópias antigas', function () {
+  const bases = carregarEditaisBase();
+  const trf2 = bases.find(function (e) { return e.id === 'carreira-trf2-tjaa-2024'; });
+  const planos = [{ id: 'meu-plano', plano: { origemEditalId: trf2.id }, disciplinas: trf2.disciplinas }];
+  const estudosAntes = JSON.stringify(planos);
+  const ctx = {
+    window: { Store: S }, D: D, state: { editais: [], planos: planos, config: {} },
+    catalogoEditaisBase: bases, catalogoCarreirasBase: [], catalogoGlobalEditais: [],
+    usuarioAdmin: function () { return true; }
+  };
+  vm.runInNewContext(appSource.slice(appSource.indexOf('  function clonarJson('), appSource.indexOf('  function calculadoraDoEdital(')), ctx);
+  const resultado = ctx.removerEditalDoCatalogo(trf2.id);
+  assert.equal(resultado.removerId, null);
+  assert.equal(ctx.state.editais.length, 1);
+  assert.equal(ctx.state.editais[0].excluidoDoCatalogo, true);
+  assert.equal(JSON.stringify(planos), estudosAntes);
+  assert.equal(ctx.editaisDoCatalogo().some(function (e) { return e.id === trf2.id; }), false);
+  assert.equal(ctx.editaisDoCatalogoAdmin().some(function (e) { return e.id === trf2.id; }), false);
+  ctx.catalogoGlobalEditais = JSON.parse(JSON.stringify(ctx.state.editais));
+  ctx.state.editais = [JSON.parse(JSON.stringify(trf2))];
+  assert.equal(ctx.editaisDoCatalogo().some(function (e) { return e.id === trf2.id; }), false);
+  assert.equal(ctx.editaisDoCatalogoAdmin().some(function (e) { return e.id === trf2.id; }), false);
+  assert.equal(trf2.excluidoDoCatalogo, undefined);
+});
