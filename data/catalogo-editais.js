@@ -933,7 +933,8 @@
       "inicio": "",
       "fim": ""
     },
-    "emAlta": true,
+    "emAlta": false,
+    "descricaoPreparacao": "Preparação para o próximo concurso do TRF2, com base no edital de 2024.",
     "cobertura": "Foco RJ · conteúdo comum RJ/ES",
     "atualizadoEm": "2026-10-27",
     "baseEditais": [

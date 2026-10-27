@@ -119,6 +119,10 @@
       c.tipoCatalogo = 'concurso';
       c.metaDesempenho = true;
       c.tipoCorte = 'meta';
+      c.emAlta = false;
+    }
+    if (c.id === 'carreira-trf2-tjaa-2024') {
+      c.descricaoPreparacao = 'Preparação para o próximo concurso do TRF2, com base no edital de 2024.';
     }
     return c;
   }
@@ -5318,13 +5322,13 @@
     return '<div class="plano-mini">' +
       '<div class="plano-mini-top">' +
       '<div class="plano-mini-tit"><strong>' + esc(e.titulo) + '</strong>' +
-      (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '') +
-      (global ? ' <span class="etiqueta">global</span>' : (base ? ' <span class="etiqueta">modelo</span>' : '')) + '</div></div>' +
+      (global ? ' <span class="etiqueta">global</span>' : (base ? ' <span class="etiqueta">plano de estudos</span>' : '')) + '</div></div>' +
+      (e.descricaoPreparacao ? '<p class="sub">' + esc(e.descricaoPreparacao) + '</p>' : '') +
       '<p class="sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disc · ' +
       contarTopicosEdital(e) + ' tóp · ' + cortesResumoEdital(e) + ' · ' + esc(NIVEIS_EDITAL[nivelEdital(e)]) + '</p>' +
       '<div class="compact-actions">' +
-      '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Criar plano</button>' +
-      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">' + (global || base ? 'Personalizar' : 'Editar') + '</button>' +
+      '<button class="botao-mini botao-secundario" data-ed-plano="' + esc(e.id) + '">Começar a estudar</button>' +
+      '<button class="botao-mini" data-ed-editar="' + esc(e.id) + '">Editar</button>' +
       (podeExcluir ? '<button class="botao-mini botao-quieto" data-ed-excluir="' + esc(e.id) + '">Excluir</button>' : '') + '</div></div>';
   }
 
@@ -5516,12 +5520,12 @@
     return '<div class="card carreiras-config-card">' +
       '<div class="carreiras-config-cab"><div><span class="rotulo-pagina">Catálogo pessoal</span>' +
       '<h3>Planos específicos</h3></div></div>' +
-      '<p class="sub">Personalize os modelos de concurso sem transformar o conteúdo em uma carreira. As alterações ficam na sua conta.</p>' +
+      '<p class="sub">Edite seus planos de estudos para concursos específicos. As alterações ficam na sua conta.</p>' +
       '<div class="carreiras-config-lista">' + lista.map(function (e) {
         const personalizado = personalizados.some(function (p) { return p.id === e.id; });
         return '<div class="carreira-config-item"><div class="carreira-config-resumo">' + editalFotoHtml(e) +
           '<div><strong>' + esc(e.titulo) + '</strong><p class="sub">' +
-          (personalizado ? 'versão personalizada' : 'modelo do Gabaritei OS') + ' · ' +
+          (personalizado ? 'versão personalizada' : 'plano de estudos') + ' · ' +
           (e.disciplinas || []).length + ' disciplinas · ' + contarTopicosEdital(e) + ' tópicos</p></div></div>' +
           '<div class="compact-actions"><button class="botao-mini" data-base-editar="' + esc(e.id) + '">Editar</button>' +
           '<button class="botao-mini botao-secundario" data-base-ver="' + esc(e.id) + '">Ver em Planos</button>' +
@@ -5990,8 +5994,7 @@
     const tags = [e.orgao, e.area, e.estado].filter(Boolean).map(function (t) { return '<span class="edital-tag">' + esc(t) + '</span>'; }).join('');
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     return '<div class="card catalogo-card">' +
-      '<div class="catalogo-card-topo"><strong class="catalogo-titulo">' + esc(e.titulo) + '</strong>' +
-      (e.emAlta ? '<span class="etiqueta etiqueta-alta">em alta</span>' : '') + '</div>' +
+      '<div class="catalogo-card-topo"><strong class="catalogo-titulo">' + esc(e.titulo) + '</strong></div>' +
       (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
       '<div class="catalogo-metricas">' +
       metrica(e.metaDesempenho ? 'Meta' : 'Corte', (e.metaDesempenho ? '' : '~') + (e.notaCorte || 70) + '%') +
@@ -6029,13 +6032,13 @@
     return '<div class="card catalogo-card catalogo-card-compacto' + (carreira ? ' catalogo-card-carreira' : '') + (selComparar ? ' catalogo-card-comparando' : '') + '">' +
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
       '<div class="catalogo-card-info"><strong class="catalogo-titulo">' + esc(e.titulo) +
-      (carreira ? ' <span class="etiqueta etiqueta-carreira">plano de carreira</span>' : (e.emAlta ? ' <span class="etiqueta etiqueta-alta">em alta</span>' : '')) + '</strong>' +
+      (carreira ? ' <span class="etiqueta etiqueta-carreira">plano de carreira</span>' : '') + '</strong>' +
       '<span class="catalogo-sub">' + subtitulo +
       (calc ? ' <button type="button" class="catalogo-calc-mini" data-pl-calc="' + esc(e.id) + '" title="Estimar a remuneração do cargo">💰 Calculadora de salário</button>' : '') +
       '</span>' +
       (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div></div>' +
-      (carreira ? '<p class="catalogo-carreira-promessa">Comece pelo núcleo que mais se repete e especialize o plano quando sair um edital específico.</p>' : '') +
+      (carreira ? '<p class="catalogo-carreira-promessa">Comece pelo núcleo que mais se repete e especialize o plano quando sair um edital específico.</p>' : (e.descricaoPreparacao ? '<p class="sub">' + esc(e.descricaoPreparacao) + '</p>' : '')) +
       '<div class="catalogo-metricas">' + metricas + '</div>' +
       '<div class="catalogo-acoes">' +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e prioridades">Detalhes</button>' +
@@ -6048,7 +6051,7 @@
   function telaPlanos() {
     garantirEditaisMock();
     const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !ehEditalCombinado(e); })
-      .slice().sort(function (a, b) { return (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a); });
+      .slice().sort(function (a, b) { return contarTopicosEdital(b) - contarTopicosEdital(a); });
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo</span><h1>Planos disponíveis</h1></div></div>' +
       '<p class="sub" style="margin-bottom:1rem">Escolha um concurso para gerar seu plano de estudos. Use <strong>Comparar</strong> para saber se dá para conciliar dois editais.</p>';
     if (lista.length === 0) {
@@ -6067,7 +6070,7 @@
       return !e.arquivado && !ehEditalCombinado(e) && editalCorrespondeFiltro(e, catalogoFiltro);
     }).slice().sort(function (a, b) {
       return (ehPlanoCarreira(b) ? 1 : 0) - (ehPlanoCarreira(a) ? 1 : 0) ||
-        (b.emAlta ? 1 : 0) - (a.emAlta ? 1 : 0) || contarTopicosEdital(b) - contarTopicosEdital(a);
+        contarTopicosEdital(b) - contarTopicosEdital(a);
     });
     function selectFiltro(campo, rotulo) {
       const opts = valoresUnicosEditais(campo).map(function (v) {
@@ -6780,10 +6783,9 @@
       '<div><label>Órgão</label><input id="ee-orgao" type="text" value="' + esc(e.orgao) + '"></div>' +
       '<div><label>Cargo</label><input id="ee-cargo" type="text" value="' + esc(e.cargo) + '"></div>' +
       '<div><label>Área</label><input id="ee-area" type="text" value="' + esc(e.area || '') + '" placeholder="Ex.: Administrativa"></div></div>' +
-      '<div class="grade-3">' +
+      '<div class="grade-2">' +
       '<div><label>Estado (UF)</label><input id="ee-estado" type="text" maxlength="2" value="' + esc(e.estado) + '" style="text-transform:uppercase"></div>' +
-      '<div><label>Escolaridade</label><select id="ee-nivel">' + nivelOpts + '</select></div>' +
-      '<div><label>Destaque</label><label class="check-inline"><input id="ee-emalta" type="checkbox"' + (e.emAlta ? ' checked' : '') + '> em alta no catálogo</label></div></div>' +
+      '<div><label>Escolaridade</label><select id="ee-nivel">' + nivelOpts + '</select></div></div>' +
       '<div class="ee-cortes-grupo"><span class="ee-grupo-rotulo">' + (e.metaDesempenho ? 'Meta inicial de desempenho (%)' : 'Notas de corte do último aprovado (%)') + '</span>' +
       '<div class="grade-3">' +
       '<div><label>' + (e.metaDesempenho ? 'Meta principal' : 'Ampla concorrência') + '</label><input id="ee-corte-ampla" type="number" min="0" max="100" value="' + cAmpla + '"></div>' +
@@ -6865,8 +6867,7 @@
     e.salario = val('#ee-salario').trim();
     e.vagas = val('#ee-vagas').trim();
     e.beneficios = val('#ee-beneficios').trim();
-    const chk = body.querySelector('#ee-emalta');
-    e.emAlta = !!(chk && chk.checked);
+    e.emAlta = false;
     body.querySelectorAll('.ed-d-nome').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].nome = inp.value; });
     body.querySelectorAll('.ed-d-cor').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].cor = inp.value; });
     body.querySelectorAll('.ed-d-peso').forEach(function (inp) { const di = +inp.getAttribute('data-di'); if (e.disciplinas[di]) e.disciplinas[di].peso = Math.max(1, parseInt(inp.value, 10) || 1); });
@@ -6970,10 +6971,10 @@
     editorEdital._editId = (!dadosImport && editalId && !baseObj._global && !baseObj._base) ? editalId : null;
     editorEdital._globalId = (!dadosImport && editalId && (baseObj._global || baseObj._base)) ? editalId : null;
     const titulo = modo === 'conferencia' ? 'Conferência da importação'
-      : (editorEdital._editId ? 'Editar edital' : (editorEdital._globalId ? (baseEditavelPeloAluno ? 'Personalizar plano' : 'Personalizar edital') : 'Novo edital'));
+      : (editorEdital._editId ? 'Editar edital' : (editorEdital._globalId ? (baseEditavelPeloAluno ? 'Editar plano' : 'Editar edital') : 'Novo edital'));
     const dica = modo === 'conferencia'
       ? '<p class="sub">Confira as disciplinas, pesos e incidências sugeridos. Ajuste o que precisar e confirme.</p>'
-      : (!usuarioAdmin() && baseEditavelPeloAluno ? '<p class="sub">Sua versão ficará somente na sua conta; o modelo original poderá ser restaurado quando quiser.</p>' : '');
+      : (!usuarioAdmin() && baseEditavelPeloAluno ? '<p class="sub">Seus ajustes ficarão somente na sua conta; o plano original poderá ser restaurado quando quiser.</p>' : '');
     const m = abrirModal('<h3>' + titulo + '</h3>' + dica +
       '<div id="editor-body">' + editorEditalBody() + '</div>' +
       '<div class="modal-acoes"><button class="botao-quieto" id="editor-cancelar">Cancelar</button>' +
