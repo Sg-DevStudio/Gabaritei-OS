@@ -270,3 +270,37 @@ test('descrição personalizada ou apagada persiste ao salvar e recarregar o TRF
   assert.match(ctx.corrigirClassificacaoCatalogo(legado).descricaoPreparacao, /edital de 2024/);
   assert.equal(trf2.descricaoPreparacao, 'Preparação para o próximo concurso do TRF2, com base no edital de 2024.');
 });
+
+
+test('carreiras globais e pessoais preservam a descrição alterada ou vazia depois de salvar', async function () {
+  const bases = carregarCarreiras().map(function (e) {
+    return Object.assign({}, e, { cortes: { ampla: e.notaCorte, negros: null, pcd: null }, janelaProva: { inicio: '', fim: '' } });
+  });
+  for (const admin of [true, false]) {
+    const edit = JSON.parse(JSON.stringify(bases[0]));
+    edit._editId = edit.id;
+    const ctx = {
+      editorEdital: edit, catalogoEditaisBase: [], catalogoCarreirasBase: bases, catalogoGlobalEditais: [],
+      usuarioAdmin: function () { return admin; }, window: { Store: S }, D: D,
+      sincronizarEditorDoDom: function () {}, gerarIdsEdital: function () {},
+      state: { editais: [], config: { carreirasPersonalizadas: [] } },
+      salvar: function () {}, fecharModal: function () {}, render: function () {}, toast: function () {},
+      publicarCatalogoAdmin: function () { return Promise.resolve(); }
+    };
+    vm.runInNewContext(appSource.slice(appSource.indexOf('  function clonarJson('), appSource.indexOf('  function calculadoraDoEdital(')), ctx);
+    vm.runInNewContext(appSource.slice(appSource.indexOf('  function salvarEditorCarreira('), appSource.indexOf('  const PROMPT_EDITAL_BRUTO')), ctx);
+    assert.match(ctx.carreirasDoCatalogo()[0].descricaoPreparacao, /núcleo que mais se repete/);
+    for (const descricao of ['Minha preparação para tribunais.', '']) {
+      ctx.editorEdital.descricaoPreparacao = descricao;
+      ctx.salvarEditorCarreira({ querySelector: function () { return {}; } });
+      const salvos = admin ? ctx.state.editais : ctx.state.config.carreirasPersonalizadas;
+      assert.equal(salvos[0].descricaoPreparacao, descricao);
+      // Simula a serialização e o carregamento em outro aparelho.
+      if (admin) { ctx.catalogoGlobalEditais = JSON.parse(JSON.stringify(salvos)); ctx.state.editais = []; }
+      else ctx.state.config.carreirasPersonalizadas = JSON.parse(JSON.stringify(salvos));
+      assert.equal(ctx.carreirasDoCatalogo().find(function (c) { return c.id === edit.id; }).descricaoPreparacao, descricao);
+      await Promise.resolve();
+    }
+    assert.equal(bases[0].descricaoPreparacao, undefined);
+  }
+});

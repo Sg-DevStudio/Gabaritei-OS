@@ -124,6 +124,9 @@
     if (c.id === 'carreira-trf2-tjaa-2024' && !Object.prototype.hasOwnProperty.call(c, 'descricaoPreparacao')) {
       c.descricaoPreparacao = 'Preparação para o próximo concurso do TRF2, com base no edital de 2024.';
     }
+    if (c.tipoCatalogo === 'carreira' && !Object.prototype.hasOwnProperty.call(c, 'descricaoPreparacao')) {
+      c.descricaoPreparacao = 'Comece pelo núcleo que mais se repete e especialize o plano quando sair um edital específico.';
+    }
     return c;
   }
 
@@ -6049,7 +6052,7 @@
       '</span>' +
       (jaTem ? '<span class="etiqueta etiqueta-feito catalogo-feito">plano criado ✓</span>' : '') +
       '</div></div>' +
-      (carreira ? '<p class="catalogo-carreira-promessa">Comece pelo núcleo que mais se repete e especialize o plano quando sair um edital específico.</p>' : (e.descricaoPreparacao ? '<p class="sub">' + esc(e.descricaoPreparacao) + '</p>' : '')) +
+      (e.descricaoPreparacao ? '<p class="' + (carreira ? 'catalogo-carreira-promessa' : 'sub') + '">' + esc(e.descricaoPreparacao) + '</p>' : '') +
       '<div class="catalogo-metricas">' + metricas + '</div>' +
       '<div class="catalogo-acoes">' +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e prioridades">Detalhes</button>' +
@@ -6618,7 +6621,7 @@
     const primeiraDisciplina = disciplinaEmBranco();
     primeiraDisciplina.topicos[0].incidencia_pct = 100;
     return {
-      id: null, tipoCatalogo: 'carreira', titulo: '', banca: 'Base personalizada',
+      id: null, tipoCatalogo: 'carreira', titulo: '', banca: 'Base personalizada', descricaoPreparacao: '',
       orgao: '', cargo: '', area: 'Administrativa', estado: '', nivel: 'medio',
       notaCorte: 80, tipoCorte: 'ampla', cortes: { ampla: 80, negros: null, pcd: null },
       emAlta: false, arquivado: false, foto: '', janelaProva: { inicio: '', fim: '' },
@@ -6719,6 +6722,12 @@
     });
   }
 
+  function campoDescricaoPlanoHtml(e) {
+    return '<label for="ee-descricao">Descrição do plano (opcional)</label>' +
+      '<textarea id="ee-descricao" rows="3" aria-describedby="ee-descricao-ajuda" placeholder="Texto que aparece no cartão do plano">' + esc(e.descricaoPreparacao || '') + '</textarea>' +
+      '<p id="ee-descricao-ajuda" class="sub">Deixe em branco para não exibir uma descrição no cartão.</p>';
+  }
+
   function editorCarreiraBody() {
     const e = editorEdital;
     const nivelAtual = nivelEdital(e);
@@ -6730,6 +6739,7 @@
       '<div class="grade-2">' +
       '<div><label>Nome da carreira</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: Carreira Fiscal · Área Administrativa"></div>' +
       '<div><label>Base de provas / bancas</label><input id="ee-banca" type="text" value="' + esc(e.banca || '') + '" placeholder="Ex.: Multibanca · últimos editais"></div></div>' +
+      campoDescricaoPlanoHtml(e) +
       '<div class="grade-3">' +
       '<div><label>Órgão ou ramo</label><input id="ee-orgao" type="text" value="' + esc(e.orgao || '') + '" placeholder="Ex.: Fiscos estaduais"></div>' +
       '<div><label>Cargo-alvo</label><input id="ee-cargo" type="text" value="' + esc(e.cargo || '') + '" placeholder="Ex.: Técnico Fazendário"></div>' +
@@ -6790,9 +6800,7 @@
     let h = '<div class="grade-2">' +
       '<div><label>Nome do edital</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
       '<div><label>Banca</label><input id="ee-banca" type="text" value="' + esc(e.banca) + '" placeholder="Ex.: FCC"></div></div>' +
-      '<label for="ee-descricao">Descrição do plano (opcional)</label>' +
-      '<textarea id="ee-descricao" rows="3" aria-describedby="ee-descricao-ajuda" placeholder="Texto que aparece no cartão do plano">' + esc(e.descricaoPreparacao || '') + '</textarea>' +
-      '<p id="ee-descricao-ajuda" class="sub">Deixe em branco para não exibir uma descrição no cartão.</p>' +
+      campoDescricaoPlanoHtml(e) +
       '<div class="grade-3">' +
       '<div><label>Órgão</label><input id="ee-orgao" type="text" value="' + esc(e.orgao) + '"></div>' +
       '<div><label>Cargo</label><input id="ee-cargo" type="text" value="' + esc(e.cargo) + '"></div>' +
@@ -7101,6 +7109,7 @@
       id: id,
       tipoCatalogo: 'carreira',
       titulo: e.titulo,
+      descricaoPreparacao: (e.descricaoPreparacao || '').trim(),
       banca: e.banca || 'Base personalizada',
       orgao: e.orgao || '',
       cargo: e.cargo || '',
