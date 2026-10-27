@@ -121,7 +121,7 @@
       c.tipoCorte = 'meta';
       c.emAlta = false;
     }
-    if (c.id === 'carreira-trf2-tjaa-2024') {
+    if (c.id === 'carreira-trf2-tjaa-2024' && !Object.prototype.hasOwnProperty.call(c, 'descricaoPreparacao')) {
       c.descricaoPreparacao = 'Preparação para o próximo concurso do TRF2, com base no edital de 2024.';
     }
     return c;
@@ -6790,6 +6790,9 @@
     let h = '<div class="grade-2">' +
       '<div><label>Nome do edital</label><input id="ee-titulo" type="text" value="' + esc(e.titulo) + '" placeholder="Ex.: TRF3 Técnico Judiciário 2026"></div>' +
       '<div><label>Banca</label><input id="ee-banca" type="text" value="' + esc(e.banca) + '" placeholder="Ex.: FCC"></div></div>' +
+      '<label for="ee-descricao">Descrição do plano (opcional)</label>' +
+      '<textarea id="ee-descricao" rows="3" aria-describedby="ee-descricao-ajuda" placeholder="Texto que aparece no cartão do plano">' + esc(e.descricaoPreparacao || '') + '</textarea>' +
+      '<p id="ee-descricao-ajuda" class="sub">Deixe em branco para não exibir uma descrição no cartão.</p>' +
       '<div class="grade-3">' +
       '<div><label>Órgão</label><input id="ee-orgao" type="text" value="' + esc(e.orgao) + '"></div>' +
       '<div><label>Cargo</label><input id="ee-cargo" type="text" value="' + esc(e.cargo) + '"></div>' +
@@ -6852,6 +6855,7 @@
     function val(sel) { const x = body.querySelector(sel); return x ? x.value : ''; }
     e.titulo = val('#ee-titulo').trim();
     e.banca = val('#ee-banca').trim();
+    if (body.querySelector('#ee-descricao')) e.descricaoPreparacao = val('#ee-descricao').trim();
     e.orgao = val('#ee-orgao').trim();
     e.cargo = val('#ee-cargo').trim();
     e.area = val('#ee-area').trim();
@@ -7015,6 +7019,7 @@
       estado: e.estado, nivel: e.nivel, notaCorte: e.notaCorte, tipoCorte: normalizarListaCorte(e.tipoCorte),
       cortes: e.cortes || { ampla: e.notaCorte, negros: null, pcd: null }, emAlta: e.emAlta,
       metaDesempenho: !!e.metaDesempenho,
+      descricaoPreparacao: (e.descricaoPreparacao || '').trim(),
       foto: e.foto || '',
       fotoAlt: e.fotoAlt || '', fotoCredito: e.fotoCredito || '', fotoFonte: e.fotoFonte || '',
       salario: e.salario || '', beneficios: e.beneficios || '', vagas: e.vagas || '',

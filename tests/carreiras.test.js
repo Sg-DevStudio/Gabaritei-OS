@@ -243,3 +243,30 @@ test('excluir um plano distribuído preserva os estudos e impede seu retorno por
   assert.equal(ctx.editaisDoCatalogoAdmin().some(function (e) { return e.id === trf2.id; }), false);
   assert.equal(trf2.excluidoDoCatalogo, undefined);
 });
+
+
+test('descrição personalizada ou apagada persiste ao salvar e recarregar o TRF2', function () {
+  const trf2 = carregarEditaisBase().find(function (e) { return e.id === 'carreira-trf2-tjaa-2024'; });
+  const edit = JSON.parse(JSON.stringify(trf2));
+  edit._globalId = trf2.id;
+  const ctx = {
+    editorEdital: edit, catalogoEditaisBase: [trf2], usuarioAdmin: function () { return false; },
+    sincronizarEditorDoDom: function () {}, gerarIdsEdital: function () {}, normalizarListaCorte: function (v) { return v; }, D: D,
+    state: { editais: [] }, salvar: function () {}, fecharModal: function () {}, render: function () {}, toast: function () {}
+  };
+  vm.runInNewContext(appSource.slice(appSource.indexOf('  function clonarJson('), appSource.indexOf('  function normalizarEditalCatalogo(')), ctx);
+  vm.runInNewContext(appSource.slice(appSource.indexOf('  function salvarEditorEdital('), appSource.indexOf('  function abrirEditorCarreira(')), ctx);
+  ['Meu foco: estudar para o próximo TRF2.', ''].forEach(function (descricao) {
+    ctx.editorEdital.descricaoPreparacao = descricao;
+    ctx.salvarEditorEdital({ querySelector: function () { return {}; } });
+    const salvo = JSON.parse(JSON.stringify(ctx.state.editais[0]));
+    assert.equal(salvo.descricaoPreparacao, descricao);
+    assert.equal(ctx.corrigirClassificacaoCatalogo(salvo).descricaoPreparacao, descricao);
+    assert.equal(salvo.disciplinas.length, 13);
+    assert.equal(salvo.foto, trf2.foto);
+  });
+  const legado = JSON.parse(JSON.stringify(trf2));
+  delete legado.descricaoPreparacao;
+  assert.match(ctx.corrigirClassificacaoCatalogo(legado).descricaoPreparacao, /edital de 2024/);
+  assert.equal(trf2.descricaoPreparacao, 'Preparação para o próximo concurso do TRF2, com base no edital de 2024.');
+});
