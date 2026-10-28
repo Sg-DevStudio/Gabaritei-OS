@@ -38,11 +38,11 @@
       url: 'https://books.scielo.org/?lang=pt', guia: 'https://search.livros.scielo.org/?lang=pt', imagem: 'assets/ferramentas/logo-scielo.svg', marca: 'scielo'
     },
     {
-      nome: 'Project Gutenberg', categoria: 'Livros', foco: 'Clássicos para ampliar seu repertório',
-      descricao: 'Biblioteca de ebooks, especialmente obras antigas em domínio público nos Estados Unidos. Oferece leitura online e arquivos em formatos como EPUB.',
-      passos: ['Busque um autor, título ou idioma.', 'Escolha leitura no navegador ou um formato para seu leitor.', 'Registre ideias e vocabulário durante a leitura.'],
-      dica: 'Confira a situação dos direitos da obra no seu país antes de reutilizar ou distribuir o texto.',
-      url: 'https://www.gutenberg.org/', guia: 'https://www.gutenberg.org/help/', imagem: 'assets/ferramentas/logo-gutenberg.jpg', marca: 'gutenberg'
+      nome: 'WeLib', categoria: 'Livros', foco: 'Busca de livros em português',
+      descricao: 'Acesso à busca de livros do WeLib pelo endereço com filtro de português.',
+      passos: ['Digite o título ou autor que você procura.', 'Use a busca em português do link indicado.', 'Anote a edição e a referência dos livros úteis ao seu estudo.'],
+      dica: 'Combine a leitura com anotações no seu plano de estudos.',
+      url: 'https://welib.org/search?sort=&index=&page=1&q=&lang=pt', marca: 'welib'
     },
     {
       nome: 'Z-Library', categoria: 'Livros', foco: 'Link indicado pela comunidade',

@@ -1500,6 +1500,12 @@
       plano: {
         concurso: json.plano.concurso,
         banca: json.plano.banca || '',
+        orgao: json.plano.orgao || '',
+        cargo: json.plano.cargo || '',
+        estado: json.plano.estado || '',
+        foto: json.plano.foto || json.plano.fotoUrl || json.plano.imagem || '',
+        origemEditalId: json.plano.origemEditalId || null,
+        origemEditalVersao: json.plano.origemEditalVersao || '',
         cota: json.plano.cota || null,
         meta: json.plano.meta,
         radar: json.plano.radar || null,

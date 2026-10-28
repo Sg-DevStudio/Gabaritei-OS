@@ -3,6 +3,8 @@
   "gerado_em": "2026-06-11",
   "plano": {
     "concurso": "TRF3 — Técnico Judiciário, Área Administrativa",
+    "orgao": "TRF3",
+    "foto": "assets/carreiras/logo-trf3.png",
     "banca": "FCC",
     "cota": "ampla",
     "meta": {

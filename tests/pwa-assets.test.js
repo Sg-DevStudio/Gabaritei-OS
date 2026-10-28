@@ -38,7 +38,8 @@ test('arquivos críticos de sincronização são publicados na mesma versão da 
 
 test('service worker mantém disponíveis offline o plano de exemplo e os ícones do manifesto', () => {
   [
-    './data/exemplo-trf3.json?v=20260718g-integridade-sync',
+    './data/exemplo-trf3.json?v=20261028-demo-imagem',
+    './assets/carreiras/logo-trf3.png',
     './assets/carreiras/capa-inss-tecnico.png',
     './assets/carreiras/capa-trf2-tjaa.svg',
     './assets/carreiras/capa-trf-tjaa.jpg?v=20260721-real1',

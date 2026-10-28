@@ -4590,14 +4590,6 @@ canvas.grafico {
 @media (max-width: 480px) { .ferramenta-capa { flex-basis: 150px; } }
 
 /* Início: foco no próximo estudo, contexto persistente e progresso real. */
-.rodape-android { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin: 28px 0 0; padding: 22px; border-top: 1px solid var(--linha); color: var(--tinta); font-size: .88rem; }
-.rodape-android p, .rodape-android small { color: var(--grafite); }
-.rodape-android p { margin: 5px 0 14px; }
-.rodape-android small { display: block; font-size: .7rem; max-width: 450px; margin-top: 12px; }
-.rodape-android img { width: 144px; height: 144px; background: #fff; padding: 4px; border-radius: 6px; max-width: none; }
-.rodape-android [hidden] { display: none; }
-body.login-gate #conteudo > .rodape-android { max-width: 900px; margin: 0 auto; padding: 24px; }
-@media (max-width: 480px) { .rodape-android { padding: 18px 0; gap: 12px; font-size: .8rem; } .rodape-android img { width: 112px; height: 112px; } }
 :root { --plano-alt: 72px; }
 body, html[data-tema="escuro"] body { background: var(--papel); }
 #topbar, html[data-tema="escuro"] #topbar {
@@ -4652,8 +4644,6 @@ body.login-gate #plano-contexto { display: none; }
 .disciplina-destaque { display: block; margin-bottom: 4px; font-size: 1rem; }
 .proximo-estudo .fila-titulo { font-size: .85rem; font-weight: 400; color: var(--grafite); }
 .proximo-estudo .tag-disc { display: none; }
-.tag-disc-portugues { display: inline-flex; align-items: center; gap: 4px; color: #7531bf; background: #eee2ff; }
-.tag-disc-portugues svg { width: 15px; height: 15px; }
 .inicio-moderno .inicio-iniciar { background: var(--caneta); color: #fff; padding: 10px 18px; border-radius: 7px; }
 .inicio-moderno h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
 .inicio-moderno h3 > a { margin-left: auto; font-weight: 400; font-size: .76rem; text-decoration: none; }
@@ -4675,6 +4665,8 @@ body.login-gate #plano-contexto { display: none; }
 .conquistas-compactas .medalha { min-width: 0; padding: 12px 4px; min-height: 88px; }
 .conquistas-compactas .medalha-icone { font-size: 1.7rem; }
 .conquistas-compactas .medalha-titulo { font-size: .67rem; }
+.conquistas-compactas .medalha:not(.ganha), .conquistas-compactas .medalha:not(.ganha):hover { opacity: 1; filter: none; border-color: var(--linha); }
+.conquistas-compactas .medalha:not(.ganha) .medalha-icone { opacity: .48; filter: grayscale(1); }
 .inicio-frase, .inicio-constancia { border: 1px solid var(--linha); border-radius: 10px; background: var(--papel-card); padding: 14px; font-size: .8rem; color: var(--grafite); }
 .inicio-frase summary, .inicio-constancia summary { cursor: pointer; }
 .inicio-frase .frase-dia { margin-top: 12px; }
@@ -4743,11 +4735,13 @@ body.login-gate #plano-contexto { display: none; }
   .inicio-topo .inicio-frase summary { display: none; }
   .inicio-topo .frase-dia { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; font-size: .85rem; }
   .inicio-topo .frase-dia .autor { font-size: .72rem; }
-  .inicio-topo .conquistas-compactas { grid-area: conquistas; max-width: none; justify-self: stretch; padding: 22px; }
-  .inicio-topo .conquistas-dica { display: block; }
-  .inicio-topo .medalha { min-height: 100px; padding: 14px 8px; }
-  .inicio-topo .medalha-icone { font-size: 2.1rem; }
-  .inicio-topo .medalha-titulo { font-size: .8rem; }
+  .inicio-topo .conquistas-compactas { grid-area: conquistas; max-width: none; justify-self: stretch; padding: 16px; container: conquistas / inline-size; }
+  .inicio-topo .conquistas-dica, .inicio-topo .conquistas-expandir { display: none; }
+  .inicio-topo .conquistas-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .inicio-topo .conquistas-compactas:not(.conquistas-abertas) .medalha:nth-child(n+4) { display: flex; }
+  .inicio-topo .medalha { min-height: 72px; max-width: 140px; justify-self: center; padding: 8px 6px; }
+  .inicio-topo .medalha-icone { font-size: 1.5rem; }
+  .inicio-topo .medalha-titulo { font-size: .7rem; }
   .inicio-topo .home-cab-prova { grid-area: prova; display: flex; width: 100%; min-width: 0; }
   .inicio-topo .home-cab-prova .prova-card-solo { width: 100%; transform: none; margin: 0; padding: 14px; display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 8px 12px; align-items: center; text-align: left; }
   .inicio-topo .prova-card-solo .cal-countdown { grid-column: 1; grid-row: 1 / span 3; margin: 0; }
@@ -4755,18 +4749,26 @@ body.login-gate #plano-contexto { display: none; }
   .inicio-topo .prova-card-solo .card-kpi-extra { grid-column: 2; font-size: .67rem; }
   .inicio-topo .prova-card-solo .prova-editar { grid-column: 2; justify-self: start; }
 }
-.rodape-android { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; padding: clamp(24px, 3vw, 40px); border: 1px solid rgba(74, 125, 255, .65); border-radius: 16px; background: transparent; box-shadow: 0 0 0 1px rgba(74, 125, 255, .08), 0 0 22px rgba(74, 125, 255, .1); }
-.rodape-android-conteudo > strong { display: block; font-size: 1.3rem; line-height: 1.3; }
-.rodape-android p { margin: 8px 0 20px; font-size: .95rem; }
-.rodape-android-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
-.rodape-android-acoes > a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 18px; border: 1px solid var(--caneta); border-radius: 8px; background: var(--caneta); color: #fff; text-decoration: none; font-weight: 600; }
-.rodape-android-acoes > a:hover { background: var(--caneta-forte); }
-.rodape-android small { max-width: 620px; margin-top: 16px; line-height: 1.6; font-size: .76rem; }
-.rodape-android-qr { margin: 0; display: grid; justify-items: center; gap: 8px; }
-.rodape-android-qr a { display: block; line-height: 0; border: 1px solid rgba(74, 125, 255, .3); border-radius: 10px; padding: 6px; background: #fff; }
-.rodape-android-qr figcaption { color: var(--grafite); font-size: .75rem; text-align: center; }
+@container conquistas (min-width: 600px) { .inicio-topo .conquistas-grade { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@container conquistas (min-width: 1000px) { .inicio-topo .conquistas-grade { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+.sidebar-android { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 58px; padding: 10px 8px; border: 1px solid rgba(122, 160, 255, .26); border-radius: 8px; background: rgba(92, 136, 248, .08); color: var(--sb-texto-forte); box-shadow: none; text-align: left; }
+.sidebar-android:hover { background: rgba(92, 136, 248, .16); box-shadow: none; transform: none; }
+.sidebar-android strong, .sidebar-android small { display: block; }
+.sidebar-android strong { font-size: .76rem; line-height: 1.4; }
+.sidebar-android small { font-size: .66rem; font-weight: 400; color: var(--sb-texto); }
+.sidebar-android svg { width: 20px; height: 20px; flex-shrink: 0; }
+#sidebar { overflow-y: auto; scrollbar-width: thin; }
+.sidebar-rodape-comunidade { flex-shrink: 0; }
+.login-android { display: block; margin: 12px auto 0; padding: 6px 10px; min-height: 36px; background: transparent; border: 0; color: var(--caneta); box-shadow: none; font-size: .8rem; }
+.android-app-dialog { max-width: 420px; }
+.android-app-download { display: grid; justify-items: center; gap: 12px; margin: 20px 0; }
+.android-app-download img { display: block; padding: 6px; background: #fff; border: 1px solid var(--linha); border-radius: 8px; }
+.android-app-download small, .android-app-detalhes { font-size: .76rem; color: var(--grafite); }
+.android-app-download .botao { text-decoration: none; }
+.android-app-dialog [hidden] { display: none; }
+.ferramenta-marca-welib { background: #fff; }
+.ferramenta-nome-marca { color: #27437b; font-family: Georgia, serif; font-size: 2.3rem; font-weight: 700; }
 @media (max-width: 760px) { .inicio-lateral > .home-cab-prova { display: flex; justify-content: stretch; } .inicio-lateral .prova-card-solo { width: 100%; } }
-@media (max-width: 480px) { .rodape-android { grid-template-columns: 1fr; gap: 24px; padding: 22px; } .rodape-android-qr { justify-self: start; } }
 body.sidebar-recolhida #topbar-rota { display: none; }
 @media (max-width: 760px) {
   #topbar-rota { display: none; }

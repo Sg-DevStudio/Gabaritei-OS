@@ -12,11 +12,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20261028-conquistas-linha">
+  <link rel="stylesheet" href="css/styles.css?v=20261028-ui-consistente">
 </head>
 <body>
   <!-- Ícones compartilhados da navegação -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="ic-celular" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 5h4M11 19h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="ic-livro" viewBox="0 0 24 24"><path d="M12 5.5C9 3.5 5.5 3.5 2 5v15c3.5-1.5 7-1.5 10 .5 3-2 6.5-2 10-.5V5c-3.5-1.5-7-1.5-10 .5Zm0 0v15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="ic-hoje" viewBox="0 0 24 24"><path d="M3 11.2 12 3l9 8.2M5.4 9.8V21h4.8v-5.6h3.6V21h4.8V9.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="ic-agenda" viewBox="0 0 24 24"><rect x="3.2" y="5" width="17.6" height="16" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.2 9.6h17.6M8 2.8v4M16 2.8v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M7.5 14h3M7.5 17.2h5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -87,6 +88,10 @@
       <a href="#ferramentas" data-rota="ferramentas" class="nav-item"><svg class="nav-ic"><use href="#ic-mais"/></svg>Ferramentas</a>
       <a href="#ajustes" data-rota="ajustes" class="nav-item"><svg class="nav-ic"><use href="#ic-ajustes"/></svg>Configurações</a>
       <div class="sidebar-rodape-comunidade">
+        <button type="button" class="sidebar-android" data-abrir-android>
+          <svg class="nav-ic" aria-hidden="true"><use href="#ic-celular"/></svg>
+          <span><strong>Gabaritei no Android</strong><small>Baixar aplicativo · beta</small></span>
+        </button>
         <button type="button" id="sidebar-feedback" class="sidebar-feedback">
           <svg class="nav-ic" aria-hidden="true"><use href="#ic-feedback"/></svg>
           <span>Feedback, erros e sugestões</span>
@@ -137,18 +142,18 @@
     integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"
     crossorigin="anonymous" defer></script>
   <script src="js/frases.js"></script>
-  <script src="js/domain.js?v=20261028-conquistas-linha"></script>
-  <script src="js/store.js?v=20261028-conquistas-linha"></script>
+  <script src="js/domain.js?v=20261028-ui-consistente"></script>
+  <script src="js/store.js?v=20261028-ui-consistente"></script>
   <script src="js/sync.js?v=20260718h-seguranca-escala"></script>
   <script src="js/remote-state.js?v=20260718h-seguranca-escala"></script>
-  <script type="module" src="js/firebase-sync.js?v=20261028-conquistas-linha"></script>
-  <script src="js/timer.js?v=20261028-conquistas-linha"></script>
-  <script src="js/android-bridge.js?v=20261028-conquistas-linha"></script>
+  <script type="module" src="js/firebase-sync.js?v=20261028-ui-consistente"></script>
+  <script src="js/timer.js?v=20261028-ui-consistente"></script>
+  <script src="js/android-bridge.js?v=20261028-ui-consistente"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
-  <script src="data/catalogo-editais.js?v=20261028-conquistas-linha"></script>
-  <script src="data/carreiras.js?v=20261028-conquistas-linha"></script>
-  <script src="data/ferramentas.js?v=20261028-conquistas-linha"></script>
-  <script src="js/app.js?v=20261028-conquistas-linha"></script>
+  <script src="data/catalogo-editais.js?v=20261028-ui-consistente"></script>
+  <script src="data/carreiras.js?v=20261028-ui-consistente"></script>
+  <script src="data/ferramentas.js?v=20261028-ui-consistente"></script>
+  <script src="js/app.js?v=20261028-ui-consistente"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

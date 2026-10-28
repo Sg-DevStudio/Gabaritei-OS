@@ -653,6 +653,7 @@
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
       '<button id="login-demo" class="login-demo" type="button">Explorar com um plano de exemplo</button>' +
       '<p class="login-nota">Comece em segundos com sua conta Google. Seu progresso fica salvo e separado por conta.</p>' +
+      '<button type="button" class="login-android" data-abrir-android>Baixar para Android · beta</button>' +
       '</div>' +
       '<div class="login-preview" aria-hidden="true">' +
       '<div class="login-preview-top"></div>' +
@@ -1033,7 +1034,6 @@
   }
 
   function tagDisc(disc) {
-    if (/portugu[eê]s/i.test(disc.nome || '')) return '<span class="tag-disc tag-disc-portugues" title="Língua Portuguesa"><svg aria-hidden="true"><use href="#ic-livro"/></svg>Português</span>';
     return '<span class="tag-disc" style="background:' + esc(disc.cor) + '">' + esc(disc.id) + '</span>';
   }
 
@@ -8845,9 +8845,11 @@
     if (!plano) return '';
     let src = plano.foto || '';
     if (!src) {
-      const ed = editaisDoCatalogo().find(function (e) { return e.titulo === plano.concurso; });
+      const catalogo = editaisDoCatalogo();
+      const ed = (plano.origemEditalId && catalogo.find(function (e) { return e.id === plano.origemEditalId; })) || catalogo.find(function (e) { return e.titulo === plano.concurso; });
       if (ed) src = ed.foto || ed.fotoUrl || ed.imagem || '';
     }
+    if (!src && String(plano.orgao || orgaoDoTitulo(plano.concurso)).replace(/\s+/g, '').toUpperCase() === 'TRF3') src = 'assets/carreiras/logo-trf3.png';
     const iniciais = String(plano.orgao || plano.concurso || 'ED').replace(/[^0-9A-Za-zÀ-ſ ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(function (p) { return p.charAt(0); }).join('').toUpperCase() || 'ED';
     const onerr = "var s=this.parentNode;s.classList.add('catalogo-foto-placeholder');s.setAttribute('aria-hidden','true');s.textContent='" + esc(iniciais) + "';";
     return src
@@ -12416,7 +12418,7 @@
       '<div class="ferramentas-filtros" role="group" aria-label="Filtrar ferramentas por categoria">' + categorias.map(function (c) { return '<button type="button" data-ferramenta-categoria="' + esc(c) + '" aria-pressed="' + (c === categoriaFerramentas) + '">' + esc(c) + '</button>'; }).join('') + '</div><p class="sub ferramentas-contagem" role="status">' + ferramentas.length + ' ferramentas · ' + esc(categoriaFerramentas) + '</p>' +
       '<div class="ferramentas-grid">' + ferramentas.map(function (f, i) {
         return '<article class="card ferramenta-card" aria-labelledby="ferramenta-' + i + '">' +
-          '<div class="ferramenta-capa ferramenta-marca-' + esc(f.marca) + '"><img src="' + esc(f.imagem) + '" alt="Logo de ' + esc(f.nomeAtual || f.nome) + '" width="240" height="96" loading="lazy" decoding="async">' +
+          '<div class="ferramenta-capa ferramenta-marca-' + esc(f.marca) + '">' + (f.imagem ? '<img src="' + esc(f.imagem) + '" alt="Logo de ' + esc(f.nomeAtual || f.nome) + '" width="240" height="96" loading="lazy" decoding="async">' : '<span class="ferramenta-nome-marca">' + esc(f.nome) + '</span>') +
           '<span class="ferramenta-categoria">' + esc(f.categoria) + '</span></div>' +
           '<div class="ferramenta-corpo"><h2 id="ferramenta-' + i + '">' + esc(f.nome) + '</h2>' +
           (f.nomeAtual ? '<p class="ferramenta-nome-atual">Agora: ' + esc(f.nomeAtual) + '</p>' : '') +
@@ -12453,6 +12455,7 @@
           '<span class="mais-item-nome">' + i[1] + '</span>' +
           '<span class="mais-item-seta" aria-hidden="true">›</span></a>';
       }).join('') +
+      '<button type="button" class="mais-item mais-item-botao" data-abrir-android><span class="mais-item-nome">Gabaritei no Android</span><span class="mais-item-seta" aria-hidden="true">›</span></button>' +
       '<button type="button" class="mais-item mais-item-botao" id="mais-feedback">' +
       '<span class="mais-item-nome">Feedback, erros e sugestões</span>' +
       '<span class="mais-item-seta" aria-hidden="true">›</span></button>' +
@@ -12727,13 +12730,16 @@
       '<span class="contexto-plano-acao">' + (state.plano ? 'Ver planos' : 'Escolher') + ' <span aria-hidden="true">⌄</span></span></a>';
   }
 
-  function rodapeAndroidHtml() {
-    return '<footer class="rodape-android" aria-label="Aplicativo Android">' +
-      '<div class="rodape-android-conteudo"><strong>Gabaritei no seu Android</strong><p>Seus planos e estudos também no celular.</p><div class="rodape-android-acoes">' +
-      '<a class="botao-mini" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk">Baixar APK · beta</a> ' +
-      '<button class="botao-mini botao-quieto" type="button" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
-      '</div><small>Android 8 ou superior · versão de teste. Login e alertas ainda aguardam validação no aparelho.</small></div>' +
-      '<figure class="rodape-android-qr"><a href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png" alt="QR Code para baixar o APK do Gabaritei OS" width="144" height="144"></a><figcaption>Escaneie para baixar</figcaption></figure></footer>';
+  function abrirAplicativoAndroid() {
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk';
+    const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Seus planos e estudos também no celular.</p>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar APK · beta</a><small>Android 8 ou superior · versão beta</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-v1.0.0-beta1" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
+      '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
+    modal.classList.add('modal-dialogo', 'android-app-dialog');
+    modal.querySelector('#android-fechar').addEventListener('click', fecharModal);
   }
 
   function semanaInicioHtml() {
@@ -12877,7 +12883,6 @@
         console.error('Falha ao renderizar login:', err);
         conteudo.innerHTML = '<section class="login-shell"><div class="login-card"><h1>Entrar</h1><p>Não consegui abrir a tela de login.</p></div></section>';
       }
-      conteudo.insertAdjacentHTML('beforeend', rodapeAndroidHtml());
       atualizarSyncUi();
       return;
     }
@@ -12896,7 +12901,6 @@
       conteudo.innerHTML = tela.render();
       atualizarContextoPlano();
       if (rota === 'hoje') organizarInicio(conteudo);
-      conteudo.insertAdjacentHTML('beforeend', rodapeAndroidHtml());
       tela.ligar(conteudo);
     } catch (err) {
       console.error('Falha ao renderizar a tela "' + rota + '":', err);
@@ -12998,7 +13002,7 @@
     opcoes = opcoes || {};
     if (modoDemo) { if (opcoes.aoConcluir) opcoes.aoConcluir(); return; }
     if (btn) btn.disabled = true;
-    fetch('data/exemplo-trf3.json?v=20260718g-integridade-sync')
+    fetch('data/exemplo-trf3.json?v=20261028-demo-imagem')
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (json) {
         modoDemo = true;            // antes de adicionarPlano: salvar() vira no-op
@@ -13059,9 +13063,6 @@
     { rota: 'hoje', seletor: '#conteudo .estudar-hoje-card',
       titulo: '🎯 O que estudar hoje',
       texto: 'Este é seu ponto de partida diário: a fila com o que estudar hoje, já na ordem certa. Você abre o app e sabe exatamente por onde começar.' },
-    { rota: 'hoje', seletor: '#conteudo .constancia-card',
-      titulo: '🔥 Mapa de constância (heatmap)',
-      texto: 'Cada quadradinho é um dia: quanto mais você estuda, mais forte a cor. Ele te ajuda a manter a sequência de dias estudando, sem furos.' },
     { rota: 'hoje', seletor: '#conteudo .conquistas-card',
       titulo: '🏅 Conquistas',
       texto: 'Medalhas que você desbloqueia conforme avança (constância, simulados, metas…). Toque numa delas para ver como conquistar e a raridade — uma motivação extra.' },
@@ -13252,6 +13253,11 @@
   });
 
   // ---- Menu lateral: recolher com animação (desktop) / gaveta (celular) ----
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('[data-abrir-android]')) {
+      event.preventDefault(); abrirAplicativoAndroid();
+    }
+  });
   // O ☰ da SIDEBAR esconde o menu (que desliza para fora) e a marca "migra" para
   // o topbar; o ☰ do TOPBAR o traz de volta. No celular, o ☰ do topbar abre a
   // gaveta e o da sidebar a fecha.

@@ -10,6 +10,32 @@ function baseState() {
   return { plano: null, disciplinas: [], config: {}, sessoes: [], revisoes: [], simulados: [], agenda: [], flashcards: [] };
 }
 
+test('mesclarPlano preserva a imagem e a identidade do edital importado', () => {
+  const plano = { concurso: 'TRF3', banca: 'FCC', orgao: 'TRF3', cargo: 'Técnico', estado: 'SP', foto: 'assets/carreiras/logo-trf3.png', origemEditalId: 'trf3-2024', origemEditalVersao: '2026-10-28', meta: { corte_pct: 84 } };
+  const imp = D.mesclarPlano(baseState(), { versao: 1, plano, disciplinas: [], cronograma: {} });
+  for (const campo of ['foto', 'orgao', 'cargo', 'estado', 'origemEditalId', 'origemEditalVersao']) assert.equal(imp.plano[campo], plano[campo]);
+});
+
+test('mesclarPlano não herda a foto nem o edital do plano anterior ao importar outro', () => {
+  const anterior = Object.assign(baseState(), { plano: { concurso: 'TRF3', foto: 'trf3.png', origemEditalId: 'trf3-2024' } });
+  const imp = D.mesclarPlano(anterior, { versao: 1, plano: { concurso: 'Outro concurso', meta: { corte_pct: 70 } }, disciplinas: [], cronograma: {} });
+  assert.equal(imp.plano.foto, ''); assert.equal(imp.plano.origemEditalId, null);
+});
+
+test('ativar e excluir planos troca a imagem correspondente e limpa o último plano', () => {
+  const Store = require('./helpers/load-store').loadStore();
+  const state = Store.estadoVazio();
+  function entrada(id, foto) {
+    const imp = D.mesclarPlano(baseState(), { versao: 1, plano: { concurso: id, foto, meta: { corte_pct: 70 } }, disciplinas: [], cronograma: {} });
+    return { id, plano: imp.plano, disciplinas: imp.disciplinas, cronogramas: imp.cronogramas, links: [] };
+  }
+  state.planos.push(entrada('TRF3', 'trf3.png'), entrada('TRF2', 'trf2.svg'));
+  Store.ativarPlano(state, 'TRF3'); assert.equal(state.plano.foto, 'trf3.png');
+  Store.removerPlano(state, 'TRF3'); assert.equal(state.planoAtivoId, 'TRF2'); assert.equal(state.plano.foto, 'trf2.svg');
+  Store.removerPlano(state, 'TRF2'); assert.equal(state.plano, null);
+  state.planos.push(entrada('Manual', '')); Store.ativarPlano(state, 'Manual'); assert.equal(state.plano.foto, '');
+});
+
 test('mesclarPlano normaliza gerado_em com timestamp para AAAA-MM-DD (bug D)', () => {
   const json = {
     versao: 1,
