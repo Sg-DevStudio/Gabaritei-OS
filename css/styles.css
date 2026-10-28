@@ -4737,23 +4737,23 @@ body.login-gate #plano-contexto { display: none; }
 }
 #topbar-rota { position: absolute; left: 22px; color: var(--grafite); font-size: .85rem; }
 @media (min-width: 761px) {
-  .inicio-moderno .home-cab.inicio-topo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(180px, .6fr); gap: 16px; align-items: stretch; margin-bottom: 18px; }
+  .inicio-moderno .home-cab.inicio-topo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); grid-template-areas: "frase prova" "conquistas conquistas"; gap: 16px; align-items: start; margin-bottom: 18px; }
   .inicio-topo .home-cab-esq { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .inicio-topo .inicio-frase { display: flex; align-items: center; border: 1px solid var(--linha); border-radius: 12px; padding: 24px; background: transparent; }
+  .inicio-topo .inicio-frase { grid-area: frase; display: flex; align-items: flex-start; border: 1px solid var(--linha); border-radius: 12px; padding: 18px 20px; background: transparent; }
   .inicio-topo .inicio-frase summary { display: none; }
-  .inicio-topo .frase-dia { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; font-size: 1.05rem; }
-  .inicio-topo .conquistas-compactas { max-width: none; justify-self: stretch; padding: 22px; }
+  .inicio-topo .frase-dia { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; font-size: .85rem; }
+  .inicio-topo .frase-dia .autor { font-size: .72rem; }
+  .inicio-topo .conquistas-compactas { grid-area: conquistas; max-width: none; justify-self: stretch; padding: 22px; }
   .inicio-topo .conquistas-dica { display: block; }
   .inicio-topo .medalha { min-height: 100px; padding: 14px 8px; }
   .inicio-topo .medalha-icone { font-size: 2.1rem; }
   .inicio-topo .medalha-titulo { font-size: .8rem; }
-  .inicio-topo .home-cab-prova { display: flex; width: 100%; min-width: 0; }
-  .inicio-topo .home-cab-prova .prova-card-solo { width: 100%; transform: none; margin: 0; padding: 18px 12px; }
-}
-@media (min-width: 761px) and (max-width: 1199px) {
-  .inicio-moderno .home-cab.inicio-topo { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
-  .inicio-topo .home-cab-prova { grid-column: 1 / -1; }
-  .inicio-topo .home-cab-prova .prova-card-solo { display: flex; flex-direction: row; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 12px; }
+  .inicio-topo .home-cab-prova { grid-area: prova; display: flex; width: 100%; min-width: 0; }
+  .inicio-topo .home-cab-prova .prova-card-solo { width: 100%; transform: none; margin: 0; padding: 14px; display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 8px 12px; align-items: center; text-align: left; }
+  .inicio-topo .prova-card-solo .cal-countdown { grid-column: 1; grid-row: 1 / span 3; margin: 0; }
+  .inicio-topo .prova-card-solo .prova-card-topo { grid-column: 2; justify-content: flex-start; }
+  .inicio-topo .prova-card-solo .card-kpi-extra { grid-column: 2; font-size: .67rem; }
+  .inicio-topo .prova-card-solo .prova-editar { grid-column: 2; justify-self: start; }
 }
 .rodape-android { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; padding: clamp(24px, 3vw, 40px); border: 1px solid rgba(74, 125, 255, .65); border-radius: 16px; background: transparent; box-shadow: 0 0 0 1px rgba(74, 125, 255, .08), 0 0 22px rgba(74, 125, 255, .1); }
 .rodape-android-conteudo > strong { display: block; font-size: 1.3rem; line-height: 1.3; }
