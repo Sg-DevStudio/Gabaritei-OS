@@ -12753,8 +12753,8 @@
     const raiz = document.getElementById('plano-contexto');
     if (!raiz) return;
     raiz.innerHTML = '<a href="#planos" class="contexto-plano-link">' +
-      (planoContexto ? '<svg class="nav-ic" aria-hidden="true"><use href="#ic-livro"/></svg>' : '<svg class="nav-ic" aria-hidden="true"><use href="#ic-planos"/></svg>') +
-      '<span class="contexto-plano-texto"><small>' + (planoContexto ? 'Seu plano de estudos' : 'Comece por um plano') + '</small>' +
+      '<span class="contexto-plano-texto"><small>' + (planoContexto ? 'Seu plano de estudos' : 'Comece por um plano') +
+      ' <svg class="contexto-plano-icone" aria-hidden="true"><use href="' + (planoContexto ? '#ic-livro' : '#ic-planos') + '"/></svg></small>' +
       '<strong>' + esc(planoContexto ? (planoContexto.concurso || 'Meu plano').replace(/\s*\((?:base|edital)\s+\d{4}\)/gi, '') : 'Escolher meu concurso') + '</strong></span>' +
       '<span class="contexto-plano-acao">' + (planoContexto ? 'Ver planos' : 'Escolher') + '</span></a>';
   }
