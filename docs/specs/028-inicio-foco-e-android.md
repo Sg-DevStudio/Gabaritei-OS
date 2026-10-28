@@ -11,3 +11,5 @@ Direção aprovada: conceito 3, livro roxo para Português do conceito 2 e conqu
 - Android: download e QR somente depois de existir um APK assinado e verificável. Notificações exigem integração e permissão próprias; não prometer entrega pelo timer JavaScript suspenso.
 
 Verificação: suíte de domínio/PWA, sintaxe, início e navegação no navegador, 390 px e desktop, temas e menu, conquistas e integridade dos dados.
+
+Refinamento em telas grandes: conquistas sem limite de 560 px, selos maiores, frase em card transparente e data estimada na mesma faixa superior. A coluna semanal ocupa apenas a linha do próximo estudo; Ainda hoje, Revisões e Painel de disciplinas usam a largura total. Rodapé Android em card transparente com borda e brilho azuis discretos, ação de download e QR com legenda.

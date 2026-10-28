@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v192-topo-final';
+const CACHE = CACHE_PREFIXO + 'v193-layout-amplo';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -57,30 +57,30 @@ try {
 }
 const ESTATICOS = [
   './assets/android/qr-download.png',
-  './js/android-bridge.js?v=20261028-topo-final',
+  './js/android-bridge.js?v=20261028-layout-amplo',
   './',
   './index.html',
   './manifest.json',
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20261028-topo-final',
-  './js/domain.js?v=20261028-topo-final',
-  './js/store.js?v=20261028-topo-final',
+  './css/styles.css?v=20261028-layout-amplo',
+  './js/domain.js?v=20261028-layout-amplo',
+  './js/store.js?v=20261028-layout-amplo',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261028-topo-final',
-  './js/timer.js?v=20261028-topo-final',
+  './js/firebase-sync.js?v=20261028-layout-amplo',
+  './js/timer.js?v=20261028-layout-amplo',
   './js/charts.js?v=20260615v-green-performance',
-  './data/catalogo-editais.js?v=20261028-topo-final',
-  './data/carreiras.js?v=20261028-topo-final',
+  './data/catalogo-editais.js?v=20261028-layout-amplo',
+  './data/carreiras.js?v=20261028-layout-amplo',
   './assets/carreiras/capa-inss-tecnico.png',
   './assets/carreiras/capa-ifrj-assistente.svg',
   './assets/carreiras/capa-trf2-tjaa.svg',
   './assets/carreiras/capa-trf-tjaa.jpg?v=20260721-real1',
   './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
   './data/exemplo-trf3.json?v=20260718g-integridade-sync',
-  './data/ferramentas.js?v=20261028-topo-final',
+  './data/ferramentas.js?v=20261028-layout-amplo',
   './assets/ferramentas/logo-anki.png',
   './assets/ferramentas/logo-gutenberg.jpg',
   './assets/ferramentas/logo-notebooklm.svg',
@@ -88,7 +88,7 @@ const ESTATICOS = [
   './assets/ferramentas/logo-scielo.svg',
   './assets/ferramentas/logo-trello.svg',
   './assets/ferramentas/logo-zlibrary.png',
-  './js/app.js?v=20261028-topo-final',
+  './js/app.js?v=20261028-layout-amplo',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

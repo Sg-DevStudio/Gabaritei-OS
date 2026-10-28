@@ -12729,11 +12729,11 @@
 
   function rodapeAndroidHtml() {
     return '<footer class="rodape-android" aria-label="Aplicativo Android">' +
-      '<div><strong>Gabaritei no seu Android</strong><p>Seus planos e estudos também no celular.</p>' +
+      '<div class="rodape-android-conteudo"><strong>Gabaritei no seu Android</strong><p>Seus planos e estudos também no celular.</p><div class="rodape-android-acoes">' +
       '<a class="botao-mini" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk">Baixar APK · beta</a> ' +
       '<button class="botao-mini botao-quieto" type="button" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
-      '<small>Android 8 ou superior · versão de teste. Login e alertas ainda aguardam validação no aparelho.</small></div>' +
-      '<a href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png" alt="QR Code para baixar o APK do Gabaritei OS" width="104" height="104"></a></footer>';
+      '</div><small>Android 8 ou superior · versão de teste. Login e alertas ainda aguardam validação no aparelho.</small></div>' +
+      '<figure class="rodape-android-qr"><a href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png" alt="QR Code para baixar o APK do Gabaritei OS" width="144" height="144"></a><figcaption>Escaneie para baixar</figcaption></figure></footer>';
   }
 
   function semanaInicioHtml() {
@@ -12850,8 +12850,10 @@
     cab.classList.toggle('inicio-topo', desktop);
     const frase = raiz.querySelector('.inicio-frase');
     const conquistas = raiz.querySelector('.conquistas-card');
+    const prova = raiz.querySelector('.home-cab-prova');
     if (frase) { frase.open = desktop; (desktop ? cab : lateral).append(frase); }
     if (conquistas) (desktop ? cab : lateral).append(conquistas);
+    if (prova) (desktop ? cab : lateral).append(prova);
   }
 
   function render() {

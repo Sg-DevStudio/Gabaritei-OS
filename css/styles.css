@@ -4688,11 +4688,13 @@ body.login-gate #plano-contexto { display: none; }
 .inicio-moderno .proximo-estudo .fila-item { grid-template-columns: auto 1fr; display: flex; }
 .inicio-moderno .proximo-estudo .fila-corpo { flex: 1; min-width: 0; }
 @media (min-width: 761px) {
-  .inicio-grade { grid-template-areas: "metricas metricas" "principal lateral"; }
-  .inicio-principal { display: contents; }
-  .inicio-principal > :not(.inicio-metricas) { grid-column: 1; }
-  .inicio-principal > .inicio-metricas { grid-area: metricas; }
-  .inicio-lateral { grid-column: 2; grid-row: 2 / span 20; }
+  .inicio-grade { grid-template-areas: none; }
+  .inicio-principal, .inicio-lateral { display: contents; }
+  .inicio-principal > :not(.inicio-metricas) { grid-column: 1 / -1; }
+  .inicio-principal > .inicio-metricas { grid-column: 1 / -1; grid-row: 1; }
+  .inicio-principal > .proximo-estudo { grid-column: 1; grid-row: 2; }
+  .inicio-lateral > .inicio-semana { grid-column: 2; grid-row: 2; }
+  .inicio-grade:not(:has(.proximo-estudo)) .inicio-semana { grid-column: 1 / -1; }
 }
 @media (min-width: 761px) { body.sidebar-recolhida #topbar { left: 12px; } }
 @media (max-width: 1100px) and (min-width: 761px) {
@@ -4735,16 +4737,36 @@ body.login-gate #plano-contexto { display: none; }
 }
 #topbar-rota { position: absolute; left: 22px; color: var(--grafite); font-size: .85rem; }
 @media (min-width: 761px) {
-  .inicio-moderno .home-cab.inicio-topo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(350px, 1.15fr); gap: 24px; align-items: center; margin-bottom: 18px; }
+  .inicio-moderno .home-cab.inicio-topo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(180px, .6fr); gap: 16px; align-items: stretch; margin-bottom: 18px; }
   .inicio-topo .home-cab-esq { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .inicio-topo .inicio-frase { border: 0; padding: 8px 0; background: transparent; }
+  .inicio-topo .inicio-frase { display: flex; align-items: center; border: 1px solid var(--linha); border-radius: 12px; padding: 24px; background: transparent; }
   .inicio-topo .inicio-frase summary { display: none; }
-  .inicio-topo .frase-dia { margin: 0; font-size: 1.05rem; }
-  .inicio-topo .conquistas-compactas { max-width: 560px; justify-self: center; padding: 16px 20px; }
-  .inicio-topo .conquistas-dica { display: none; }
-  .inicio-topo .medalha { min-height: 64px; padding: 7px 4px; }
-  .inicio-topo .medalha-icone { font-size: 1.35rem; }
+  .inicio-topo .frase-dia { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; font-size: 1.05rem; }
+  .inicio-topo .conquistas-compactas { max-width: none; justify-self: stretch; padding: 22px; }
+  .inicio-topo .conquistas-dica { display: block; }
+  .inicio-topo .medalha { min-height: 100px; padding: 14px 8px; }
+  .inicio-topo .medalha-icone { font-size: 2.1rem; }
+  .inicio-topo .medalha-titulo { font-size: .8rem; }
+  .inicio-topo .home-cab-prova { display: flex; width: 100%; min-width: 0; }
+  .inicio-topo .home-cab-prova .prova-card-solo { width: 100%; transform: none; margin: 0; padding: 18px 12px; }
 }
+@media (min-width: 761px) and (max-width: 1199px) {
+  .inicio-moderno .home-cab.inicio-topo { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+  .inicio-topo .home-cab-prova { grid-column: 1 / -1; }
+  .inicio-topo .home-cab-prova .prova-card-solo { display: flex; flex-direction: row; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 12px; }
+}
+.rodape-android { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; padding: clamp(24px, 3vw, 40px); border: 1px solid rgba(74, 125, 255, .65); border-radius: 16px; background: transparent; box-shadow: 0 0 0 1px rgba(74, 125, 255, .08), 0 0 22px rgba(74, 125, 255, .1); }
+.rodape-android-conteudo > strong { display: block; font-size: 1.3rem; line-height: 1.3; }
+.rodape-android p { margin: 8px 0 20px; font-size: .95rem; }
+.rodape-android-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.rodape-android-acoes > a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 18px; border: 1px solid var(--caneta); border-radius: 8px; background: var(--caneta); color: #fff; text-decoration: none; font-weight: 600; }
+.rodape-android-acoes > a:hover { background: var(--caneta-forte); }
+.rodape-android small { max-width: 620px; margin-top: 16px; line-height: 1.6; font-size: .76rem; }
+.rodape-android-qr { margin: 0; display: grid; justify-items: center; gap: 8px; }
+.rodape-android-qr a { display: block; line-height: 0; border: 1px solid rgba(74, 125, 255, .3); border-radius: 10px; padding: 6px; background: #fff; }
+.rodape-android-qr figcaption { color: var(--grafite); font-size: .75rem; text-align: center; }
+@media (max-width: 760px) { .inicio-lateral > .home-cab-prova { display: flex; justify-content: stretch; } .inicio-lateral .prova-card-solo { width: 100%; } }
+@media (max-width: 480px) { .rodape-android { grid-template-columns: 1fr; gap: 24px; padding: 22px; } .rodape-android-qr { justify-self: start; } }
 body.sidebar-recolhida #topbar-rota { display: none; }
 @media (max-width: 760px) {
   #topbar-rota { display: none; }
