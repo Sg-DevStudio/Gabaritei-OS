@@ -6,7 +6,14 @@
   function urlSegura(s) {
     try { const u = new URL(s); return /^https?:$/.test(u.protocol) && !u.username && !u.password ? u.href : ''; } catch (_) { return ''; }
   }
+  let banca = '982,92';
+  const ehTrf2 = state => /trf\s*2/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '');
   function grupos(state) {
+    if (ehTrf2(state)) return (window.TrilhaReferencia || []).map((d, i) => ({ nome: d.name, tipo: d.type, topicos: d.topics.map((t, j) => {
+      const candidatos = (state.disciplinas || []).flatMap(x => (x.topicos || []).map(y => ({ d: x, t: y }))).filter(x => normal(x.t.nome) === normal(t.name));
+      const x = candidatos.length === 1 ? candidatos[0] : null;
+      return { chave: x ? 'plano:' + x.d.id + ':' + x.t.id : 'ref:trf2-2024:' + i + ':' + j, nome: t.name, referencia: Object.assign({ catalog: d.catalog }, t) };
+    }) }));
     const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: 'plano:' + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id })) }));
     return lista;
   }
@@ -16,8 +23,9 @@
       const matches = (window.TrilhaReferencia || []).flatMap(d => d.topics).filter(x => normal(x.name) === normal(t.nome));
       if (matches.length === 1) ref = matches[0];
     }
-    if (!ref || ref.code == null) return null;
-    return { id: 'referencia', nome: 'Resolver no Gran · AOCP + FCC', url: 'https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=' + encodeURIComponent(ref.code) + '&banca=982%2C92&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026&nivel=1', aviso: ref.exact ? 'Correspondência específica indicada no arquivo' : 'Categoria ampla: pode incluir outros assuntos' };
+    if (!ref) return null;
+    if (ref.code == null) return { id: 'referencia', nome: 'Ver catálogo no Gran', url: ref.catalog, aviso: 'Sem código específico verificado; abre o catálogo, não um filtro.' };
+    return { id: 'referencia', nome: 'Resolver no Gran', url: 'https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=' + encodeURIComponent(ref.code) + (banca ? '&banca=' + encodeURIComponent(banca) : '') + '&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026&nivel=1', aviso: ref.exact ? 'Correspondência específica indicada no arquivo' : 'Categoria ampla: pode incluir outros assuntos' };
   }
   function links(state, t) {
     let pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === t.chave);
@@ -32,27 +40,39 @@
   }
   function render(state) {
     if (!state.plano) return '<h1>Caderno de questões</h1><div class="card"><p>Escolha um plano para organizar seus cadernos.</p><a href="#planos">Escolher plano</a></div>';
-    return '<nav class="compact-actions" aria-label="Voltar ao plano"><a href="#planos">Planos</a><a href="#planejamento">Planejamento</a></nav><h1>Caderno de questões</h1><p class="sub">Caderno do plano: ' + esc(state.plano.concurso) + '. Seus links pessoais ficam neste plano.</p>' +
-      '<div class="card trilha-intro"><p>Abra questões por assunto ou adicione links do Gran, NotebookLM, TEC e outras plataformas. Resolver fora do Gabaritei não importa acertos automaticamente.</p>' + (/trf\s*2/i.test(state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '') ? '<p>Referência TRF2: edital-base 2024, AOCP e FCC complementar, 2017–2026. Filtros e quantidades ainda precisam de conferência no Gran. Os tópicos de referência não são adicionados ao seu edital.</p>' : '') + '</div>' +
-      '<label class="trilha-busca">Buscar disciplina ou subtópico<input id="trilha-busca" type="search" placeholder="Ex.: Crase"></label><div id="trilha-grupos">' + grupos(state).map(g => '<details class="card trilha-grupo"' + (g.referencia ? '' : ' open') + '><summary>' + esc(g.nome) + ' <small>(' + g.topicos.length + ')</small></summary>' + g.topicos.map(t => {
-        const ls = links(state, t);
-        return '<article class="trilha-topico" data-busca="' + esc(normal(g.nome + t.nome)) + '"><h3>' + esc(t.nome) + '</h3>' + (!ls.length ? '<p class="sub">Precisa de link específico.</p>' : '') + ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer">' + esc(l.nome) + ' ↗</a>' : '<span>Link inválido: edite para corrigir.</span>') + (l.aviso ? '<small>' + esc(l.aviso) + '</small>' : '') + (l.principal ? '<small>Principal</small>' : '') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('') + '<button class="botao-mini botao-quieto" data-trilha-adicionar="' + esc(t.chave) + '">Adicionar link</button></article>';
-      }).join('') + '</details>').join('') + '</div><p id="trilha-vazia" hidden>Nenhum subtópico encontrado.</p>';
+    const gs = grupos(state), total = gs.reduce((n,g) => n + g.topicos.length, 0);
+    return '<div class="caderno"><header class="caderno-capa"><nav><a href="#planos">Planos</a><a href="#planejamento">Planejamento</a></nav><span>PLANO DE EXERCÍCIOS' + (ehTrf2(state) ? ' · EDITAL-BASE 2024' : '') + '</span><h1>Caderno de questões por subtópico</h1><p>' + esc(state.plano.concurso) + '</p><p>' + gs.length + ' disciplinas · ' + total + ' subtópicos' + (ehTrf2(state) ? ' · anos 2017–2026' : '') + '</p></header>' +
+      '<div class="caderno-layout"><aside class="caderno-indice"><h2>Disciplinas</h2>' + gs.map((g,i) => '<a href="#caderno-disc-' + i + '" data-caderno-ir="' + i + '">' + esc(g.nome) + '<small>' + g.topicos.length + '</small></a>').join('') + '</aside><div class="caderno-corpo">' +
+      '<section class="card caderno-intro"><strong>Como usar</strong><p>Abra as questões ao lado de cada subtópico. Você pode editar os links ou complementar com NotebookLM, TEC, Qconcursos e outras plataformas. Resolva quantas questões quiser, no seu ritmo.</p>' +
+      (ehTrf2(state) ? '<p>Links do arquivo fornecido: <b>AOCP + FCC</b>, nível superior, 2017–2026, sem questões anuladas e desatualizadas. FCC é treino complementar. Categorias amplas podem incluir outros assuntos; itens sem código abrem o catálogo. Quantidades dos filtros não foram validadas individualmente. A troca de banca ajusta os links-base do Gran; seus links pessoais mantêm os filtros que você salvou.</p>' : '<p>Complete os subtópicos sem link. O caderno segue a ordem do edital cadastrado.</p>') +
+      (state.cadernoConsulta ? '<p><strong>Modo consulta:</strong> inicie este plano para salvar links pessoais.</p>' : '') + '</section>' +
+      '<div class="card caderno-controles"><input id="trilha-busca" type="search" aria-label="Buscar disciplina ou subtópico" placeholder="Buscar disciplina ou subtópico…">' +
+      (ehTrf2(state) ? '<div class="caderno-bancas" role="group" aria-label="Filtrar bancas">' + [['982,92','AOCP + FCC'],['982','Só AOCP'],['92','Só FCC'],['','Todas as bancas']].map(x => '<button type="button" class="botao-mini' + (banca === x[0] ? ' ativo' : '') + '" data-caderno-banca="' + x[0] + '" aria-pressed="' + (banca === x[0]) + '">' + x[1] + '</button>').join('') + '</div>' : '') +
+      '<button type="button" id="caderno-imprimir" class="botao-mini botao-quieto">Imprimir / PDF</button></div>' +
+      '<div id="trilha-grupos">' + gs.map((g,i) => '<section class="card trilha-grupo" id="caderno-disc-' + i + '"><div class="caderno-sec-head"><div><small>' + String(i+1).padStart(2,'0') + ' / ' + gs.length + (g.tipo ? ' · ' + esc(g.tipo) : '') + '</small><h2>' + esc(g.nome) + '</h2></div><small>' + g.topicos.length + ' subtópicos</small></div><p class="sub">Escolha o subtópico e resolva quantas questões quiser.</p>' + g.topicos.map(t => {
+        const ls = links(state,t);
+        return '<article class="trilha-topico" data-busca="' + esc(normal(g.nome+t.nome)) + '"><div class="caderno-tema"><h3>' + esc(t.nome) + '</h3><small>' + esc(t.referencia ? (t.referencia.code == null ? 'Sem código específico verificado' : (t.referencia.exact ? 'Categoria identificada no arquivo' : 'Categoria mais ampla') + ' · assunto ' + t.referencia.code) : 'Links pessoais deste subtópico') + '</small></div><div class="caderno-acessos">' + ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer">' + esc(l.nome) + ' ↗</a>' : '<span>Link inválido</span>') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('') + '<button class="botao-mini botao-quieto caderno-adicionar" data-trilha-adicionar="' + esc(t.chave) + '">' + (ls.length ? '+ Adicionar link' : 'Adicionar questões') + '</button></div></article>';
+      }).join('') + '</section>').join('') + '</div><p id="trilha-vazia" hidden>Nenhum subtópico encontrado.</p><footer class="caderno-rodape">Seus links pertencem a este caderno. Acertos e erros das plataformas externas não são importados automaticamente.</footer></div></div></div>';
   }
   function ligar(state, api) {
     const raiz = document.getElementById('conteudo');
     const busca = raiz.querySelector('#trilha-busca');
     if (!busca) return;
-    busca.oninput = function () {
+    function filtrar() {
       let total = 0;
       raiz.querySelectorAll('.trilha-grupo').forEach(g => {
         let n = 0;
         g.querySelectorAll('.trilha-topico').forEach(t => { t.hidden = !t.dataset.busca.includes(normal(busca.value)); if (!t.hidden) n++; });
-        g.hidden = !n; if (busca.value) g.open = true; total += n;
+        g.hidden = !n;  total += n;
       });
       raiz.querySelector('#trilha-vazia').hidden = total > 0;
     };
+    busca.oninput = filtrar;
+    raiz.querySelector('#caderno-imprimir').onclick = () => window.print();
+    raiz.querySelectorAll('[data-caderno-ir]').forEach(b => b.onclick = e => { e.preventDefault(); busca.value = ''; filtrar(); const alvo = raiz.querySelector('#caderno-disc-' + b.dataset.cadernoIr); alvo.hidden = false; alvo.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    raiz.querySelectorAll('[data-caderno-banca]').forEach(b => b.onclick = () => { banca = b.dataset.cadernoBanca; const termo = busca.value; api.render(); const novo = raiz.querySelector('#trilha-busca'); novo.value = termo; novo.dispatchEvent(new Event('input')); });
     raiz.querySelectorAll('[data-trilha-editar],[data-trilha-adicionar]').forEach(b => b.onclick = function () {
+      if (state.cadernoConsulta) { api.toast('Inicie este plano para salvar seus links pessoais.', 'erro'); return; }
       const chave = b.dataset.trilhaEditar || b.dataset.trilhaAdicionar;
       const t = grupos(state).flatMap(g => g.topicos).find(x => x.chave === chave);
       const atual = b.dataset.link ? links(state, t).find(l => l.id === b.dataset.link) : null;

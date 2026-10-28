@@ -6019,7 +6019,6 @@
       '</div>' +
       '<div class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</div>' +
       '<div class="catalogo-acoes">' +
-      (jaTem ? '<a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planos.find(p => p.plano.concurso === e.titulo).id) + '">Caderno de questões</a>' : '') +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '">Ver detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '">' + (jaTem ? 'Refazer plano' : 'Iniciar plano') + '</button>' +
       '<button class="botao-mini botao-quieto" data-pl-comparar="' + esc(e.id) + '">Comparar</button>' +
@@ -6057,7 +6056,6 @@
       (e.descricaoPreparacao ? '<p class="' + (carreira ? 'catalogo-carreira-promessa' : 'sub') + '">' + esc(e.descricaoPreparacao) + '</p>' : '') +
       '<div class="catalogo-metricas">' + metricas + '</div>' +
       '<div class="catalogo-acoes">' +
-      (jaTem ? '<a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planos.find(p => p.plano.concurso === e.titulo).id) + '">Caderno de questões</a>' : '') +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e prioridades">Detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir desta seleção">' + (jaTem ? 'Refazer' : (carreira ? 'Começar pela carreira' : 'Iniciar')) + '</button>' +
       '<button class="botao-mini ' + (selComparar ? 'catalogo-comparar-on' : 'botao-quieto') + '" data-pl-comparar="' + esc(e.id) + '" title="Selecionar para comparar (máx. 2)">' + (selComparar ? '✓ Comparando' : 'Comparar') + '</button>' +
@@ -6109,7 +6107,6 @@
       : '';
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de planos</span><h1>Planos</h1></div></div>' +
       guiaBoasVindasPlanosHtml() +
-      (state.planos.length ? '<section aria-label="Cadernos dos meus planos"><h2>Meus cadernos de questões</h2><div class="catalogo-grade">' + state.planos.map(function (p) { return '<div class="card catalogo-card"><strong>' + esc(p.plano.concurso || 'Meu plano') + '</strong><p class="sub">Questões na ordem do edital. Complete os tópicos com seus links.</p><a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(p.id) + '">Caderno de questões</a></div>'; }).join('') + '</div></section>' : '') +
       tiposHtml +
       carreiraIntro +
       (tipoAtual === 'carreira' ? '' : cardAvisoCompararHtml()) +
@@ -6437,6 +6434,7 @@
         (e.observacoes ? '<p>' + esc(e.observacoes) + '</p>' : '') +
         (e.fonte ? '<p><strong>Base estatística:</strong> ' + esc(e.fonte) + '</p>' : '') + '</div>' : '') +
       fotoCreditoHtml(e) +
+      '<div class="detalhe-caderno"><div><strong>Caderno de questões por subtópico</strong><p class="sub">Pratique na ordem do edital e complemente com links das suas plataformas.</p></div><button type="button" id="det-caderno">Abrir caderno de questões</button></div>' +
       '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (' + (carreira ? 'prioridade relativa e horas estimadas' : 'incidência nas provas e horas estimadas') + ').</p>' +
       '<div class="detalhe-discs">' + discHtml + '</div>' +
       (calc ? '<button type="button" class="botao-secundario det-calc" id="det-calc" style="width:100%;margin:0.2rem 0 0.6rem">' + calc.rotulo + '</button>' : '') +
@@ -6450,6 +6448,10 @@
       m.scrollTop = 0;
       try { m.focus({ preventScroll: true }); } catch (err) { m.focus(); }
     }, 0);
+    m.querySelector('#det-caderno').addEventListener('click', function () {
+      const existente = state.planos.find(p => p.plano.origemEditalId === e.id || p.plano.concurso === e.titulo);
+      fecharModal(); location.hash = '#caderno-' + encodeURIComponent(existente ? existente.id : 'edital:' + e.id);
+    });
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
     if (calc) m.querySelector('#det-calc').addEventListener('click', function () { abrirCalculadoraRemuneracao(calc); });
@@ -12626,7 +12628,10 @@
   let cadernoPlanoId = null;
   function estadoCaderno() {
     const entrada = state.planos.find(p => p.id === cadernoPlanoId);
-    if (!entrada) return { plano: null, disciplinas: [], links: [] };
+    if (!entrada) {
+      const edital = String(cadernoPlanoId || '').startsWith('edital:') ? editalPorId(cadernoPlanoId.slice(7)) : null;
+      return edital ? Object.assign({}, state, { plano: { concurso: edital.titulo }, disciplinas: edital.disciplinas || [], links: [], cadernoConsulta: true }) : { plano: null, disciplinas: [], links: [] };
+    }
     if (!entrada.links) entrada.links = [];
     return Object.assign({}, state, { plano: entrada.plano, disciplinas: entrada.disciplinas, links: entrada.links, planoAtivoId: entrada.id });
   }
