@@ -4955,3 +4955,6 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .caderno-aviso .compact-actions > * { min-height:44px; border-radius:10px; }
 .plano-acoes-card > .botao { vertical-align:middle; }
 @media(max-width:480px) { .caderno-indisponivel { padding:12px 0; min-height:55vh; } .caderno-indisponivel .caderno-aviso { padding:24px 18px; } .caderno-aviso .compact-actions > * { flex:1 1 100%; } }
+
+.caderno-sec-head .caderno-contagem { display:inline; font-size:.82em; font-weight:400; color:var(--grafite); white-space:nowrap; }
+.caderno .trilha-link a { white-space:nowrap; }

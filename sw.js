@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v212-caderno-botoes';
+const CACHE = CACHE_PREFIXO + 'v213-caderno-rotulos';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -56,29 +56,29 @@ try {
   console.warn('Firebase Messaging indisponível no service worker.', e);
 }
 const ESTATICOS = [
-  './js/ajuda.js?v=20261028-caderno-botoes',
-  './js/trilha.js?v=20261028-caderno-botoes',
+  './js/ajuda.js?v=20261028-caderno-rotulos',
+  './js/trilha.js?v=20261028-caderno-rotulos',
   './js/demo.js',
   './data/trilha-trf2.js',
-  './data/trilha-vinculos-trf2.js?v=20261028-caderno-botoes',
+  './data/trilha-vinculos-trf2.js?v=20261028-caderno-rotulos',
   './assets/android/qr-download.png',
-  './js/android-bridge.js?v=20261028-caderno-botoes',
+  './js/android-bridge.js?v=20261028-caderno-rotulos',
   './',
   './index.html',
   './manifest.json',
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20261028-caderno-botoes',
-  './js/domain.js?v=20261028-caderno-botoes',
-  './js/store.js?v=20261028-caderno-botoes',
+  './css/styles.css?v=20261028-caderno-rotulos',
+  './js/domain.js?v=20261028-caderno-rotulos',
+  './js/store.js?v=20261028-caderno-rotulos',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261028-caderno-botoes',
-  './js/timer.js?v=20261028-caderno-botoes',
+  './js/firebase-sync.js?v=20261028-caderno-rotulos',
+  './js/timer.js?v=20261028-caderno-rotulos',
   './js/charts.js?v=20260615v-green-performance',
-  './data/catalogo-editais.js?v=20261028-caderno-botoes',
-  './data/carreiras.js?v=20261028-caderno-botoes',
+  './data/catalogo-editais.js?v=20261028-caderno-rotulos',
+  './data/carreiras.js?v=20261028-caderno-rotulos',
   './assets/carreiras/capa-inss-tecnico.png',
   './assets/carreiras/capa-ifrj-assistente.svg',
   './assets/carreiras/capa-trf2-tjaa.svg',
@@ -86,14 +86,14 @@ const ESTATICOS = [
   './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
   './data/exemplo-trf3.json?v=20261028-demo-imagem',
   './assets/carreiras/logo-trf3.png',
-  './data/ferramentas.js?v=20261028-caderno-botoes',
+  './data/ferramentas.js?v=20261028-caderno-rotulos',
   './assets/ferramentas/logo-anki.png',
   './assets/ferramentas/logo-notebooklm.svg',
   './assets/ferramentas/logo-notion.svg',
   './assets/ferramentas/logo-scielo.svg',
   './assets/ferramentas/logo-trello.svg',
   './assets/ferramentas/logo-zlibrary.png',
-  './js/app.js?v=20261028-caderno-botoes',
+  './js/app.js?v=20261028-caderno-rotulos',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'
