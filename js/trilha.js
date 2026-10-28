@@ -6,8 +6,12 @@
   function urlSegura(s) {
     try { const u = new URL(s); return /^https?:$/.test(u.protocol) && !u.username && !u.password ? u.href : ''; } catch (_) { return ''; }
   }
+  let impressao = [];
+  if (window.addEventListener) window.addEventListener('beforeprint', () => { impressao = Array.from(document.querySelectorAll('.caderno details')); impressao.forEach(d => { d.dataset.abertoAntesImprimir = String(d.open); d.open = true; }); });
+  if (window.addEventListener) window.addEventListener('afterprint', () => { impressao.forEach(d => { d.open = d.dataset.abertoAntesImprimir === 'true'; delete d.dataset.abertoAntesImprimir; }); impressao = []; });
   let banca = '982,92';
   let edicaoPlano = null;
+  const disciplinasAbertas = new Map();
   const chaveCaderno = s => s.cadernoConsulta ? '' : (s.planoAtivoId || s.plano && s.plano.concurso || '');
   const ehTrf2 = state => /(?:trf\s*2|carreira\s+trf\b)/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '') && /administrativ/i.test(state.plano.concurso || '');
   function grupos(state) {
@@ -53,10 +57,10 @@
       '<div class="card caderno-controles"><input id="trilha-busca" type="search" aria-label="Buscar disciplina ou subtópico" placeholder="Buscar disciplina ou subtópico…">' +
       (ehTrf2(state) ? '<div class="caderno-bancas" role="group" aria-label="Filtrar bancas">' + [['982,92','AOCP + FCC'],['982','Só AOCP'],['92','Só FCC'],['','Todas as bancas']].map(x => '<button type="button" class="botao-mini' + (banca === x[0] ? ' ativo' : '') + '" data-caderno-banca="' + x[0] + '" aria-pressed="' + (banca === x[0]) + '">' + x[1] + '</button>').join('') + '</div>' : '') +
       '<button type="button" id="caderno-editar" class="botao-mini botao-secundario" aria-pressed="' + (edicaoPlano === chaveCaderno(state) && !!edicaoPlano) + '">' + (edicaoPlano === chaveCaderno(state) && edicaoPlano ? 'Concluir edição' : 'Editar caderno') + '</button><button type="button" id="caderno-imprimir" class="botao-mini botao-quieto">Imprimir / PDF</button></div>' +
-      '<div id="trilha-grupos">' + gs.map((g,i) => '<section class="card trilha-grupo" id="caderno-disc-' + i + '"><div class="caderno-sec-head"><div><small>' + String(i+1).padStart(2,'0') + ' / ' + gs.length + (g.tipo ? ' · ' + esc(g.tipo) : '') + '</small><h2>' + esc(g.nome) + '</h2></div><small>' + g.topicos.length + ' subtópicos</small></div><p class="sub">Escolha o subtópico e resolva quantas questões quiser.</p>' + g.topicos.map(t => {
+      '<div id="trilha-grupos">' + gs.map((g,i) => '<details class="card trilha-grupo" id="caderno-disc-' + i + '"' + ((disciplinasAbertas.get(chaveCaderno(state)) || new Set()).has(i) ? ' open' : '') + '><summary class="caderno-sec-head"><div><small>' + String(i+1).padStart(2,'0') + ' / ' + gs.length + (g.tipo ? ' · ' + esc(g.tipo) : '') + '</small><h2>' + esc(g.nome) + '</h2></div><small>' + g.topicos.length + ' subtópicos</small></summary><p class="sub">Escolha o subtópico e resolva quantas questões quiser.</p>' + g.topicos.map(t => {
         const ls = links(state,t);
         return '<article class="trilha-topico" data-busca="' + esc(normal(g.nome+t.nome)) + '"><div class="caderno-tema"><h3>' + esc(t.nome) + '</h3><small>' + esc(t.referencia ? (t.referencia.code == null ? 'Sem código específico verificado' : (t.referencia.exact ? 'Categoria identificada no arquivo' : 'Categoria mais ampla') + ' · assunto ' + t.referencia.code) : 'Links pessoais deste subtópico') + '</small></div><div class="caderno-acessos">' + ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer">' + esc(l.nome) + ' ↗</a>' : '<span>Link inválido</span>') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('') + '<button class="botao-mini botao-quieto caderno-adicionar" data-trilha-adicionar="' + esc(t.chave) + '">' + (ls.length ? '+ Adicionar link' : 'Adicionar questões') + '</button></div></article>';
-      }).join('') + '</section>').join('') + '</div><p id="trilha-vazia" hidden>Nenhum subtópico encontrado.</p><footer class="caderno-rodape">Seus links pertencem a este caderno. Acertos e erros das plataformas externas não são importados automaticamente.</footer></div></div></div>';
+      }).join('') + '</details>').join('') + '</div><p id="trilha-vazia" hidden>Nenhum subtópico encontrado.</p><footer class="caderno-rodape">Seus links pertencem a este caderno. Acertos e erros das plataformas externas não são importados automaticamente.</footer></div></div></div>';
   }
   function ligar(state, api) {
     const raiz = document.getElementById('conteudo');
@@ -67,11 +71,16 @@
       raiz.querySelectorAll('.trilha-grupo').forEach(g => {
         let n = 0;
         g.querySelectorAll('.trilha-topico').forEach(t => { t.hidden = !t.dataset.busca.includes(normal(busca.value)); if (!t.hidden) n++; });
-        g.hidden = !n;  total += n;
+        g.hidden = !n; if (busca.value.trim() && n) g.open = true; total += n;
       });
       raiz.querySelector('#trilha-vazia').hidden = total > 0;
     };
     busca.oninput = filtrar;
+    raiz.querySelectorAll('.trilha-grupo').forEach((g,i) => g.addEventListener('toggle', () => {
+      const abertos = disciplinasAbertas.get(chaveCaderno(state)) || new Set();
+      if (g.open) abertos.add(i); else abertos.delete(i);
+      disciplinasAbertas.set(chaveCaderno(state), abertos);
+    }));
     raiz.querySelector('#caderno-editar').onclick = function () {
       if (state.cadernoConsulta) { api.toast('Inicie este plano para salvar seus links pessoais.', 'erro'); return; }
       const aberto = raiz.querySelector('.caderno').classList.toggle('editando');
@@ -79,7 +88,7 @@
       const botao = raiz.querySelector('#caderno-editar'); botao.textContent = aberto ? 'Concluir edição' : 'Editar caderno'; botao.setAttribute('aria-pressed', String(aberto));
     };
     raiz.querySelector('#caderno-imprimir').onclick = () => window.print();
-    raiz.querySelectorAll('[data-caderno-ir]').forEach(b => b.onclick = e => { e.preventDefault(); busca.value = ''; filtrar(); const alvo = raiz.querySelector('#caderno-disc-' + b.dataset.cadernoIr); alvo.hidden = false; alvo.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    raiz.querySelectorAll('[data-caderno-ir]').forEach(b => b.onclick = e => { e.preventDefault(); busca.value = ''; filtrar(); const alvo = raiz.querySelector('#caderno-disc-' + b.dataset.cadernoIr); raiz.querySelectorAll('.trilha-grupo').forEach(g => { g.open = g === alvo; }); alvo.hidden = false; alvo.open = true; alvo.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     raiz.querySelectorAll('[data-caderno-banca]').forEach(b => b.onclick = () => { banca = b.dataset.cadernoBanca; const termo = busca.value; api.render(); const novo = raiz.querySelector('#trilha-busca'); novo.value = termo; novo.dispatchEvent(new Event('input')); });
     raiz.querySelectorAll('[data-trilha-editar],[data-trilha-adicionar]').forEach(b => b.onclick = function () {
       if (state.cadernoConsulta) { api.toast('Inicie este plano para salvar seus links pessoais.', 'erro'); return; }
