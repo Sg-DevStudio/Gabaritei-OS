@@ -12444,6 +12444,7 @@
   function telaMais() {
     const itens = [
       ['#stats', 'Desempenho'],
+      ['#trilha', 'Trilha de questões'],
       ['#simulados', 'Simulados'],
       ['#timer', 'Timer'],
       ['#ferramentas', 'Ferramentas'],
@@ -12609,6 +12610,7 @@
     timer: { render: telaTimer, ligar: ligarTimer },
     revisoes: { render: telaRevisoes, ligar: ligarRevisoes },
     edital: { render: telaEdital, ligar: ligarEdital },
+    trilha: { render: function () { return window.Trilha.render(state); }, ligar: function () { window.Trilha.ligar(state, { salvar: salvar, render: render, abrirModal: abrirModal, fecharModal: fecharModal, toast: toast }); } },
     simulados: { render: telaSimulados, ligar: ligarSimulados },
     stats: { render: telaStats, ligar: ligarStats },
     ferramentas: { render: telaFerramentas, ligar: ligarFerramentas },
@@ -12997,6 +12999,7 @@
       .then(function (json) {
         modoDemo = true;            // antes de adicionarPlano: salvar() vira no-op
         state = window.Store.estadoVazio();
+        json = window.DemoEstudos.atualizarDatas(json, D.hojeISO(), D);
         adicionarPlano(json);
         // O modo demo não chama Store.salvar(); normalize explicitamente para aplicar
         // migrações e corrigir sementes antigas/caches com acertos acima do total.
@@ -13023,6 +13026,7 @@
         // (2) materializa o histórico de sessões nas semanas anteriores.
         semearAgendaPassadaDemo();
         gerarBlocosSemanaAgenda(D.segundaDaSemana(D.hojeISO()), { incluirPassados: true });
+        window.DemoEstudos.registrarSemana(state, D.hojeISO(), D);
         // navega para #hoje e renderiza de forma determinística (não depende só do
         // evento hashchange, que pode não disparar se já estávamos em #hoje).
         if (location.hash !== '#hoje') location.hash = '#hoje';

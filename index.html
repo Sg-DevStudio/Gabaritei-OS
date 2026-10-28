@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20261028-inspiracao-mobile">
+  <link rel="stylesheet" href="css/styles.css?v=20261028-trilha">
 </head>
 <body>
   <!-- Ícones compartilhados da navegação -->
@@ -50,6 +50,7 @@
       <span class="topbar-marca"><span class="marca-bolha" aria-hidden="true"></span><span class="marca-nome">Gabaritei OS</span></span>
     </div>
     <span id="topbar-rota" aria-hidden="true">Hoje</span>
+    <nav id="plano-contexto" aria-label="Plano de estudo atual"></nav>
     <div class="topbar-acoes">
       <button id="botao-tema" class="topbar-botao" aria-label="Alternar tema claro/escuro" title="Modo claro/escuro">
         <svg class="ic-tema-lua"><use href="#ic-lua"/></svg>
@@ -64,7 +65,6 @@
     </div>
   </header>
 
-  <nav id="plano-contexto" aria-label="Plano de estudo atual"></nav>
 
   <div id="app">
     <!-- Fundo escuro do menu em gaveta (celular) -->
@@ -83,6 +83,7 @@
       <a href="#planos" data-rota="planos" class="nav-item"><svg class="nav-ic"><use href="#ic-planos"/></svg>Planos</a>
       <a href="#timer" data-rota="timer" class="nav-item"><svg class="nav-ic"><use href="#ic-timer"/></svg>Timer</a>
       <a href="#revisoes" data-rota="revisoes" class="nav-item"><svg class="nav-ic"><use href="#ic-revisoes"/></svg>Revisões <span id="badge-revisoes" class="badge oculto"></span></a>
+      <a href="#trilha" data-rota="trilha" class="nav-item"><svg class="nav-ic"><use href="#ic-livro"/></svg>Trilha de questões</a>
       <a href="#simulados" data-rota="simulados" class="nav-item"><svg class="nav-ic"><use href="#ic-simulados"/></svg>Simulados</a>
       <a href="#stats" data-rota="stats" class="nav-item"><svg class="nav-ic"><use href="#ic-stats"/></svg>Desempenho</a>
       <a href="#ferramentas" data-rota="ferramentas" class="nav-item"><svg class="nav-ic"><use href="#ic-mais"/></svg>Ferramentas</a>
@@ -138,18 +139,21 @@
     integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"
     crossorigin="anonymous" defer></script>
   <script src="js/frases.js"></script>
-  <script src="js/domain.js?v=20261028-inspiracao-mobile"></script>
-  <script src="js/store.js?v=20261028-inspiracao-mobile"></script>
+  <script src="js/domain.js?v=20261028-trilha"></script>
+  <script src="js/store.js?v=20261028-trilha"></script>
   <script src="js/sync.js?v=20260718h-seguranca-escala"></script>
   <script src="js/remote-state.js?v=20260718h-seguranca-escala"></script>
-  <script type="module" src="js/firebase-sync.js?v=20261028-inspiracao-mobile"></script>
-  <script src="js/timer.js?v=20261028-inspiracao-mobile"></script>
-  <script src="js/android-bridge.js?v=20261028-inspiracao-mobile"></script>
+  <script type="module" src="js/firebase-sync.js?v=20261028-trilha"></script>
+  <script src="js/timer.js?v=20261028-trilha"></script>
+  <script src="js/android-bridge.js?v=20261028-trilha"></script>
   <script src="js/charts.js?v=20260615v-green-performance"></script>
-  <script src="data/catalogo-editais.js?v=20261028-inspiracao-mobile"></script>
-  <script src="data/carreiras.js?v=20261028-inspiracao-mobile"></script>
-  <script src="data/ferramentas.js?v=20261028-inspiracao-mobile"></script>
-  <script src="js/app.js?v=20261028-inspiracao-mobile"></script>
+  <script src="data/catalogo-editais.js?v=20261028-trilha"></script>
+  <script src="data/carreiras.js?v=20261028-trilha"></script>
+  <script src="data/ferramentas.js?v=20261028-trilha"></script>
+  <script src="data/trilha-trf2.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/trilha.js"></script>
+  <script src="js/app.js?v=20261028-trilha"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

@@ -1290,9 +1290,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .home-cab { margin-bottom: 0.5rem; }
 .home-cab-esq { min-width: 0; }
 .home-cab-esq .frase-dia { margin-top: 0.9rem; }
-/* base (mobile): mostra a versão em card; esconde a do topo */
+/* No celular, a tela Hoje fica sem o cartão de data provável. */
 .home-cab-prova { display: none; }
-.prova-card-mobile { display: block; margin-bottom: 0.9rem; }
+.prova-card-mobile { display: none; }
 @media (min-width: 761px) {
   /* desktop: saudação + frase do dia à esquerda; data provável como conteúdo
      "solto" (sem moldura de card) no canto superior direito. A frase sobe e
@@ -4792,4 +4792,34 @@ body.sidebar-recolhida #topbar-rota { display: none; }
   .inicio-semana { order: 5; }
   .painel-disciplinas-card { order: 6; }
   .inicio-frase, .inicio-constancia, .home-cab-prova { order: 7; }
+}
+
+/* Trilha e contexto do plano integrados à barra superior. */
+#topbar #plano-contexto, body.sidebar-recolhida #topbar #plano-contexto { position: static; flex: 1 1 0; min-width: 0; height: 46px; border: 0; background: transparent; }
+#topbar-rota { display: none !important; }
+#topbar .contexto-plano-link { padding: 3px 8px; gap: 8px; }
+#topbar #plano-contexto .plano-atual-foto { width: 32px; height: 32px; flex-basis: 32px; }
+#topbar .contexto-plano-texto { flex: 1; }
+#topbar .contexto-plano-texto small { font-size: .65rem; }
+#topbar .contexto-plano-texto strong { font-size: .8rem; }
+body:not(.login-gate) #conteudo { padding-top: calc(var(--topbar-alt) + 24px); }
+.trilha-busca { display: grid; gap: 6px; margin: 18px 0; }
+.trilha-grupo summary { cursor: pointer; font-weight: 600; }
+.trilha-topico { border-top: 1px solid var(--linha); padding: 14px 0; margin-top: 12px; }
+.trilha-topico h3 { font-size: .95rem; margin: 0 0 8px; }
+.trilha-link { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.trilha-link a { overflow-wrap: anywhere; }
+.trilha-link small { color: var(--grafite); font-size: .75rem; }
+.trilha-topico[hidden], .trilha-grupo[hidden] { display: none; }
+#trilha-form label { display: grid; gap: 6px; margin: 12px 0; }
+@media (max-width: 760px) {
+  #topbar { flex-wrap: wrap; height: auto; min-height: var(--topbar-alt); }
+  #topbar #plano-contexto { flex: 1 0 100%; order: 3; height: 40px; }
+  #topbar .contexto-plano-texto small, #topbar .contexto-plano-acao { display: none; }
+  body:not(.login-gate) #conteudo { padding-top: calc(var(--topbar-alt) + 56px); }
+}
+
+@media (min-width: 761px) {
+  body:not(.sidebar-recolhida) #topbar .topbar-esquerda { display: none; }
+  body.sidebar-recolhida #topbar .topbar-esquerda { flex: 0 0 auto; }
 }
