@@ -1802,5 +1802,72 @@ window.TrilhaVinculosTRF2 = {
         "exact": false
       }
     ]
+  },
+  "alias-117": {
+    "nome": "Gestão de pessoas: clima e cultura organizacional",
+    "links": [
+      {
+        "nome": "Cultura organizacional",
+        "code": 404625,
+        "exact": false,
+        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404625&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1"
+      }
+    ]
+  },
+  "alias-118": {
+    "nome": "Liderança e motivação",
+    "links": [
+      {
+        "nome": "Motivação e teorias motivacionais",
+        "code": 404670,
+        "exact": true,
+        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404670&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1"
+      },
+      {
+        "nome": "Liderança e estilos de liderança",
+        "code": 404670,
+        "exact": false,
+        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404670&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1"
+      }
+    ]
+  },
+  "alias-119": {
+    "nome": "Gestão de desempenho: indicadores e avaliação",
+    "links": [
+      {
+        "nome": "Controle administrativo, auditoria e avaliação de desempenho",
+        "code": 417298,
+        "exact": false,
+        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=417298&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1"
+      },
+      {
+        "nome": "Indicadores de desempenho",
+        "code": 417298,
+        "exact": true,
+        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=417298&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1"
+      }
+    ]
+  },
+  "alias-120": {
+    "nome": "Gestão de processos: conceitos, princípios e mapeamento",
+    "links": [
+      {
+        "nome": "Gestão e mapeamento de processos",
+        "code": 404626,
+        "exact": true,
+        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404626&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1"
+      }
+    ]
+  },
+  "alias-121": {
+    "nome": "Gestão de processos: análise e melhoria",
+    "links": [
+      {
+        "nome": "Melhoria de processos e análise de dados",
+        "code": 404626,
+        "exact": false,
+        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404626&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1"
+      }
+    ]
   }
 };

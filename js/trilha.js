@@ -15,7 +15,7 @@
   const chaveCaderno = s => s.cadernoConsulta ? '' : (s.planoAtivoId || s.plano && s.plano.concurso || '');
   const ehTrf2 = state => /(?:trf\s*2|carreira\s+trf\b)/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '') && /administrativ/i.test(state.plano.concurso || '');
   function grupos(state) {
-    const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: 'plano:' + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id, vinculos: ehTrf2(state) ? Object.values(window.TrilhaVinculosTRF2 || {}).find(v => normal(v.nome) === normal(t.nome || t.titulo)) : null })) }));
+    const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: (state.cadernoEstruturaId ? 'base:' + state.cadernoEstruturaId + ':' : 'plano:') + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id, vinculos: ehTrf2(state) ? Object.values(window.TrilhaVinculosTRF2 || {}).find(v => normal(v.nome) === normal(t.nome || t.titulo)) : null })) }));
     return lista;
   }
   function padrao(t, state) {
@@ -48,7 +48,10 @@
   }
   function render(state) {
     if (!state.plano) return '<h1>Caderno de questões</h1><div class="card"><p>Escolha um plano para organizar seus cadernos.</p><a href="#planos">Escolher plano</a></div>';
-    const gs = grupos(state), total = gs.reduce((n,g) => n + g.topicos.length, 0);
+    const gs = grupos(state);
+    const disponivel = gs.some(g => g.topicos.some(t => defaults(state,t).length)) || (state.links || []).some(l => l.tipo === 'trilha');
+    if (!disponivel) return '<section class="caderno-indisponivel" role="status"><div><h1>Caderno de questões indisponível</h1><p class="sub">' + esc(state.plano.concurso) + '</p><p>Ainda não temos um caderno de questões para este plano.</p><p>Entre em contato se desejar solicitar a criação deste caderno.</p><div class="compact-actions"><button type="button" data-caderno-contato>Entrar em contato</button><a class="botao-mini botao-secundario" href="#planos">Voltar aos planos</a></div></div></section>';
+    const total = gs.reduce((n,g) => n + g.topicos.length, 0);
     return '<div class="caderno' + (edicaoPlano && edicaoPlano === chaveCaderno(state) ? ' editando' : '') + '"><header class="caderno-capa"><h1>Caderno de questões por subtópico</h1><p>' + esc(state.plano.concurso) + '</p><p>' + gs.length + ' disciplinas · ' + total + ' subtópicos' + (ehTrf2(state) ? ' · anos 2017–2026' : '') + '</p></header>' +
       '<div class="caderno-layout"><aside class="caderno-indice"><h2>Disciplinas</h2>' + gs.map((g,i) => '<button type="button" data-caderno-ir="' + i + '">' + esc(g.nome) + '<small>' + g.topicos.length + '</small></button>').join('') + '</aside><div class="caderno-corpo">' +
       '<section class="card caderno-intro"><strong>Como usar</strong><p>Abra as questões ao lado de cada subtópico. Você pode editar os links ou complementar com NotebookLM, TEC, Qconcursos e outras plataformas. Resolva quantas questões quiser, no seu ritmo.</p>' +
@@ -59,11 +62,13 @@
       '<button type="button" id="caderno-editar" class="botao-mini botao-secundario" aria-pressed="' + (edicaoPlano === chaveCaderno(state) && !!edicaoPlano) + '">' + (edicaoPlano === chaveCaderno(state) && edicaoPlano ? 'Concluir edição' : 'Editar caderno') + '</button><button type="button" id="caderno-imprimir" class="botao-mini botao-quieto">Imprimir / PDF</button></div>' +
       '<div id="trilha-grupos">' + gs.map((g,i) => '<details class="card trilha-grupo" id="caderno-disc-' + i + '"' + ((disciplinasAbertas.get(chaveCaderno(state)) || new Set()).has(i) ? ' open' : '') + '><summary class="caderno-sec-head"><div><small>' + String(i+1).padStart(2,'0') + ' / ' + gs.length + (g.tipo ? ' · ' + esc(g.tipo) : '') + '</small><h2>' + esc(g.nome) + '</h2></div><small>' + g.topicos.length + ' subtópicos</small></summary><p class="sub">Escolha o subtópico e resolva quantas questões quiser.</p>' + g.topicos.map(t => {
         const ls = links(state,t);
-        return '<article class="trilha-topico" data-busca="' + esc(normal(g.nome+t.nome)) + '"><div class="caderno-tema"><h3>' + esc(t.nome) + '</h3><small>' + esc(t.referencia ? (t.referencia.code == null ? 'Sem código específico verificado' : (t.referencia.exact ? 'Categoria identificada no arquivo' : 'Categoria mais ampla') + ' · assunto ' + t.referencia.code) : 'Links pessoais deste subtópico') + '</small></div><div class="caderno-acessos">' + ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer">' + esc(l.nome) + ' ↗</a>' : '<span>Link inválido</span>') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('') + '<button class="botao-mini botao-quieto caderno-adicionar" data-trilha-adicionar="' + esc(t.chave) + '">' + (ls.length ? '+ Adicionar link' : 'Adicionar questões') + '</button></div></article>';
+        return '<article class="trilha-topico" data-busca="' + esc(normal(g.nome+t.nome)) + '"><div class="caderno-tema"><h3>' + esc(t.nome) + '</h3><small>' + esc(t.referencia ? (t.referencia.code == null ? 'Sem código específico verificado' : (t.referencia.exact ? 'Categoria identificada no arquivo' : 'Categoria mais ampla') + ' · assunto ' + t.referencia.code) : (t.vinculos || defaults(state,t).length ? 'Questões do Gran vinculadas a este subtópico' : ls.length ? 'Links adicionados por você' : 'Sem link de questões cadastrado para este subtópico')) + '</small></div><div class="caderno-acessos">' + ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer">' + esc(l.nome) + ' ↗</a>' : '<span>Link inválido</span>') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('') + '<button class="botao-mini botao-quieto caderno-adicionar" data-trilha-adicionar="' + esc(t.chave) + '">' + (ls.length ? '+ Adicionar link' : 'Adicionar questões') + '</button></div></article>';
       }).join('') + '</details>').join('') + '</div><p id="trilha-vazia" hidden>Nenhum subtópico encontrado.</p><footer class="caderno-rodape">Seus links pertencem a este caderno. Acertos e erros das plataformas externas não são importados automaticamente.</footer></div></div></div>';
   }
   function ligar(state, api) {
     const raiz = document.getElementById('conteudo');
+    const contato = raiz.querySelector('[data-caderno-contato]');
+    if (contato) contato.onclick = () => api.contato && api.contato();
     const busca = raiz.querySelector('#trilha-busca');
     if (!busca) return;
     function filtrar() {

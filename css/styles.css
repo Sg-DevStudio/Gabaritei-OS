@@ -4941,3 +4941,8 @@ a[class*="botao"], .caderno a { text-decoration:none; border-bottom:0; }
 .ajuda-fechar { display:block; margin:16px 0 0 auto; padding:6px 12px; font-size:.8rem; }
 .ajuda-corpo { min-width:0; }
 @media print { .ajuda-compacta { display:none !important; } .caderno details:not([open]) > :not(summary) { display:block !important; } }
+
+.caderno-indisponivel { min-height:60vh; display:grid; place-items:center; text-align:center; padding:24px; }
+.caderno-indisponivel > div { max-width:560px; }
+.caderno-indisponivel h1 { font-size:1.6rem; }
+.caderno-indisponivel .compact-actions { justify-content:center; margin-top:20px; }

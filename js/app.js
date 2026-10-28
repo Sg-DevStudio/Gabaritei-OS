@@ -6449,8 +6449,7 @@
       try { m.focus({ preventScroll: true }); } catch (err) { m.focus(); }
     }, 0);
     m.querySelector('#det-caderno').addEventListener('click', function () {
-      const existente = state.planos.find(p => p.plano.origemEditalId === e.id || p.plano.concurso === e.titulo);
-      fecharModal(); location.hash = '#caderno-' + encodeURIComponent(existente ? existente.id : 'edital:' + e.id);
+      fecharModal(); location.hash = '#caderno-' + encodeURIComponent('edital:' + e.id);
     });
     m.querySelector('#det-fechar').addEventListener('click', fecharModal);
     m.querySelector('#det-iniciar').addEventListener('click', function () { criarPlanoDeEdital(e.id); });
@@ -12615,7 +12614,7 @@
     timer: { render: telaTimer, ligar: ligarTimer },
     revisoes: { render: telaRevisoes, ligar: ligarRevisoes },
     edital: { render: telaEdital, ligar: ligarEdital },
-    caderno: { render: function () { return window.Trilha.render(estadoCaderno()); }, ligar: function () { window.Trilha.ligar(estadoCaderno(), { salvar: salvar, render: render, abrirModal: abrirModal, fecharModal: fecharModal, toast: toast }); } },
+    caderno: { render: function () { return window.Trilha.render(estadoCaderno()); }, ligar: function () { window.Trilha.ligar(estadoCaderno(), { contato: abrirFeedback, salvar: salvar, render: render, abrirModal: abrirModal, fecharModal: fecharModal, toast: toast }); } },
     simulados: { render: telaSimulados, ligar: ligarSimulados },
     stats: { render: telaStats, ligar: ligarStats },
     ferramentas: { render: telaFerramentas, ligar: ligarFerramentas },
@@ -12627,13 +12626,28 @@
 
   let cadernoPlanoId = null;
   function estadoCaderno() {
-    const entrada = state.planos.find(p => p.id === cadernoPlanoId);
-    if (!entrada) {
-      const edital = String(cadernoPlanoId || '').startsWith('edital:') ? editalPorId(cadernoPlanoId.slice(7)) : null;
-      return edital ? Object.assign({}, state, { plano: { concurso: edital.titulo }, disciplinas: edital.disciplinas || [], links: [], cadernoConsulta: true }) : { plano: null, disciplinas: [], links: [] };
+    const id = String(cadernoPlanoId || '');
+    const edital = id.startsWith('edital:') ? editalPorId(id.slice(7)) : null;
+    const entrada = edital ? state.planos.find(p => p.plano && p.plano.concurso === edital.titulo) : state.planos.find(p => p.id === id);
+    let view;
+    if (!entrada) view = edital ? Object.assign({}, state, { plano: { concurso: edital.titulo }, disciplinas: edital.disciplinas || [], links: [], cadernoConsulta: true }) : { plano: null, disciplinas: [], links: [] };
+    else {
+      if (!entrada.links) entrada.links = [];
+      view = Object.assign({}, state, { plano: entrada.plano, disciplinas: entrada.disciplinas, links: entrada.links, planoAtivoId: entrada.id });
     }
-    if (!entrada.links) entrada.links = [];
-    return Object.assign({}, state, { plano: entrada.plano, disciplinas: entrada.disciplinas, links: entrada.links, planoAtivoId: entrada.id });
+    // O caderno publicado do TRF2 não pode herdar uma estrutura antiga ou de
+    // outro concurso que tenha sido salva sob o mesmo título. Apenas a visão
+    // do caderno usa esta base; agenda, disciplinas e histórico não são alterados.
+    const titulo = view.plano && view.plano.concurso || '';
+    if (/trf\s*2/i.test(titulo) && /t[eé]cnico/i.test(titulo) && /administrativ/i.test(titulo)) {
+      const base = (window.CATALOGO_EDITAIS_BASE || []).find(e => e.id === 'carreira-trf2-tjaa-2024');
+      if (base) {
+        const assinatura = ds => JSON.stringify((ds || []).map(d => [d.nome, (d.topicos || []).map(t => t.nome)]));
+        if (assinatura(view.disciplinas) !== assinatura(base.disciplinas)) view.cadernoEstruturaId = 'trf2-2024';
+        view.disciplinas = base.disciplinas;
+      }
+    }
+    return view;
   }
   function rotaAtual() {
     const r = location.hash.replace('#', '') || 'hoje';
@@ -12727,16 +12741,18 @@
   // A composição reaproveita os mesmos elementos e ações da fila: mover um
   // bloco para o destaque não cria outra sessão nem duplica seus listeners.
   function atualizarContextoPlano() {
+    const noCaderno = rotaAtual() === 'caderno';
+    const planoContexto = noCaderno ? estadoCaderno().plano : state.plano;
     const nomeRota = { hoje: 'Hoje', planejamento: 'Planejamento', planos: 'Planos', timer: 'Timer', revisoes: 'Revisões', simulados: 'Simulados', stats: 'Desempenho', ferramentas: 'Ferramentas', ajustes: 'Configurações' };
     const tituloTopo = document.getElementById('topbar-rota');
     if (tituloTopo) tituloTopo.textContent = nomeRota[rotaAtual()] || 'Meus estudos';
     const raiz = document.getElementById('plano-contexto');
     if (!raiz) return;
     raiz.innerHTML = '<a href="#planos" class="contexto-plano-link">' +
-      (state.plano ? fotoPlanoAtivoHtml() : '<svg class="nav-ic" aria-hidden="true"><use href="#ic-planos"/></svg>') +
-      '<span class="contexto-plano-texto"><small>' + (state.plano ? 'Seu plano de estudos' : 'Comece por um plano') + '</small>' +
-      '<strong>' + esc(state.plano ? state.plano.concurso || 'Meu plano' : 'Escolher meu concurso') + '</strong></span>' +
-      '<span class="contexto-plano-acao">' + (state.plano ? 'Ver planos' : 'Escolher') + ' <span aria-hidden="true">⌄</span></span></a>';
+      (planoContexto ? (noCaderno ? '<svg class="nav-ic" aria-hidden="true"><use href="#ic-livro"/></svg>' : fotoPlanoAtivoHtml()) : '<svg class="nav-ic" aria-hidden="true"><use href="#ic-planos"/></svg>') +
+      '<span class="contexto-plano-texto"><small>' + (planoContexto ? 'Seu plano de estudos' : 'Comece por um plano') + '</small>' +
+      '<strong>' + esc(planoContexto ? planoContexto.concurso || 'Meu plano' : 'Escolher meu concurso') + '</strong></span>' +
+      '<span class="contexto-plano-acao">' + (planoContexto ? 'Ver planos' : 'Escolher') + ' <span aria-hidden="true">⌄</span></span></a>';
   }
 
   function abrirAplicativoAndroid() {
