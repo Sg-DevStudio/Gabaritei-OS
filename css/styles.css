@@ -4972,3 +4972,13 @@ a[class*="botao"], .caderno a { text-decoration:none; }
  .caderno .caderno-acessos { flex:0 0 auto; max-width:42%; }
 }
 @media print { .gran-link .gran-texto { display:inline !important; } .gran-logo { display:none !important; } }
+
+/* Cabeçalho no início da página, sem cobrir o conteúdo durante a rolagem. */
+#topbar { position:absolute; }
+@media (min-width:761px) {
+  body:not(.sidebar-recolhida) #topbar #plano-contexto .contexto-plano-link > .nav-ic {
+    width:28px; height:32px; flex:0 0 28px;
+  }
+  .caderno-indice { top:24px; max-height:calc(100vh - 48px); }
+}
+.caderno .trilha-grupo { scroll-margin-top:24px; }
