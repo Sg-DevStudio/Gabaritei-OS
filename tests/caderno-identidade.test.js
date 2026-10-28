@@ -24,10 +24,10 @@ test('TRF2 usa a base completa no caderno sem modificar estrutura ou histórico 
   assert.equal(c.resultado.links.length, 0);
 });
 
-test('TJSP abre a base do caderno 2025 e preserva o plano ativo de outro concurso', () => {
+test('TJSP abre a base do caderno 2026 e preserva o plano ativo de outro concurso', () => {
  const root=path.join(__dirname,'..'), app=fs.readFileSync(path.join(root,'js/app.js'),'utf8');
  const fonte=app.slice(app.indexOf('  function estadoCaderno() {'),app.indexOf('  function rotaAtual()'));
- const c=vm.createContext({window:{},cadernoPlanoId:'edital:edt-mqifhb2v-yh9ym',state:{planos:[],plano:{concurso:'TRF2'},disciplinas:[]},editalPorId:()=>({titulo:'TJSP - Escrevente Técnico Judiciário (Edital 2025)',disciplinas:[]})});
+ const c=vm.createContext({window:{},cadernoPlanoId:'edital:edt-mqifhb2v-yh9ym',state:{planos:[],plano:{concurso:'TRF2'},disciplinas:[]},editalPorId:()=>({titulo:'TJSP - Escrevente Técnico Judiciário (Edital 2026)',disciplinas:[]})});
  vm.runInContext(fs.readFileSync(path.join(root,'data/caderno-tjsp.js'),'utf8'),c);
  vm.runInContext(fonte+'; resultado=estadoCaderno();',c);
  assert.equal(c.resultado.disciplinas.length,12);

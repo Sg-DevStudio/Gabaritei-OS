@@ -17,8 +17,8 @@ test('TJSP mantém as 12 disciplinas e 80 tópicos do plano cadastrado, com trê
  assert.ok(html.includes('gran-logo'));
  assert.ok(html.includes('aria-label="Resolver no Gran:'));
 });
-test('caderno TJSP 2025 não vaza para planos de outros concursos ou edital 2026',()=>{
- for(const titulo of ['TJSP - Escrevente (Edital 2026)','TJSP - Escrevente (Edital 2024)','Analista da Educação']){
+test('caderno TJSP 2026 não vaza para planos de outros concursos ou edital 2025',()=>{
+ for(const titulo of ['TJSP - Escrevente (Edital 2025)','TJSP - Escrevente (Edital 2024)','Analista da Educação']){
  const html=c.window.Trilha.render({...state,plano:{concurso:titulo}});
  assert.ok(html.includes('Caderno de questões indisponível'));
  assert.ok(!html.includes('gran-logo'));

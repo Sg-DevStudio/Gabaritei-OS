@@ -4982,3 +4982,8 @@ a[class*="botao"], .caderno a { text-decoration:none; }
   .caderno-indice { top:24px; max-height:calc(100vh - 48px); }
 }
 .caderno .trilha-grupo { scroll-margin-top:24px; }
+
+#topbar .contexto-plano-link { align-items:flex-end; }
+#topbar .contexto-plano-link > .nav-ic { align-self:flex-end; margin-bottom:2px; }
+#topbar .contexto-plano-acao { align-self:center; }
+@media (min-width:761px) { #topbar .contexto-plano-link > .nav-ic { transform:translateY(5px); } }

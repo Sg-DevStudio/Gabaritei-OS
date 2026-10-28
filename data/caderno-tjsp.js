@@ -1,10 +1,10 @@
-// Referência do plano TJSP Escrevente 2025: categorias amplas são identificadas e seis itens permanecem sem filtro seguro.
+// TJSP Edital 02/2026, Anexo VIII. IDs preservados.
 window.CadernoTJSPBase = {
   "id": "edt-mqifhb2v-yh9ym",
-  "titulo": "TJSP - Escrevente Técnico Judiciário (Edital 2025)",
-  "referencia": "Edital TJSP 2025 do plano cadastrado",
+  "titulo": "TJSP - Escrevente Técnico Judiciário (Edital 2026)",
+  "referencia": "Edital 02/2026, Anexo VIII — 2ª a 10ª RAJ",
   "bancas": "252,982,102",
-  "fonte": "https://portal.tjsp.jus.br/Imprensa/Noticias/Noticia?codigoNoticia=108814&pagina=176",
+  "fonte": "https://documento.vunesp.com.br/documento/stream/NzkyMDQ1Nw%3d%3d",
   "disciplinas": [
     {
       "id": "POR",
@@ -70,23 +70,23 @@ window.CadernoTJSPBase = {
         },
         {
           "id": "DPE-02",
-          "nome": "Falsa identidade, fraudes em certames e adulteracao de sinal veicular"
+          "nome": "Falsa identidade e fraude em certames: arts. 307, 308 e 311-A do CP"
         },
         {
           "id": "DPE-03",
-          "nome": "Crimes praticados por funcionario público contra a Administração"
+          "nome": "Crimes de funcionário público: arts. 312 a 317 e 319 a 327 do CP"
         },
         {
           "id": "DPE-04",
-          "nome": "Crimes praticados por particular contra a Administração"
+          "nome": "Crimes de particular contra a Administração: arts. 328 a 333 do CP"
         },
         {
           "id": "DPE-05",
-          "nome": "Crimes contra a Administração da Justiça"
+          "nome": "Crimes contra a Administração da Justiça: arts. 339 a 347 do CP"
         },
         {
           "id": "DPE-06",
-          "nome": "Demais artigos expressos: 336, 337, 357 e 359"
+          "nome": "Demais crimes do edital: arts. 336, 337, 357 e 359 do CP"
         }
       ]
     },
@@ -96,11 +96,11 @@ window.CadernoTJSPBase = {
       "topicos": [
         {
           "id": "DPP-01",
-          "nome": "Juiz, Ministério Público, acusado, defensor e auxiliares da Justiça"
+          "nome": "Juiz, MP, acusado, defensor e auxiliares: arts. 251 a 258, 261 a 267 e 274 do CPP"
         },
         {
           "id": "DPP-02",
-          "nome": "Citacoes e intimações"
+          "nome": "Citações e intimações: arts. 351 a 372 do CPP"
         },
         {
           "id": "DPP-03",
@@ -108,15 +108,15 @@ window.CadernoTJSPBase = {
         },
         {
           "id": "DPP-04",
-          "nome": "Procedimento sumário e atos processuais específicos"
+          "nome": "Procedimento sumário e restauração de autos: arts. 531 a 538 e 541 a 548 do CPP"
         },
         {
           "id": "DPP-05",
-          "nome": "Recursos no processo penal"
+          "nome": "Recursos e habeas corpus: arts. 574 a 667 do CPP"
         },
         {
           "id": "DPP-06",
-          "nome": "Juizados Especiais Criminais: Lei 9.099/1995"
+          "nome": "Juizados Especiais Criminais: arts. 60 a 83, 88 e 89 da Lei 9.099/1995"
         }
       ]
     },
@@ -126,23 +126,23 @@ window.CadernoTJSPBase = {
       "topicos": [
         {
           "id": "DPC-01",
-          "nome": "Impedimento, suspeição e atos processuais"
+          "nome": "Impedimento, suspeição e atos processuais: arts. 144 a 155 e 188 a 211 do CPC"
         },
         {
           "id": "DPC-02",
-          "nome": "Comunicação dos atos, citação, intimação e cartas"
+          "nome": "Comunicação dos atos: arts. 212 a 275 do CPC"
         },
         {
           "id": "DPC-03",
-          "nome": "Prazos, nulidades, distribuição, valor da causa e tutela provisória"
+          "nome": "Tutela provisória: arts. 294 a 311 do CPC"
         },
         {
           "id": "DPC-04",
-          "nome": "Procedimento comum: petição inicial, resposta, saneamento e julgamento"
+          "nome": "Procedimento comum: arts. 318 a 484 do CPC"
         },
         {
           "id": "DPC-05",
-          "nome": "Cumprimento de sentenca e processos nos tribunais"
+          "nome": "Sentença, coisa julgada e cumprimento: arts. 485 a 538 do CPC"
         },
         {
           "id": "DPC-06",
@@ -150,7 +150,7 @@ window.CadernoTJSPBase = {
         },
         {
           "id": "DPC-07",
-          "nome": "Juizados Especiais Civeis e Fazenda Pública"
+          "nome": "Juizados Cíveis: arts. 3 a 19 da Lei 9.099/1995 e Lei 12.153/2009"
         }
       ]
     },
@@ -190,19 +190,19 @@ window.CadernoTJSPBase = {
       "topicos": [
         {
           "id": "DAD-01",
-          "nome": "Estatuto SP: provimento, exercicio, posse e vacância"
+          "nome": "Estatuto SP: disposições e provimento (arts. 1 a 86 da Lei 10.261/1968)"
         },
         {
           "id": "DAD-02",
-          "nome": "Estatuto SP: direitos, vantagens, licencas e tempo de servico"
+          "nome": "Estatuto SP: exercício e vencimentos (arts. 171 a 175)"
         },
         {
           "id": "DAD-03",
-          "nome": "Estatuto SP: deveres, proibições e responsabilidades"
+          "nome": "Estatuto SP: deveres, proibições, responsabilidades e penalidades (arts. 239 a 263)"
         },
         {
           "id": "DAD-04",
-          "nome": "Estatuto SP: processo administrativo disciplinar"
+          "nome": "Estatuto SP: procedimentos disciplinares (arts. 264 a 323)"
         },
         {
           "id": "DAD-05",
@@ -210,7 +210,7 @@ window.CadernoTJSPBase = {
         },
         {
           "id": "DAD-06",
-          "nome": "Princípios e sancoes aplicaveis ao servidor público"
+          "nome": "Revisão integrada: arts. 1 a 86, 171 a 175 e 239 a 323 do Estatuto SP e Lei 8.429/1992"
         }
       ]
     },
@@ -220,23 +220,23 @@ window.CadernoTJSPBase = {
       "topicos": [
         {
           "id": "LIN-01",
-          "nome": "Normas da Corregedoria: Capitulo II"
+          "nome": "Normas CGJ, Tomo I: Capítulo II, Seção I, subseções I e II"
         },
         {
           "id": "LIN-02",
-          "nome": "Normas da Corregedoria: Capitulo III, secoes I, II, V, VI e VII"
+          "nome": "Normas CGJ, Tomo I: Capítulo III, seções I, II, V, VI e VII"
         },
         {
           "id": "LIN-03",
-          "nome": "Normas da Corregedoria: Capitulo III, secao VIII e subsecoes"
+          "nome": "Normas CGJ, Tomo I: Capítulo III, seção VIII, subseções I, II e III"
         },
         {
           "id": "LIN-04",
-          "nome": "Normas da Corregedoria: Capitulo III, secoes IX a XIX"
+          "nome": "Normas CGJ, Tomo I: Capítulo III, seções IX a XIX"
         },
         {
           "id": "LIN-05",
-          "nome": "Normas da Corregedoria: Capitulo XI"
+          "nome": "Normas CGJ, Tomo I: Capítulo XI, seções I a VII"
         },
         {
           "id": "LIN-06",
@@ -258,15 +258,15 @@ window.CadernoTJSPBase = {
       "topicos": [
         {
           "id": "ATU-01",
-          "nome": "Fatos politicos e institucionais a partir do 1o semestre de 2025"
+          "nome": "Fatos políticos e institucionais a partir do 1º semestre de 2026"
         },
         {
           "id": "ATU-02",
-          "nome": "Fatos economicos nacionais e internacionais"
+          "nome": "Fatos econômicos nacionais e internacionais a partir de 2026"
         },
         {
           "id": "ATU-03",
-          "nome": "Fatos sociais, culturais, tecnologia e meio ambiente"
+          "nome": "Fatos sociais e culturais nacionais e internacionais a partir de 2026"
         },
         {
           "id": "ATU-04",
@@ -330,7 +330,7 @@ window.CadernoTJSPBase = {
         },
         {
           "id": "INF-03",
-          "nome": "Excel: celulas, formulas, funções, gráficos e classificação de dados"
+          "nome": "Excel: células, fórmulas, funções, macros, dados externos, gráficos e impressão"
         },
         {
           "id": "INF-04",
@@ -584,12 +584,12 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPE-02": {
-    "nome": "Falsa identidade, fraudes em certames e adulteracao de sinal veicular",
+    "nome": "Falsa identidade e fraude em certames: arts. 307, 308 e 311-A do CP",
     "links": [
       {
-        "nome": "Falsa identidade, fraudes em certames e adulteracao de sinal veicular",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=414053%2C406430%2C414055&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "414053,406430,414055",
+        "nome": "Falsa identidade e fraude em certames: arts. 307, 308 e 311-A do CP",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=414053%2C406430&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "414053,406430",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
         "filtroAmplo": true
@@ -598,10 +598,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPE-03": {
-    "nome": "Crimes praticados por funcionario público contra a Administração",
+    "nome": "Crimes de funcionário público: arts. 312 a 317 e 319 a 327 do CP",
     "links": [
       {
-        "nome": "Crimes praticados por funcionario público contra a Administração",
+        "nome": "Crimes de funcionário público: arts. 312 a 317 e 319 a 327 do CP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406431&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "406431",
         "exact": false,
@@ -612,10 +612,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPE-04": {
-    "nome": "Crimes praticados por particular contra a Administração",
+    "nome": "Crimes de particular contra a Administração: arts. 328 a 333 do CP",
     "links": [
       {
-        "nome": "Crimes praticados por particular contra a Administração",
+        "nome": "Crimes de particular contra a Administração: arts. 328 a 333 do CP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406474&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "406474",
         "exact": false,
@@ -626,10 +626,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPE-05": {
-    "nome": "Crimes contra a Administração da Justiça",
+    "nome": "Crimes contra a Administração da Justiça: arts. 339 a 347 do CP",
     "links": [
       {
-        "nome": "Crimes contra a Administração da Justiça",
+        "nome": "Crimes contra a Administração da Justiça: arts. 339 a 347 do CP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406496&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "406496",
         "exact": false,
@@ -640,10 +640,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPE-06": {
-    "nome": "Demais artigos expressos: 336, 337, 357 e 359",
+    "nome": "Demais crimes do edital: arts. 336, 337, 357 e 359 do CP",
     "links": [
       {
-        "nome": "Demais artigos expressos: 336, 337, 357 e 359",
+        "nome": "Demais crimes do edital: arts. 336, 337, 357 e 359 do CP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406474%2C406496&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "406474,406496",
         "exact": false,
@@ -654,10 +654,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPP-01": {
-    "nome": "Juiz, Ministério Público, acusado, defensor e auxiliares da Justiça",
+    "nome": "Juiz, MP, acusado, defensor e auxiliares: arts. 251 a 258, 261 a 267 e 274 do CPP",
     "links": [
       {
-        "nome": "Juiz, Ministério Público, acusado, defensor e auxiliares da Justiça",
+        "nome": "Juiz, MP, acusado, defensor e auxiliares: arts. 251 a 258, 261 a 267 e 274 do CPP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&disciplina=406602&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": null,
         "exact": false,
@@ -668,10 +668,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPP-02": {
-    "nome": "Citacoes e intimações",
+    "nome": "Citações e intimações: arts. 351 a 372 do CPP",
     "links": [
       {
-        "nome": "Citacoes e intimações",
+        "nome": "Citações e intimações: arts. 351 a 372 do CPP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406669%2C406670&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "406669,406670",
         "exact": false,
@@ -696,10 +696,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPP-04": {
-    "nome": "Procedimento sumário e atos processuais específicos",
+    "nome": "Procedimento sumário e restauração de autos: arts. 531 a 538 e 541 a 548 do CPP",
     "links": [
       {
-        "nome": "Procedimento sumário e atos processuais específicos",
+        "nome": "Procedimento sumário e restauração de autos: arts. 531 a 538 e 541 a 548 do CPP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&disciplina=406602&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": null,
         "exact": false,
@@ -710,10 +710,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPP-05": {
-    "nome": "Recursos no processo penal",
+    "nome": "Recursos e habeas corpus: arts. 574 a 667 do CPP",
     "links": [
       {
-        "nome": "Recursos no processo penal",
+        "nome": "Recursos e habeas corpus: arts. 574 a 667 do CPP",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406683&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "406683",
         "exact": false,
@@ -724,10 +724,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPP-06": {
-    "nome": "Juizados Especiais Criminais: Lei 9.099/1995",
+    "nome": "Juizados Especiais Criminais: arts. 60 a 83, 88 e 89 da Lei 9.099/1995",
     "links": [
       {
-        "nome": "Juizados Especiais Criminais: Lei 9.099/1995",
+        "nome": "Juizados Especiais Criminais: arts. 60 a 83, 88 e 89 da Lei 9.099/1995",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=414336%2C406711&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "414336,406711",
         "exact": false,
@@ -738,10 +738,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPC-01": {
-    "nome": "Impedimento, suspeição e atos processuais",
+    "nome": "Impedimento, suspeição e atos processuais: arts. 144 a 155 e 188 a 211 do CPC",
     "links": [
       {
-        "nome": "Impedimento, suspeição e atos processuais",
+        "nome": "Impedimento, suspeição e atos processuais: arts. 144 a 155 e 188 a 211 do CPC",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=422776%2C402128&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "422776,402128",
         "exact": false,
@@ -752,10 +752,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPC-02": {
-    "nome": "Comunicação dos atos, citação, intimação e cartas",
+    "nome": "Comunicação dos atos: arts. 212 a 275 do CPC",
     "links": [
       {
-        "nome": "Comunicação dos atos, citação, intimação e cartas",
+        "nome": "Comunicação dos atos: arts. 212 a 275 do CPC",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=423087&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "423087",
         "exact": false,
@@ -766,10 +766,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPC-03": {
-    "nome": "Prazos, nulidades, distribuição, valor da causa e tutela provisória",
+    "nome": "Tutela provisória: arts. 294 a 311 do CPC",
     "links": [
       {
-        "nome": "Prazos, nulidades, distribuição, valor da causa e tutela provisória",
+        "nome": "Tutela provisória: arts. 294 a 311 do CPC",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402128%2C402141&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "402128,402141",
         "exact": false,
@@ -780,10 +780,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPC-04": {
-    "nome": "Procedimento comum: petição inicial, resposta, saneamento e julgamento",
+    "nome": "Procedimento comum: arts. 318 a 484 do CPC",
     "links": [
       {
-        "nome": "Procedimento comum: petição inicial, resposta, saneamento e julgamento",
+        "nome": "Procedimento comum: arts. 318 a 484 do CPC",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402150&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "402150",
         "exact": false,
@@ -794,10 +794,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPC-05": {
-    "nome": "Cumprimento de sentenca e processos nos tribunais",
+    "nome": "Sentença, coisa julgada e cumprimento: arts. 485 a 538 do CPC",
     "links": [
       {
-        "nome": "Cumprimento de sentenca e processos nos tribunais",
+        "nome": "Sentença, coisa julgada e cumprimento: arts. 485 a 538 do CPC",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402212&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "402212",
         "exact": false,
@@ -822,10 +822,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DPC-07": {
-    "nome": "Juizados Especiais Civeis e Fazenda Pública",
+    "nome": "Juizados Cíveis: arts. 3 a 19 da Lei 9.099/1995 e Lei 12.153/2009",
     "links": [
       {
-        "nome": "Juizados Especiais Civeis e Fazenda Pública",
+        "nome": "Juizados Cíveis: arts. 3 a 19 da Lei 9.099/1995 e Lei 12.153/2009",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=424626%2C424588&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "424626,424588",
         "exact": false,
@@ -920,10 +920,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DAD-01": {
-    "nome": "Estatuto SP: provimento, exercicio, posse e vacância",
+    "nome": "Estatuto SP: disposições e provimento (arts. 1 a 86 da Lei 10.261/1968)",
     "links": [
       {
-        "nome": "Estatuto SP: provimento, exercicio, posse e vacância",
+        "nome": "Estatuto SP: disposições e provimento (arts. 1 a 86 da Lei 10.261/1968)",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=394651&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "394651",
         "exact": false,
@@ -934,10 +934,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DAD-02": {
-    "nome": "Estatuto SP: direitos, vantagens, licencas e tempo de servico",
+    "nome": "Estatuto SP: exercício e vencimentos (arts. 171 a 175)",
     "links": [
       {
-        "nome": "Estatuto SP: direitos, vantagens, licencas e tempo de servico",
+        "nome": "Estatuto SP: exercício e vencimentos (arts. 171 a 175)",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=394651&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "394651",
         "exact": false,
@@ -948,10 +948,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DAD-03": {
-    "nome": "Estatuto SP: deveres, proibições e responsabilidades",
+    "nome": "Estatuto SP: deveres, proibições, responsabilidades e penalidades (arts. 239 a 263)",
     "links": [
       {
-        "nome": "Estatuto SP: deveres, proibições e responsabilidades",
+        "nome": "Estatuto SP: deveres, proibições, responsabilidades e penalidades (arts. 239 a 263)",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=394651&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "394651",
         "exact": false,
@@ -962,10 +962,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DAD-04": {
-    "nome": "Estatuto SP: processo administrativo disciplinar",
+    "nome": "Estatuto SP: procedimentos disciplinares (arts. 264 a 323)",
     "links": [
       {
-        "nome": "Estatuto SP: processo administrativo disciplinar",
+        "nome": "Estatuto SP: procedimentos disciplinares (arts. 264 a 323)",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=394651&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "394651",
         "exact": false,
@@ -990,10 +990,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "DAD-06": {
-    "nome": "Princípios e sancoes aplicaveis ao servidor público",
+    "nome": "Revisão integrada: arts. 1 a 86, 171 a 175 e 239 a 323 do Estatuto SP e Lei 8.429/1992",
     "links": [
       {
-        "nome": "Princípios e sancoes aplicaveis ao servidor público",
+        "nome": "Revisão integrada: arts. 1 a 86, 171 a 175 e 239 a 323 do Estatuto SP e Lei 8.429/1992",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=394651%2C404431&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "394651,404431",
         "exact": false,
@@ -1004,10 +1004,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "LIN-01": {
-    "nome": "Normas da Corregedoria: Capitulo II",
+    "nome": "Normas CGJ, Tomo I: Capítulo II, Seção I, subseções I e II",
     "links": [
       {
-        "nome": "Normas da Corregedoria: Capitulo II",
+        "nome": "Normas CGJ, Tomo I: Capítulo II, Seção I, subseções I e II",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=432497&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "432497",
         "exact": false,
@@ -1018,10 +1018,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "LIN-02": {
-    "nome": "Normas da Corregedoria: Capitulo III, secoes I, II, V, VI e VII",
+    "nome": "Normas CGJ, Tomo I: Capítulo III, seções I, II, V, VI e VII",
     "links": [
       {
-        "nome": "Normas da Corregedoria: Capitulo III, secoes I, II, V, VI e VII",
+        "nome": "Normas CGJ, Tomo I: Capítulo III, seções I, II, V, VI e VII",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=432497&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "432497",
         "exact": false,
@@ -1032,10 +1032,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "LIN-03": {
-    "nome": "Normas da Corregedoria: Capitulo III, secao VIII e subsecoes",
+    "nome": "Normas CGJ, Tomo I: Capítulo III, seção VIII, subseções I, II e III",
     "links": [
       {
-        "nome": "Normas da Corregedoria: Capitulo III, secao VIII e subsecoes",
+        "nome": "Normas CGJ, Tomo I: Capítulo III, seção VIII, subseções I, II e III",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=432497&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "432497",
         "exact": false,
@@ -1046,10 +1046,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "LIN-04": {
-    "nome": "Normas da Corregedoria: Capitulo III, secoes IX a XIX",
+    "nome": "Normas CGJ, Tomo I: Capítulo III, seções IX a XIX",
     "links": [
       {
-        "nome": "Normas da Corregedoria: Capitulo III, secoes IX a XIX",
+        "nome": "Normas CGJ, Tomo I: Capítulo III, seções IX a XIX",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=432497&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "432497",
         "exact": false,
@@ -1060,10 +1060,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "LIN-05": {
-    "nome": "Normas da Corregedoria: Capitulo XI",
+    "nome": "Normas CGJ, Tomo I: Capítulo XI, seções I a VII",
     "links": [
       {
-        "nome": "Normas da Corregedoria: Capitulo XI",
+        "nome": "Normas CGJ, Tomo I: Capítulo XI, seções I a VII",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=432497&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "432497",
         "exact": false,
@@ -1098,11 +1098,11 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "ATU-01": {
-    "nome": "Fatos politicos e institucionais a partir do 1o semestre de 2025",
+    "nome": "Fatos políticos e institucionais a partir do 1º semestre de 2026",
     "links": [
       {
-        "nome": "Fatos politicos e institucionais a partir do 1o semestre de 2025",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407354%2C407406&banca=252%2C982%2C102&nivel=2&anos=2025%2C2026",
+        "nome": "Fatos políticos e institucionais a partir do 1º semestre de 2026",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407354%2C407406&banca=252%2C982%2C102&nivel=2&anos=2026,2027",
         "code": "407354,407406",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
@@ -1112,11 +1112,11 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "ATU-02": {
-    "nome": "Fatos economicos nacionais e internacionais",
+    "nome": "Fatos econômicos nacionais e internacionais a partir de 2026",
     "links": [
       {
-        "nome": "Fatos economicos nacionais e internacionais",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407348%2C407402&banca=252%2C982%2C102&nivel=2&anos=2025%2C2026",
+        "nome": "Fatos econômicos nacionais e internacionais a partir de 2026",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407348%2C407402&banca=252%2C982%2C102&nivel=2&anos=2026,2027",
         "code": "407348,407402",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
@@ -1126,11 +1126,11 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "ATU-03": {
-    "nome": "Fatos sociais, culturais, tecnologia e meio ambiente",
+    "nome": "Fatos sociais e culturais nacionais e internacionais a partir de 2026",
     "links": [
       {
-        "nome": "Fatos sociais, culturais, tecnologia e meio ambiente",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&disciplina=407341&banca=252%2C982%2C102&nivel=2&anos=2025%2C2026",
+        "nome": "Fatos sociais e culturais nacionais e internacionais a partir de 2026",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&disciplina=407341&banca=252%2C982%2C102&nivel=2&anos=2026,2027",
         "code": null,
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
@@ -1308,10 +1308,10 @@ window.TrilhaVinculosTJSP = {
     "pendencia": null
   },
   "INF-03": {
-    "nome": "Excel: celulas, formulas, funções, gráficos e classificação de dados",
+    "nome": "Excel: células, fórmulas, funções, macros, dados externos, gráficos e impressão",
     "links": [
       {
-        "nome": "Excel: celulas, formulas, funções, gráficos e classificação de dados",
+        "nome": "Excel: células, fórmulas, funções, macros, dados externos, gráficos e impressão",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405118&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "405118",
         "exact": false,

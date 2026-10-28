@@ -131,6 +131,7 @@
   }
 
   function normalizarEditalCatalogo(e, origem) {
+    if (window.EditalTJSP2026) e = window.EditalTJSP2026.atualizarCatalogo(e);
     const c = corrigirClassificacaoCatalogo(e);
     if (window.Store && window.Store.normalizarAcentosEdital) window.Store.normalizarAcentosEdital(c);
     c.id = c.id || ((origem === 'global' ? 'global-' : 'edt-') + slugCatalogo(c.titulo));
@@ -12647,7 +12648,7 @@
         view.disciplinas = base.disciplinas;
       }
     }
-    if (/tjsp/.test(String(titulo).normalize('NFD').replace(/[^a-zA-Z0-9]/g,'').toLowerCase()) && /escrevente/i.test(titulo) && /2025/.test(titulo) && window.CadernoTJSPBase) {
+    if (/tjsp/.test(String(titulo).normalize('NFD').replace(/[^a-zA-Z0-9]/g,'').toLowerCase()) && /escrevente/i.test(titulo) && /2026/.test(titulo) && window.CadernoTJSPBase) {
       view.disciplinas = window.CadernoTJSPBase.disciplinas;
     }
     return view;
@@ -12754,7 +12755,7 @@
     raiz.innerHTML = '<a href="#planos" class="contexto-plano-link">' +
       (planoContexto ? '<svg class="nav-ic" aria-hidden="true"><use href="#ic-livro"/></svg>' : '<svg class="nav-ic" aria-hidden="true"><use href="#ic-planos"/></svg>') +
       '<span class="contexto-plano-texto"><small>' + (planoContexto ? 'Seu plano de estudos' : 'Comece por um plano') + '</small>' +
-      '<strong>' + esc(planoContexto ? (planoContexto.concurso || 'Meu plano').replace(/\s*\(base\s+\d{4}\)/gi, '') : 'Escolher meu concurso') + '</strong></span>' +
+      '<strong>' + esc(planoContexto ? (planoContexto.concurso || 'Meu plano').replace(/\s*\((?:base|edital)\s+\d{4}\)/gi, '') : 'Escolher meu concurso') + '</strong></span>' +
       '<span class="contexto-plano-acao">' + (planoContexto ? 'Ver planos' : 'Escolher') + '</span></a>';
   }
 
@@ -12919,6 +12920,10 @@
       return;
     }
     document.body.classList.remove('login-gate');
+    if (!modoDemo && window.EditalTJSP2026 && window.EditalTJSP2026.atualizarPlanos(state, D.mesclarEditalNoPlano)) {
+      window.Store.hidratar(state);
+      salvar();
+    }
     if (!modoDemo) processarPausasVencidas();
     if (!modoDemo && !pulaRecalcSemanal) verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
