@@ -4823,3 +4823,17 @@ body:not(.login-gate) #conteudo { padding-top: calc(var(--topbar-alt) + 24px); }
   body:not(.sidebar-recolhida) #topbar .topbar-esquerda { display: none; }
   body.sidebar-recolhida #topbar .topbar-esquerda { flex: 0 0 auto; }
 }
+
+/* Plano atual com leitura mais confortável e largura disponível no cabeçalho. */
+#topbar #plano-contexto { height: 58px; }
+#topbar .contexto-plano-link { width: 100%; gap: 12px; padding: 6px 12px; }
+#topbar .contexto-plano-texto strong { font-size: 1rem; line-height: 1.4; }
+#topbar .contexto-plano-texto small { font-size: .76rem; }
+#topbar #plano-contexto .plano-atual-foto { width: 42px; height: 42px; flex-basis: 42px; }
+@media (min-width: 761px) { :root { --topbar-alt: 72px; } }
+@media (max-width: 760px) {
+  #topbar #plano-contexto { height: 50px; }
+  #topbar .contexto-plano-texto strong { font-size: .9rem; }
+  #topbar #plano-contexto .plano-atual-foto { width: 34px; height: 34px; flex-basis: 34px; }
+  body:not(.login-gate) #conteudo { padding-top: calc(var(--topbar-alt) + 66px); }
+}

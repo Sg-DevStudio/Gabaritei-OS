@@ -8,9 +8,6 @@
   }
   function grupos(state) {
     const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: 'plano:' + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id })) }));
-    if (/trf\s*2/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso)) {
-      (window.TrilhaReferencia || []).forEach((d, i) => lista.push({ nome: d.name + ' · referência TRF2', referencia: true, topicos: d.topics.map((t, j) => ({ chave: 'ref:trf2-2024:' + i + ':' + j, nome: t.name, referencia: t })) }));
-    }
     return lista;
   }
   function padrao(t, state) {
@@ -23,12 +20,19 @@
     return { id: 'referencia', nome: 'Resolver no Gran · AOCP + FCC', url: 'https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=' + encodeURIComponent(ref.code) + '&banca=982%2C92&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026&nivel=1', aviso: ref.exact ? 'Correspondência específica indicada no arquivo' : 'Categoria ampla: pode incluir outros assuntos' };
   }
   function links(state, t) {
-    const pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === t.chave);
+    let pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === t.chave);
+    // Preserva os links pessoais da antiga seção de referência quando o tópico
+    // tem correspondência única, sem duplicar disciplinas fora do edital.
+    if (!pessoais.length && /trf\s*2/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '')) {
+      const chaves = [];
+      (window.TrilhaReferencia || []).forEach((d, i) => d.topics.forEach((r, j) => { if (normal(r.name) === normal(t.nome)) chaves.push('ref:trf2-2024:' + i + ':' + j); }));
+      if (chaves.length === 1) pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === chaves[0]);
+    }
     return (pessoais.length ? pessoais : [padrao(t, state)].filter(Boolean)).filter(l => !l.oculto).sort((a, b) => Number(!!b.principal) - Number(!!a.principal));
   }
   function render(state) {
-    if (!state.plano) return '<h1>Trilha de questões</h1><div class="card"><p>Escolha um plano para organizar seus cadernos.</p><a href="#planos">Escolher plano</a></div>';
-    return '<h1>Trilha de questões</h1><p class="sub">Caderno do plano: ' + esc(state.plano.concurso) + '. Seus links pessoais ficam neste plano.</p>' +
+    if (!state.plano) return '<h1>Caderno de questões</h1><div class="card"><p>Escolha um plano para organizar seus cadernos.</p><a href="#planos">Escolher plano</a></div>';
+    return '<nav class="compact-actions" aria-label="Voltar ao plano"><a href="#planos">Planos</a><a href="#planejamento">Planejamento</a></nav><h1>Caderno de questões</h1><p class="sub">Caderno do plano: ' + esc(state.plano.concurso) + '. Seus links pessoais ficam neste plano.</p>' +
       '<div class="card trilha-intro"><p>Abra questões por assunto ou adicione links do Gran, NotebookLM, TEC e outras plataformas. Resolver fora do Gabaritei não importa acertos automaticamente.</p>' + (/trf\s*2/i.test(state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '') ? '<p>Referência TRF2: edital-base 2024, AOCP e FCC complementar, 2017–2026. Filtros e quantidades ainda precisam de conferência no Gran. Os tópicos de referência não são adicionados ao seu edital.</p>' : '') + '</div>' +
       '<label class="trilha-busca">Buscar disciplina ou subtópico<input id="trilha-busca" type="search" placeholder="Ex.: Crase"></label><div id="trilha-grupos">' + grupos(state).map(g => '<details class="card trilha-grupo"' + (g.referencia ? '' : ' open') + '><summary>' + esc(g.nome) + ' <small>(' + g.topicos.length + ')</small></summary>' + g.topicos.map(t => {
         const ls = links(state, t);

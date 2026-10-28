@@ -6019,6 +6019,7 @@
       '</div>' +
       '<div class="catalogo-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' + nt + ' tópicos</div>' +
       '<div class="catalogo-acoes">' +
+      (jaTem ? '<a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planos.find(p => p.plano.concurso === e.titulo).id) + '">Caderno de questões</a>' : '') +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '">Ver detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '">' + (jaTem ? 'Refazer plano' : 'Iniciar plano') + '</button>' +
       '<button class="botao-mini botao-quieto" data-pl-comparar="' + esc(e.id) + '">Comparar</button>' +
@@ -6056,6 +6057,7 @@
       (e.descricaoPreparacao ? '<p class="' + (carreira ? 'catalogo-carreira-promessa' : 'sub') + '">' + esc(e.descricaoPreparacao) + '</p>' : '') +
       '<div class="catalogo-metricas">' + metricas + '</div>' +
       '<div class="catalogo-acoes">' +
+      (jaTem ? '<a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planos.find(p => p.plano.concurso === e.titulo).id) + '">Caderno de questões</a>' : '') +
       '<button class="botao-mini botao-secundario" data-pl-detalhes="' + esc(e.id) + '" title="Ver disciplinas, tópicos e prioridades">Detalhes</button>' +
       '<button class="botao-mini" data-pl-iniciar="' + esc(e.id) + '" title="Gerar plano a partir desta seleção">' + (jaTem ? 'Refazer' : (carreira ? 'Começar pela carreira' : 'Iniciar')) + '</button>' +
       '<button class="botao-mini ' + (selComparar ? 'catalogo-comparar-on' : 'botao-quieto') + '" data-pl-comparar="' + esc(e.id) + '" title="Selecionar para comparar (máx. 2)">' + (selComparar ? '✓ Comparando' : 'Comparar') + '</button>' +
@@ -6107,6 +6109,7 @@
       : '';
     let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de planos</span><h1>Planos</h1></div></div>' +
       guiaBoasVindasPlanosHtml() +
+      (state.planos.length ? '<section aria-label="Cadernos dos meus planos"><h2>Meus cadernos de questões</h2><div class="catalogo-grade">' + state.planos.map(function (p) { return '<div class="card catalogo-card"><strong>' + esc(p.plano.concurso || 'Meu plano') + '</strong><p class="sub">Questões na ordem do edital. Complete os tópicos com seus links.</p><a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(p.id) + '">Caderno de questões</a></div>'; }).join('') + '</div></section>' : '') +
       tiposHtml +
       carreiraIntro +
       (tipoAtual === 'carreira' ? '' : cardAvisoCompararHtml()) +
@@ -8877,6 +8880,7 @@
       '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
       avisoAtualizacao +
       '<div class="compact-actions plano-acoes-card">' +
+      '<a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planoAtivoId) + '">Caderno de questões</a>' +
       '<button class="botao-mini" id="pl-acao-editar">Editar plano</button>' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button type="button" class="botao-mini botao-secundario" id="pl-acao-revisoes" aria-pressed="' + D.sugestoesRevisaoAtivas(state) + '" title="Controla sugestões automáticas deste plano. O histórico e os blocos manuais são preservados.">' +
@@ -12444,7 +12448,6 @@
   function telaMais() {
     const itens = [
       ['#stats', 'Desempenho'],
-      ['#trilha', 'Trilha de questões'],
       ['#simulados', 'Simulados'],
       ['#timer', 'Timer'],
       ['#ferramentas', 'Ferramentas'],
@@ -12610,7 +12613,7 @@
     timer: { render: telaTimer, ligar: ligarTimer },
     revisoes: { render: telaRevisoes, ligar: ligarRevisoes },
     edital: { render: telaEdital, ligar: ligarEdital },
-    trilha: { render: function () { return window.Trilha.render(state); }, ligar: function () { window.Trilha.ligar(state, { salvar: salvar, render: render, abrirModal: abrirModal, fecharModal: fecharModal, toast: toast }); } },
+    caderno: { render: function () { return window.Trilha.render(estadoCaderno()); }, ligar: function () { window.Trilha.ligar(estadoCaderno(), { salvar: salvar, render: render, abrirModal: abrirModal, fecharModal: fecharModal, toast: toast }); } },
     simulados: { render: telaSimulados, ligar: ligarSimulados },
     stats: { render: telaStats, ligar: ligarStats },
     ferramentas: { render: telaFerramentas, ligar: ligarFerramentas },
@@ -12620,8 +12623,20 @@
     mais: { render: telaMais, ligar: ligarMais }
   };
 
+  let cadernoPlanoId = null;
+  function estadoCaderno() {
+    const entrada = state.planos.find(p => p.id === cadernoPlanoId);
+    if (!entrada) return { plano: null, disciplinas: [], links: [] };
+    if (!entrada.links) entrada.links = [];
+    return Object.assign({}, state, { plano: entrada.plano, disciplinas: entrada.disciplinas, links: entrada.links, planoAtivoId: entrada.id });
+  }
   function rotaAtual() {
     const r = location.hash.replace('#', '') || 'hoje';
+    if (r.indexOf('caderno-') === 0) {
+      cadernoPlanoId = decodeURIComponent(r.slice('caderno-'.length));
+      return 'caderno';
+    }
+    if (r === 'trilha') { cadernoPlanoId = state.planoAtivoId; return 'caderno'; }
     if (r.indexOf('disciplina-') === 0) {
       disciplinaDetalheId = decodeURIComponent(r.slice('disciplina-'.length));
       return 'disciplina';
@@ -12630,6 +12645,7 @@
   }
 
   function atualizarNav(rota) {
+    if (rota === 'caderno') rota = 'planos';
     document.querySelectorAll('[data-rota]').forEach(function (el) {
       el.classList.toggle('ativo', el.getAttribute('data-rota') === rota);
     });

@@ -19,7 +19,10 @@ test('referências TRF2 não são apresentadas como cadernos de outro concurso',
   const state = { plano: { concurso: 'TRF3 — Técnico' }, disciplinas: [], links: [] };
   assert.ok(!t.render(state).includes('data-trilha-adicionar="ref:'));
   state.plano.concurso = 'TRF2 — Técnico';
-  assert.equal((t.render(state).match(/data-trilha-adicionar="ref:/g) || []).length, 200);
+  assert.equal((t.render(state).match(/data-trilha-adicionar="ref:/g) || []).length, 0);
+  state.disciplinas = [{ id: 'pt', nome: 'Português', topicos: [{ id: 'c', nome: 'Crase' }] }];
+  assert.ok(t.render(state).includes('Resolver no Gran'));
+  assert.equal((t.render(state).match(/class="trilha-grupo/g) || []).length, 0);
 });
 test('links removidos não reaparecem pelo fallback e nomes são escapados', () => {
   const t = carregar();
