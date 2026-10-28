@@ -894,6 +894,7 @@
   // Pede permissão de notificação ao iniciar qualquer cronômetro — é o que
   // permite o contador aparecer na bandeja quando o app vai para segundo plano.
   function pedirPermissaoNotificacao() {
+    if (window.GabariteiAndroid && window.GabariteiAndroid.ativo()) return;
     if (!('Notification' in window) || Notification.permission !== 'default') return;
     // Esta permissão serve somente ao cronômetro em segundo plano. Lembretes
     // diários exigem uma escolha separada e explícita no Perfil.
@@ -923,6 +924,7 @@
   }
 
   function mostrarNotificacaoTimer(e, forcar) {
+    if (window.GabariteiAndroid && window.GabariteiAndroid.ativo()) return;
     if (!e || !('Notification' in window) || Notification.permission !== 'granted') return;
     if (!navigator.serviceWorker || !navigator.serviceWorker.ready) return;
     const agora = Date.now();
@@ -955,6 +957,7 @@
   }
 
   function atualizarTituloTimer(e) {
+    if (window.GabariteiAndroid) window.GabariteiAndroid.atualizar(e);
     if (!e) {
       document.title = TITULO_PADRAO;
       limparNotificacaoTimer();
@@ -1030,6 +1033,7 @@
   }
 
   function tagDisc(disc) {
+    if (/portugu[eê]s/i.test(disc.nome || '')) return '<span class="tag-disc tag-disc-portugues" title="Língua Portuguesa"><svg aria-hidden="true"><use href="#ic-livro"/></svg>Português</span>';
     return '<span class="tag-disc" style="background:' + esc(disc.cor) + '">' + esc(disc.id) + '</span>';
   }
 
@@ -2301,7 +2305,7 @@
     // feito, sem revisões vencidas. Usado para o modal de parabéns (1x/dia).
     hojeMetaConcluida = !!(state.plano && agendaHoje.length > 0 &&
       agendaHoje.every(function (a) { return a.feito; }) && nRev === 0);
-    const resumoDia = pendentes === 0 ? 'Tudo em dia por hoje.' :
+    const resumoDia = !state.plano ? 'Escolha um plano para organizar os próximos estudos.' : pendentes === 0 ? 'Tudo em dia por hoje.' :
       nBlocos + (nBlocos === 1 ? ' bloco' : ' blocos') + ' e ' + nRev + (nRev === 1 ? ' revisão te esperam' : ' revisões te esperam') + '.';
 
     // Card "Data provável" agora é independente do "Mantenha a constância".
@@ -2329,9 +2333,6 @@
 
     // versão mobile do card de data provável (acima do mapa de constância)
     if (provaCard) html += '<div class="prova-card-mobile">' + provaCard + '</div>';
-
-    // constância em destaque (apenas o mapa)
-    html += '<div class="card constancia-card"><div class="constancia-centro"><h3>⚡ Mantenha a constância!</h3>' + heatmapHtml(119, true) + '</div></div>';
 
     // conquistas (gamificação discreta)
     html += conquistasHtml();
@@ -12711,10 +12712,153 @@
     }, Math.max(1000, proximoDia.getTime() - agora.getTime()));
   }
 
+  // A composição reaproveita os mesmos elementos e ações da fila: mover um
+  // bloco para o destaque não cria outra sessão nem duplica seus listeners.
+  function atualizarContextoPlano() {
+    const nomeRota = { hoje: 'Hoje', planejamento: 'Planejamento', planos: 'Planos', timer: 'Timer', revisoes: 'Revisões', simulados: 'Simulados', stats: 'Desempenho', ferramentas: 'Ferramentas', ajustes: 'Configurações' };
+    const tituloTopo = document.getElementById('topbar-rota');
+    if (tituloTopo) tituloTopo.textContent = nomeRota[rotaAtual()] || 'Meus estudos';
+    const raiz = document.getElementById('plano-contexto');
+    if (!raiz) return;
+    raiz.innerHTML = '<a href="#planos" class="contexto-plano-link">' +
+      (state.plano ? fotoPlanoAtivoHtml() : '<svg class="nav-ic" aria-hidden="true"><use href="#ic-planos"/></svg>') +
+      '<span class="contexto-plano-texto"><small>' + (state.plano ? 'Seu plano de estudos' : 'Comece por um plano') + '</small>' +
+      '<strong>' + esc(state.plano ? state.plano.concurso || 'Meu plano' : 'Escolher meu concurso') + '</strong></span>' +
+      '<span class="contexto-plano-acao">' + (state.plano ? 'Ver planos' : 'Escolher') + ' <span aria-hidden="true">⌄</span></span></a>';
+  }
+
+  function rodapeAndroidHtml() {
+    return '<footer class="rodape-android" aria-label="Aplicativo Android">' +
+      '<div><strong>Gabaritei no seu Android</strong><p>Seus planos e estudos também no celular.</p>' +
+      '<a class="botao-mini" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk">Baixar APK · beta</a> ' +
+      '<button class="botao-mini botao-quieto" type="button" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
+      '<small>Android 8 ou superior · versão de teste. Login e alertas ainda aguardam validação no aparelho.</small></div>' +
+      '<a href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png" alt="QR Code para baixar o APK do Gabaritei OS" width="104" height="104"></a></footer>';
+  }
+
+  function semanaInicioHtml() {
+    const hoje = D.hojeISO();
+    const inicio = D.segundaDaSemana(hoje);
+    const sessoes = D.atividadesDoPlano(state);
+    const valores = Array.from({ length: 7 }, function (_, i) {
+      const dia = D.addDias(inicio, i);
+      return { dia: dia, min: sessoes.filter(function (s) { return String(s.data).slice(0, 10) === dia; })
+        .reduce(function (n, s) { return n + Math.max(0, Number(s.duracaoMin) || 0); }, 0) };
+    });
+    const max = Math.max(60, ...valores.map(function (v) { return v.min; }));
+    const nomes = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    return '<section class="card inicio-semana" aria-label="Tempo de estudo registrado nesta semana"><h3>Sua semana <a href="#stats">Ver desempenho →</a></h3>' +
+      '<div class="semana-colunas">' + valores.map(function (v, i) {
+        return '<div class="semana-dia' + (v.dia === hoje ? ' hoje' : '') + '"><span class="semana-valor">' + D.formatarMin(v.min) + '</span>' +
+          '<div class="semana-trilho"><span style="height:' + (100 * v.min / max) + '%"></span></div>' +
+          '<strong>' + nomes[i] + '</strong><small>' + v.dia.slice(8) + '/' + v.dia.slice(5, 7) + '</small></div>';
+      }).join('') + '</div></section>';
+  }
+
+  function organizarInicio(raiz) {
+    raiz.classList.add('inicio-moderno');
+    const cab = raiz.querySelector('.home-cab, .cab-pagina');
+    const kpis = raiz.querySelector('.home-kpis');
+    const estudos = raiz.querySelector('.estudar-hoje-card');
+    const revisoes = raiz.querySelector('.revisoes-hoje-card');
+    const conquistas = raiz.querySelector('.conquistas-card');
+    const disciplinas = raiz.querySelector('.painel-disciplinas-card');
+    const grid = document.createElement('div'); grid.className = 'inicio-grade';
+    const principal = document.createElement('div'); principal.className = 'inicio-principal';
+    const lateral = document.createElement('aside'); lateral.className = 'inicio-lateral';
+    grid.append(principal, lateral);
+    if (cab) {
+      const frase = cab.querySelector('.frase-dia');
+      if (frase) { const details = document.createElement('details'); details.className = 'inicio-frase';
+        details.innerHTML = '<summary>Uma pausa para inspirar</summary>'; details.append(frase); lateral.append(details); }
+      const prova = cab.querySelector('.home-cab-prova'); if (prova) lateral.append(prova);
+    }
+    raiz.querySelectorAll('.prova-card-mobile').forEach(function (el) { el.remove(); });
+    if (kpis) { kpis.classList.add('inicio-metricas'); if (cab) cab.after(kpis); }
+    if (!state.plano) {
+      const convite = document.createElement('section'); convite.className = 'card proximo-estudo';
+      convite.innerHTML = '<h2>Seu próximo passo</h2><p>Escolha um concurso para montar sua rotina de estudos.</p><a class="botao" href="#planos">Escolher meu plano</a>';
+      principal.append(convite);
+      if (estudos) estudos.remove();
+      raiz.querySelectorAll('.estado-vazio').forEach(function (e) { const card = e.closest('.card'); if (card) card.remove(); });
+    } else if (estudos || revisoes) {
+      // Revisões vencidas continuam com prioridade sobre o conteúdo novo.
+      const primeira = (revisoes && revisoes.querySelector('.fila-item:not(.fila-feita)')) ||
+        (estudos && estudos.querySelector('.fila-item:not(.fila-feita)'));
+      if (primeira) {
+        const destaque = document.createElement('section'); destaque.className = 'card proximo-estudo';
+        destaque.innerHTML = '<h2>Próximo estudo</h2>';
+        const tag = primeira.querySelector('.tag-disc');
+        const disc = tag && state.disciplinas.find(function (d) { return /Português/.test(tag.textContent) ? /portugu[eê]s/i.test(d.nome) : d.id === tag.textContent.trim(); });
+        const texto = disc ? disc.nome : primeira.textContent || '';
+        {
+          const portugues = /portugu[eê]s/i.test(texto);
+          const livro = document.createElement('span'); livro.className = 'disciplina-livro'; livro.setAttribute('aria-hidden', 'true');
+          if (!portugues) livro.classList.add('disciplina-icone-geral');
+          livro.innerHTML = '<svg><use href="#' + (portugues ? 'ic-livro' : 'ic-edital') + '"/></svg>';
+          primeira.prepend(livro);
+          if (disc) {
+            const nome = document.createElement('strong'); nome.className = 'disciplina-destaque'; nome.textContent = disc.nome;
+            primeira.querySelector('.fila-info').prepend(nome);
+          }
+        }
+        destaque.append(primeira); principal.append(destaque);
+        primeira.querySelectorAll('[data-acao^="timer"], [data-acao="estudar"], [data-acao="ciclo-timer"]').forEach(function (b) {
+          b.textContent = '▶ Iniciar estudo'; b.classList.remove('botao-quieto'); b.classList.add('inicio-iniciar');
+        });
+      }
+      if (estudos) {
+        const titulo = estudos.querySelector('h3'); if (titulo) titulo.innerHTML = 'Ainda hoje <a href="#planejamento">Ver planejamento →</a>';
+        if (primeira && !estudos.querySelector('.fila-item') && !estudos.querySelector('.estado-vazio')) estudos.remove();
+        else principal.append(estudos);
+      }
+    }
+    if (revisoes) {
+      if (revisoes.querySelector('.fila-item')) principal.append(revisoes); else revisoes.remove();
+    } else if (state.plano) {
+      const vazias = document.createElement('section'); vazias.className = 'card inicio-revisoes';
+      vazias.innerHTML = '<h3>Revisões</h3><div class="inicio-vazio"><svg class="nav-ic" aria-hidden="true"><use href="#ic-revisoes"/></svg><strong>Nenhuma revisão pendente</strong><p>As próximas revisões aparecerão aqui conforme seu planejamento.</p></div>';
+      principal.append(vazias);
+    }
+    lateral.insertAdjacentHTML('afterbegin', semanaInicioHtml());
+    if (conquistas) {
+      conquistas.classList.add('conquistas-compactas');
+      const botao = document.createElement('button'); botao.type = 'button'; botao.className = 'conquistas-expandir';
+      botao.textContent = 'Ver todas →'; botao.setAttribute('aria-expanded', 'false');
+      botao.addEventListener('click', function () {
+        const aberta = conquistas.classList.toggle('conquistas-abertas');
+        botao.textContent = aberta ? 'Recolher ↑' : 'Ver todas →'; botao.setAttribute('aria-expanded', String(aberta));
+      });
+      conquistas.querySelector('h3').append(botao); lateral.insertBefore(conquistas, lateral.children[1] || null);
+    }
+    if (disciplinas) principal.append(disciplinas);
+    if (kpis) kpis.after(grid); else if (cab) cab.after(grid); else raiz.prepend(grid);
+    if (kpis) principal.insertBefore(kpis, principal.children[1] || null);
+    // Links de apoio e avisos não desaparecem; ficam depois da atividade do dia.
+    const apoio = raiz.querySelector('.hoje-links-apoio'); if (apoio) raiz.append(apoio);
+    reposicionarTopoInicio(raiz);
+  }
+
+  function reposicionarTopoInicio(raiz) {
+    const cab = raiz && raiz.querySelector('.home-cab');
+    const lateral = raiz && raiz.querySelector('.inicio-lateral');
+    if (!cab || !lateral) return;
+    const desktop = window.matchMedia('(min-width: 761px)').matches;
+    const modo = desktop ? 'desktop' : 'mobile';
+    if (cab.dataset.modoTopo === modo) return;
+    cab.dataset.modoTopo = modo;
+    cab.classList.toggle('inicio-topo', desktop);
+    const frase = raiz.querySelector('.inicio-frase');
+    const conquistas = raiz.querySelector('.conquistas-card');
+    if (frase) { frase.open = desktop; (desktop ? cab : lateral).append(frase); }
+    if (conquistas) (desktop ? cab : lateral).append(conquistas);
+  }
+
   function render() {
     ultimaDataRender = D.hojeISO();
     aplicarTema();
     const conteudo = document.getElementById('conteudo');
+    conteudo.classList.remove('inicio-moderno');
     if (!usuarioLogado() && !modoDemo) {
       document.body.classList.add('login-gate');
       delete document.body.dataset.rota;
@@ -12731,6 +12875,7 @@
         console.error('Falha ao renderizar login:', err);
         conteudo.innerHTML = '<section class="login-shell"><div class="login-card"><h1>Entrar</h1><p>Não consegui abrir a tela de login.</p></div></section>';
       }
+      conteudo.insertAdjacentHTML('beforeend', rodapeAndroidHtml());
       atualizarSyncUi();
       return;
     }
@@ -12747,6 +12892,9 @@
     // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
     try {
       conteudo.innerHTML = tela.render();
+      atualizarContextoPlano();
+      if (rota === 'hoje') organizarInicio(conteudo);
+      conteudo.insertAdjacentHTML('beforeend', rodapeAndroidHtml());
       tela.ligar(conteudo);
     } catch (err) {
       console.error('Falha ao renderizar a tela "' + rota + '":', err);
@@ -12768,6 +12916,7 @@
 
   // Faixa fixa no topo do conteúdo durante o modo exemplo, com convite ao login.
   function injetarBannerDemo(conteudo) {
+    if (conteudo.querySelector('#demo-entrar')) return;
     conteudo.insertAdjacentHTML('afterbegin',
       '<div class="demo-banner">' +
       '<span class="demo-banner-txt">🔎 Modo exemplo — explore à vontade. Nada é salvo.</span>' +
@@ -13121,6 +13270,14 @@
   }
   function fecharGaveta() {
     document.body.classList.remove('sidebar-aberta');
+    sincronizarAcessibilidadeMenu();
+  }
+  function sincronizarAcessibilidadeMenu() {
+    const mobile = ehLarguraMobile();
+    const visivel = mobile ? document.body.classList.contains('sidebar-aberta') : !document.body.classList.contains('sidebar-recolhida');
+    document.getElementById('sidebar').inert = !visivel;
+    document.querySelector('.topbar-esquerda').inert = !mobile && visivel;
+    if (botaoMenu) botaoMenu.setAttribute('aria-expanded', String(visivel));
   }
   function alternarMenu() {
     if (ehLarguraMobile()) {
@@ -13131,6 +13288,8 @@
       // aria-expanded do ☰ do topbar = "há menu para mostrar?"
       if (botaoMenu) botaoMenu.setAttribute('aria-expanded', String(recolhida));
     }
+    sincronizarAcessibilidadeMenu();
+    if (!ehLarguraMobile()) (document.body.classList.contains('sidebar-recolhida') ? botaoMenu : botaoMenuSb).focus();
   }
   if (botaoMenu) botaoMenu.addEventListener('click', alternarMenu);
   if (botaoMenuSb) botaoMenuSb.addEventListener('click', alternarMenu);
@@ -13142,7 +13301,8 @@
   });
   const sidebarFeedback = document.getElementById('sidebar-feedback');
   if (sidebarFeedback) sidebarFeedback.addEventListener('click', abrirFeedback);
-  window.addEventListener('resize', function () { if (!ehLarguraMobile()) document.body.classList.remove('sidebar-aberta'); });
+  sincronizarAcessibilidadeMenu();
+  window.addEventListener('resize', function () { if (!ehLarguraMobile()) document.body.classList.remove('sidebar-aberta'); sincronizarAcessibilidadeMenu(); reposicionarTopoInicio(document.querySelector('.inicio-moderno')); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharGaveta(); });
 
   const botaoTema = document.getElementById('botao-tema');

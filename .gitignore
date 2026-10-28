@@ -10,3 +10,8 @@ ui-debug.log
 _*.js
 _*.cjs
 *.test.cjs
+android/.gradle/
+android/local.properties
+android/**/build/
+*.jks
+*.keystore

@@ -1,0 +1,18 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'br.com.gabaritei.os'
+    compileSdk 35
+    defaultConfig { applicationId 'br.com.gabaritei.os'; minSdk 26; targetSdk 35; versionCode 1; versionName '1.0.0-beta1' }
+    signingConfigs {
+        release {
+            if (System.getenv('GABARITEI_KEYSTORE')) {
+                storeFile file(System.getenv('GABARITEI_KEYSTORE'))
+                storePassword System.getenv('GABARITEI_STORE_PASSWORD')
+                keyAlias 'gabaritei'
+                keyPassword System.getenv('GABARITEI_STORE_PASSWORD')
+            }
+        }
+    }
+    buildTypes { release { signingConfig signingConfigs.release; minifyEnabled false } }
+}
+dependencies { implementation 'androidx.browser:browser:1.8.0' }

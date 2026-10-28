@@ -59,7 +59,7 @@ test('ativar a PWA remove só versões próprias e o cache legado conhecido', as
     importScripts() { throw new Error('Messaging opcional indisponível'); },
     console: { warn() {} },
     caches: {
-      keys: async () => ['gabaritei-os-v187-descricao-carreiras', 'gabaritei-os-v181-sync-contas', 'gabaritei-os-v180-logos-ferramentas', 'gabaritei-os-v179-ferramentas', 'gabaritei-os-v178-integridade-geral', 'gabaritei-os-v177-cards-semana', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v174-plano-ifrj', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
+      keys: async () => [serviceWorker.match(/const CACHE = CACHE_PREFIXO \+ '([^']+)'/)[1].replace(/^/, 'gabaritei-os-'), 'gabaritei-os-v181-sync-contas', 'gabaritei-os-v180-logos-ferramentas', 'gabaritei-os-v179-ferramentas', 'gabaritei-os-v178-integridade-geral', 'gabaritei-os-v177-cards-semana', 'gabaritei-os-v176-prioridades-ifrj-cpii', 'gabaritei-os-v175-pesos-ifrj', 'gabaritei-os-v174-plano-ifrj', 'estudos-v172-continuidade-disciplina', 'outro-app-v1', 'estudos-outro-app'],
       delete: async name => { deleted.push(name); }
     }
   };
