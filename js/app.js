@@ -8881,7 +8881,7 @@
       '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
       avisoAtualizacao +
       '<div class="compact-actions plano-acoes-card">' +
-      '<a class="botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planoAtivoId) + '">Caderno de questões</a>' +
+      '<a class="botao botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planoAtivoId) + '">Caderno de questões</a>' +
       '<button class="botao-mini" id="pl-acao-editar">Editar plano</button>' +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button type="button" class="botao-mini botao-secundario" id="pl-acao-revisoes" aria-pressed="' + D.sugestoesRevisaoAtivas(state) + '" title="Controla sugestões automáticas deste plano. O histórico e os blocos manuais são preservados.">' +
