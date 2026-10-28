@@ -1461,7 +1461,7 @@
           return {
             id: t.id, nome: t.nome,
             incidencia_pct: t.incidencia_pct, prioridade: t.prioridade || 2,
-            horas_estimadas: t.horas_estimadas || 2, semana_sugerida: t.semana_sugerida || null,
+            horas_estimadas: horasTeoriaTopico(t), semana_sugerida: t.semana_sugerida || null,
             status: antigo ? antigo.status : (t.status || 'pendente'),
             reaberto: antigo ? antigo.reaberto : !!t.reaberto,
             orfao: false
@@ -1620,12 +1620,17 @@
   // Fator 1.8 sobre as horas de teoria estimadas: cobre teoria + questões + revisões 24h/7d/30d.
   const FATOR_ESFORCO = 1.8;
 
+  function horasTeoriaTopico(t) {
+    const horas = Number(t && t.horas_estimadas);
+    return Number.isFinite(horas) && horas > 0 ? horas : 2;
+  }
+
   function totalHorasTeoria(disciplinas) {
     if (!disciplinas) return 0;
     return disciplinas.reduce(function (n, d) {
       if (d.id === 'ORF') return n;
       return n + (d.topicos || []).reduce(function (m, t) {
-        return t.orfao ? m : m + (t.horas_estimadas || 2);
+        return t.orfao ? m : m + (horasTeoriaTopico(t));
       }, 0);
     }, 0);
   }
@@ -1642,7 +1647,7 @@
     return disciplinas.reduce(function (n, d) {
       if (d.id === 'ORF') return n;
       return n + (d.topicos || []).reduce(function (m, t) {
-        return t.orfao ? m : m + ((t.horas_estimadas || 2) * fatorBagagemTopico(t));
+        return t.orfao ? m : m + ((horasTeoriaTopico(t)) * fatorBagagemTopico(t));
       }, 0);
     }, 0);
   }
@@ -1981,7 +1986,7 @@
   function disciplinasDoEdital(ed) {
     return (ed.disciplinas || []).map(function (d) {
       const topicos = (d.topicos || []).map(function (t) {
-        const horas = t.horas_estimadas || 2;
+        const horas = horasTeoriaTopico(t);
         return { nome: d.nome + ' › ' + t.nome, tokens: tokensTop(t.nome), horas: horas };
       });
       return {
@@ -1997,7 +2002,7 @@
     const out = [];
     (ed.disciplinas || []).forEach(function (d) {
       (d.topicos || []).forEach(function (t) {
-        out.push({ disc: normalizarNomeConc(d.nome), nome: normalizarNomeConc(t.nome), horas: t.horas_estimadas || 2 });
+        out.push({ disc: normalizarNomeConc(d.nome), nome: normalizarNomeConc(t.nome), horas: horasTeoriaTopico(t) });
       });
     });
     return out;
@@ -2686,13 +2691,13 @@
         const tk = normalizarNomeConc(t.nome);
         if (!tk) return;
         if (!alvo._top[tk]) {
-          alvo._top[tk] = { id: '', nome: t.nome, incidencia_pct: t.incidencia_pct || 0, prioridade: t.prioridade || 2, horas_estimadas: t.horas_estimadas || 2, semana_sugerida: t.semana_sugerida || null, status: 'pendente', reaberto: false, orfao: false };
+          alvo._top[tk] = { id: '', nome: t.nome, incidencia_pct: t.incidencia_pct || 0, prioridade: t.prioridade || 2, horas_estimadas: horasTeoriaTopico(t), semana_sugerida: t.semana_sugerida || null, status: 'pendente', reaberto: false, orfao: false };
           alvo.topicos.push(alvo._top[tk]);
         } else {
           const ex = alvo._top[tk];
           ex.incidencia_pct = Math.max(ex.incidencia_pct, t.incidencia_pct || 0);
           ex.prioridade = Math.min(ex.prioridade, t.prioridade || 2);
-          ex.horas_estimadas = Math.max(ex.horas_estimadas, t.horas_estimadas || 2);
+          ex.horas_estimadas = Math.max(ex.horas_estimadas, horasTeoriaTopico(t));
         }
       });
     }
@@ -3062,7 +3067,7 @@
     aplicarAjusteAgenda, reativarDisciplina,
     validarPlano, mesclarPlano, metaSemanal, progressoEdital, progressoDisciplina,
     heatmapDias, serieSemanal, pioresTopicos,
-    totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
+    horasTeoriaTopico, totalHorasTeoria, totalHorasTeoriaAjustada, esforcoTotalHoras, horasRealizadas, burndownEdital, checkinSemanal,
     conciliarPlanos, mapearAproveitamentoPlano, mesclarEditalNoPlano, ajustePosRevisao, revisaoReforco, revisaoManutencao, combinarEditais, fatorEnfase, fatorDisciplinaCombinada, conquistas,
     duracaoRevisaoMin, distribuirRevisoesPorCapacidade, revisoesPendentesNoDia, minutosRevisaoNoDia,
     duracaoRevisaoConcluidaMin, minutosRevisoesConcluidasNoDia,

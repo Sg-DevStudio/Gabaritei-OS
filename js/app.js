@@ -6407,7 +6407,7 @@
     const discHtml = (e.disciplinas || []).map(function (d) {
       const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
       const linhas = tops.map(function (t) {
-        return '<tr><td>' + esc(t.nome) + '</td><td class="num">' + (t.incidencia_pct || 0) + '%</td><td class="num">' + (t.horas_estimadas || 2) + 'h</td></tr>';
+        return '<tr><td>' + esc(t.nome) + '</td><td class="num">' + (t.incidencia_pct || 0) + '%</td><td class="num">' + (D.horasTeoriaTopico(t)) + 'h</td></tr>';
       }).join('');
       const cor = /^#/.test(d.cor || '') ? d.cor : '#6B7180';
       return '<div class="detalhe-disc"><div class="detalhe-disc-cab">' +
@@ -6694,7 +6694,7 @@
         topicos: (d.topicos || []).map(function (t) {
           return {
             id: t.id || '', nome: t.nome || '', incidencia_pct: t.incidencia_pct || 0,
-            prioridade: t.prioridade || 2, horas_estimadas: t.horas_estimadas || 2,
+            prioridade: t.prioridade || 2, horas_estimadas: D.horasTeoriaTopico(t),
             semana_sugerida: t.semana_sugerida || null, status: t.status || 'pendente',
             reaberto: !!t.reaberto, orfao: !!t.orfao
           };
@@ -6782,7 +6782,7 @@
           '<td><input class="ed-t-inc" data-di="' + di + '" data-ti="' + ti + '" type="number" min="0" max="100" value="' + (t.incidencia_pct || 0) + '"></td>' +
           '<td><input class="ed-t-pri" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="3" value="' + (t.prioridade || 2) + '"></td>' +
           '<td><input class="ed-t-sem" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="52" value="' + (t.semana_sugerida || (ti + 1)) + '"></td>' +
-          '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="120" value="' + (t.horas_estimadas || 2) + '"></td>' +
+          '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="120" value="' + (D.horasTeoriaTopico(t)) + '"></td>' +
           '<td><button class="botao-mini botao-quieto" data-rem-top="' + di + '_' + ti + '" title="Remover tópico">×</button></td></tr>';
       });
       h += '</tbody></table></div><button class="botao-mini botao-quieto" data-add-top="' + di + '">+ tópico</button></div>';
@@ -6854,7 +6854,7 @@
           '<td><input class="ed-t-inc" data-di="' + di + '" data-ti="' + ti + '" type="number" min="0" max="100" value="' + (t.incidencia_pct || 0) + '"></td>' +
           '<td><input class="ed-t-pri" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="3" value="' + (t.prioridade || 2) + '"></td>' +
           '<td><input class="ed-t-sem" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="52" value="' + (t.semana_sugerida || (ti + 1)) + '"></td>' +
-          '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="40" value="' + (t.horas_estimadas || 2) + '"></td>' +
+          '<td><input class="ed-t-hor" data-di="' + di + '" data-ti="' + ti + '" type="number" min="1" max="40" value="' + (D.horasTeoriaTopico(t)) + '"></td>' +
           '<td><button class="botao-mini botao-quieto" data-rem-top="' + di + '_' + ti + '" title="Remover tópico">×</button></td></tr>';
       });
       h += '</tbody></table><button class="botao-mini botao-quieto" data-add-top="' + di + '">+ tópico</button></div>';
@@ -9885,7 +9885,7 @@
   function totalHorasEstimadasPlano(entrada) {
     if (!entrada || !entrada.disciplinas) return 0;
     return entrada.disciplinas.reduce(function (n, d) {
-      return n + (d.topicos || []).reduce(function (m, t) { return m + (t.horas_estimadas || 2); }, 0);
+      return n + (d.topicos || []).reduce(function (m, t) { return m + (D.horasTeoriaTopico(t)); }, 0);
     }, 0);
   }
 
@@ -10039,7 +10039,7 @@
       });
     }
     let somaHorasTop = 0, nTop = 0;
-    docs.forEach(function (d) { d.topicos.forEach(function (x) { somaHorasTop += (x.topico.horas_estimadas || 2); nTop++; }); });
+    docs.forEach(function (d) { d.topicos.forEach(function (x) { somaHorasTop += (D.horasTeoriaTopico(x.topico)); nTop++; }); });
     const avgHorasTop = nTop > 0 ? somaHorasTop / nTop : 2;
     const orcamentoTopSemana = Math.max(1, Math.min(30, Math.round(horasSemana / (1.8 * Math.max(0.5, avgHorasTop)))));
     for (let s = 1; s <= semanas; s++) {
@@ -10651,7 +10651,7 @@
         if (d.id === 'ORF') return;
         (d.topicos || []).forEach(function (t) {
           if (t.orfao) return;
-          const base = t.horas_estimadas || 2;
+          const base = D.horasTeoriaTopico(t);
           const nivel = nivelPorTop[t.id] || nivelConhDoStatus(t);
           const fator = nivel === 'domino' ? 0.15 : nivel === 'estudei' ? 0.5 : 1;
           h += base * fator;
