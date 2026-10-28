@@ -11,12 +11,7 @@
   const chaveCaderno = s => s.cadernoConsulta ? '' : (s.planoAtivoId || s.plano && s.plano.concurso || '');
   const ehTrf2 = state => /(?:trf\s*2|carreira\s+trf\b)/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '') && /administrativ/i.test(state.plano.concurso || '');
   function grupos(state) {
-    if (ehTrf2(state)) return (window.TrilhaReferencia || []).map((d, i) => ({ nome: d.name, tipo: d.type, topicos: d.topics.map((t, j) => {
-      const candidatos = (state.disciplinas || []).flatMap(x => (x.topicos || []).map(y => ({ d: x, t: y }))).filter(x => normal(x.t.nome) === normal(t.name));
-      const x = candidatos.length === 1 ? candidatos[0] : null;
-      return { chave: x ? 'plano:' + x.d.id + ':' + x.t.id : 'ref:trf2-2024:' + i + ':' + j, nome: t.name, referencia: Object.assign({ catalog: d.catalog }, t) };
-    }) }));
-    const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: 'plano:' + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id })) }));
+    const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: 'plano:' + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id, vinculos: ehTrf2(state) ? Object.values(window.TrilhaVinculosTRF2 || {}).find(v => normal(v.nome) === normal(t.nome || t.titulo)) : null })) }));
     return lista;
   }
   function padrao(t, state) {
@@ -29,6 +24,13 @@
     if (ref.code == null) return { id: 'referencia', nome: 'Ver catálogo no Gran', url: ref.catalog, aviso: 'Sem código específico verificado; abre o catálogo, não um filtro.' };
     return { id: 'referencia', nome: 'Resolver no Gran', url: 'https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=' + encodeURIComponent(ref.code) + (banca ? '&banca=' + encodeURIComponent(banca) : '') + '&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026&nivel=1', aviso: ref.exact ? 'Correspondência específica indicada no arquivo' : 'Categoria ampla: pode incluir outros assuntos' };
   }
+  function defaults(state,t) {
+    if (t.vinculos) return t.vinculos.links.map((l,i) => {
+      const u = new URL(l.url); if(l.code != null) { if(banca) u.searchParams.set('banca',banca); else u.searchParams.delete('banca'); }
+      return {id:'referencia-' + t.chave + '-' + i,nome:(l.code == null ? 'Ver catálogo: ' : 'Resolver: ') + l.nome,url:u.href,aviso:l.code == null ? 'Catálogo; sem filtro específico' : l.exact ? '' : 'Categoria ampla'};
+    });
+    return [padrao(t,state)].filter(Boolean);
+  }
   function links(state, t) {
     let pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === t.chave);
     // Preserva os links pessoais da antiga seção de referência quando o tópico
@@ -38,7 +40,7 @@
       (window.TrilhaReferencia || []).forEach((d, i) => d.topics.forEach((r, j) => { if (normal(r.name) === normal(t.nome)) chaves.push('ref:trf2-2024:' + i + ':' + j); }));
       if (chaves.length === 1) pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === chaves[0]);
     }
-    return (pessoais.length ? pessoais : [padrao(t, state)].filter(Boolean)).filter(l => !l.oculto).sort((a, b) => Number(!!b.principal) - Number(!!a.principal));
+    return (pessoais.length ? pessoais : defaults(state,t)).filter(l => !l.oculto).sort((a, b) => Number(!!b.principal) - Number(!!a.principal));
   }
   function render(state) {
     if (!state.plano) return '<h1>Caderno de questões</h1><div class="card"><p>Escolha um plano para organizar seus cadernos.</p><a href="#planos">Escolher plano</a></div>';
@@ -107,8 +109,7 @@
         const antes = state.links.slice();
         // Mantém o link de referência quando o aluno adiciona uma alternativa.
         if (!atual && !state.links.some(l => l.tipo === 'trilha' && l.topicoChave === chave)) {
-          const ref = padrao(t, state);
-          if (ref) state.links.push(Object.assign({}, ref, { id: 'trilha-' + Date.now() + '-base-' + Math.random().toString(36).slice(2, 8), tipo: 'trilha', topicoChave: chave }));
+          defaults(state,t).forEach(ref => state.links.push(Object.assign({},ref,{id:'trilha-' + Date.now() + '-' + Math.random().toString(36).slice(2,8),tipo:'trilha',topicoChave:chave})));
         }
         const id = atual && atual.id !== 'referencia' ? atual.id : 'trilha-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
         const item = { id: id, tipo: 'trilha', topicoChave: chave, nome: nome, url: url, principal: f.elements.principal.checked, atualizadoEm: new Date().toISOString() };

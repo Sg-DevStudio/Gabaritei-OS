@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 function carregar() {
   const c = vm.createContext({ window: {}, URL });
-  for (const file of ['data/trilha-trf2.js', 'js/trilha.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), c);
+  for (const file of ['data/trilha-trf2.js', 'data/trilha-vinculos-trf2.js', 'js/trilha.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), c);
   return c.window.Trilha;
 }
 test('trilha bloqueia scripts, protocolos e credenciais em links pessoais', () => {
@@ -19,18 +19,18 @@ test('referências TRF2 não são apresentadas como cadernos de outro concurso',
   const state = { plano: { concurso: 'TRF3 — Técnico' }, disciplinas: [], links: [] };
   assert.ok(!t.render(state).includes('data-trilha-adicionar="ref:'));
   state.plano.concurso = 'Carreira TRF — Técnico Judiciário · Área Administrativa';
-  assert.equal((t.render(state).match(/class="trilha-topico"/g) || []).length, 200);
-  assert.ok(t.render(state).includes('data-caderno-ir'));
+  assert.equal((t.render(state).match(/class="trilha-topico"/g) || []).length, 0);
+
   assert.ok(!t.render(state).includes('href="#caderno-disc-'));
   state.plano.concurso = 'TRF2 — Técnico de Informática';
   assert.ok(!t.render(state).includes('data-trilha-adicionar="ref:'));
   state.plano.concurso = 'TRF2 — Técnico Administrativo';
-  assert.equal((t.render(state).match(/data-trilha-adicionar="ref:/g) || []).length, 200);
+  assert.equal((t.render(state).match(/data-trilha-adicionar="ref:/g) || []).length, 0);
   state.disciplinas = [{ id: 'pt', nome: 'Português', topicos: [{ id: 'c', nome: 'Crase' }] }];
   assert.ok(t.render(state).includes('Resolver no Gran'));
   const html = t.render(state);
-  assert.equal((html.match(/class="trilha-topico"/g) || []).length, 200);
-  assert.equal((html.match(/Ver catálogo no Gran/g) || []).length, 18);
+  assert.equal((html.match(/class="trilha-topico"/g) || []).length, 1);
+  assert.equal((html.match(/Ver catálogo no Gran/g) || []).length, 0);
   assert.ok(!html.includes('revisados</strong>'));
   assert.ok(!html.includes('data-caderno-feito'));
   assert.ok(!html.includes('caderno-pendentes'));
