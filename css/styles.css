@@ -4988,3 +4988,5 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 
 .revisoes-controles { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; margin-bottom:16px; }
 .revisoes-controles .rev-seg, .revisoes-controles .revisoes-ajuda { margin:0; }
+
+@media (min-width:761px) { body.sidebar-recolhida #topbar .topbar-marca .marca-nome { display:none; } }
