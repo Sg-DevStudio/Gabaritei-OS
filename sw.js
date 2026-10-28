@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v206-caderno-layout';
+const CACHE = CACHE_PREFIXO + 'v207-caderno-layout';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
