@@ -3582,11 +3582,14 @@
 
   function telaRevisoes() {
     let html = '<h1 class="sr-only">Revisões</h1>';
-    html += '<div class="rev-seg">' +
+    html += '<div class="revisoes-controles"><div class="rev-seg">' +
       '<button class="botao-mini ' + (revisoesAba === 'agendadas' ? '' : 'botao-quieto') + '" data-rev-aba="agendadas">Agendadas</button>' +
       '<button class="botao-mini ' + (revisoesAba === 'estudados' ? '' : 'botao-quieto') + '" data-rev-aba="estudados">Estudados</button>' +
       '<button class="botao-mini ' + (revisoesAba === 'flashcards' ? '' : 'botao-quieto') + '" data-rev-aba="flashcards">Flashcards</button>' +
-      '</div>';
+      '</div><div class="revisoes-ajuda" data-ajuda><strong>Como usar</strong>' +
+      '<p><b>Agendadas:</b> faça as revisões pendentes e registre a conclusão.</p>' +
+      '<p><b>Estudados:</b> consulte seus tópicos e ajuste os intervalos de revisão.</p>' +
+      '<p><b>Flashcards:</b> crie cartões e revise os que estiverem disponíveis.</p></div></div>';
     html += revisoesAba === 'flashcards' ? flashcardsHtml()
       : revisoesAba === 'estudados' ? estudadosRevisaoHtml()
       : revisoesAgendadasHtml();

@@ -4985,3 +4985,6 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 
 .contexto-plano-icone { width:14px; height:14px; flex:0 0 14px; vertical-align:middle; }
 @media (min-width:761px) { #topbar .contexto-plano-texto small { display:flex; align-items:center; gap:6px; } }
+
+.revisoes-controles { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; margin-bottom:16px; }
+.revisoes-controles .rev-seg, .revisoes-controles .revisoes-ajuda { margin:0; }
