@@ -12843,7 +12843,11 @@
     const frase = raiz.querySelector('.inicio-frase');
     const conquistas = raiz.querySelector('.conquistas-card');
     const prova = raiz.querySelector('.home-cab-prova');
-    if (frase) { frase.open = desktop; (desktop ? cab : lateral).append(frase); }
+    if (frase) {
+      frase.open = true;
+      // No celular, a inspiração substitui o resumo abaixo da saudação.
+      (desktop ? cab : cab.querySelector('.cab-home > div')).append(frase);
+    }
     if (conquistas) (desktop ? cab : lateral).append(conquistas);
     if (prova) (desktop ? cab : lateral).append(prova);
   }

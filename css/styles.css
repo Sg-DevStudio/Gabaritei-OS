@@ -4728,7 +4728,12 @@ body.login-gate #plano-contexto { display: none; }
   .proximo-estudo .inicio-iniciar { flex: 1; min-height: 42px; }
   .inicio-moderno .fila-item { min-width: 0; }
   .inicio-moderno .fila-titulo { overflow-wrap: anywhere; }
-  .inicio-moderno .cab-pagina h1 { font-size: 1.8rem; }
+  .inicio-moderno .cab-pagina h1 { font-size: 1.4rem; line-height: 1.25; }
+  .inicio-moderno .cab-home .sub { display: none; }
+  .home-cab .inicio-frase { margin-top: 8px; padding: 0; border: 0; background: transparent; }
+  .home-cab .inicio-frase summary { display: none; }
+  .home-cab .inicio-frase .frase-dia { margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; font-size: .85rem; line-height: 1.5; }
+  .home-cab .inicio-frase .autor { font-size: .72rem; }
   .inicio-lateral .conquistas-card { order: -1; }
   .inicio-frase, .inicio-constancia { order: 2; }
 }
