@@ -12647,6 +12647,9 @@
         view.disciplinas = base.disciplinas;
       }
     }
+    if (/tjsp/.test(String(titulo).normalize('NFD').replace(/[^a-zA-Z0-9]/g,'').toLowerCase()) && /escrevente/i.test(titulo) && /2025/.test(titulo) && window.CadernoTJSPBase) {
+      view.disciplinas = window.CadernoTJSPBase.disciplinas;
+    }
     return view;
   }
   function rotaAtual() {

@@ -4961,3 +4961,14 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 
 .caderno-banca-fixa { color:var(--grafite); font-size:.8rem; white-space:nowrap; }
 .caderno-banca-fixa strong { color:var(--caneta-forte); }
+
+.gran-logo { display:none; }
+@media(max-width:760px) {
+ .caderno .trilha-link .gran-link { display:inline-flex; align-items:center; justify-content:center; min-width:64px; min-height:44px; padding:7px; background:#fff; border:1px solid var(--linha); }
+ .gran-link .gran-texto { display:none; }
+ .gran-link .gran-logo { display:block; width:48px; height:23px; object-fit:contain; }
+ .caderno .trilha-topico { flex-wrap:nowrap; }
+ .caderno .caderno-tema { flex:1 1 0; min-width:0; }
+ .caderno .caderno-acessos { flex:0 0 auto; max-width:42%; }
+}
+@media print { .gran-link .gran-texto { display:inline !important; } .gran-logo { display:none !important; } }
