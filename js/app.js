@@ -13257,6 +13257,7 @@
   }
 
   document.addEventListener('click', function (e) {
+    if (e.defaultPrevented) return;
     const link = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
     if (!link) return;
     const destino = link.getAttribute('href');

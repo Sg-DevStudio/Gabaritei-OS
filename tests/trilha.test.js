@@ -18,6 +18,10 @@ test('referências TRF2 não são apresentadas como cadernos de outro concurso',
   const t = carregar();
   const state = { plano: { concurso: 'TRF3 — Técnico' }, disciplinas: [], links: [] };
   assert.ok(!t.render(state).includes('data-trilha-adicionar="ref:'));
+  state.plano.concurso = 'Carreira TRF — Técnico Judiciário · Área Administrativa';
+  assert.equal((t.render(state).match(/class="trilha-topico"/g) || []).length, 200);
+  assert.ok(t.render(state).includes('data-caderno-ir'));
+  assert.ok(!t.render(state).includes('href="#caderno-disc-'));
   state.plano.concurso = 'TRF2 — Técnico de Informática';
   assert.ok(!t.render(state).includes('data-trilha-adicionar="ref:'));
   state.plano.concurso = 'TRF2 — Técnico Administrativo';

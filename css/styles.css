@@ -4908,3 +4908,21 @@ body:not(.login-gate) #conteudo { padding-top: calc(var(--topbar-alt) + 24px); }
 
 .caderno-bancas button:not(.ativo) { background:var(--papel-card); color:var(--caneta-forte); border:1px solid var(--linha); box-shadow:none; }
 .caderno-bancas button.ativo { box-shadow:none; }
+
+/* Caderno: leitura ampliada, navegação local e edição opcional. */
+a { text-decoration:none; }
+a:focus-visible { outline:2px solid var(--caneta); outline-offset:3px; }
+a[class*="botao"], .caderno a { text-decoration:none; border-bottom:0; }
+.caderno-capa { padding:20px 26px; margin-bottom:18px; }
+.caderno-capa h1 { font-size:clamp(1.45rem,2.3vw,2rem); margin:0 0 8px; }
+.caderno-layout { grid-template-columns:clamp(250px,24vw,310px) minmax(0,1fr); }
+.caderno-indice { padding:18px 16px; }
+.caderno-indice button { display:flex; width:100%; gap:12px; align-items:start; justify-content:space-between; text-align:left; padding:11px 9px; margin:0; background:transparent; color:var(--tinta); border:0; border-radius:7px; box-shadow:none; font-size:.83rem; font-weight:400; line-height:1.5; }
+.caderno-indice button:hover { background:var(--caneta-suave); transform:none; }
+.caderno-indice button small { flex-shrink:0; }
+.caderno .trilha-topico h3 { font-size:.9rem; }
+.caderno .trilha-link a { font-size:.8rem; }
+.caderno:not(.editando) [data-trilha-editar], .caderno:not(.editando) [data-trilha-adicionar] { display:none !important; }
+.caderno.editando [data-trilha-adicionar] { margin-top:5px; }
+@media(max-width:1000px) { .caderno-layout { grid-template-columns:245px minmax(0,1fr); } }
+@media(max-width:760px) { .caderno-layout { display:block; } .caderno-indice { max-height:240px; } .caderno-capa { padding:18px; } }
