@@ -18,7 +18,9 @@ test('referências TRF2 não são apresentadas como cadernos de outro concurso',
   const t = carregar();
   const state = { plano: { concurso: 'TRF3 — Técnico' }, disciplinas: [], links: [] };
   assert.ok(!t.render(state).includes('data-trilha-adicionar="ref:'));
-  state.plano.concurso = 'TRF2 — Técnico';
+  state.plano.concurso = 'TRF2 — Técnico de Informática';
+  assert.ok(!t.render(state).includes('data-trilha-adicionar="ref:'));
+  state.plano.concurso = 'TRF2 — Técnico Administrativo';
   assert.equal((t.render(state).match(/data-trilha-adicionar="ref:/g) || []).length, 200);
   state.disciplinas = [{ id: 'pt', nome: 'Português', topicos: [{ id: 'c', nome: 'Crase' }] }];
   assert.ok(t.render(state).includes('Resolver no Gran'));
@@ -31,7 +33,7 @@ test('referências TRF2 não são apresentadas como cadernos de outro concurso',
 });
 test('links removidos não reaparecem pelo fallback e nomes são escapados', () => {
   const t = carregar();
-  const state = { plano: { concurso: 'TRF2 — Técnico' }, disciplinas: [{ id: 'p', nome: 'Português', topicos: [{ id: 'c', nome: 'Crase' }] }], links: [{ id: 'x', tipo: 'trilha', topicoChave: 'plano:p:c', oculto: true }] };
+  const state = { plano: { concurso: 'TRF2 — Técnico Administrativo' }, disciplinas: [{ id: 'p', nome: 'Português', topicos: [{ id: 'c', nome: 'Crase' }] }], links: [{ id: 'x', tipo: 'trilha', topicoChave: 'plano:p:c', oculto: true }] };
   const html = t.render(state);
   assert.ok(!html.includes('data-trilha-editar="plano:p:c"'));
   state.links = [{ id: 'x', tipo: 'trilha', topicoChave: 'plano:p:c', nome: '<script>teste</script>', url: 'https://example.org' }];

@@ -7,7 +7,7 @@
     try { const u = new URL(s); return /^https?:$/.test(u.protocol) && !u.username && !u.password ? u.href : ''; } catch (_) { return ''; }
   }
   let banca = '982,92';
-  const ehTrf2 = state => /trf\s*2/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '');
+  const ehTrf2 = state => /trf\s*2/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '') && /administrativ/i.test(state.plano.concurso || '');
   function grupos(state) {
     if (ehTrf2(state)) return (window.TrilhaReferencia || []).map((d, i) => ({ nome: d.name, tipo: d.type, topicos: d.topics.map((t, j) => {
       const candidatos = (state.disciplinas || []).flatMap(x => (x.topicos || []).map(y => ({ d: x, t: y }))).filter(x => normal(x.t.nome) === normal(t.name));
@@ -31,7 +31,7 @@
     let pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === t.chave);
     // Preserva os links pessoais da antiga seção de referência quando o tópico
     // tem correspondência única, sem duplicar disciplinas fora do edital.
-    if (!pessoais.length && /trf\s*2/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '')) {
+    if (!pessoais.length && ehTrf2(state)) {
       const chaves = [];
       (window.TrilhaReferencia || []).forEach((d, i) => d.topics.forEach((r, j) => { if (normal(r.name) === normal(t.nome)) chaves.push('ref:trf2-2024:' + i + ':' + j); }));
       if (chaves.length === 1) pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === chaves[0]);
