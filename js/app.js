@@ -12528,7 +12528,6 @@
       (state.config.lembretesPush ? ' checked' : '') + (pushDisponivel ? '' : ' disabled') + '></label>' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
-      '<button type="button" id="pf-feedback" class="pf-feedback"><svg aria-hidden="true"><use href="#ic-feedback"/></svg>Feedback, erros e sugestões</button>' +
       perfilMetasHtml() +
       '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
       '<strong style="display:block;font-size:0.95rem">Calendário</strong>' +
@@ -12539,7 +12538,8 @@
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
-      '<button type="button" id="pf-salvar-nome">Salvar</button></div>'
+      '<button type="button" id="pf-salvar-nome">Salvar</button></div>' +
+      '<button type="button" id="pf-feedback" class="pf-feedback"><svg aria-hidden="true"><use href="#ic-feedback"/></svg>Feedback, erros e sugestões</button>'
     );
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
     m.querySelector('#pf-feedback').addEventListener('click', function () {
