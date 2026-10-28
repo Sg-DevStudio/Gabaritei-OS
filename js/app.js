@@ -13358,7 +13358,9 @@
     toast('O timer continua contando, mas não conseguiu salvar a recuperação neste aparelho. Registre o estudo antes de fechar a página.', 'erro');
   });
   window.GabariteiAtualizacaoSegura = function () {
-    return !window.Timer.estado() && !document.querySelector('[role="dialog"], form');
+    // A demonstração vive em memória: recarregar aqui apagaria o plano que a
+    // pessoa está experimentando. A atualização pode esperar a saída do demo.
+    return !modoDemo && !window.Timer.estado() && !document.querySelector('[role="dialog"], form');
   };
 
   // Ao sair do app (segundo plano) com o cronômetro rodando, o contador
