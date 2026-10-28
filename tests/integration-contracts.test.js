@@ -36,9 +36,10 @@ test('IA não configurada aparece como recurso em breve e fica desativada', () =
   assert.match(app, /IA em breve/);
 });
 
-test('menu deixa o Instagram apenas dentro dos modais de contato', () => {
-  assert.match(indexHtml, /id="sidebar-feedback"/);
-  assert.match(indexHtml, /Feedback, erros e sugestões/);
+test('feedback fica no perfil e Instagram apenas nos modais de contato', () => {
+  assert.doesNotMatch(indexHtml, /id="sidebar-feedback"|Feedback, erros e sugestões/);
+  assert.doesNotMatch(app, /id="mais-feedback"/);
+  assert.match(app, /function abrirPerfilUsuario\(\)[\s\S]*?id="pf-feedback"/);
   assert.doesNotMatch(indexHtml, /class="sidebar-instagram"/);
   assert.doesNotMatch(app, /class="mais-item mais-instagram"/);
   assert.match(app, /const INSTAGRAM_DIRECT_URL = 'https:\/\/ig\.me\/m\/samuel_g\.silva'/);

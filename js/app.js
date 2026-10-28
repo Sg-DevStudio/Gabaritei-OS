@@ -12456,16 +12456,10 @@
           '<span class="mais-item-seta" aria-hidden="true">›</span></a>';
       }).join('') +
       '<button type="button" class="mais-item mais-item-botao" data-abrir-android><span class="mais-item-nome">Gabaritei no Android</span><span class="mais-item-seta" aria-hidden="true">›</span></button>' +
-      '<button type="button" class="mais-item mais-item-botao" id="mais-feedback">' +
-      '<span class="mais-item-nome">Feedback, erros e sugestões</span>' +
-      '<span class="mais-item-seta" aria-hidden="true">›</span></button>' +
       '</div>';
   }
 
-  function ligarMais(raiz) {
-    const feedback = raiz.querySelector('#mais-feedback');
-    if (feedback) feedback.addEventListener('click', abrirFeedback);
-  }
+  function ligarMais() { /* Links por hash e acesso Android por delegação global. */ }
 
   // ---------------- Meta semanal de questões (editada na própria Hoje) ----------------
   function editarMetaQuestoes() {
@@ -12534,6 +12528,7 @@
       (state.config.lembretesPush ? ' checked' : '') + (pushDisponivel ? '' : ' disabled') + '></label>' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
+      '<button type="button" id="pf-feedback" class="pf-feedback"><svg aria-hidden="true"><use href="#ic-feedback"/></svg>Feedback, erros e sugestões</button>' +
       perfilMetasHtml() +
       '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
       '<strong style="display:block;font-size:0.95rem">Calendário</strong>' +
@@ -12547,6 +12542,9 @@
       '<button type="button" id="pf-salvar-nome">Salvar</button></div>'
     );
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
+    m.querySelector('#pf-feedback').addEventListener('click', function () {
+      fecharModal(); abrirFeedback();
+    });
     const pfSair = m.querySelector('#pf-sair');
     if (pfSair) pfSair.addEventListener('click', function () {
       sairDaContaComSeguranca(pfSair);
@@ -13305,10 +13303,8 @@
   // Navegar pela gaveta a fecha; trocar para desktop também limpa o estado de gaveta.
   const sidebarEl = document.getElementById('sidebar');
   if (sidebarEl) sidebarEl.addEventListener('click', function (e) {
-    if (e.target.closest('.nav-item, .sidebar-feedback')) fecharGaveta();
+    if (e.target.closest('.nav-item')) fecharGaveta();
   });
-  const sidebarFeedback = document.getElementById('sidebar-feedback');
-  if (sidebarFeedback) sidebarFeedback.addEventListener('click', abrirFeedback);
   sincronizarAcessibilidadeMenu();
   window.addEventListener('resize', function () { if (!ehLarguraMobile()) document.body.classList.remove('sidebar-aberta'); sincronizarAcessibilidadeMenu(); reposicionarTopoInicio(document.querySelector('.inicio-moderno')); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharGaveta(); });

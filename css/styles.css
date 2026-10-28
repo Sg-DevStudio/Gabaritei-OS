@@ -224,35 +224,36 @@ a  { color: var(--caneta); text-underline-offset: 3px; }
   gap: 0.45rem;
 }
 
-.sidebar-feedback {
+.pf-feedback {
   width: 100%;
   min-height: 40px;
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.58rem 0.55rem;
+  padding: 0.7rem 0.8rem;
   border-radius: var(--raio-s);
-  border: 0;
-  background: transparent;
-  color: rgba(201, 210, 234, 0.82);
+  border: 1px solid var(--linha);
+  background: var(--papel-elevado);
+  color: var(--caneta);
   box-shadow: none;
   text-decoration: none;
   font: inherit;
-  font-size: 0.79rem;
+  font-size: 0.85rem;
   font-weight: 600;
   line-height: 1.25;
   text-align: left;
+  margin: 0.85rem 0;
 }
 
-.sidebar-feedback { cursor: pointer; }
-.sidebar-feedback:hover {
-  background: var(--sb-hover);
-  color: var(--sb-texto-forte);
+.pf-feedback { cursor: pointer; }
+.pf-feedback:hover {
+  background: var(--caneta-suave);
+  color: var(--caneta-forte);
   filter: none;
   transform: none;
   box-shadow: none;
 }
-.sidebar-feedback svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.pf-feedback svg { width: 18px; height: 18px; flex: 0 0 18px; }
 
 #conteudo {
   flex: 1;
@@ -1279,6 +1280,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline
 .prova-card-topo { display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
 .alvo-emoji { font-size: 1.15rem; line-height: 1; }
 .prova-editar { align-self: center; margin-top: 0.1rem; }
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  .prova-card .prova-editar { opacity: 0; pointer-events: none; transition: opacity .15s ease; }
+  .prova-card:hover .prova-editar, .prova-card:focus-within .prova-editar { opacity: 1; pointer-events: auto; }
+}
 
 /* Card "Data provável" independente: topo (desktop) ou card próprio (mobile) */
 .prova-card-solo { margin: 0; }
