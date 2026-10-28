@@ -3581,8 +3581,7 @@
   }
 
   function telaRevisoes() {
-    let html = '<div class="cab-pagina"><div><h1>Revisões</h1>' +
-      '<p class="sub">Ciclo automático de teoria (24h · 3d · 7d · 14d · 30d) e seus flashcards de memorização.</p></div></div>';
+    let html = '<h1 class="sr-only">Revisões</h1>';
     html += '<div class="rev-seg">' +
       '<button class="botao-mini ' + (revisoesAba === 'agendadas' ? '' : 'botao-quieto') + '" data-rev-aba="agendadas">Agendadas</button>' +
       '<button class="botao-mini ' + (revisoesAba === 'estudados' ? '' : 'botao-quieto') + '" data-rev-aba="estudados">Estudados</button>' +
@@ -4875,7 +4874,7 @@
   function telaStats() {
     const hoje = D.hojeISO();
     if (D.atividadesDoPlano(state).length === 0) {
-      return '<h1>Desempenho</h1><div class="card"><div class="estado-vazio">' +
+      return '<h1 class="sr-only">Desempenho</h1><div class="card"><div class="estado-vazio">' +
         '<span class="bolha bolha-pendente"></span><strong>Sem dados ainda</strong>' +
         'Registre uma sessão ou simulado e os números aparecem aqui.</div></div>';
     }
@@ -4888,7 +4887,7 @@
     const totalMin = totais.minutos, totalQ = totais.qFeitas, totalC = totais.qCertas;
 
     const statsMobile = window.matchMedia && window.matchMedia('(max-width: 560px)').matches;
-    let html = '<h1>Desempenho</h1><div class="linha-cards stats-kpis">' +
+    let html = '<h1 class="sr-only">Desempenho</h1><div class="linha-cards stats-kpis">' +
       '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Tempo total</div><div class="card-kpi-valor">' + D.formatarMin(totalMin) + '</div>' +
       '<div class="card-kpi-extra">' + D.formatarMin(meta.minutos) + ' nesta semana</div></div>' +
       '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + totalQ + '</div>' +
@@ -5457,7 +5456,7 @@
     const ativos = listaCatalogo.filter(function (e) { return !e.arquivado && correspondeBusca(e); });
     const arquivados = listaCatalogo.filter(function (e) { return e.arquivado && correspondeBusca(e); });
 
-    let html = '<div class="card"><h3 class="planos-cad-titulo">Planos cadastrados</h3>' +
+    let html = '<div class="card"><h3 class="sr-only">Planos cadastrados</h3>' +
       '<div class="planos-cad-barra">' +
       '<input id="adm-busca" class="campo-busca-compacto" type="search" placeholder="Buscar por órgão, cargo, estado…" value="' + esc(adminBusca || '') + '">' +
       '<div class="planos-cad-acoes">' +
@@ -6068,7 +6067,7 @@
     garantirEditaisMock();
     const lista = editaisDoCatalogo().filter(function (e) { return !e.arquivado && !ehEditalCombinado(e); })
       .slice().sort(function (a, b) { return contarTopicosEdital(b) - contarTopicosEdital(a); });
-    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo</span><h1>Planos disponíveis</h1></div></div>' +
+    let html = '<h1 class="sr-only">Planos disponíveis</h1>' +
       '<p class="sub" style="margin-bottom:1rem">Escolha um concurso para gerar seu plano de estudos. Use <strong>Comparar</strong> para saber se dá para conciliar dois editais.</p>';
     if (lista.length === 0) {
       html += '<div class="estado-vazio"><span class="bolha bolha-pendente"></span><strong>Nenhum plano disponível ainda</strong>' +
@@ -6106,7 +6105,7 @@
         '<p class="sub">Estude o núcleo recorrente da carreira agora. Quando sair o concurso, troque para o plano específico e o sistema oferece reaproveitar seu histórico compatível.</p>' +
         '</div></div>'
       : '';
-    let html = '<div class="cab-pagina"><div><span class="rotulo-pagina">Catálogo de planos</span><h1>Planos</h1></div></div>' +
+    let html = '<h1 class="sr-only">Planos</h1>' +
       guiaBoasVindasPlanosHtml() +
       tiposHtml +
       carreiraIntro +
@@ -10948,8 +10947,7 @@
       !state.agenda.some(function (a) { return a.gerado && (!a.planoId || a.planoId === state.planoAtivoId); })) {
       if (sincronizarAgendaComCronograma() > 0) salvar();
     }
-    let html = '<div class="cab-pagina"><div><h1>Planejamento</h1>' +
-      '<p class="sub">Plano atual, check-in e agenda no mesmo lugar.</p></div></div>';
+    let html = '<h1 class="sr-only">Planejamento</h1>';
 
     // Aviso: plano com cronograma mas rotina sem nenhum dia de estudo ativo →
     // o calendário fica vazio. Oferece ir direto ajustar a rotina.
@@ -12419,8 +12417,7 @@
     function linkExterno(url, texto, classe) {
       return '<a class="' + classe + '" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(texto) + '<span class="sr-only"> (abre em nova aba)</span></a>';
     }
-    return '<div class="ferramentas-intro"><span class="etiqueta">KIT DE ESTUDOS</span>' +
-      '<h1>Ferramentas</h1><p class="sub">Organize suas ideias, revise melhor e encontre boas leituras. Escolha o que ajuda na sua rotina — você não precisa usar tudo.</p></div>' +
+    return '<h1 class="sr-only">Ferramentas</h1>' +
       '<div class="ferramentas-filtros" role="group" aria-label="Filtrar ferramentas por categoria">' + categorias.map(function (c) { return '<button type="button" data-ferramenta-categoria="' + esc(c) + '" aria-pressed="' + (c === categoriaFerramentas) + '">' + esc(c) + '</button>'; }).join('') + '</div><p class="sub ferramentas-contagem" role="status">' + ferramentas.length + ' ferramentas · ' + esc(categoriaFerramentas) + '</p>' +
       '<div class="ferramentas-grid">' + ferramentas.map(function (f, i) {
         return '<article class="card ferramenta-card" aria-labelledby="ferramenta-' + i + '">' +
