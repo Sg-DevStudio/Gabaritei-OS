@@ -4958,3 +4958,6 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 
 .caderno-sec-head .caderno-contagem { display:inline; font-size:.82em; font-weight:400; color:var(--grafite); white-space:nowrap; }
 .caderno .trilha-link a { white-space:nowrap; }
+
+.caderno-banca-fixa { color:var(--grafite); font-size:.8rem; white-space:nowrap; }
+.caderno-banca-fixa strong { color:var(--caneta-forte); }
