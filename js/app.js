@@ -12510,7 +12510,6 @@
   function abrirPerfilUsuario() {
     const atual = statusSincronizacao();
     const email = atual && atual.usuario && atual.usuario.email ? atual.usuario.email : null;
-    const temPlano = !!state.plano;
     const pushDisponivel = !!(window.FirebaseSync && window.FirebaseSync.pushConfigurado &&
       window.FirebaseSync.pushConfigurado());
     const m = abrirModal(
@@ -12529,12 +12528,6 @@
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
       perfilMetasHtml() +
-      '<div class="card card-quieto" style="margin:0.85rem 0 0;padding:0.9rem 1rem">' +
-      '<strong style="display:block;font-size:0.95rem">Calendário</strong>' +
-      '<p class="sub" style="margin:0.3rem 0 0">Exporte um arquivo <strong>.ics</strong> para importar em um aplicativo de calendário.</p>' +
-      '<div class="modal-acoes" style="justify-content:flex-start;margin-top:0.75rem">' +
-      '<button type="button" class="botao-secundario" id="pf-exportar-cal"' + (temPlano ? '' : ' disabled') + '>Exportar calendário (.ics)</button>' +
-      '</div></div>' +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
@@ -12585,11 +12578,6 @@
       salvar();
       await window.FirebaseSync.registrarPush();
       toast('Lembretes diários ativados neste aparelho.', 'sucesso');
-    });
-    const pfExportarCal = m.querySelector('#pf-exportar-cal');
-    if (pfExportarCal) pfExportarCal.addEventListener('click', function () {
-      fecharModal();
-      abrirExportarCalendario();
     });
     m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
