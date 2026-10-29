@@ -75,7 +75,7 @@
       const expandir=conquistas.querySelector('.conquistas-expandir'); if(expandir) expandir.remove();
       const dica = conquistas.querySelector('.conquistas-dica'); if(dica) dica.remove();
       const trofeu=document.createElement('span'); trofeu.className='conquistas-trofeu'; trofeu.textContent='🏆'; trofeu.setAttribute('aria-hidden','true');
-      conquistas.querySelector('h3').insertBefore(trofeu, conquistas.querySelector('.conquistas-contador'));
+      conquistas.querySelector('h3').prepend(trofeu);
       conquistas.querySelectorAll('.medalha').forEach((b,i) => {
         const status=document.createElement('small'); status.textContent=b.classList.contains('ganha')?'Concluído':'Em progresso'; b.append(status);
       });

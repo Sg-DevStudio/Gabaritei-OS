@@ -132,6 +132,7 @@
 
   function normalizarEditalCatalogo(e, origem) {
     if (window.EditalTJSP2026) e = window.EditalTJSP2026.atualizarCatalogo(e);
+    if (window.EditalTRT42026) e = window.EditalTRT42026.atualizarCatalogo(e);
     const c = corrigirClassificacaoCatalogo(e);
     if (window.Store && window.Store.normalizarAcentosEdital) window.Store.normalizarAcentosEdital(c);
     c.id = c.id || ((origem === 'global' ? 'global-' : 'edt-') + slugCatalogo(c.titulo));
@@ -12654,6 +12655,9 @@
     if (/tjsp/.test(String(titulo).normalize('NFD').replace(/[^a-zA-Z0-9]/g,'').toLowerCase()) && /escrevente/i.test(titulo) && /2026/.test(titulo) && window.CadernoTJSPBase) {
       view.disciplinas = window.CadernoTJSPBase.disciplinas;
     }
+    if (/trt\s*4/i.test(titulo) && /t[eé]cnico/i.test(titulo) && /administrativ/i.test(titulo) && /2026/.test(titulo) && !/pol[ií]cia/i.test(titulo) && window.CadernoTRT4Base) {
+      view.disciplinas = window.CadernoTRT4Base.disciplinas;
+    }
     return view;
   }
   function rotaAtual() {
@@ -12974,6 +12978,10 @@
     }
     document.body.classList.remove('login-gate');
     if (!modoDemo && window.EditalTJSP2026 && window.EditalTJSP2026.atualizarPlanos(state, D.mesclarEditalNoPlano)) {
+      window.Store.hidratar(state);
+      salvar();
+    }
+    if (!modoDemo && window.EditalTRT42026 && window.EditalTRT42026.atualizarPlanos(state, D.mesclarEditalNoPlano)) {
       window.Store.hidratar(state);
       salvar();
     }

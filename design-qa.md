@@ -37,3 +37,5 @@ Limite: autenticação e sincronização com uma conta real não foram exercitad
 - Separados percentuais e totais; no celular os totais ficam na linha seguinte.
 - Cenários exercitados em navegador: expansão/detalhe de conquista, hover, escolha de tópico e timer, metas, abertura de disciplina e ausência de overflow.
 - Atualização: cabeçalho de conquistas centralizado acima da grade; todas visíveis, sem scroll nem expansão. Conferido desktop e Android emulado, incluindo abertura dos detalhes.
+
+- TRT4 2026: troféu antes de Conquistas; caderno conferido em desktop e 390 px, 12 disciplinas, 133 subtópicos e 128 links. Catálogo e caderno usam o cargo 19 do Edital 01/2026 da FCC. Testes de atualização preservam progresso, links e sessões; filtros amplos e cinco complementos permanecem identificados. Suíte: 320 aprovados, 7 ignorados por ambiente.
