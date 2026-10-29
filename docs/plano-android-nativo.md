@@ -1,6 +1,6 @@
 # Gabaritei OS — proposta para um app Android nativo
 
-Planejamento inicial, conferido em 29/10/2026. Não inicia uma migração nem substitui o APK atual.
+Planejamento inicial, conferido em 29/10/2026. O piloto local foi aprovado e está sendo implementado no módulo `android/piloto`; não substitui o APK atual. Escopo, decisões e aceite: [piloto Android](android-piloto.md).
 
 ## Estado atual e objetivo
 
@@ -72,5 +72,7 @@ Distribuir para um grupo pequeno, coletar problemas de uso e estabilidade e corr
 - Quais cinco ações o aluno mais executa no celular? Elas definem o primeiro fluxo, não a ordem das abas do site.
 - Qual é o tamanho do piloto e qual aparelho Android será usado para testar? Até 20 dispositivos registrados permite começar com a modalidade limitada gratuita.
 - O produto ficará só em Android ou há intenção concreta de iOS? Isso pode mudar a escolha de tecnologia.
+
+Respostas recebidas: piloto inicialmente local; sincronização compatível obrigatória antes de alunos reais; fluxo central do site adaptado para telas nativas; um participante com Samsung S25; somente Android. As perguntas acima registram a decisão original e não são pendências de aprovação.
 
 Critério de sucesso: um aluno consegue estudar, registrar e retomar sua rotina em telas Android próprias, sem perda de histórico e sem depender de recarregar o site.

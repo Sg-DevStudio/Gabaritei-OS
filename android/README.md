@@ -1,5 +1,7 @@
 # Gabaritei OS para Android — beta
 
+O piloto com telas nativas está em [`piloto/`](piloto/README.md). Este diretório `app/` continua sendo o beta TWA; os dois aplicativos têm pacotes distintos.
+
 APK gratuito para Android 8 ou superior, com Trusted Web Activity (AndroidX Browser). Reutiliza o site e o navegador do aparelho, preservando o fluxo Google e os dados da PWA. Se o navegador não validar a associação, poderá exibir a barra de endereço.
 
 ## Recursos
