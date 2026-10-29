@@ -20,8 +20,9 @@
   const ehTrf2 = state => /(?:trf\s*2|carreira\s+trf\b)/i.test(state.plano && state.plano.concurso || '') && /t[eé]cnico/i.test(state.plano.concurso || '') && /administrativ/i.test(state.plano.concurso || '');
   const ehTJSP = s => /tjsp/.test(normal(s.plano && s.plano.concurso)) && /escrevente/.test(normal(s.plano.concurso)) && /2026/.test(s.plano.concurso);
   const ehTRT4 = s => /trt4/.test(normal(s.plano && s.plano.concurso)) && /tecnico/.test(normal(s.plano.concurso)) && /administrativ/.test(normal(s.plano.concurso)) && !/policia/.test(normal(s.plano.concurso)) && /2026/.test(s.plano.concurso);
-  const bancasCaderno = s => ehTRT4(s) ? '92' : ehTJSP(s) ? '252,982,102' : '982,92';
-  const rotuloBancas = s => ehTRT4(s) ? 'FCC' : ehTJSP(s) ? 'Vunesp + AOCP + FGV' : 'AOCP + FCC';
+  const ehTRT4Analista = s => /trt4/.test(normal(s.plano && s.plano.concurso)) && /analistajudiciarioareajudiciaria(?:edital)?2026$/.test(normal(s.plano.concurso));
+  const bancasCaderno = s => ehTRT4(s) || ehTRT4Analista(s) ? '92' : ehTJSP(s) ? '252,982,102' : '982,92';
+  const rotuloBancas = s => ehTRT4(s) || ehTRT4Analista(s) ? 'FCC' : ehTJSP(s) ? 'Vunesp + AOCP + FGV' : 'AOCP + FCC';
   function rotuloFiltroGran(state,t) {
     const ls=t.vinculos && t.vinculos.links || [];
     if(ls.some(l=>l.semResultadosNoRecorte)) return 'Sem questões no recorte selecionado';
@@ -36,7 +37,7 @@
     return esc(rotuloLink(l)) + ' ↗';
   }
   function grupos(state) {
-    const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: (state.cadernoEstruturaId ? 'base:' + state.cadernoEstruturaId + ':' : 'plano:') + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id, vinculos: Object.values(ehTRT4(state) ? window.TrilhaVinculosTRT4 || {} : ehTJSP(state) ? window.TrilhaVinculosTJSP || {} : ehTrf2(state) ? window.TrilhaVinculosTRF2 || {} : {}).find(v => normal(v.nome) === normal(t.nome || t.titulo)) || null })) }));
+    const lista = (state.disciplinas || []).map(d => ({ nome: d.nome, topicos: (d.topicos || []).filter(t => !t.removidoDoEdital).map(t => ({ chave: (state.cadernoEstruturaId ? 'base:' + state.cadernoEstruturaId + ':' : 'plano:') + d.id + ':' + t.id, nome: t.nome || t.titulo || t.id, vinculos: Object.values(ehTRT4Analista(state) ? window.TrilhaVinculosTRT4Analista || {} : ehTRT4(state) ? window.TrilhaVinculosTRT4 || {} : ehTJSP(state) ? window.TrilhaVinculosTJSP || {} : ehTrf2(state) ? window.TrilhaVinculosTRF2 || {} : {}).find(v => normal(v.nome) === normal(t.nome || t.titulo)) || null })) }));
     return lista;
   }
   function padrao(t, state) {
@@ -78,7 +79,7 @@
       '<section class="card caderno-intro"><strong>Como usar</strong><p>Abra as questões de cada subtópico. Em <b>Editar caderno</b>, adicione links do NotebookLM ou de outras plataformas.</p><p>Confira se o filtro corresponde ao tema que você quer estudar.</p>' +
       (state.cadernoConsulta ? '<p>Para salvar seus links, inicie este plano.</p>' : '') + '</section>' +
       '<div class="card caderno-controles"><input id="trilha-busca" type="search" aria-label="Buscar disciplina ou subtópico" placeholder="Buscar disciplina ou subtópico…">' +
-      (ehTrf2(state) || ehTJSP(state) || ehTRT4(state) ? '<span class="caderno-banca-fixa">Bancas: <strong>' + rotuloBancas(state) + '</strong></span>' : '') +
+      (ehTrf2(state) || ehTJSP(state) || ehTRT4(state) || ehTRT4Analista(state) ? '<span class="caderno-banca-fixa">Bancas: <strong>' + rotuloBancas(state) + '</strong></span>' : '') +
       '<button type="button" id="caderno-editar" class="botao-mini botao-secundario" aria-pressed="' + (edicaoPlano === chaveCaderno(state) && !!edicaoPlano) + '">' + (edicaoPlano === chaveCaderno(state) && edicaoPlano ? 'Concluir edição' : 'Editar caderno') + '</button><button type="button" id="caderno-imprimir" class="botao-mini botao-quieto">Imprimir / PDF</button></div>' +
       '<div id="trilha-grupos">' + gs.map((g,i) => '<details class="card trilha-grupo" id="caderno-disc-' + i + '"' + ((disciplinasAbertas.get(chaveCaderno(state)) || new Set()).has(i) ? ' open' : '') + '><summary class="caderno-sec-head"><div><small>' + String(i+1).padStart(2,'0') + ' / ' + gs.length + (g.tipo ? ' · ' + esc(g.tipo) : '') + '</small><h2>' + esc(g.nome) + ' <span class="caderno-contagem">(' + g.topicos.length + ' subtópicos)</span></h2></div></summary><p class="sub">Escolha o subtópico e resolva quantas questões quiser.</p>' + g.topicos.map(t => {
         const ls = links(state,t);

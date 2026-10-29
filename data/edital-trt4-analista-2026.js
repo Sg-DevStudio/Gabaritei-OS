@@ -25,7 +25,7 @@ const base = {
   "titulo": "TRT4 RS — Analista Judiciário · Área Judiciária (Edital 2026)",
   "estado": "RS",
   "arquivado": false,
-  "atualizadoEm": "2026-10-29T00:00:00.000Z",
+  "atualizadoEm": "2026-10-29T22:00:00-03:00",
   "vagas": "Cadastro de reserva",
   "notaCorte": "",
   "fonte": "https://www.concursosfcc.com.br/concursos/trt4r125/trt4r125_edital_de_abertura_21_10_26__1___1__publicar.pdf",
@@ -2007,8 +2007,14 @@ const base = {
   "requisito": "Graduação em Direito",
   "notaCorteVerificada": false,
   "incidenciaVerificada": false,
-  "descricaoPreparacao": "Cargo 01 do edital 2026. Exige graduação em Direito; discursiva em formato de estudo de caso."
+  "descricaoPreparacao": "Cargo 01 do edital 2026. Exige graduação em Direito; discursiva em formato de estudo de caso.",
+  "foto": "assets/carreiras/logo-trt4.jpg",
+  "fotoAlt": "TRT da 4ª Região — Rio Grande do Sul"
 };
-window.EditalTRT4Analista2026={base};
+function atualizarCatalogo(e) {
+  if (!e || e.id !== base.id || e.foto) return e;
+  return Object.assign({}, e, {foto:base.foto, fotoAlt:base.fotoAlt});
+}
+window.EditalTRT4Analista2026={base, atualizarCatalogo};
 window.CATALOGO_EDITAIS_BASE=(window.CATALOGO_EDITAIS_BASE||[]).concat([base]);
 })();

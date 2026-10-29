@@ -133,6 +133,7 @@
   function normalizarEditalCatalogo(e, origem) {
     if (window.EditalTJSP2026) e = window.EditalTJSP2026.atualizarCatalogo(e);
     if (window.EditalTRT42026) e = window.EditalTRT42026.atualizarCatalogo(e);
+    if (window.EditalTRT4Analista2026) e = window.EditalTRT4Analista2026.atualizarCatalogo(e);
     const c = corrigirClassificacaoCatalogo(e);
     if (window.Store && window.Store.normalizarAcentosEdital) window.Store.normalizarAcentosEdital(c);
     c.id = c.id || ((origem === 'global' ? 'global-' : 'edt-') + slugCatalogo(c.titulo));
@@ -12660,6 +12661,9 @@
     }
     if (/trt\s*4/i.test(titulo) && /t[eé]cnico/i.test(titulo) && /administrativ/i.test(titulo) && /2026/.test(titulo) && !/pol[ií]cia/i.test(titulo) && window.CadernoTRT4Base) {
       view.disciplinas = window.CadernoTRT4Base.disciplinas;
+    }
+    if (/trt4.*analistajudiciarioareajudiciaria(?:edital)?2026$/.test(String(titulo).normalize('NFD').replace(/[^a-zA-Z0-9]/g,'').toLowerCase()) && window.CadernoTRT4AnalistaBase) {
+      view.disciplinas = window.CadernoTRT4AnalistaBase.disciplinas;
     }
     return view;
   }

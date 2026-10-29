@@ -1,0 +1,4817 @@
+{
+  "verificadoEm": "2026-10-29",
+  "fonte": "https://rota-api.grancursosonline.com.br/open/assuntos/arvore",
+  "criterio": "Nome, hierarquia e acervo geral conferidos por categoria. Não atesta contagens em todos os recortes de banca, nível e anos.",
+  "resumo": {
+    "disciplinas": 13,
+    "topicos": 228,
+    "especifico": 208,
+    "amplo": 6,
+    "parcial": 4,
+    "pendente": 10
+  },
+  "vinculos": [
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-01",
+      "topico": "Compreensão e interpretação de textos; contexto histórico e intertextualidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403701",
+          "nome": "Interpretação de Texto",
+          "pai": 403587,
+          "questoesCatalogo": 248115
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-02",
+      "topico": "Reescrita: frases corretas e incorretas, organização e transformação de períodos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403713",
+          "nome": "Equivalência, substituição, reorganização e transformação de palavras ou trechos do texto",
+          "pai": 403712,
+          "questoesCatalogo": 24094
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-03",
+      "topico": "Ortografia oficial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403613",
+          "nome": "Ortografia oficial e acentuação gráfica",
+          "pai": 403587,
+          "questoesCatalogo": 35917
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-11",
+      "topico": "Acentuação gráfica",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403612",
+          "nome": "Acentuação gráfica",
+          "pai": 419321,
+          "questoesCatalogo": 12075
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-04",
+      "topico": "Flexão nominal e verbal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "409117",
+          "nome": "Flexão do substantivo",
+          "pai": 403622,
+          "questoesCatalogo": 2504
+        },
+        {
+          "id": "409143",
+          "nome": "Flexão do adjetivo",
+          "pai": 403623,
+          "questoesCatalogo": 386
+        },
+        {
+          "id": "409160",
+          "nome": "Flexão do numeral",
+          "pai": 403621,
+          "questoesCatalogo": 8
+        },
+        {
+          "id": "409189",
+          "nome": "Flexões verbais",
+          "pai": 403628,
+          "questoesCatalogo": 14631
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-05",
+      "topico": "Pronomes: emprego e colocação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403641",
+          "nome": "Pronomes",
+          "pai": 419336,
+          "questoesCatalogo": 10565
+        },
+        {
+          "id": "403650",
+          "nome": "Colocação Pronominal",
+          "pai": 403651,
+          "questoesCatalogo": 7155
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-06",
+      "topico": "Tempos, modos e vozes verbais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419374",
+          "nome": "Emprego dos modos verbais",
+          "pai": 403631,
+          "questoesCatalogo": 3915
+        },
+        {
+          "id": "419381",
+          "nome": "Emprego dos tempos verbais",
+          "pai": 403630,
+          "questoesCatalogo": 2485
+        },
+        {
+          "id": "403634",
+          "nome": "Flexão de voz (ativa, passiva, reflexiva)",
+          "pai": 409189,
+          "questoesCatalogo": 2972
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-07",
+      "topico": "Concordância nominal e verbal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403658",
+          "nome": "Concordância verbal",
+          "pai": 409455,
+          "questoesCatalogo": 9218
+        },
+        {
+          "id": "409456",
+          "nome": "Concordância Nominal",
+          "pai": 409455,
+          "questoesCatalogo": 3063
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-08",
+      "topico": "Regência nominal e verbal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403657",
+          "nome": "Regência verbal",
+          "pai": 409479,
+          "questoesCatalogo": 6512
+        },
+        {
+          "id": "409483",
+          "nome": "Regência nominal",
+          "pai": 409479,
+          "questoesCatalogo": 2217
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-09",
+      "topico": "Crase",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403682",
+          "nome": "Emprego do sinal indicativo de crase",
+          "pai": 403651,
+          "questoesCatalogo": 14553
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-10",
+      "topico": "Pontuação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403666",
+          "nome": "Pontuação",
+          "pai": 403651,
+          "questoesCatalogo": 24593
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-12",
+      "topico": "Denotação, conotação, sinonímia, antonímia e figuras de linguagem",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403706",
+          "nome": "Linguagem denotativa e linguagem conotativa (denotação e conotação)",
+          "pai": 403701,
+          "questoesCatalogo": 4530
+        },
+        {
+          "id": "403704",
+          "nome": "Relações de sinonímia e antonímia (sinônimos e antônimos)",
+          "pai": 409318,
+          "questoesCatalogo": 7658
+        },
+        {
+          "id": "409484",
+          "nome": "Figuras de linguagem",
+          "pai": 403709,
+          "questoesCatalogo": 8099
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-13",
+      "topico": "Discurso direto, indireto e indireto livre",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419180",
+          "nome": "Tipos de discurso narrativo",
+          "pai": 409512,
+          "questoesCatalogo": 867
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-14",
+      "topico": "Morfossintaxe e formação de palavras",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403617",
+          "nome": "Morfologia",
+          "pai": 403587,
+          "questoesCatalogo": 10844
+        },
+        {
+          "id": "403651",
+          "nome": "Morfossintaxe do período",
+          "pai": 403587,
+          "questoesCatalogo": 124770
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-15",
+      "topico": "Coordenação, subordinação e conectivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419436",
+          "nome": "A sintaxe do período composto",
+          "pai": 403651,
+          "questoesCatalogo": 9962
+        },
+        {
+          "id": "403626",
+          "nome": "Conjunções",
+          "pai": 419336,
+          "questoesCatalogo": 10761
+        }
+      ]
+    },
+    {
+      "disciplinaId": "POR",
+      "disciplina": "Língua Portuguesa",
+      "topicoId": "POR-16",
+      "topico": "Redação oficial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406881",
+          "nome": "Redação Oficial",
+          "pai": null,
+          "questoesCatalogo": 16713
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-01",
+      "topico": "Números inteiros: operações, expressões, múltiplos e divisores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408662",
+          "nome": "Conjunto dos Números Inteiros",
+          "pai": 408638,
+          "questoesCatalogo": 776
+        },
+        {
+          "id": "403827",
+          "nome": "Operações Fundamentais",
+          "pai": 403826,
+          "questoesCatalogo": 12509
+        },
+        {
+          "id": "403828",
+          "nome": "Divisibilidade e Critérios de Divisibilidade",
+          "pai": 403826,
+          "questoesCatalogo": 536
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-02",
+      "topico": "Números racionais, frações e operações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403830",
+          "nome": "Frações e Números Decimais",
+          "pai": 403826,
+          "questoesCatalogo": 6747
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-03",
+      "topico": "Razão, proporção, divisão proporcional e regra de três",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403831",
+          "nome": "Razão e proporção (proporcionalidade)",
+          "pai": 403826,
+          "questoesCatalogo": 6705
+        },
+        {
+          "id": "403833",
+          "nome": "Regra de Três",
+          "pai": 403826,
+          "questoesCatalogo": 6726
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-07",
+      "topico": "Porcentagem, acréscimos e descontos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403835",
+          "nome": "Porcentagem",
+          "pai": 403826,
+          "questoesCatalogo": 11534
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-08",
+      "topico": "Relações lógicas, deduções e conclusões a partir de hipóteses",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404280",
+          "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+          "pai": 404257,
+          "questoesCatalogo": 1786
+        },
+        {
+          "id": "404266",
+          "nome": "Lógica de Argumentação ",
+          "pai": 404257,
+          "questoesCatalogo": 7652
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-09",
+      "topico": "Raciocínio verbal, matemático, sequencial e orientação espacial e temporal",
+      "tipo": "amplo",
+      "motivo": "As categorias novas de raciocínio verbal e orientação espacial não têm acervo validado; o link reúne estruturas lógicas, raciocínio sequencial e orientação temporal com questões catalogadas.",
+      "assuntos": [
+        {
+          "id": "404280",
+          "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+          "pai": 404257,
+          "questoesCatalogo": 1786
+        },
+        {
+          "id": "404276",
+          "nome": "Raciocínio Sequencial",
+          "pai": 425328,
+          "questoesCatalogo": 1987
+        },
+        {
+          "id": "411113",
+          "nome": "Orientação Temporal e Calendários",
+          "pai": 425328,
+          "questoesCatalogo": 690
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-10",
+      "topico": "Estatística: moda, mediana, médias e medidas de dispersão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "7194",
+          "nome": "Média Aritmética",
+          "pai": 7193,
+          "questoesCatalogo": 593
+        },
+        {
+          "id": "7195",
+          "nome": "Média Ponderada",
+          "pai": 7193,
+          "questoesCatalogo": 112
+        },
+        {
+          "id": "7202",
+          "nome": "Mediana",
+          "pai": 7192,
+          "questoesCatalogo": 1177
+        },
+        {
+          "id": "7206",
+          "nome": "Moda",
+          "pai": 7192,
+          "questoesCatalogo": 605
+        },
+        {
+          "id": "7212",
+          "nome": "Medidas de Variabilidade (ou de dispersão)",
+          "pai": 416549,
+          "questoesCatalogo": 2528
+        }
+      ]
+    },
+    {
+      "disciplinaId": "MAT",
+      "disciplina": "Matemática e Raciocínio Lógico",
+      "topicoId": "MAT-11",
+      "topico": "Leitura e interpretação de gráficos, infográficos e tabelas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403910",
+          "nome": "Análise de Gráficos e Tabelas",
+          "pai": 403826,
+          "questoesCatalogo": 2465
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LTRT",
+      "disciplina": "Noções de Legislação",
+      "topicoId": "LTRT-05",
+      "topico": "Sustentabilidade no Judiciário: Resolução CNJ 400/2021",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433177",
+          "nome": "Resolução nº 400/2021 - Dispõe sobre a política de sustentabilidade no âmbito do Poder Judiciário.",
+          "pai": 397403,
+          "questoesCatalogo": 121
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LTRT",
+      "disciplina": "Noções de Legislação",
+      "topicoId": "LTRT-06",
+      "topico": "Código de Conduta e Valores Éticos do TRT4: Portaria 4.573/2023, com alterações de 2025",
+      "tipo": "pendente",
+      "motivo": "Código de Conduta do TRT4: categoria correspondente não encontrada no Gran. Adicione um link complementar.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "LTRT",
+      "disciplina": "Noções de Legislação",
+      "topicoId": "LTRT-02",
+      "topico": "Regimento Interno do TRT4, atualizado até o Assento Regimental 04/2026",
+      "tipo": "pendente",
+      "motivo": "Regimento Interno do TRT4: categoria encontrada, mas sem questões no catálogo consultado; adicione um link complementar.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "LTRT",
+      "disciplina": "Noções de Legislação",
+      "topicoId": "LTRT-07",
+      "topico": "Violência, assédio e discriminação: Resolução CSJT 360/2023",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "449610",
+          "nome": "Resolução nº 360/2023 - Institui a Política de Prevenção e Enfrentamento da Violência, do Assédio e de Todas as Formas de Discriminação no âmbito da Justiça do Trabalho de primeiro e segundo graus.",
+          "pai": 399690,
+          "questoesCatalogo": 2
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LTRT",
+      "disciplina": "Noções de Legislação",
+      "topicoId": "LTRT-08",
+      "topico": "Assédio moral, sexual e discriminação: Resolução CNJ 351/2020",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "436342",
+          "nome": "Resolução 351/2020",
+          "pai": 397403,
+          "questoesCatalogo": 24
+        },
+        {
+          "id": "436375",
+          "nome": "Resolução 351/2020 CNJ",
+          "pai": 397403,
+          "questoesCatalogo": 28
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-01",
+      "topico": "Evolução histórica, fundamentos filosóficos, fontes, princípios e gerações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407073",
+          "nome": "Evolução histórica dos direitos humanos",
+          "pai": 407070,
+          "questoesCatalogo": 356
+        },
+        {
+          "id": "407074",
+          "nome": "Características dos direitos humanos",
+          "pai": 407070,
+          "questoesCatalogo": 362
+        },
+        {
+          "id": "407075",
+          "nome": "Categorias e gerações dos direitos humanos",
+          "pai": 407070,
+          "questoesCatalogo": 265
+        },
+        {
+          "id": "423167",
+          "nome": "Teoria geral dos direitos humanos",
+          "pai": 407069,
+          "questoesCatalogo": 654
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-02",
+      "topico": "Interpretação dos tratados, colisão de direitos e controle de convencionalidade",
+      "tipo": "amplo",
+      "motivo": "Controle de convencionalidade tem filtro específico. Interpretação e colisão de tratados não foram encontradas isoladamente; inclui a categoria de Direito Internacional dos Direitos Humanos.",
+      "assuntos": [
+        {
+          "id": "421824",
+          "nome": "Controle de convencionalidade",
+          "pai": 405319,
+          "questoesCatalogo": 11
+        },
+        {
+          "id": "407070",
+          "nome": "Direito Internacional dos Direitos Humanos",
+          "pai": 407069,
+          "questoesCatalogo": 1726
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-03",
+      "topico": "Tratados de direitos humanos e Constituição de 1988",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407127",
+          "nome": "Incorporação de tratados internacionais de direitos humanos no direito brasileiro (EC n.o 45)",
+          "pai": 407108,
+          "questoesCatalogo": 501
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-04",
+      "topico": "Declaração Universal dos Direitos Humanos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407086",
+          "nome": "Declaração Universal dos Direitos Humanos",
+          "pai": 407084,
+          "questoesCatalogo": 1851
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-05",
+      "topico": "PIDCP, PIDESC e protocolos facultativos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407087",
+          "nome": "Pacto Internacional de Direitos Civis e Políticos",
+          "pai": 407084,
+          "questoesCatalogo": 161
+        },
+        {
+          "id": "407088",
+          "nome": "Pacto Internacional de Direitos Econômicos e Sociais e Culturais",
+          "pai": 407084,
+          "questoesCatalogo": 96
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-06",
+      "topico": "Convenções contra a discriminação racial e contra a mulher; protocolo facultativo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407089",
+          "nome": "Convenção Internacional sobre Eliminação de Todas as Formas de Discriminação Racial",
+          "pai": 407084,
+          "questoesCatalogo": 126
+        },
+        {
+          "id": "407090",
+          "nome": "Convenção sobre a Eliminação de Todas as Formas de Discriminação contra a Mulher",
+          "pai": 407084,
+          "questoesCatalogo": 106
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-07",
+      "topico": "Convenções sobre os direitos da criança e da pessoa com deficiência; protocolos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407093",
+          "nome": "Convenção sobre os Direitos da Criança",
+          "pai": 407084,
+          "questoesCatalogo": 165
+        },
+        {
+          "id": "407096",
+          "nome": "Convenção sobre os Direitos das Pessoas com Deficiência",
+          "pai": 407084,
+          "questoesCatalogo": 274
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-08",
+      "topico": "Patrimônio mundial, Declaração de Estocolmo e diversidade biológica",
+      "tipo": "amplo",
+      "motivo": "Não foi encontrado no catálogo um conjunto específico para os três instrumentos ambientais deste subtópico.",
+      "assuntos": [
+        {
+          "id": "397326",
+          "nome": "Conferências e Tratados Ambientais",
+          "pai": 397297,
+          "questoesCatalogo": 287
+        },
+        {
+          "id": "433492",
+          "nome": "Decreto nº 2.519/1998 - Promulga a Convenção sobre Diversidade Biológica, assinada no Rio de Janeiro, em 05 de junho de 1992.",
+          "pai": 418540,
+          "questoesCatalogo": 11
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-09",
+      "topico": "Declaração da ONU sobre os direitos dos povos indígenas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "430252",
+          "nome": "Declaração das Nações Unidas sobre os direitos dos povos indígenas",
+          "pai": 407069,
+          "questoesCatalogo": 27
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-10",
+      "topico": "Sistema interamericano: Declaração Americana, Convenção Americana e Protocolo de San Salvador",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "443740",
+          "nome": "Declaração Americana de Direitos e Deveres do Homem",
+          "pai": 407084,
+          "questoesCatalogo": 3
+        },
+        {
+          "id": "407112",
+          "nome": "Convenção Americana sobre Direitos Humanos (Pacto de San José)",
+          "pai": 407106,
+          "questoesCatalogo": 919
+        },
+        {
+          "id": "428037",
+          "nome": "Decreto nº 3.321 de 1999 - Protocolo de São Salvador",
+          "pai": 407069,
+          "questoesCatalogo": 9
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-11",
+      "topico": "Comissão e Corte Interamericanas: composição, funcionamento, atribuições e decisões",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407104",
+          "nome": "Comissão Interamericana de Direitos Humanos",
+          "pai": 407103,
+          "questoesCatalogo": 184
+        },
+        {
+          "id": "407105",
+          "nome": "Corte Interamericana de Direitos Humanos",
+          "pai": 407103,
+          "questoesCatalogo": 337
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-12",
+      "topico": "Mecanismos de proteção nacionais e internacionais; grupos vulneráveis e minorias",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407076",
+          "nome": "Sistema Global de Proteção dos Direitos Humanos: Instituições e Mecanismos",
+          "pai": 407069,
+          "questoesCatalogo": 242
+        },
+        {
+          "id": "407108",
+          "nome": "Direitos Humanos no Ordenamento Nacional",
+          "pai": 407069,
+          "questoesCatalogo": 1189
+        },
+        {
+          "id": "452385",
+          "nome": "Direitos Fundamentais / Grupos Vulneráveis",
+          "pai": 407069,
+          "questoesCatalogo": 10
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-13",
+      "topico": "Perspectiva de gênero no Judiciário: Resolução CNJ 492/2023",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "437046",
+          "nome": "Resolução nº. 492/2023 - Estabelece, para adoção de Perspectiva de Gênero nos julgamentos em todo o Poder Judiciário, as diretrizes do protocolo aprovado pelo Grupo de Trabalho constituído pela Portaria CNJ n. 27/2021",
+          "pai": 397403,
+          "questoesCatalogo": 11
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-14",
+      "topico": "Equidade de raça, gênero e diversidade: Resolução CSJT 368/2023",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "449643",
+          "nome": "Resolução nº 368/2023 - Institui o Programa de Equidade de Raça, Gênero e Diversidade no âmbito da Justiça do Trabalho.",
+          "pai": 399690,
+          "questoesCatalogo": 2
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-15",
+      "topico": "Tribunal Penal Internacional, Estatuto de Roma e Decreto 4.388/2002",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407082",
+          "nome": "Estatuto de Roma e o Tribunal Penal Internacional",
+          "pai": 407069,
+          "questoesCatalogo": 103
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-16",
+      "topico": "Carta da ONU, Estatuto da Corte Internacional de Justiça e Decreto 19.841/1945",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407085",
+          "nome": "Carta da ONU",
+          "pai": 407084,
+          "questoesCatalogo": 49
+        },
+        {
+          "id": "407081",
+          "nome": "Corte Internacional de Justiça",
+          "pai": 407076,
+          "questoesCatalogo": 13
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DH",
+      "disciplina": "Noções de Direitos Humanos",
+      "topicoId": "DH-17",
+      "topico": "Protocolos para atuação e julgamento na Justiça do Trabalho",
+      "tipo": "pendente",
+      "motivo": "Categoria específica ainda não verificada; adicione um link complementar.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-02",
+      "topico": "Internet, intranet, redes, navegadores Firefox, Chrome e Edge; mecanismos de busca",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405052",
+          "nome": "Conceitos Gerais e Funcionamento",
+          "pai": 405050,
+          "questoesCatalogo": 2486
+        },
+        {
+          "id": "405161",
+          "nome": "Intranet",
+          "pai": 405157,
+          "questoesCatalogo": 1172
+        },
+        {
+          "id": "405054",
+          "nome": "Mozilla Firefox",
+          "pai": 405053,
+          "questoesCatalogo": 1545
+        },
+        {
+          "id": "405056",
+          "nome": "Google Chrome",
+          "pai": 405053,
+          "questoesCatalogo": 3049
+        },
+        {
+          "id": "406727",
+          "nome": "Microsoft Edge",
+          "pai": 405053,
+          "questoesCatalogo": 627
+        },
+        {
+          "id": "405173",
+          "nome": "Mecanismos de Busca na Internet",
+          "pai": 405050,
+          "questoesCatalogo": 1730
+        }
+      ]
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-04",
+      "topico": "Organização e gerenciamento de arquivos, pastas e programas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "420719",
+          "nome": "Gerenciamento de Arquivos e Pastas",
+          "pai": 405085,
+          "questoesCatalogo": 4266
+        }
+      ]
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-07",
+      "topico": "Windows 10 e Windows 11",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405101",
+          "nome": "Windows 10",
+          "pai": 405084,
+          "questoesCatalogo": 5773
+        },
+        {
+          "id": "430398",
+          "nome": "Windows 11",
+          "pai": 405084,
+          "questoesCatalogo": 1547
+        }
+      ]
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-08",
+      "topico": "Microsoft Office 365: textos, planilhas, apresentações, e-mail e agenda",
+      "tipo": "amplo",
+      "motivo": "A categoria Microsoft 365 encontrada não tem acervo validado; usa Microsoft Office, que inclui outras versões, mais correio eletrônico.",
+      "assuntos": [
+        {
+          "id": "405111",
+          "nome": "Microsoft Office",
+          "pai": 405107,
+          "questoesCatalogo": 46674
+        },
+        {
+          "id": "405059",
+          "nome": "Correio Eletrônico (E-mail)",
+          "pai": 405030,
+          "questoesCatalogo": 6776
+        }
+      ]
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-09",
+      "topico": "Google Workspace: Documentos, planilhas, apresentações e compartilhamento",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "420599",
+          "nome": "Google Workspace (antigo Google G Suíte)",
+          "pai": 405107,
+          "questoesCatalogo": 1038
+        }
+      ]
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-10",
+      "topico": "Google Drive: criação, edição, compartilhamento e permissões",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "420158",
+          "nome": "Google Drive",
+          "pai": 420157,
+          "questoesCatalogo": 359
+        }
+      ]
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-11",
+      "topico": "Google Agenda, Tarefas e Meet: eventos, participantes e videoconferência",
+      "tipo": "pendente",
+      "motivo": "Google Agenda, Tarefas e Meet: categorias encontradas sem acervo validado; adicione um link complementar.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-12",
+      "topico": "Gmail: configurações, painel de visualização e marcadores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405063",
+          "nome": "Gmail",
+          "pai": 405059,
+          "questoesCatalogo": 523
+        }
+      ]
+    },
+    {
+      "disciplinaId": "INF",
+      "disciplina": "Noções de Informática",
+      "topicoId": "INF-13",
+      "topico": "Segurança: vírus, worms, antivírus, firewall, antispyware, senhas e autenticação em dois fatores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405067",
+          "nome": "Segurança da Informação",
+          "pai": 405030,
+          "questoesCatalogo": 13083
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-07",
+      "topico": "Aplicabilidade, interpretação, vigência e eficácia das normas constitucionais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405209",
+          "nome": "Aplicabilidade das normas constitucionais, eficácia e aplicabilidade das normas constitucionais ou classificação das normas constitucionais ou vigência e eficácia das normas constitucionais ou normas constitucionais: classificação e eficácia",
+          "pai": 405200,
+          "questoesCatalogo": 1145
+        },
+        {
+          "id": "405208",
+          "nome": "Interpretação da Constituição ou hermenêutica constitucional ou interpretação constitucional: métodos, princípios e limites",
+          "pai": 405200,
+          "questoesCatalogo": 665
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-08",
+      "topico": "Controle de constitucionalidade: sistemas difuso e concentrado; ADI, ADC e ADPF",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407753",
+          "nome": "Controle incidental ou concreto ou controle difuso de constitucionalidade",
+          "pai": 405319,
+          "questoesCatalogo": 465
+        },
+        {
+          "id": "407754",
+          "nome": "Controle abstrato ou controle concentrado de constitucionalidade",
+          "pai": 405319,
+          "questoesCatalogo": 2290
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-01",
+      "topico": "Princípios fundamentais da República",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405212",
+          "nome": "Princípios fundamentais - Título I - Artigos 1º a 4º da CF",
+          "pai": 405199,
+          "questoesCatalogo": 4798
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-03",
+      "topico": "Direitos e deveres individuais e coletivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405219",
+          "nome": "Direitos e deveres individuais e coletivos ou direitos e deveres individuais e coletivos; direito à vida, à liberdade, à igualdade,  à  segurança  e  à  propriedade (artigo 5º da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 12757
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-09",
+      "topico": "Direitos sociais e nacionalidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405227",
+          "nome": "Direitos sociais (artigos 6º a 11 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 4839
+        },
+        {
+          "id": "405228",
+          "nome": "Direitos de nacionalidade ou da nacionalidade (artigos 12 e 13 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 3763
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-04",
+      "topico": "Direitos políticos e partidos políticos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405229",
+          "nome": "Direitos Políticos (artigos 14 a 16 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 4267
+        },
+        {
+          "id": "405230",
+          "nome": "Partidos políticos (artigo 17 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 621
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-10",
+      "topico": "Organização político-administrativa: União, Estados, Municípios, DF, Territórios e intervenção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405233",
+          "nome": "Organização politico-administrativa (artigos 18 e 19)",
+          "pai": 405231,
+          "questoesCatalogo": 2286
+        },
+        {
+          "id": "407596",
+          "nome": "União ou Da União",
+          "pai": 405231,
+          "questoesCatalogo": 360
+        },
+        {
+          "id": "407598",
+          "nome": "Estados ou Dos Estados (artigos 25 a 28 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 825
+        },
+        {
+          "id": "407614",
+          "nome": "Municípios (artigos 29 a 31 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 2577
+        },
+        {
+          "id": "421775",
+          "nome": "Distrito Federal (artigo 32 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 186
+        },
+        {
+          "id": "421782",
+          "nome": "Territórios ou territórios federais (artigo 33 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 150
+        },
+        {
+          "id": "405239",
+          "nome": "Intervenção federal e estadual (artigos 34 a 36 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 1035
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-05",
+      "topico": "Administração Pública: disposições gerais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405242",
+          "nome": "Disposições gerais (artigo 37 da CF)",
+          "pai": 405240,
+          "questoesCatalogo": 5053
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-06",
+      "topico": "Servidores públicos na Constituição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405243",
+          "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+          "pai": 405240,
+          "questoesCatalogo": 3786
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-11",
+      "topico": "Organização dos Poderes; Executivo: Presidente, Vice-Presidente, atribuições, responsabilidades e Ministros de Estado",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405262",
+          "nome": "Presidente e Vice-Presidente da República (artigos 76 a 83 da CF)",
+          "pai": 405260,
+          "questoesCatalogo": 696
+        },
+        {
+          "id": "405263",
+          "nome": "Atribuições do Presidente da República (artigo 84 da CF)",
+          "pai": 405260,
+          "questoesCatalogo": 888
+        },
+        {
+          "id": "407646",
+          "nome": "Responsabilidade do Presidente da República (artigos 85 e 86 da CF)",
+          "pai": 405260,
+          "questoesCatalogo": 558
+        },
+        {
+          "id": "407643",
+          "nome": "Ministros de Estado (artigo 87 da CF)",
+          "pai": 405260,
+          "questoesCatalogo": 83
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-12",
+      "topico": "Legislativo: processo legislativo e fiscalização contábil, financeira e orçamentária",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405253",
+          "nome": "Processo Legislativo (artigos 59 a 69 da CF)",
+          "pai": 405248,
+          "questoesCatalogo": 5071
+        },
+        {
+          "id": "405258",
+          "nome": "Fiscalização Contábil, Financeira e Orçamentária da União",
+          "pai": 405248,
+          "questoesCatalogo": 3124
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-13",
+      "topico": "Judiciário: disposições gerais, STF, CNJ, STJ, TST, TRTs, juízes e CSJT",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405267",
+          "nome": "Disposições gerais (artigos 92 a 100 da CF)",
+          "pai": 405266,
+          "questoesCatalogo": 1494
+        },
+        {
+          "id": "405273",
+          "nome": "Do Supremo Tribunal Federal (artigos 101 a 103 da CF)",
+          "pai": 407639,
+          "questoesCatalogo": 2054
+        },
+        {
+          "id": "405275",
+          "nome": "Conselho Nacional de Justiça: organização, composição e competências (artigo 103-B da CF)",
+          "pai": 407639,
+          "questoesCatalogo": 692
+        },
+        {
+          "id": "405274",
+          "nome": "Do Superior Tribunal de Justiça (artigos 104 e 105 da CF)",
+          "pai": 407639,
+          "questoesCatalogo": 752
+        },
+        {
+          "id": "405277",
+          "nome": "Do Tribunal Superior do Trabalho, Tribunais Regionais do Trabalho e juízes do trabalho (artigos 111 a 117)",
+          "pai": 407639,
+          "questoesCatalogo": 562
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CON",
+      "disciplina": "Direito Constitucional",
+      "topicoId": "CON-14",
+      "topico": "Funções essenciais à Justiça: MP, Advocacia Pública, advocacia e Defensoria",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405281",
+          "nome": "Funções essenciais à Justiça (artigos 127 a 135 da CF)",
+          "pai": 405246,
+          "questoesCatalogo": 3799
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-01",
+      "topico": "Administração Pública, regime jurídico e princípios explícitos e implícitos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404358",
+          "nome": "Regime Jurídico Administrativo",
+          "pai": 404335,
+          "questoesCatalogo": 9384
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-07",
+      "topico": "LINDB e sua aplicação na Administração Pública",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405866",
+          "nome": "Lei de Introdução às Normas do Direito Brasileiro - LINDB",
+          "pai": 405864,
+          "questoesCatalogo": 1995
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-08",
+      "topico": "Poderes e deveres administrativos; uso e abuso do poder; Lei 13.869/2019",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404363",
+          "nome": "Poderes da Administração",
+          "pai": 404335,
+          "questoesCatalogo": 8586
+        },
+        {
+          "id": "406521",
+          "nome": "Lei do Abuso de Autoridade - Lei nº 13.869/2019",
+          "pai": 406351,
+          "questoesCatalogo": 1387
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-09",
+      "topico": "Atos administrativos: elementos, atributos, classificação, efeitos e extinção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404372",
+          "nome": "Atos Administrativos",
+          "pai": 404335,
+          "questoesCatalogo": 14692
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-10",
+      "topico": "Processo administrativo federal: Lei 9.784/1999",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404427",
+          "nome": "Processo Administrativo - Lei 9.784/99",
+          "pai": 404335,
+          "questoesCatalogo": 7236
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-11",
+      "topico": "Controle interno e externo da Administração: Judiciário, Legislativo e Tribunais de Contas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404409",
+          "nome": "Controle da Administração",
+          "pai": 404335,
+          "questoesCatalogo": 3375
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-03",
+      "topico": "Licitações: Lei 14.133/2021, modalidades, contratação direta, procedimentos, recursos e sanções",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433219",
+          "nome": "Disposições Preliminares",
+          "pai": 429796,
+          "questoesCatalogo": 2091
+        },
+        {
+          "id": "433224",
+          "nome": "Das Licitações",
+          "pai": 429796,
+          "questoesCatalogo": 6296
+        },
+        {
+          "id": "433266",
+          "nome": "Das irregularidades",
+          "pai": 429796,
+          "questoesCatalogo": 478
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-13",
+      "topico": "Contratos administrativos: formalização, execução, duração, prorrogação, revisão e extinção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433253",
+          "nome": "Dos Contratos Administrativos",
+          "pai": 429796,
+          "questoesCatalogo": 2521
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-02",
+      "topico": "Agentes públicos: cargos, empregos, funções, provimento, exercício e afastamentos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404355",
+          "nome": "Conceito de Agentes Públicos",
+          "pai": 404354,
+          "questoesCatalogo": 347
+        },
+        {
+          "id": "404356",
+          "nome": "Classificação ou espécies de Agentes Públicos",
+          "pai": 404354,
+          "questoesCatalogo": 721
+        },
+        {
+          "id": "404357",
+          "nome": "Cargo, Emprego e Função Pública",
+          "pai": 404354,
+          "questoesCatalogo": 1216
+        },
+        {
+          "id": "408014",
+          "nome": "Acesso aos Cargos e Empregos Públicos",
+          "pai": 404354,
+          "questoesCatalogo": 1786
+        },
+        {
+          "id": "404509",
+          "nome": "Capítulo V - Dos Afastamentos",
+          "pai": 404504,
+          "questoesCatalogo": 160
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-14",
+      "topico": "Direito de greve e regime constitucional dos servidores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408003",
+          "nome": "Direito de greve dos servidores públicos",
+          "pai": 408001,
+          "questoesCatalogo": 245
+        },
+        {
+          "id": "405243",
+          "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+          "pai": 405240,
+          "questoesCatalogo": 3786
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-15",
+      "topico": "Carreiras do Judiciário Federal: Lei 11.416/2006",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "395730",
+          "nome": "Lei nº 11.416/2006 -  Dispõe sobre as Carreiras dos Servidores do Poder Judiciário da União; revoga as Leis nos 9.421, de 24 de dezembro de 1996, 10.475, de 27 de junho de 2002, 10.417, de 5 de abril de 2002, e 10.944, de 16 de setembro de 2004; e dá outr",
+          "pai": 395699,
+          "questoesCatalogo": 134
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-16",
+      "topico": "Emprego público e disposições aplicáveis da CLT",
+      "tipo": "amplo",
+      "motivo": "O regime de emprego público tem categoria própria na Lei 9.962/2000, mas não há uma categoria que isole as disposições da CLT aplicáveis a empregados públicos; o complemento usa contrato de trabalho.",
+      "assuntos": [
+        {
+          "id": "394873",
+          "nome": "Lei nº 9.962/2000 - Disciplina o regime de emprego público do pessoal da Administração federal direta, autárquica e fundacional, e dá outras providências",
+          "pai": 395700,
+          "questoesCatalogo": 9
+        },
+        {
+          "id": "406755",
+          "nome": "Do Contrato de Trabalho",
+          "pai": 406746,
+          "questoesCatalogo": 2308
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-17",
+      "topico": "Responsabilidade civil, administrativa e penal dos agentes públicos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404517",
+          "nome": "Capítulo IV - Das Responsabilidades",
+          "pai": 404513,
+          "questoesCatalogo": 272
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-18",
+      "topico": "Convênios administrativos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408185",
+          "nome": "Convênios",
+          "pai": 404429,
+          "questoesCatalogo": 505
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-19",
+      "topico": "Parcerias com o terceiro setor — Lei 13.019/2014",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404537",
+          "nome": "Lei no 13.019/2014 - Estabelece o regime jurídico das parcerias entre a administração pública e as organizações da sociedade civil, em regime de mútua cooperação, para a consecução de finalidades de interesse público e recíproco, mediante a",
+          "pai": 404533,
+          "questoesCatalogo": 205
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-20",
+      "topico": "Serviços públicos: conceito, classificação, princípios, delegação e direitos dos usuários",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404390",
+          "nome": "Serviços Públicos",
+          "pai": 404335,
+          "questoesCatalogo": 4881
+        },
+        {
+          "id": "422931",
+          "nome": "Lei nº 13.460/2017 - Lei dos usuários dos serviços públicos",
+          "pai": 404533,
+          "questoesCatalogo": 347
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-21",
+      "topico": "Concessão e permissão — Lei 8.987/1995; extinção e reversão dos bens",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "422330",
+          "nome": "Lei nº 8.987/95 - Lei das Concessões e Permissões de Serviços Públicos",
+          "pai": 404533,
+          "questoesCatalogo": 1278
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-22",
+      "topico": "Parcerias Público-Privadas — Lei 11.079/2004",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "422343",
+          "nome": "Lei nº 11.079/2004 - Institui normas gerais para licitação e contratação de parceria público-privada no âmbito da administração pública.",
+          "pai": 404533,
+          "questoesCatalogo": 677
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-23",
+      "topico": "Responsabilidade extracontratual do Estado",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404402",
+          "nome": "Responsabilidade Civil do Estado",
+          "pai": 404335,
+          "questoesCatalogo": 4657
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-24",
+      "topico": "Bens públicos e formas de utilização por terceiros",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404419",
+          "nome": "Bens Públicos",
+          "pai": 404335,
+          "questoesCatalogo": 2227
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-25",
+      "topico": "Lei de Acesso à Informação — Lei 12.527/2011",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "422277",
+          "nome": "Lei nº 12.527/2011 - Lei de Acesso à Informação",
+          "pai": 404533,
+          "questoesCatalogo": 6294
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DAD",
+      "disciplina": "Direito Administrativo",
+      "topicoId": "DAD-26",
+      "topico": "LGPD — Lei 13.709/2018, com alterações da Lei 13.853/2019",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "430045",
+          "nome": "Lei Geral de Proteção de Dados (LGPD): Lei nº 13.709, de 14 de agosto de 2018 e suas alterações.",
+          "pai": 430039,
+          "questoesCatalogo": 11
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LEG",
+      "disciplina": "Servidores Públicos — Lei 8.112/1990",
+      "topicoId": "LEG-01",
+      "topico": "Disposições preliminares, provimento e vacância",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404501",
+          "nome": "Título I - Capítulo Único",
+          "pai": 404430,
+          "questoesCatalogo": 100
+        },
+        {
+          "id": "404503",
+          "nome": "Capítulo I - Do Provimento",
+          "pai": 404502,
+          "questoesCatalogo": 1814
+        },
+        {
+          "id": "404512",
+          "nome": "Capítulo II - Da Vacância",
+          "pai": 404502,
+          "questoesCatalogo": 143
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LEG",
+      "disciplina": "Servidores Públicos — Lei 8.112/1990",
+      "topicoId": "LEG-02",
+      "topico": "Remoção, redistribuição e substituição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404511",
+          "nome": "Capítulo III - Da Remoção e da Redistribuição",
+          "pai": 404502,
+          "questoesCatalogo": 168
+        },
+        {
+          "id": "404510",
+          "nome": "Capítulo IV - Da Substituição",
+          "pai": 404502,
+          "questoesCatalogo": 14
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LEG",
+      "disciplina": "Servidores Públicos — Lei 8.112/1990",
+      "topicoId": "LEG-03",
+      "topico": "Vencimento, remuneração, vantagens, férias, licenças e direito de petição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404505",
+          "nome": "Capítulo I - Do Vencimento e da Remuneração",
+          "pai": 404504,
+          "questoesCatalogo": 239
+        },
+        {
+          "id": "404506",
+          "nome": "Capítulo II - Das Vantagens",
+          "pai": 404504,
+          "questoesCatalogo": 335
+        },
+        {
+          "id": "404507",
+          "nome": "Capítulo III - Das Férias",
+          "pai": 404504,
+          "questoesCatalogo": 93
+        },
+        {
+          "id": "404508",
+          "nome": "Capítulo IV - Das Licenças",
+          "pai": 404504,
+          "questoesCatalogo": 472
+        },
+        {
+          "id": "422909",
+          "nome": "Capítulo VIII - Do Direito de Petição",
+          "pai": 404504,
+          "questoesCatalogo": 28
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LEG",
+      "disciplina": "Servidores Públicos — Lei 8.112/1990",
+      "topicoId": "LEG-04",
+      "topico": "Deveres, proibições e acumulação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404514",
+          "nome": "Capítulo I - Dos Deveres",
+          "pai": 404513,
+          "questoesCatalogo": 326
+        },
+        {
+          "id": "404515",
+          "nome": "Capítulo II - Das Proibições",
+          "pai": 404513,
+          "questoesCatalogo": 224
+        },
+        {
+          "id": "404516",
+          "nome": "Capítulo III - Da Acumulação",
+          "pai": 404513,
+          "questoesCatalogo": 213
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LEG",
+      "disciplina": "Servidores Públicos — Lei 8.112/1990",
+      "topicoId": "LEG-05",
+      "topico": "Responsabilidades e penalidades",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404517",
+          "nome": "Capítulo IV - Das Responsabilidades",
+          "pai": 404513,
+          "questoesCatalogo": 272
+        },
+        {
+          "id": "404518",
+          "nome": "Capítulo V - Das Penalidades",
+          "pai": 404513,
+          "questoesCatalogo": 871
+        }
+      ]
+    },
+    {
+      "disciplinaId": "LEG",
+      "disciplina": "Servidores Públicos — Lei 8.112/1990",
+      "topicoId": "LEG-06",
+      "topico": "Regime e processo administrativo disciplinar",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404519",
+          "nome": "Título V - Do Processo Administrativo Disciplinar",
+          "pai": 404430,
+          "questoesCatalogo": 896
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-01",
+      "topico": "Princípios, fontes e direitos constitucionais dos trabalhadores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406748",
+          "nome": "Princípios do Direito do Trabalho",
+          "pai": 406747,
+          "questoesCatalogo": 290
+        },
+        {
+          "id": "406749",
+          "nome": "Fontes do Direito do Trabalho",
+          "pai": 406747,
+          "questoesCatalogo": 131
+        },
+        {
+          "id": "433159",
+          "nome": "Direitos do Trabalhador na Constituição Federal",
+          "pai": 406746,
+          "questoesCatalogo": 16
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-02",
+      "topico": "Relações de trabalho e emprego; trabalho autônomo, eventual, temporário e avulso",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406752",
+          "nome": "Da Relação de Trabalho e de Emprego - Distinção",
+          "pai": 406747,
+          "questoesCatalogo": 408
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-03",
+      "topico": "Empregado, empregador e poderes do empregador",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406757",
+          "nome": "Sujeitos do contrato de trabalho ",
+          "pai": 406755,
+          "questoesCatalogo": 535
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-04",
+      "topico": "Contrato individual: classificação, alteração, jus variandi, suspensão e interrupção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406755",
+          "nome": "Do Contrato de Trabalho",
+          "pai": 406746,
+          "questoesCatalogo": 2308
+        },
+        {
+          "id": "406759",
+          "nome": "Alteração, Interrupção e Suspensão do Contrato de Trabalho",
+          "pai": 406746,
+          "questoesCatalogo": 1650
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-05",
+      "topico": "Rescisão: justas causas, despedida indireta, dispensa arbitrária, acordo mútuo, despedida coletiva, culpa recíproca e indenização; aviso prévio e prazo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406786",
+          "nome": "Terminação do contrato de trabalho",
+          "pai": 406746,
+          "questoesCatalogo": 1510
+        },
+        {
+          "id": "406795",
+          "nome": "Aviso Prévio",
+          "pai": 406746,
+          "questoesCatalogo": 345
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-06",
+      "topico": "Jornada, intervalos, descanso semanal, trabalho noturno e extraordinário; compensação de horas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406772",
+          "nome": "Jornada de Trabalho",
+          "pai": 406746,
+          "questoesCatalogo": 2279
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-07",
+      "topico": "Salário e remuneração: mínimo, proteção, composição, modalidades, pagamento e 13º",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406773",
+          "nome": "Remuneração e Salário",
+          "pai": 406746,
+          "questoesCatalogo": 1783
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-08",
+      "topico": "Férias, proteção ao menor e à mulher, estabilidade da gestante e licença-maternidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406783",
+          "nome": "Férias",
+          "pai": 415832,
+          "questoesCatalogo": 912
+        },
+        {
+          "id": "415812",
+          "nome": "Proteção ao trabalho da mulher",
+          "pai": 406762,
+          "questoesCatalogo": 190
+        },
+        {
+          "id": "433421",
+          "nome": "Proteção ao trabalho do menor",
+          "pai": 406762,
+          "questoesCatalogo": 144
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-09",
+      "topico": "Grupo econômico, sucessão de empregadores e responsabilidade solidária e subsidiária",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406800",
+          "nome": "Grupo Econômico",
+          "pai": 433130,
+          "questoesCatalogo": 98
+        },
+        {
+          "id": "433133",
+          "nome": "Sucessão de empregadores",
+          "pai": 433130,
+          "questoesCatalogo": 26
+        },
+        {
+          "id": "433138",
+          "nome": "Responsabilidade Solidária e Subsidiária",
+          "pai": 433130,
+          "questoesCatalogo": 211
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-10",
+      "topico": "Fundo de Garantia do Tempo de Serviço — FGTS",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406796",
+          "nome": "FGTS",
+          "pai": 406797,
+          "questoesCatalogo": 222
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-11",
+      "topico": "Prescrição e decadência",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406754",
+          "nome": "Prescrição e decadência",
+          "pai": 406747,
+          "questoesCatalogo": 164
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-12",
+      "topico": "Segurança e medicina do trabalho: CIPA, atividades insalubres e perigosas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406776",
+          "nome": "Normas de Medicina e Segurança do Trabalho",
+          "pai": 406762,
+          "questoesCatalogo": 852
+        },
+        {
+          "id": "433423",
+          "nome": "Comissão Interna de Prevenção de Acidentes e de Assédio",
+          "pai": 406776,
+          "questoesCatalogo": 10
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-13",
+      "topico": "Direito coletivo: convenções e acordos coletivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415831",
+          "nome": "Convenção e acordo coletivo de trabalho",
+          "pai": 406777,
+          "questoesCatalogo": 161
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-14",
+      "topico": "Comissões de Conciliação Prévia; renúncia e transação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406806",
+          "nome": "Comissões de Conciliação Prévia",
+          "pai": 406777,
+          "questoesCatalogo": 91
+        },
+        {
+          "id": "406799",
+          "nome": "Renúncia e Transação",
+          "pai": 406759,
+          "questoesCatalogo": 17
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-15",
+      "topico": "Teletrabalho e Reforma Trabalhista — Lei 13.467/2017",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433123",
+          "nome": "Trabalho em domicílio e o teletrabalho",
+          "pai": 433120,
+          "questoesCatalogo": 86
+        },
+        {
+          "id": "430174",
+          "nome": "Reforma Trabalhista - Lei nº 13.467/2017",
+          "pai": 406746,
+          "questoesCatalogo": 113
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-16",
+      "topico": "Dano moral e material nas relações de trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406801",
+          "nome": "Dano moral e material nas relações de trabalho",
+          "pai": 406746,
+          "questoesCatalogo": 45
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-17",
+      "topico": "Precedentes obrigatórios, súmulas e OJs do TST, atos normativos e súmulas vinculantes do STF",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406778",
+          "nome": "Jurisprudência",
+          "pai": 406746,
+          "questoesCatalogo": 376
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-18",
+      "topico": "Trabalho intermitente: regramento, características e peculiaridades",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406761",
+          "nome": "Contrato Intermitente",
+          "pai": 433143,
+          "questoesCatalogo": 90
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-19",
+      "topico": "Estabilidade e garantias provisórias de emprego; despedida e reintegração de empregado estável",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433392",
+          "nome": "Garantia no emprego e estabilidade",
+          "pai": 406797,
+          "questoesCatalogo": 329
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-20",
+      "topico": "Equiparação salarial, igualdade de salário e desvio de função",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406792",
+          "nome": "Equiparação Salarial",
+          "pai": 406773,
+          "questoesCatalogo": 142
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-21",
+      "topico": "Arbitragem nas relações de trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415830",
+          "nome": "Mediação e arbitragem",
+          "pai": 406777,
+          "questoesCatalogo": 16
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-22",
+      "topico": "Liberdade sindical — Convenção 87 da OIT; organização sindical, categorias e categoria diferenciada",
+      "tipo": "parcial",
+      "motivo": "Organização e liberdade sindical têm categorias próprias; Convenção 87 da OIT não foi encontrada isoladamente com acervo.",
+      "assuntos": [
+        {
+          "id": "406808",
+          "nome": "Organização Sindical",
+          "pai": 406777,
+          "questoesCatalogo": 355
+        },
+        {
+          "id": "407124",
+          "nome": "Liberdade Sindical e a Proteção do Direito Sindical",
+          "pai": 407107,
+          "questoesCatalogo": 1
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-23",
+      "topico": "Direito de greve e serviços essenciais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406804",
+          "nome": "Greve",
+          "pai": 406777,
+          "questoesCatalogo": 169
+        },
+        {
+          "id": "396458",
+          "nome": "Lei nº 7.783/1989 - Dispõe sobre o exercício do direito de greve, define as atividades essenciais, regula o atendimento das necessidades inadiáveis da comunidade, e dá outras providências.",
+          "pai": 395694,
+          "questoesCatalogo": 65
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DTR",
+      "disciplina": "Direito do Trabalho",
+      "topicoId": "DTR-24",
+      "topico": "Teses de Repercussão Geral do STF em matéria trabalhista",
+      "tipo": "pendente",
+      "motivo": "Teses de repercussão geral do STF em matéria trabalhista: categoria específica com acervo não encontrada. Adicione questões complementares.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-01",
+      "topico": "Justiça do Trabalho: organização, jurisdição e competência das Varas, TRTs e TST",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431451",
+          "nome": "Composição, funcionamento, jurisdição e competência de seus órgãos.",
+          "pai": 406813,
+          "questoesCatalogo": 225
+        },
+        {
+          "id": "416262",
+          "nome": "Competências da Justiça do Trabalho em Razão da Matéria",
+          "pai": 431450,
+          "questoesCatalogo": 412
+        },
+        {
+          "id": "416264",
+          "nome": "Competência Territorial da Justiça do Trabalho",
+          "pai": 431450,
+          "questoesCatalogo": 77
+        },
+        {
+          "id": "416266",
+          "nome": "Competência Funcional da Justiça do Trabalho",
+          "pai": 431450,
+          "questoesCatalogo": 23
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-02",
+      "topico": "Serviços auxiliares: secretarias das Varas, distribuidores e oficiais de justiça avaliadores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431455",
+          "nome": "Das secretarias das Varas do Trabalho",
+          "pai": 430113,
+          "questoesCatalogo": 7
+        },
+        {
+          "id": "431456",
+          "nome": "Dos distribuidores",
+          "pai": 430113,
+          "questoesCatalogo": 2
+        },
+        {
+          "id": "431457",
+          "nome": "Dos oficiais de justiça e oficiais de justiça avaliadores",
+          "pai": 430113,
+          "questoesCatalogo": 4
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-03",
+      "topico": "Princípios gerais e aplicação subsidiária do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406811",
+          "nome": "Princípios do Direito Processual do Trabalho",
+          "pai": 406810,
+          "questoesCatalogo": 183
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-04",
+      "topico": "Atos, termos, prazos, custas e emolumentos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406826",
+          "nome": "Atos Processuais e Prazos",
+          "pai": 406809,
+          "questoesCatalogo": 720
+        },
+        {
+          "id": "431574",
+          "nome": "Custas Processuais",
+          "pai": 431570,
+          "questoesCatalogo": 101
+        },
+        {
+          "id": "406830",
+          "nome": "Emolumentos",
+          "pai": 431570,
+          "questoesCatalogo": 146
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-05",
+      "topico": "Partes, procuradores, jus postulandi, substituição e representação; massa falida e recuperação judicial; assistência e honorários sucumbenciais e contratados",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406821",
+          "nome": "Das Partes",
+          "pai": 406820,
+          "questoesCatalogo": 92
+        },
+        {
+          "id": "406822",
+          "nome": "Procuradores",
+          "pai": 406820,
+          "questoesCatalogo": 136
+        },
+        {
+          "id": "431605",
+          "nome": "Substituição das Partes e dos Procuradores",
+          "pai": 406820,
+          "questoesCatalogo": 21
+        },
+        {
+          "id": "431595",
+          "nome": "Assistência Judiciária e Justiça Gratuita",
+          "pai": 431570,
+          "questoesCatalogo": 43
+        },
+        {
+          "id": "431580",
+          "nome": "Honorários Advocatícios",
+          "pai": 431570,
+          "questoesCatalogo": 114
+        },
+        {
+          "id": "432188",
+          "nome": "Falência, Recuperação Judicial e Liquidação Extrajudicial",
+          "pai": 406858,
+          "questoesCatalogo": 3
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-06",
+      "topico": "Audiências, notificação, arquivamento, revelia e confissão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406845",
+          "nome": "Audiência",
+          "pai": 406809,
+          "questoesCatalogo": 438
+        },
+        {
+          "id": "406831",
+          "nome": "Comunicação dos Atos Processuais",
+          "pai": 431612,
+          "questoesCatalogo": 47
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-07",
+      "topico": "Dissídios individuais, reclamação escrita e verbal e legitimidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406844",
+          "nome": "Petição Inicial do Dissídio Individual do Trabalho",
+          "pai": 406836,
+          "questoesCatalogo": 43
+        },
+        {
+          "id": "406843",
+          "nome": "Requisitos da Petição Inicial",
+          "pai": 406836,
+          "questoesCatalogo": 163
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-08",
+      "topico": "Procedimentos ordinário e sumaríssimo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431650",
+          "nome": "Procedimento Ordinário",
+          "pai": 431649,
+          "questoesCatalogo": 28
+        },
+        {
+          "id": "406839",
+          "nome": "Procedimento Sumaríssimo",
+          "pai": 431649,
+          "questoesCatalogo": 371
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-09",
+      "topico": "Execução trabalhista: fundamentos e procedimentos gerais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406858",
+          "nome": "Teoria Geral da Execução Trabalhista",
+          "pai": 406838,
+          "questoesCatalogo": 224
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-10",
+      "topico": "Recursos no processo do trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406837",
+          "nome": "Sistema recursal trabalhista",
+          "pai": 406809,
+          "questoesCatalogo": 1703
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-11",
+      "topico": "Processo Judicial Eletrônico: normas aplicáveis e Reforma Trabalhista — Lei 13.467/2017",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "416280",
+          "nome": "Processo Judicial Eletrônico",
+          "pai": 406809,
+          "questoesCatalogo": 19
+        },
+        {
+          "id": "430174",
+          "nome": "Reforma Trabalhista - Lei nº 13.467/2017",
+          "pai": 406746,
+          "questoesCatalogo": 113
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-12",
+      "topico": "Peritos judiciais: honorários periciais, responsabilidade e gratuidade de Justiça",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431581",
+          "nome": "Honorários do Perito",
+          "pai": 431570,
+          "questoesCatalogo": 36
+        },
+        {
+          "id": "431595",
+          "nome": "Assistência Judiciária e Justiça Gratuita",
+          "pai": 431570,
+          "questoesCatalogo": 43
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-13",
+      "topico": "Ministério Público do Trabalho: organização",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406817",
+          "nome": "Ministério Público do Trabalho",
+          "pai": 406818,
+          "questoesCatalogo": 90
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-14",
+      "topico": "Prescrição, decadência e prescrição intercorrente",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406754",
+          "nome": "Prescrição e decadência",
+          "pai": 406747,
+          "questoesCatalogo": 164
+        },
+        {
+          "id": "432213",
+          "nome": "Prescrição Intercorrente",
+          "pai": 406858,
+          "questoesCatalogo": 66
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-15",
+      "topico": "Distribuição e valor da causa no processo do trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431777",
+          "nome": "Distribuição, Registro e Autuação da Petição Inicial",
+          "pai": 406836,
+          "questoesCatalogo": 2
+        },
+        {
+          "id": "431699",
+          "nome": "Valor da Causa",
+          "pai": 406843,
+          "questoesCatalogo": 8
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-16",
+      "topico": "Custas e emolumentos da Fazenda Pública e hipóteses de isenção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431578",
+          "nome": "Custas e emolumentos para a Fazenda Pública",
+          "pai": 431574,
+          "questoesCatalogo": 2
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-17",
+      "topico": "Litisconsórcio no processo do trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431541",
+          "nome": "Litisconsórcio",
+          "pai": 406820,
+          "questoesCatalogo": 12
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-18",
+      "topico": "Nulidades e exceções: hipóteses, prazo e forma de arguição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431639",
+          "nome": "Invalidade dos Atos Processuais",
+          "pai": 406826,
+          "questoesCatalogo": 162
+        },
+        {
+          "id": "431676",
+          "nome": "Exceções Processuais",
+          "pai": 431672,
+          "questoesCatalogo": 7
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-19",
+      "topico": "Provas no processo do trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431787",
+          "nome": "Provas",
+          "pai": 406847,
+          "questoesCatalogo": 408
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-20",
+      "topico": "Procedimentos especiais: inquérito para falta grave, ação rescisória e mandado de segurança",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431656",
+          "nome": "Inquérito para Apuração de Falta Grave",
+          "pai": 431649,
+          "questoesCatalogo": 69
+        },
+        {
+          "id": "406870",
+          "nome": "Ação rescisória",
+          "pai": 431953,
+          "questoesCatalogo": 239
+        },
+        {
+          "id": "406869",
+          "nome": "Mandado de Segurança",
+          "pai": 432373,
+          "questoesCatalogo": 161
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-21",
+      "topico": "Ação civil pública trabalhista",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406874",
+          "nome": "Ações Coletivas e Ação de Cumprimento",
+          "pai": 432373,
+          "questoesCatalogo": 63
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-22",
+      "topico": "Sentença e coisa julgada; liquidação por cálculo, artigos e arbitramento",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "416275",
+          "nome": "Sentença ",
+          "pai": 406809,
+          "questoesCatalogo": 80
+        },
+        {
+          "id": "431715",
+          "nome": "Litispendência e coisa Julgada",
+          "pai": 431705,
+          "questoesCatalogo": 2
+        },
+        {
+          "id": "406860",
+          "nome": "Liquidação do Título Executivo",
+          "pai": 406838,
+          "questoesCatalogo": 142
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-23",
+      "topico": "Dissídios coletivos: extensão, cumprimento e revisão da sentença normativa",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "432374",
+          "nome": " Dissídio Coletivo",
+          "pai": 432373,
+          "questoesCatalogo": 114
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-24",
+      "topico": "Execução provisória, prestações sucessivas, Fazenda Pública e massa falida",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406859",
+          "nome": "Espécies de execução",
+          "pai": 406858,
+          "questoesCatalogo": 46
+        },
+        {
+          "id": "432232",
+          "nome": "Execução contra a Fazenda Pública",
+          "pai": 406838,
+          "questoesCatalogo": 39
+        },
+        {
+          "id": "432188",
+          "nome": "Falência, Recuperação Judicial e Liquidação Extrajudicial",
+          "pai": 406858,
+          "questoesCatalogo": 3
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-25",
+      "topico": "Incidente de Desconsideração da Personalidade Jurídica",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "430315",
+          "nome": "Desconsideração da Personalidade Jurídica",
+          "pai": 406824,
+          "questoesCatalogo": 51
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-26",
+      "topico": "Citação, depósito, nomeação de bens, garantias, seguro-fiança e seguro-garantia",
+      "tipo": "parcial",
+      "motivo": "Citação, garantia e indicação de bens têm categorias próprias; depósito não foi encontrado isoladamente com acervo.",
+      "assuntos": [
+        {
+          "id": "432239",
+          "nome": "Citação",
+          "pai": 432230,
+          "questoesCatalogo": 15
+        },
+        {
+          "id": "432244",
+          "nome": "Garantia da Execução",
+          "pai": 432230,
+          "questoesCatalogo": 7
+        },
+        {
+          "id": "432251",
+          "nome": "Indicação de Bens à Penhora",
+          "pai": 432246,
+          "questoesCatalogo": 7
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-27",
+      "topico": "Mandado e penhora; bens penhoráveis e impenhoráveis; bem de família — Lei 8.009/1990",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "432246",
+          "nome": "Penhora, Depósito e Avaliação",
+          "pai": 432230,
+          "questoesCatalogo": 70
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-28",
+      "topico": "Embargos à execução, impugnação à sentença e embargos de terceiros",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "432286",
+          "nome": "Embargos à Execução",
+          "pai": 432230,
+          "questoesCatalogo": 92
+        },
+        {
+          "id": "432306",
+          "nome": " Impugnação do Exequente",
+          "pai": 432230,
+          "questoesCatalogo": 2
+        },
+        {
+          "id": "432307",
+          "nome": "Embargos de Terceiro",
+          "pai": 432230,
+          "questoesCatalogo": 16
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-29",
+      "topico": "Praça, leilão, arrematação e custas na execução",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "432314",
+          "nome": " Alienação por hasta Pública",
+          "pai": 432308,
+          "questoesCatalogo": 3
+        },
+        {
+          "id": "432325",
+          "nome": "Praça e Leilão Presencial",
+          "pai": 432308,
+          "questoesCatalogo": 2
+        },
+        {
+          "id": "432218",
+          "nome": "Custas Processuais e Depósito Recursal",
+          "pai": 406858,
+          "questoesCatalogo": 10
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-30",
+      "topico": "Uniformização de jurisprudência, CPC, IAC e IRDR aplicáveis ao processo do trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402215",
+          "nome": "Incidente de Assunção de Competência",
+          "pai": 402211,
+          "questoesCatalogo": 79
+        },
+        {
+          "id": "402220",
+          "nome": "Incidente de Resolução de Demandas Repetitivas (IRDR)",
+          "pai": 402211,
+          "questoesCatalogo": 226
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-31",
+      "topico": "Súmulas e OJs, instruções normativas e atos do TST; súmulas vinculantes e teses do STF em processo do trabalho",
+      "tipo": "parcial",
+      "motivo": "Jurisprudência do TST e súmulas vinculantes trabalhistas têm acervo; o filtro não isola todos os precedentes do STF.",
+      "assuntos": [
+        {
+          "id": "406841",
+          "nome": "Jurisprudência do tribunal superior do trabalho.",
+          "pai": 406809,
+          "questoesCatalogo": 186
+        },
+        {
+          "id": "406872",
+          "nome": "Súmula vinculante do Superior Tribunal Federal, em matéria trabalhista.",
+          "pai": 406809,
+          "questoesCatalogo": 4
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPT",
+      "disciplina": "Direito Processual do Trabalho",
+      "topicoId": "DPT-32",
+      "topico": "Protocolos para atuação e julgamento na Justiça do Trabalho",
+      "tipo": "pendente",
+      "motivo": "Protocolos para atuação e julgamento na Justiça do Trabalho: categoria correspondente não encontrada com acervo validado. Adicione material complementar.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-01",
+      "topico": "Pessoa natural: personalidade, capacidade e direitos da personalidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405869",
+          "nome": "Personalidade (Art. 2º)",
+          "pai": 405868,
+          "questoesCatalogo": 299
+        },
+        {
+          "id": "405870",
+          "nome": "Capacidade (Art. 1º, 3º e 4º)",
+          "pai": 405868,
+          "questoesCatalogo": 901
+        },
+        {
+          "id": "424843",
+          "nome": "Dos Direitos da Personalidade",
+          "pai": 405868,
+          "questoesCatalogo": 554
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-02",
+      "topico": "Pessoas jurídicas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405875",
+          "nome": "Das Pessoas Jurídicas (Art. 40 ao 69)",
+          "pai": 405867,
+          "questoesCatalogo": 1569
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-03",
+      "topico": "Domicílio civil",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405879",
+          "nome": "Do Domicílio (Art. 70 ao 78)",
+          "pai": 405867,
+          "questoesCatalogo": 423
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-04",
+      "topico": "Bens: classificação, afetação e desafetação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405881",
+          "nome": "Classificação ou classes dos Bens (Art. 79 ao 97)",
+          "pai": 405880,
+          "questoesCatalogo": 1001
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-05",
+      "topico": "Negócio jurídico: conceito, classificação e elementos essenciais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415532",
+          "nome": "Disposições Gerais – Negócios Jurídicos (Art. 104 ao 114)",
+          "pai": 405891,
+          "questoesCatalogo": 430
+        },
+        {
+          "id": "415559",
+          "nome": "Elementos Estruturais dos Negócios Jurídicos",
+          "pai": 405891,
+          "questoesCatalogo": 34
+        },
+        {
+          "id": "405902",
+          "nome": "Classificação dos negócios jurídicos",
+          "pai": 405891,
+          "questoesCatalogo": 24
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-06",
+      "topico": "Elementos acidentais do negócio jurídico: condição, termo e encargo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415564",
+          "nome": "Elementos Acidentais do Negócio Jurídico",
+          "pai": 405891,
+          "questoesCatalogo": 217
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-07",
+      "topico": "Defeitos do negócio jurídico: erro, dolo, coação, estado de perigo, lesão e fraude contra credores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405894",
+          "nome": "Dos Defeitos ou Vícios do Negócio Jurídico (Art. 138 ao 165)",
+          "pai": 405891,
+          "questoesCatalogo": 735
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-08",
+      "topico": "Invalidade do negócio jurídico",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405901",
+          "nome": "Teoria da Invalidade dos Negócios Jurídicos (Art. 166 ao 184)",
+          "pai": 405891,
+          "questoesCatalogo": 740
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-09",
+      "topico": "Prescrição e decadência",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405903",
+          "nome": "Da Prescrição e da Decadência (Art. 189 ao 211)",
+          "pai": 405890,
+          "questoesCatalogo": 1575
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-10",
+      "topico": "Prova no Direito Civil",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405910",
+          "nome": "Da Prova (Art. 212 ao 232)",
+          "pai": 405890,
+          "questoesCatalogo": 156
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-11",
+      "topico": "Direito das obrigações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405911",
+          "nome": "Direito das Obrigações (Art. 233 ao 420)",
+          "pai": 405864,
+          "questoesCatalogo": 2839
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-12",
+      "topico": "Contratos em geral",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405912",
+          "nome": "Contratos em Geral - Teoria Geral (Art. 421 ao 480)",
+          "pai": 405864,
+          "questoesCatalogo": 2221
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-13",
+      "topico": "Contratos em espécie",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405913",
+          "nome": "Várias Espécies de Contrato (Art. 481 ao 853)",
+          "pai": 405864,
+          "questoesCatalogo": 2296
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-14",
+      "topico": "Vícios redibitórios e evicção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405955",
+          "nome": "Vícios Redibitórios (Art. 441 ao 446)",
+          "pai": 405912,
+          "questoesCatalogo": 146
+        },
+        {
+          "id": "405956",
+          "nome": "Evicção (Art. 447 ao 457)",
+          "pai": 405912,
+          "questoesCatalogo": 176
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-15",
+      "topico": "Responsabilidade civil",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406161",
+          "nome": "Responsabilidade Civil (Art. 927 ao 954)",
+          "pai": 405864,
+          "questoesCatalogo": 2161
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-16",
+      "topico": "Direito de empresa e nome empresarial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406935",
+          "nome": "Teoria Geral do Direito Empresarial",
+          "pai": 406934,
+          "questoesCatalogo": 1810
+        },
+        {
+          "id": "406943",
+          "nome": "Sociedade Empresária",
+          "pai": 406934,
+          "questoesCatalogo": 2878
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-17",
+      "topico": "Direito das coisas e direitos reais: noções gerais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415923",
+          "nome": "Direito das Coisas e Direitos Reais",
+          "pai": 406020,
+          "questoesCatalogo": 45
+        },
+        {
+          "id": "416000",
+          "nome": "Teoria Geral dos Direitos Reais",
+          "pai": 415990,
+          "questoesCatalogo": 61
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-18",
+      "topico": "Posse: teorias, conceito, classificação, aquisição, efeitos, proteção e perda",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406021",
+          "nome": "Posse (Art. 1196 ao 1.224)",
+          "pai": 406018,
+          "questoesCatalogo": 808
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-19",
+      "topico": "Função social e socioambiental da posse: teorias, conceito, conteúdo e concretização",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415928",
+          "nome": "Função Social da Posse",
+          "pai": 406021,
+          "questoesCatalogo": 5
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-20",
+      "topico": "Propriedade: conceito, classificação, aquisição, proteção e perda",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "416019",
+          "nome": "Propriedade Plena e Limitada",
+          "pai": 406024,
+          "questoesCatalogo": 19
+        },
+        {
+          "id": "416021",
+          "nome": "Características do Direito de Propriedade",
+          "pai": 406024,
+          "questoesCatalogo": 23
+        },
+        {
+          "id": "416027",
+          "nome": "Outros aspectos teóricos sobre Direito de Propriedade",
+          "pai": 406024,
+          "questoesCatalogo": 31
+        },
+        {
+          "id": "406025",
+          "nome": "Aquisição da Propriedade",
+          "pai": 406024,
+          "questoesCatalogo": 626
+        },
+        {
+          "id": "406042",
+          "nome": "Perda da Propriedade (Art. 1.275 ao 1.276)",
+          "pai": 406024,
+          "questoesCatalogo": 94
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-21",
+      "topico": "Função social da propriedade: conceito, conteúdo e concretização",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "416017",
+          "nome": "Função Social e Socioambiental da Propriedade",
+          "pai": 406024,
+          "questoesCatalogo": 22
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-22",
+      "topico": "Direitos de vizinhança",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406043",
+          "nome": "Direitos de Vizinhança (Art. 1.277 ao 1.313)",
+          "pai": 406024,
+          "questoesCatalogo": 158
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-23",
+      "topico": "Condomínio geral e condomínio edilício",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406051",
+          "nome": "Condomínio Geral (Art. 1.314 ao 1.330)",
+          "pai": 406024,
+          "questoesCatalogo": 110
+        },
+        {
+          "id": "406059",
+          "nome": "Condomínio Edilício (Art. 1.331 ao 1.358-A)",
+          "pai": 406024,
+          "questoesCatalogo": 107
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-24",
+      "topico": "Propriedade resolúvel e propriedade fiduciária",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406112",
+          "nome": "Propriedade Resolúvel (Art. 1.359 ao 1.360)",
+          "pai": 425022,
+          "questoesCatalogo": 13
+        },
+        {
+          "id": "416073",
+          "nome": "Propriedade Fiduciária (Art. 1.361 ao 1.368-B)",
+          "pai": 425022,
+          "questoesCatalogo": 82
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-25",
+      "topico": "Direitos reais sobre coisa alheia: superfície, servidões, uso, usufruto e habitação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406069",
+          "nome": "Superfície (Art. 1.369 ao 1.377)",
+          "pai": 406052,
+          "questoesCatalogo": 80
+        },
+        {
+          "id": "406071",
+          "nome": "Servidão (Art. 1.378 ao 1.389)",
+          "pai": 406052,
+          "questoesCatalogo": 95
+        },
+        {
+          "id": "406075",
+          "nome": "Uso (Art. 1.412 ao 1.413)",
+          "pai": 406052,
+          "questoesCatalogo": 8
+        },
+        {
+          "id": "406077",
+          "nome": "Usufruto (Art. 1.390 ao 1.411)",
+          "pai": 406052,
+          "questoesCatalogo": 166
+        },
+        {
+          "id": "406076",
+          "nome": "Habitação (Art. 1.414 ao 1.416)",
+          "pai": 406052,
+          "questoesCatalogo": 35
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-26",
+      "topico": "Concessão de uso especial para moradia e direito de laje",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "416184",
+          "nome": "Concessão de Uso Especial para Fins de Moradia (Art. 1.225)",
+          "pai": 406052,
+          "questoesCatalogo": 4
+        },
+        {
+          "id": "406082",
+          "nome": "Laje (Art. 1.510-A ao 1.510-E)",
+          "pai": 406090,
+          "questoesCatalogo": 52
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-27",
+      "topico": "Direito real à aquisição: promitente comprador, compromisso de compra e venda e adjudicação compulsória",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425028",
+          "nome": "Direito do Promitente Comprador (Art. 1.417 e 1.418)",
+          "pai": 415990,
+          "questoesCatalogo": 21
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-28",
+      "topico": "Direitos reais em garantia: penhor e hipoteca",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406091",
+          "nome": "Disposições gerais (Art. 1.419 ao 1.430)",
+          "pai": 406090,
+          "questoesCatalogo": 19
+        },
+        {
+          "id": "406092",
+          "nome": "Penhor (Art. 1.431 ao 1.472)",
+          "pai": 406090,
+          "questoesCatalogo": 100
+        },
+        {
+          "id": "406105",
+          "nome": "Hipoteca (Art. 1.473 ao 1.505)",
+          "pai": 406090,
+          "questoesCatalogo": 205
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-29",
+      "topico": "Família: esponsais; casamento heteroafetivo e homoafetivo; capacidade, impedimentos e causas suspensivas",
+      "tipo": "parcial",
+      "motivo": "Requisitos, impedimentos e causas suspensivas têm categorias próprias; esponsais não foram encontrados isoladamente com acervo.",
+      "assuntos": [
+        {
+          "id": "406116",
+          "nome": "Requisitos do Casamento",
+          "pai": 406114,
+          "questoesCatalogo": 74
+        },
+        {
+          "id": "425037",
+          "nome": "Causas de Impedimentos matrimoniais",
+          "pai": 406117,
+          "questoesCatalogo": 29
+        },
+        {
+          "id": "406118",
+          "nome": "Causas Suspensivas do Casamento",
+          "pai": 406117,
+          "questoesCatalogo": 18
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-30",
+      "topico": "Casamento: habilitação, celebração, eficácia, direitos e deveres",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406119",
+          "nome": "Processo de Habilitação para o Casamento",
+          "pai": 406116,
+          "questoesCatalogo": 22
+        },
+        {
+          "id": "406120",
+          "nome": "Requisitos da Celebração",
+          "pai": 406116,
+          "questoesCatalogo": 11
+        },
+        {
+          "id": "406123",
+          "nome": "Efeitos do Casamento",
+          "pai": 406114,
+          "questoesCatalogo": 12
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-31",
+      "topico": "Invalidade do casamento, dissolução do vínculo, separação e divórcio",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406122",
+          "nome": "Invalidades do Casamento",
+          "pai": 406117,
+          "questoesCatalogo": 83
+        },
+        {
+          "id": "406124",
+          "nome": "Dissolução do Casamento",
+          "pai": 406114,
+          "questoesCatalogo": 92
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-32",
+      "topico": "Proteção dos filhos, parentesco, filiação e poder familiar",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425043",
+          "nome": "Proteção da Pessoa dos Filhos",
+          "pai": 406126,
+          "questoesCatalogo": 195
+        },
+        {
+          "id": "406127",
+          "nome": "Parentesco",
+          "pai": 406126,
+          "questoesCatalogo": 50
+        },
+        {
+          "id": "406128",
+          "nome": "Filiação (paternidade)",
+          "pai": 406126,
+          "questoesCatalogo": 142
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-33",
+      "topico": "Regimes de bens, pacto antenupcial, meação e sucessão do cônjuge",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406136",
+          "nome": "Regime de Bens",
+          "pai": 425039,
+          "questoesCatalogo": 376
+        },
+        {
+          "id": "425038",
+          "nome": "Pacto Antenupcial",
+          "pai": 425039,
+          "questoesCatalogo": 54
+        },
+        {
+          "id": "416321",
+          "nome": "Sucessão do Companheiro e do Cônjuge",
+          "pai": 406176,
+          "questoesCatalogo": 101
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-34",
+      "topico": "Usufruto e administração dos bens de filhos incapazes; bem de família",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406143",
+          "nome": "Do Usufruto E Da Administração Dos Bens De Filhos Menores",
+          "pai": 425039,
+          "questoesCatalogo": 10
+        },
+        {
+          "id": "424901",
+          "nome": "Bem de família voluntário",
+          "pai": 405880,
+          "questoesCatalogo": 152
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-35",
+      "topico": "União estável heteroafetiva e homoafetiva: aspectos constitucionais, características, estado, impedimentos, direitos e deveres",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "416237",
+          "nome": "Requisitos da União Estável",
+          "pai": 406146,
+          "questoesCatalogo": 31
+        },
+        {
+          "id": "416244",
+          "nome": "União Homoafetiva e seu Enquadramento como União Estável",
+          "pai": 406146,
+          "questoesCatalogo": 11
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-36",
+      "topico": "União estável: regime de bens, efeitos patrimoniais, meação e sucessão do companheiro",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "416243",
+          "nome": "Efeitos da União Estável",
+          "pai": 406146,
+          "questoesCatalogo": 40
+        },
+        {
+          "id": "416321",
+          "nome": "Sucessão do Companheiro e do Cônjuge",
+          "pai": 406176,
+          "questoesCatalogo": 101
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-37",
+      "topico": "Uniões estáveis concomitantes e concubinato",
+      "tipo": "amplo",
+      "motivo": "Não foi encontrada categoria com acervo que isole uniões concomitantes. O filtro reúne união estável e concubinato.",
+      "assuntos": [
+        {
+          "id": "406146",
+          "nome": "União Estável (Art. 1.723 ao 1.727)",
+          "pai": 425030,
+          "questoesCatalogo": 196
+        },
+        {
+          "id": "425035",
+          "nome": "Concubinato",
+          "pai": 406146,
+          "questoesCatalogo": 6
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-38",
+      "topico": "Sucessão: disposições gerais, herança e vocação hereditária",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406168",
+          "nome": "Teoria Geral da Sucessão - Sucessão em geral (Art. 1.784 ao 1.828)",
+          "pai": 406160,
+          "questoesCatalogo": 563
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-39",
+      "topico": "Aceitação, renúncia e exclusão da sucessão; herança jacente e vacante",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406172",
+          "nome": "Aceitação e Renúncia da Herança",
+          "pai": 406170,
+          "questoesCatalogo": 77
+        },
+        {
+          "id": "406173",
+          "nome": "Exclusão da Sucessão",
+          "pai": 406168,
+          "questoesCatalogo": 66
+        },
+        {
+          "id": "406174",
+          "nome": "Jacência e Vacância",
+          "pai": 406168,
+          "questoesCatalogo": 44
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-40",
+      "topico": "Sucessão legítima e sucessão testamentária",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406176",
+          "nome": "Sucessão Legítima (Art. 1.829 ao 1.856)",
+          "pai": 406160,
+          "questoesCatalogo": 316
+        },
+        {
+          "id": "406180",
+          "nome": "Sucessão Testamentária (Art. 1.857 ao 1.990)",
+          "pai": 406160,
+          "questoesCatalogo": 374
+        }
+      ]
+    },
+    {
+      "disciplinaId": "CIV",
+      "disciplina": "Direito Civil",
+      "topicoId": "CIV-41",
+      "topico": "Inventário, partilha, arrolamentos, alvarás judiciais e partilha de bens e direitos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406208",
+          "nome": "Inventário, Partilha e Arrolamento (Art. 1.991 ao 2.027)",
+          "pai": 406160,
+          "questoesCatalogo": 136
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-01",
+      "topico": "Jurisdição e ação: conceito, natureza, características e condições da ação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402094",
+          "nome": "Jurisdição e ação",
+          "pai": 402093,
+          "questoesCatalogo": 868
+        },
+        {
+          "id": "422641",
+          "nome": "Ação",
+          "pai": 402090,
+          "questoesCatalogo": 490
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-02",
+      "topico": "Magistratura e juiz",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402121",
+          "nome": "Do Juiz (CPC)",
+          "pai": 402106,
+          "questoesCatalogo": 320
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-03",
+      "topico": "Auxiliares da Justiça",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "422792",
+          "nome": "Dos Auxiliares de Justiça (CPC)",
+          "pai": 402106,
+          "questoesCatalogo": 150
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-04",
+      "topico": "Ministério Público, Defensoria Pública e advocacia",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402125",
+          "nome": "Do Ministério Público (CPC)",
+          "pai": 402106,
+          "questoesCatalogo": 257
+        },
+        {
+          "id": "402126",
+          "nome": "Da Advocacia Pública (CPC)",
+          "pai": 402106,
+          "questoesCatalogo": 122
+        },
+        {
+          "id": "402127",
+          "nome": "Da Defensoria Pública (CPC)",
+          "pai": 402106,
+          "questoesCatalogo": 113
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-05",
+      "topico": "Partes e procuradores: capacidade processual e postulatória, deveres e sucessão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402107",
+          "nome": "Partes e dos Procuradores",
+          "pai": 402106,
+          "questoesCatalogo": 502
+        },
+        {
+          "id": "402112",
+          "nome": "Procuradores",
+          "pai": 402106,
+          "questoesCatalogo": 62
+        },
+        {
+          "id": "402113",
+          "nome": "Da sucessão das partes e dos procuradores",
+          "pai": 402106,
+          "questoesCatalogo": 87
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-06",
+      "topico": "Litisconsórcio, assistência e intervenção de terceiros",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402114",
+          "nome": "Do Litisconsórcio",
+          "pai": 402090,
+          "questoesCatalogo": 503
+        },
+        {
+          "id": "402115",
+          "nome": "Da intervenção de terceiros",
+          "pai": 402090,
+          "questoesCatalogo": 1020
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-07",
+      "topico": "Competência: valor, matéria, função e território; modificações e declaração de incompetência",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402098",
+          "nome": "Competência",
+          "pai": 422643,
+          "questoesCatalogo": 1133
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-08",
+      "topico": "Atos processuais: forma e prazos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415641",
+          "nome": "Princípios dos Atos Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 47
+        },
+        {
+          "id": "423046",
+          "nome": "Prazos dos Atos Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 413
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-09",
+      "topico": "Comunicação dos atos processuais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "423087",
+          "nome": "Comunicação dos Atos Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 574
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-10",
+      "topico": "Nulidades e preclusão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "423191",
+          "nome": "Invalidades Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 175
+        },
+        {
+          "id": "423076",
+          "nome": "Preclusão",
+          "pai": 415621,
+          "questoesCatalogo": 63
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-11",
+      "topico": "Formação, suspensão e extinção do processo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402145",
+          "nome": "Formação do Processo",
+          "pai": 402090,
+          "questoesCatalogo": 91
+        },
+        {
+          "id": "423564",
+          "nome": "Suspensão do Processo",
+          "pai": 402090,
+          "questoesCatalogo": 165
+        },
+        {
+          "id": "423570",
+          "nome": "Extinção do Processo",
+          "pai": 402090,
+          "questoesCatalogo": 198
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-12",
+      "topico": "Petição inicial: requisitos, pedido, indeferimento e valor da causa",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402152",
+          "nome": "Da petição inicial",
+          "pai": 402150,
+          "questoesCatalogo": 442
+        },
+        {
+          "id": "423576",
+          "nome": "Valor da causa",
+          "pai": 402090,
+          "questoesCatalogo": 107
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-13",
+      "topico": "Resposta do réu: contestação, exceções e reconvenção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "423615",
+          "nome": "Introdução e Classificações da Defesa",
+          "pai": 402150,
+          "questoesCatalogo": 12
+        },
+        {
+          "id": "402156",
+          "nome": "Contestação",
+          "pai": 402150,
+          "questoesCatalogo": 452
+        },
+        {
+          "id": "402157",
+          "nome": "Reconvenção",
+          "pai": 402150,
+          "questoesCatalogo": 190
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-14",
+      "topico": "Revelia",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402158",
+          "nome": "Revelia",
+          "pai": 402150,
+          "questoesCatalogo": 194
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-15",
+      "topico": "Tutela provisória",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402141",
+          "nome": "Da Tutela Provisória",
+          "pai": 402090,
+          "questoesCatalogo": 1145
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-16",
+      "topico": "Julgamento conforme o estado do processo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402160",
+          "nome": "Julgamento Conforme o Estado de Processo",
+          "pai": 402150,
+          "questoesCatalogo": 154
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-17",
+      "topico": "Provas: ônus, depoimento pessoal, confissão, documentos e testemunhas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "423735",
+          "nome": "Ônus da Prova",
+          "pai": 415773,
+          "questoesCatalogo": 107
+        },
+        {
+          "id": "423767",
+          "nome": "Depoimento Pessoal",
+          "pai": 415774,
+          "questoesCatalogo": 17
+        },
+        {
+          "id": "423771",
+          "nome": "Confissão",
+          "pai": 415774,
+          "questoesCatalogo": 39
+        },
+        {
+          "id": "423777",
+          "nome": "Prova Documental",
+          "pai": 415774,
+          "questoesCatalogo": 104
+        },
+        {
+          "id": "423808",
+          "nome": "Prova Testemunhal",
+          "pai": 415774,
+          "questoesCatalogo": 116
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-18",
+      "topico": "Audiências de conciliação e de instrução e julgamento",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402155",
+          "nome": "Da audiência de conciliação ou mediação",
+          "pai": 402150,
+          "questoesCatalogo": 136
+        },
+        {
+          "id": "402161",
+          "nome": "Audiência de Instrução e Julgamento (AIJ)",
+          "pai": 402150,
+          "questoesCatalogo": 110
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-19",
+      "topico": "Sentença e coisa julgada",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402163",
+          "nome": "Sentença",
+          "pai": 402090,
+          "questoesCatalogo": 465
+        },
+        {
+          "id": "423913",
+          "nome": "Coisa Julgada",
+          "pai": 402090,
+          "questoesCatalogo": 301
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-20",
+      "topico": "Liquidação e cumprimento da sentença; impugnação ao cumprimento",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415776",
+          "nome": "Liquidação da Sentença",
+          "pai": 402163,
+          "questoesCatalogo": 108
+        },
+        {
+          "id": "402165",
+          "nome": "Do cumprimento da sentença",
+          "pai": 402090,
+          "questoesCatalogo": 549
+        },
+        {
+          "id": "424232",
+          "nome": "Impugnação ao Cumprimento de Sentença",
+          "pai": 424229,
+          "questoesCatalogo": 74
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-21",
+      "topico": "Ação rescisória",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402219",
+          "nome": "Ação Rescisória",
+          "pai": 402211,
+          "questoesCatalogo": 365
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-22",
+      "topico": "Recursos: disposições gerais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "424455",
+          "nome": "Aspectos Gerais dos Recursais",
+          "pai": 424454,
+          "questoesCatalogo": 228
+        },
+        {
+          "id": "424505",
+          "nome": "Juízos de Admissibilidade e de Mérito",
+          "pai": 424454,
+          "questoesCatalogo": 224
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-23",
+      "topico": "Recursos em espécie: apelação, agravos e embargos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402224",
+          "nome": "Da apelação",
+          "pai": 402222,
+          "questoesCatalogo": 191
+        },
+        {
+          "id": "402225",
+          "nome": "Do agravo de instrumento",
+          "pai": 402222,
+          "questoesCatalogo": 242
+        },
+        {
+          "id": "402226",
+          "nome": "Do agravo interno",
+          "pai": 402222,
+          "questoesCatalogo": 70
+        },
+        {
+          "id": "402227",
+          "nome": "Dos embargos de declaração",
+          "pai": 402222,
+          "questoesCatalogo": 124
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-24",
+      "topico": "Recursos aos tribunais superiores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402228",
+          "nome": "Dos recursos para o STF e STJ",
+          "pai": 402222,
+          "questoesCatalogo": 297
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-25",
+      "topico": "Processo de execução: regras gerais e diversas espécies",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402196",
+          "nome": "Noções Gerais e Classificações da Execução",
+          "pai": 402195,
+          "questoesCatalogo": 109
+        },
+        {
+          "id": "402205",
+          "nome": "Execução de Obrigação de Fazer e não Fazer",
+          "pai": 402195,
+          "questoesCatalogo": 27
+        },
+        {
+          "id": "402204",
+          "nome": "Execução da Obrigação de Entregar Coisa",
+          "pai": 402195,
+          "questoesCatalogo": 15
+        },
+        {
+          "id": "402206",
+          "nome": "Execução da Obrigação de Pagar Quantia Certa",
+          "pai": 402195,
+          "questoesCatalogo": 297
+        },
+        {
+          "id": "402202",
+          "nome": "Execuções Especiais",
+          "pai": 402195,
+          "questoesCatalogo": 268
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-26",
+      "topico": "Embargos à execução; suspensão e extinção da execução",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "424230",
+          "nome": "Embargos à Execução",
+          "pai": 402195,
+          "questoesCatalogo": 141
+        },
+        {
+          "id": "424246",
+          "nome": "Suspensão e Extinção do Processo de Execução",
+          "pai": 402195,
+          "questoesCatalogo": 38
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-27",
+      "topico": "Procedimentos especiais: consignação em pagamento, embargos de terceiro, ação monitória e ações possessórias",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402167",
+          "nome": "Consignação em Pagamento",
+          "pai": 423972,
+          "questoesCatalogo": 89
+        },
+        {
+          "id": "402173",
+          "nome": "Embargos de Terceiro",
+          "pai": 423972,
+          "questoesCatalogo": 96
+        },
+        {
+          "id": "402177",
+          "nome": "Ação Monitória",
+          "pai": 423972,
+          "questoesCatalogo": 155
+        },
+        {
+          "id": "402169",
+          "nome": "Ações Possessórias",
+          "pai": 423972,
+          "questoesCatalogo": 230
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-28",
+      "topico": "Mandado de segurança individual e coletivo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "423205",
+          "nome": "Mandado de Segurança ",
+          "pai": 402090,
+          "questoesCatalogo": 269
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-29",
+      "topico": "Ação civil pública — Lei 7.347/1985",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "423203",
+          "nome": "Ação Civil Pública",
+          "pai": 402090,
+          "questoesCatalogo": 194
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-30",
+      "topico": "Juizados Especiais Cíveis e Criminais — Lei 9.099/1995",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "424626",
+          "nome": "Juizados Especiais",
+          "pai": 402090,
+          "questoesCatalogo": 871
+        },
+        {
+          "id": "414336",
+          "nome": "Juizados Especiais Criminais",
+          "pai": 414884,
+          "questoesCatalogo": 12
+        }
+      ]
+    },
+    {
+      "disciplinaId": "DPC",
+      "disciplina": "Direito Processual Civil",
+      "topicoId": "DPC-31",
+      "topico": "Mediação — Lei 13.140/2015",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "401016",
+          "nome": "Lei nº 13.140/2015 - Dispõe sobre a mediação entre particulares como meio de solução de controvérsias e sobre a autocomposição de conflitos no âmbito da administração pública; altera a Lei no 9.469, de 10 de julho de 1997, e o Decreto no 70.235, de 6 de ",
+          "pai": 400383,
+          "questoesCatalogo": 149
+        }
+      ]
+    },
+    {
+      "disciplinaId": "EC",
+      "disciplina": "Discursiva — Estudo de Caso",
+      "topicoId": "EC-01",
+      "topico": "Identificação do problema jurídico e dos pedidos no caso prático",
+      "tipo": "pendente",
+      "motivo": "Estudo de caso: complemente com uma questão discursiva ou seu material de treino.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "EC",
+      "disciplina": "Discursiva — Estudo de Caso",
+      "topicoId": "EC-02",
+      "topico": "Fundamentação: legislação, jurisprudência e aplicação aos fatos",
+      "tipo": "pendente",
+      "motivo": "Estudo de caso: complemente com uma questão discursiva ou seu material de treino.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "EC",
+      "disciplina": "Discursiva — Estudo de Caso",
+      "topicoId": "EC-03",
+      "topico": "Resposta jurídica objetiva, estrutura e adequação aos limites do edital",
+      "tipo": "pendente",
+      "motivo": "Estudo de caso: complemente com uma questão discursiva ou seu material de treino.",
+      "assuntos": []
+    },
+    {
+      "disciplinaId": "EC",
+      "disciplina": "Discursiva — Estudo de Caso",
+      "topicoId": "EC-04",
+      "topico": "Treino de questão prática sobre os conhecimentos específicos e revisão da escrita",
+      "tipo": "pendente",
+      "motivo": "Estudo de caso: complemente com uma questão discursiva ou seu material de treino.",
+      "assuntos": []
+    }
+  ],
+  "amostrasNavegador": {
+    "data": "2026-10-29",
+    "filtros": "FCC, superior, 2017–2026",
+    "resultados": [
+      {
+        "topicoId": "CIV-27",
+        "questoes": 2
+      },
+      {
+        "topicoId": "CIV-28",
+        "questoes": 10
+      },
+      {
+        "topicoId": "DPC-23",
+        "questoes": 12
+      },
+      {
+        "topicoId": "DTR-12",
+        "questoes": 21
+      },
+      {
+        "topicoId": "DPT-26",
+        "questoes": 3
+      },
+      {
+        "topicoId": "DPT-31",
+        "questoes": 3
+      }
+    ]
+  }
+}

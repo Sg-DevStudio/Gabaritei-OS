@@ -13,10 +13,20 @@ O plano contém 13 disciplinas e 228 tópicos. Lei 8.112/1990 foi separada de Di
 
 As cinco disciplinas gerais foram reaproveitadas do programa comum quando equivalentes. Constitucional, Administrativo, Trabalho e Processo do Trabalho foram adaptados ao programa específico. Acrescentados Civil, Processo Civil e estudo de caso; retiradas Administração Pública e a disciplina de redação do Técnico. Improbidade não foi mantida por cópia automática: não consta nominalmente no trecho específico do cargo 01.
 
-Horas e prioridades são estimativas declaradas para planejamento, não estatísticas de incidência. Nota do último nomeado não aferida. Os detalhes do plano mostram essa ausência em vez de uma nota de corte inventada. Não foi criado um caderno de questões para o Analista nesta entrega: os cadernos revisados são os de Técnico TRF2 e Escrevente TJSP, conforme o escopo solicitado. O novo plano não herda o caderno do Técnico TRT4.
+Horas e prioridades são estimativas declaradas para planejamento, não estatísticas de incidência. Nota do último nomeado não aferida. Os detalhes do plano mostram essa ausência em vez de uma nota de corte inventada. O plano tem logo institucional do TRT4 e caderno próprio, sem herdar a estrutura do Técnico. Categorias comuns foram reaproveitadas somente quando o conteúdo coincide. Civil, Processo Civil e os conteúdos ampliados de Trabalho foram mapeados separadamente.
 
 ## Arquivos
 
 - `data/edital-trt4-analista-2026.js`: catálogo embarcado.
 - `data/edital-trt4-analista-judiciaria-2026.json`: arquivo importável.
 - `tests/trt4-analista-2026.test.js`: identidade, conteúdo essencial, distinção do Técnico, horas e isolamento do caderno.
+
+## Caderno do Analista
+
+As 13 disciplinas e os 228 tópicos estão representados. Filtros usam FCC, nível superior e anos 2017–2026. Cada tópico tem no máximo um link do Gran, com categorias reunidas quando necessário. A árvore oficial e o acervo geral foram conferidos por categoria em 29/10/2026; isso não garante quantidade positiva em todo recorte de banca e ano. Pendências, filtros amplos e cobertura parcial são identificados no caderno. Os quatro tópicos de estudo de caso dependem de material de treino discursivo.
+
+- `data/caderno-trt4-analista.js`: conteúdo e filtros exclusivos do cargo 01.
+- `data/caderno-trt4-analista-gran-auditoria.json`: conferência por tópico, IDs, nomes, hierarquia e acervo das categorias.
+- Fonte das categorias: https://rota-api.grancursosonline.com.br/open/assuntos/arvore
+
+Validação no navegador: promitente comprador (2 questões), garantias reais (10), recursos do CPC (12), segurança/CIPA (21), citação e garantias da execução trabalhista (3), jurisprudência processual trabalhista (3). Todas as amostras carregaram FCC, nível superior e assuntos esperados. Conferidos também detalhes do plano, abertura do caderno, pesquisa, acordeões, 13 disciplinas e 228 tópicos em desktop e 390 px, sem erros JavaScript ou transbordamento horizontal.
