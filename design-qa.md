@@ -36,3 +36,4 @@ Limite: autenticação e sincronização com uma conta real não foram exercitad
 - Retirado o nome redundante do plano no cabeçalho da disciplina.
 - Separados percentuais e totais; no celular os totais ficam na linha seguinte.
 - Cenários exercitados em navegador: expansão/detalhe de conquista, hover, escolha de tópico e timer, metas, abertura de disciplina e ausência de overflow.
+- Atualização: cabeçalho de conquistas centralizado acima da grade; todas visíveis, sem scroll nem expansão. Conferido desktop e Android emulado, incluindo abertura dos detalhes.

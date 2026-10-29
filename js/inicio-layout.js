@@ -72,6 +72,7 @@
     if (conquistas) {
       conquistas.classList.remove('conquistas-compactas');
       conquistas.classList.add('hoje-conquistas-topo');
+      const expandir=conquistas.querySelector('.conquistas-expandir'); if(expandir) expandir.remove();
       const dica = conquistas.querySelector('.conquistas-dica'); if(dica) dica.remove();
       const trofeu=document.createElement('span'); trofeu.className='conquistas-trofeu'; trofeu.textContent='🏆'; trofeu.setAttribute('aria-hidden','true');
       conquistas.querySelector('h3').insertBefore(trofeu, conquistas.querySelector('.conquistas-contador'));

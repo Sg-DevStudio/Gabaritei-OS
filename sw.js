@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v230-ajustes-conquistas';
+const CACHE = CACHE_PREFIXO + 'v231-conquistas-completas';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -56,32 +56,32 @@ try {
   console.warn('Firebase Messaging indisponível no service worker.', e);
 }
 const ESTATICOS = [
-  './data/edital-tjsp-2026.js?v=20261029-ajustes-conquistas',
-  './data/caderno-tjsp.js?v=20261029-ajustes-conquistas',
+  './data/edital-tjsp-2026.js?v=20261029-conquistas-completas',
+  './data/caderno-tjsp.js?v=20261029-conquistas-completas',
   './assets/ferramentas/logo-gran-questoes.webp',
-  './js/ajuda.js?v=20261029-ajustes-conquistas',
-  './js/trilha.js?v=20261029-ajustes-conquistas',
+  './js/ajuda.js?v=20261029-conquistas-completas',
+  './js/trilha.js?v=20261029-conquistas-completas',
   './js/demo.js',
   './data/trilha-trf2.js',
-  './data/trilha-vinculos-trf2.js?v=20261029-ajustes-conquistas',
+  './data/trilha-vinculos-trf2.js?v=20261029-conquistas-completas',
   './assets/android/qr-download.png',
-  './js/android-bridge.js?v=20261029-ajustes-conquistas',
+  './js/android-bridge.js?v=20261029-conquistas-completas',
   './',
   './index.html',
   './manifest.json',
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js',
-  './css/styles.css?v=20261029-ajustes-conquistas',
-  './js/domain.js?v=20261029-ajustes-conquistas',
-  './js/store.js?v=20261029-ajustes-conquistas',
+  './css/styles.css?v=20261029-conquistas-completas',
+  './js/domain.js?v=20261029-conquistas-completas',
+  './js/store.js?v=20261029-conquistas-completas',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261029-ajustes-conquistas',
-  './js/timer.js?v=20261029-ajustes-conquistas',
+  './js/firebase-sync.js?v=20261029-conquistas-completas',
+  './js/timer.js?v=20261029-conquistas-completas',
   './js/charts.js?v=20260615v-green-performance',
-  './data/catalogo-editais.js?v=20261029-ajustes-conquistas',
-  './data/carreiras.js?v=20261029-ajustes-conquistas',
+  './data/catalogo-editais.js?v=20261029-conquistas-completas',
+  './data/carreiras.js?v=20261029-conquistas-completas',
   './assets/carreiras/capa-inss-tecnico.png',
   './assets/carreiras/capa-ifrj-assistente.svg',
   './assets/carreiras/capa-trf2-tjaa.svg',
@@ -89,15 +89,15 @@ const ESTATICOS = [
   './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
   './data/exemplo-trf3.json?v=20261028-demo-imagem',
   './assets/carreiras/logo-trf3.png',
-  './data/ferramentas.js?v=20261029-ajustes-conquistas',
+  './data/ferramentas.js?v=20261029-conquistas-completas',
   './assets/ferramentas/logo-anki.png',
   './assets/ferramentas/logo-notebooklm.svg',
   './assets/ferramentas/logo-notion.svg',
   './assets/ferramentas/logo-scielo.svg',
   './assets/ferramentas/logo-trello.svg',
   './assets/ferramentas/logo-zlibrary.png',
-  './js/inicio-layout.js?v=20261029-ajustes-conquistas',
-  './js/app.js?v=20261029-ajustes-conquistas',
+  './js/inicio-layout.js?v=20261029-conquistas-completas',
+  './js/app.js?v=20261029-conquistas-completas',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'
