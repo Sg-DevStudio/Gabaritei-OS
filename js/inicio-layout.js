@@ -19,6 +19,12 @@
     else rodape.insertAdjacentHTML('beforeend', '<p class="sub">Nenhum outro estudo pendente para hoje.</p>');
     dia.append(rodape);
     if (fila) fila.remove();
+    dia.querySelectorAll('.fila-item').forEach(item => {
+      const b=item.querySelector('[data-acao="timer-agenda"],[data-acao="ciclo-timer"]');
+      const a=b && b.dataset.acao==='timer-agenda' && (state.agenda||[]).find(a=>a.id===b.dataset.id);
+      const min=a ? Number(a.duracaoMin) : b ? Number(b.dataset.dur) : 0;
+      if(min>0) { const tempo=document.createElement('span'); tempo.className='hoje-tempo'; tempo.textContent=D.formatarMin(min); item.querySelector('.fila-acoes').prepend(tempo); }
+    });
     const titulo = dia.querySelector('h2');
     if (titulo) titulo.innerHTML = 'Planejamento do dia <span>' + esc(D.formatarDataBR(D.hojeISO())) + '</span>';
     const painel = document.createElement('div'); painel.className = 'hoje-painel';
@@ -32,6 +38,10 @@
       antigos.remove();
     }
     metas.querySelectorAll('[data-editar-meta]').forEach(b => { const e = document.createElement('span'); e.className='hoje-meta-alvo'; e.textContent=' / ' + meta.questoesAlvo; b.replaceWith(e); });
+    metas.querySelectorAll('.hoje-meta-item').forEach((e,i) => {
+      const p=i===0 ? (meta.horasAlvo>0?Math.round(meta.minutos/60/meta.horasAlvo*100):0) : (meta.questoesAlvo>0?Math.round(meta.qFeitas/meta.questoesAlvo*100):0);
+      const valor=document.createElement('span'); valor.className='hoje-meta-percent'; valor.textContent=p+'%'; e.querySelector('.card-kpi-rotulo').append(valor);
+    });
     metas.querySelector('.hoje-engrenagem').onclick = api.metas;
     const janela = state.plano.radar && state.plano.radar.janela_prova;
     const alvo = janela && janela[0];
@@ -59,9 +69,33 @@
     if (semana) secundarios.append(semana);
     ['.painel-disciplinas-card','.revisoes-hoje-card','.inicio-revisoes'].forEach(sel => { const e = raiz.querySelector(sel); if(e) secundarios.append(e); });
     const conquistas = raiz.querySelector('.conquistas-card');
-    if(conquistas) { const d = document.createElement('details'); d.className = 'hoje-conquistas'; d.innerHTML='<summary>Minhas conquistas</summary>'; d.append(conquistas); secundarios.append(d); }
+    if (conquistas) {
+      conquistas.classList.remove('conquistas-compactas');
+      conquistas.classList.add('hoje-conquistas-topo');
+      const dica = conquistas.querySelector('.conquistas-dica'); if(dica) dica.remove();
+      const icones=['ic-edital','ic-agenda','ic-stats','ic-revisoes','ic-livro','ic-simulados'];
+      conquistas.querySelectorAll('.medalha').forEach((b,i) => {
+        b.querySelector('.medalha-icone').innerHTML='<svg class="nav-ic" aria-hidden="true"><use href="#'+icones[i%icones.length]+'"/></svg>';
+        const status=document.createElement('small'); status.textContent=b.classList.contains('ganha')?'Concluído':'Em progresso'; b.append(status);
+      });
+    }
+    secundarios.querySelectorAll('.revisoes-hoje-card .fila-item').forEach((e,i)=>{if(i>1)e.remove();});
     const antigo = raiz.querySelector('.inicio-grade'), cab = raiz.querySelector('.home-cab');
-    if (antigo) antigo.before(painel, resumo, secundarios); else raiz.prepend(painel,resumo,secundarios);
+    const fragmento=document.createDocumentFragment();
+    if(conquistas) fragmento.append(conquistas);
+    fragmento.append(painel,resumo,secundarios);
+    if (antigo) antigo.before(fragmento); else raiz.prepend(fragmento);
+    raiz.classList.add('hoje-integrada');
+    const disciplinas = secundarios.querySelector('.painel-disciplinas-card');
+    if(disciplinas) {
+      const tabela=disciplinas.querySelector('.painel-scroll'); if(tabela) tabela.remove();
+      const lista=disciplinas.querySelector('.painel-disciplinas-mobile');
+      if(lista) lista.querySelectorAll('[data-disc-detalhe]').forEach(b=>{
+        const d=state.disciplinas.find(d=>d.id===b.dataset.discDetalhe); if(!d) return;
+        const p=D.progressoDisciplina(d);
+        b.innerHTML='<span class="hoje-disc-nome">'+esc(d.nome)+'</span><span class="barra"><span style="width:'+p.pct+'%"></span></span><small>'+p.pct+'%</small>';
+      });
+    }
     if (antigo) antigo.remove();
     if(cab) cab.remove();
     raiz.classList.add('hoje-refinada');

@@ -5076,3 +5076,94 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .hoje-refinada .hoje-meta-item { display:block; min-height:0; gap:0; }
 
 .hoje-refinada .hoje-meta-item:hover { transform:none; box-shadow:none; }
+
+/* Direção visual aprovada: painel integrado, versão 3. */
+.hoje-integrada { --hoje-gap:12px; }
+.hoje-integrada .hoje-conquistas-topo { display:flex; align-items:center; gap:16px; padding:12px 16px; margin:0 0 12px; max-width:none; }
+.hoje-conquistas-topo h3 { display:grid; align-content:center; gap:5px; margin:0; font-size:.82rem; flex:0 0 116px; }
+.hoje-conquistas-topo .conquistas-contador { justify-self:start; padding:0; background:transparent; }
+.hoje-conquistas-topo .conquistas-expandir { font-size:.68rem; padding:0; min-height:24px; text-align:left; }
+.hoje-conquistas-topo .conquistas-grade { display:flex; gap:0; overflow:auto; margin:0; flex:1; min-width:0; }
+.hoje-conquistas-topo .medalha:nth-child(n) { display:grid; grid-template-columns:32px minmax(0,1fr); grid-template-rows:auto auto; align-items:center; column-gap:8px; flex:0 0 145px; min-height:48px; padding:4px 10px; border:0; border-left:1px solid var(--linha); border-radius:0; background:transparent; text-align:left; box-shadow:none; }
+.hoje-conquistas-topo .medalha-icone { grid-row:1 / 3; display:grid; place-items:center; width:32px; height:36px; border-radius:9px; background:var(--caneta-suave); color:var(--caneta); }
+.hoje-conquistas-topo .medalha-icone svg { width:22px; height:22px; }
+.hoje-conquistas-topo .medalha-titulo { font-size:.69rem; font-weight:500; }
+.hoje-conquistas-topo .medalha small { font-size:.64rem; color:var(--grafite); }
+.hoje-conquistas-topo.conquistas-abertas .conquistas-grade { flex-wrap:wrap; row-gap:10px; }
+.hoje-integrada .hoje-painel { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(270px,1fr); gap:0; padding:18px; background:var(--papel-card); border:1px solid var(--linha); border-radius:14px; }
+.hoje-integrada .proximo-estudo { border:0; border-radius:0; padding:0 20px 0 0; }
+.hoje-integrada .proximo-estudo > h2 { font-size:.98rem; text-transform:none; letter-spacing:0; color:var(--tinta); margin-bottom:14px; }
+.hoje-integrada .proximo-estudo > .fila-item { padding:12px; }
+.hoje-integrada .proximo-estudo .fila-corpo { grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; }
+.hoje-integrada .proximo-estudo .fila-titulo { font-size:.77rem; gap:3px; }
+.hoje-integrada .proximo-estudo .disciplina-destaque { font-size:.87rem; }
+.hoje-integrada .proximo-estudo .fila-acoes { flex-wrap:nowrap; }
+.hoje-integrada .proximo-estudo .fila-acoes button { font-size:.73rem; padding:8px 10px; }
+.hoje-integrada .proximo-estudo .inicio-iniciar { min-height:38px; }
+.hoje-integrada .hoje-ainda { margin-top:12px; padding-top:12px; }
+.hoje-integrada .hoje-ainda .fila-item { padding:8px 0; }
+.hoje-integrada .hoje-ainda .fila-acoes button { min-height:34px; }
+.hoje-integrada .hoje-painel-lateral { display:flex; flex-direction:column; gap:0; border-left:1px solid var(--linha); padding-left:20px; }
+.hoje-integrada .hoje-prova, .hoje-integrada .hoje-metas { border:0; border-radius:0; padding:0; background:transparent; }
+.hoje-integrada .hoje-prova { padding-bottom:12px; border-bottom:1px solid var(--linha); gap:10px; }
+.hoje-integrada .hoje-prova h2 { font-size:.78rem; }
+.hoje-integrada .hoje-prova .sub { font-size:.7rem; }
+.hoje-integrada .hoje-prova-dias { min-width:78px; padding-left:10px; }
+.hoje-integrada .hoje-prova-dias strong { font-size:1.5rem; }
+.hoje-integrada .hoje-prova-dias button { min-height:24px; padding:0 5px; }
+.hoje-integrada .hoje-metas .hoje-card-cab { margin-top:8px; }
+.hoje-integrada .hoje-meta-item { padding:8px 0; }
+.hoje-integrada .hoje-meta-item .card-kpi-rotulo { font-size:.72rem; font-weight:500; }
+.hoje-integrada .hoje-meta-item .card-kpi-valor { font-size:1.05rem; margin-top:4px; }
+.hoje-integrada .hoje-resumos { gap:0; border:1px solid var(--linha); border-radius:14px; padding:14px 0; background:var(--papel-card); }
+.hoje-integrada .hoje-resumo { border:0; border-right:1px solid var(--linha); border-radius:0; padding:0 20px; background:transparent; }
+.hoje-integrada .hoje-resumo:last-child { border-right:0; }
+.hoje-integrada .hoje-resumo h2 { font-size:.73rem; text-transform:none; margin-bottom:10px; }
+.hoje-integrada .hoje-numero { font-size:1.4rem; }
+.hoje-integrada .hoje-resumo .sub { margin:8px 0 0; }
+.hoje-integrada .hoje-resumo > a { margin-top:8px; }
+.hoje-integrada .hoje-frase .frase-dia { font-size:.8rem; }
+.hoje-integrada .hoje-secundarios { grid-template-columns:1.1fr 1fr; align-items:start; }
+.hoje-integrada .hoje-secundarios .inicio-semana { padding:16px; }
+.hoje-integrada .painel-disciplinas-card { padding:16px; min-width:0; }
+.hoje-integrada .painel-disciplinas-card h3 { margin:0 0 10px; font-size:.9rem; }
+.hoje-integrada .painel-disciplinas-mobile { display:grid; gap:0; }
+.hoje-integrada .painel-disc-mobile { display:grid; grid-template-columns:minmax(0,1fr) 85px 32px; align-items:center; gap:10px; background:transparent; border:0; border-top:1px solid var(--linha); border-radius:0; box-shadow:none; padding:10px 0; min-height:44px; text-align:left; }
+.hoje-integrada .hoje-disc-nome { font-size:.78rem; font-weight:400; color:var(--tinta); }
+.hoje-integrada .painel-disc-mobile .barra { height:5px; margin:0; }
+.hoje-integrada .painel-disc-mobile small { color:var(--grafite); font-size:.7rem; text-align:right; }
+.hoje-integrada .hoje-secundarios > :nth-child(n+3) { grid-column:1 / -1; }
+.hoje-integrada .inicio-semana h3 { font-size:.9rem; margin:0 0 10px; }
+.hoje-integrada .semana-trilho { height:64px; }
+@media(max-width:1100px) and (min-width:761px) { .hoje-integrada .proximo-estudo .fila-corpo { grid-template-columns:minmax(0,1fr); } .hoje-integrada .proximo-estudo .fila-acoes { justify-content:flex-end; } }
+@media(max-width:760px) {
+ .hoje-integrada .hoje-conquistas-topo { gap:8px; padding:10px 12px; }
+ .hoje-conquistas-topo h3 { flex-basis:85px; font-size:.75rem; }
+ .hoje-conquistas-topo .medalha:nth-child(n) { flex-basis:126px; }
+ .hoje-integrada .hoje-painel { display:block; padding:14px; }
+ .hoje-integrada .proximo-estudo { padding:0; }
+ .hoje-integrada .proximo-estudo .fila-corpo { grid-template-columns:minmax(0,1fr); }
+ .hoje-integrada .proximo-estudo .fila-acoes { justify-content:flex-end; }
+ .hoje-integrada .hoje-painel-lateral { border-left:0; padding:12px 0 0; margin-top:12px; border-top:1px solid var(--linha); }
+ .hoje-integrada .hoje-resumos { grid-template-columns:1fr 1fr; padding:12px 0; }
+ .hoje-integrada .hoje-frase { grid-column:1 / -1; border-top:1px solid var(--linha); margin-top:12px; padding-top:12px; }
+ .hoje-integrada .hoje-resumo:nth-child(2) { border-right:0; }
+ .hoje-integrada .hoje-secundarios { grid-template-columns:minmax(0,1fr); }
+ .hoje-integrada .hoje-secundarios > * { grid-column:1; }
+}
+
+.hoje-integrada .hoje-conquistas-topo .conquistas-grade { align-items:center; }
+.hoje-integrada .hoje-conquistas-topo .medalha { min-height:48px; }
+.hoje-integrada .hoje-conquistas-topo h3 { position:relative; padding-bottom:22px; }
+.hoje-integrada .conquistas-expandir { position:absolute; left:0; bottom:0; margin:0; }
+.hoje-integrada .hoje-ainda-cab a { font-size:.68rem; }
+.hoje-integrada .hoje-painel-lateral .hoje-meta-item .barra { margin-top:6px; }
+.hoje-integrada .hoje-painel-lateral .hoje-meta-item .card-kpi-rotulo { margin:0; }
+.hoje-integrada .hoje-painel-lateral .hoje-meta-item .card-kpi-valor { font-size:1rem; }
+
+.hoje-integrada .hoje-tempo { align-self:center; white-space:nowrap; font-size:.72rem; color:var(--grafite); margin-right:6px; }
+.hoje-integrada .hoje-meta-item .card-kpi-rotulo { display:flex; justify-content:space-between; gap:10px; }
+.hoje-meta-percent { color:var(--caneta); }
+.hoje-conquistas-topo .medalha.ganha:nth-child(3n+2) .medalha-icone { background:#e7f8f2; color:#168363; }
+.hoje-conquistas-topo .medalha.ganha:nth-child(3n+3) .medalha-icone { background:#f1eaff; color:#7b46c7; }
+@media(max-width:420px) { .hoje-integrada .hoje-tempo { font-size:.68rem; margin-right:2px; } }
