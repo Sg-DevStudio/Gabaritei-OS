@@ -47,7 +47,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             account.collectLatest { a ->
                 if(initialized&&bound!=a?.uid){val previous=dao(bound);previous.currentTimer()?.let{previous.timer(it.copy(seconds=elapsed(it),startedElapsed=null))};TimerNotices.cancel(application)}
                 bound=a?.uid;initialized=true
-                ready.value=false;plans.value=emptyList();sessions.value=emptyList();progress.value=emptyList();links.value=emptyList();timer.value=null;settings.value=null;pendingCount.value=0
+                ready.value=false;rawSnapshot.value=StateCompat.empty().toString();plans.value=emptyList();sessions.value=emptyList();progress.value=emptyList();links.value=emptyList();timer.value=null;settings.value=null;pendingCount.value=0
                 val d=dao(a?.uid)
                 coroutineScope {
                     launch{d.settings().collect{settings.value=it}}
@@ -62,7 +62,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
                             val raw=snap?.json?:StateCompat.empty().toString()
                             val projection=withContext(Dispatchers.Default){Triple(StateCompat.plans(raw,catalog).map{it.copy(owner=a.uid)},StateCompat.sessions(raw),Pair(StateCompat.progress(raw),StateCompat.links(raw)))}
                             rawSnapshot.value=raw;plans.value=projection.first;sessions.value=projection.second;progress.value=projection.third.first;links.value=projection.third.second
-                            if(settings.value==null){val active=JSONObject(raw).optString("planoAtivoId");val p=plans.value.find{it.id==active};if(p!=null)d.settings(Settings(planId=p.id,topicId=p.topics.first().id))}
+                            if(settings.value==null){val active=JSONObject(raw).optString("planoAtivoId");val p=plans.value.find{it.id==active};if(p!=null)d.settings(Settings(planId=p.id,topicId=p.topics.firstOrNull()?.id.orEmpty()))}
                             ready.value=true
                         }}
                         cloud.observe(a.uid){synchronize()}
@@ -87,12 +87,28 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     fun importGuest(){val uid=account.value?.uid?:return;viewModelScope.launch{
         try{
             val d=dao(uid);val guest=dao(null);val records=guest.sessions().first();val done=guest.progress().first()
+            val guestRaw=JSONObject(guest.currentSnapshot()?.json?:StateCompat.empty().toString())
+            val imported=mutableMapOf<String,String>()
+            for(entry in guestRaw.array("planos").objects()){
+                check(account.value?.uid==uid)
+                val old=entry.getString("id");val next="android-import-$old";imported[old]=next
+                val copy=JSONObject(entry.toString()).put("id",next)
+                val agenda=org.json.JSONArray(guestRaw.array("agenda").objects().filter{it.optString("planoId")==old}.map{JSONObject(it.toString()).put("id","import-${it.optString("id")}").put("planoId",next)})
+                d.mutate(mutation(d,"plan",JSONObject().put("entry",copy).put("agenda",agenda)))
+            }
             for(s in records){
                 check(account.value?.uid==uid){"A conta mudou durante a importação."}
-                val base=catalog.firstOrNull{it.id==s.planId}?:continue
-                val p=ensurePlan(base.copy(owner=uid),d);if(p.topics.none{it.id==s.topicId})continue
+                if(s.planId.isEmpty()){
+                    val row=guestRaw.array("sessoes").objects().find{it.optString("id")==s.id}?:continue
+                    d.mutate(mutation(d,"free-session",JSONObject().put("session",row)));continue
+                }
+                val mapped=imported[s.planId]
+                val p=if(mapped!=null)StateCompat.plans(d.currentSnapshot()!!.json,catalog).first{it.id==mapped}.copy(owner=uid) else {val base=catalog.firstOrNull{it.id==s.planId}?:continue;ensurePlan(base.copy(owner=uid),d)}
+                val exists=JSONObject(d.currentSnapshot()!!.json).array("sessoes").objects().any{it.optString("id")==s.id}
+                if(exists)continue
                 val date=Instant.ofEpochMilli(s.endedAt).atZone(ZoneId.systemDefault()).toLocalDate().toString()
                 val row=JSONObject().put("id",s.id).put("planoId",p.id).put("topicoId",s.topicId).put("data",date).put("registradoEm",Instant.ofEpochMilli(s.endedAt).toString()).put("tipo",if(s.questions>0)"questoes" else "teoria").put("duracaoMin",s.seconds/60.0).put("qFeitas",s.questions).put("qCertas",s.correct).put("obs","").put("origemRegistroRapido","android")
+                guestRaw.array("sessoes").objects().find{it.optString("id")==s.id}?.let{row.put("tipo",it.optString("tipo",row.optString("tipo")))}
                 d.mutate(mutation(d,"session",JSONObject().put("planId",p.id).put("topicId",s.topicId).put("session",row).put("completed",done.any{it.planId==s.planId&&it.topicId==s.topicId&&it.completed})))
             }
             error.value="Estudos locais preparados para sincronizar. A cópia no aparelho foi mantida."
@@ -140,7 +156,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             check(plan.owner==account.value?.uid.orEmpty()){ "A conta mudou. Reabra o plano." }
             val op=mutation(d,"plan",payload)
             if(plan.owner.isEmpty())d.localPlan(op) else d.mutate(op)
-            d.settings(Settings(planId=payload.getJSONObject("entry").getString("id"),topicId=plan.topics.first().id))
+            d.settings(Settings(planId=payload.getJSONObject("entry").getString("id"),topicId=plan.topics.firstOrNull()?.id.orEmpty()))
             getApplication<Application>().getSharedPreferences("native_display",0).edit().putInt("focusMinutes",routine.blockMinutes).apply()
             onResult(null)
         }catch(e:Exception){onResult(e.message?:"Não foi possível criar o plano.")}
@@ -148,8 +164,8 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     fun select(plan:Plan,topic:Topic)=viewModelScope.launch {
         runCatching{val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d);d.settings(Settings(planId=p.id,topicId=topic.id))}.onFailure{error.value=it.message}
     }
-    fun preview(plan:Plan)=viewModelScope.launch{if(plan.owner==account.value?.uid.orEmpty())dao(plan.owner.takeIf{it.isNotEmpty()}).settings(Settings(planId=plan.id,topicId=plan.topics.first().id))}
-    fun select(plan:Plan)=select(plan,plan.topics.firstOrNull{t->progress.value.none{it.planId==plan.id&&it.topicId==t.id&&it.completed}}?:plan.topics.first())
+    fun preview(plan:Plan)=viewModelScope.launch{if(plan.owner==account.value?.uid.orEmpty())dao(plan.owner.takeIf{it.isNotEmpty()}).settings(Settings(planId=plan.id,topicId=plan.topics.firstOrNull()?.id.orEmpty()))}
+    fun select(plan:Plan)=select(plan,plan.topics.firstOrNull{t->progress.value.none{it.planId==plan.id&&it.topicId==t.id&&it.completed}}?:plan.topics.firstOrNull()?:Topic("","",null,""))
     fun start(plan:Plan,topic:Topic)=viewModelScope.launch {
         try{val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d);d.settings(Settings(planId=p.id,topicId=topic.id))
             if(!d.startTimer(Timer(sessionId=UUID.randomUUID().toString(),planId=p.id,topicId=topic.id,seconds=0,startedElapsed=SystemClock.elapsedRealtime(),boot=boot(),goalSeconds=getApplication<Application>().getSharedPreferences("native_display",0).getInt("focusMinutes",50)*60L)))error.value="Conclua ou descarte o cronômetro atual antes de iniciar outro."
@@ -159,13 +175,15 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     fun pause(t:Timer)=viewModelScope.launch{val d=dao();if(d.currentTimer()?.sessionId==t.sessionId)d.timer(t.copy(seconds=elapsed(t),startedElapsed=null))}
     fun resume(t:Timer)=viewModelScope.launch{val d=dao();if(d.currentTimer()?.sessionId==t.sessionId)d.timer(t.copy(startedElapsed=SystemClock.elapsedRealtime(),boot=boot()))}
     fun discard(t:Timer)=viewModelScope.launch{dao().clearTimer(t.sessionId)}
-    fun save(plan:Plan,topic:Topic,input:StudyInput,completed:Boolean,timer:Timer?,id:String,failed:()->Unit={},success:()->Unit){
-        val validation=StudyRules.error(input);if(validation!=null){error.value=validation;failed();return}
+    fun save(plan:Plan,topic:Topic,input:StudyInput,completed:Boolean,timer:Timer?,id:String,category:String="",date:LocalDate=LocalDate.now(),failed:()->Unit={},success:()->Unit){
+        val validation=StudyRules.error(input)?:if(date.isAfter(LocalDate.now()))"A data não pode estar no futuro." else null;if(validation!=null){error.value=validation;failed();return}
         viewModelScope.launch{try{
-            val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d);val now=System.currentTimeMillis()
-            if(plan.owner.isEmpty())d.record(Session(id,p.id,topic.id,input.seconds,input.questions,input.correct,now),completed,timer!=null)
+            val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d);val now=date.atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val kind=category.ifBlank{if(input.questions>0)"questoes" else "teoria"}
+            val row=JSONObject().put("id",id).put("planoId",p.id).put("topicoId",topic.id).put("data",date.toString()).put("registradoEm",Instant.ofEpochMilli(System.currentTimeMillis()).toString()).put("tipo",kind).put("duracaoMin",input.seconds/60.0).put("qFeitas",input.questions).put("qCertas",input.correct).put("obs","").put("origemRegistroRapido","android")
+            if(plan.owner.isEmpty())d.record(Session(id,p.id,topic.id,input.seconds,input.questions,input.correct,now),completed,timer!=null,row.toString())
             else{
-                val s=JSONObject().put("id",id).put("planoId",p.id).put("topicoId",topic.id).put("data",LocalDate.now().toString()).put("registradoEm",Instant.ofEpochMilli(now).toString()).put("tipo",if(input.questions>0)"questoes" else "teoria").put("duracaoMin",input.seconds/60.0).put("qFeitas",input.questions).put("qCertas",input.correct).put("obs","").put("origemRegistroRapido","android")
+                val s=row
                 d.mutate(mutation(d,"session",JSONObject().put("planId",p.id).put("topicId",topic.id).put("session",s).put("completed",completed)),if(timer!=null)id else null)
             }
             d.settings(Settings(planId=p.id,topicId=topic.id));if(plan.owner==account.value?.uid.orEmpty())success()
@@ -184,6 +202,42 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             }
             if(plan.owner==account.value?.uid.orEmpty())success()
         }catch(e:Exception){error.value=e.message?:"Não foi possível salvar o link."}}
+    }
+    fun edit(plan:Plan,payload:JSONObject,onDone:(String?)->Unit={})=viewModelScope.launch{
+        try{
+            check(plan.owner==account.value?.uid.orEmpty()){"A conta mudou. Reabra o plano."}
+            val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensureLocalEditable(plan,d)
+            val op=mutation(d,"structure",payload.put("planId",p.id))
+            if(p.owner.isEmpty())d.localPlan(op)else d.mutate(op)
+            onDone(null)
+        }catch(e:Exception){onDone(e.message?:"Não foi possível salvar.");error.value=e.message}
+    }
+    private suspend fun ensureLocalEditable(plan:Plan,d:PilotDao):Plan{
+        if(plan.owner.isNotEmpty())return ensurePlan(plan,d)
+        if(d.currentSnapshot()?.json?.let{JSONObject(it).array("planos").objects().any{p->p.optString("id")==plan.id}}==true)return plan
+        val source=JSONObject(getApplication<Application>().assets.open("catalog.json").bufferedReader().use{it.readText()}).getJSONArray("plans").objects().first{it.optString("id")==plan.originId}.getJSONObject("webBase")
+        val entry=JSONObject().put("id",plan.id).put("plano",JSONObject().put("concurso",plan.name).put("origemEditalId",plan.originId)).put("disciplinas",source.getJSONArray("disciplinas")).put("links",org.json.JSONArray()).put("cronogramas",JSONObject())
+        d.localPlan(mutation(d,"plan",JSONObject().put("entry",entry)))
+        return plan
+    }
+    fun saveFree(title:String,input:StudyInput,category:String,date:LocalDate,id:String,onDone:(String?)->Unit)=viewModelScope.launch{
+        try{
+            require(title.trim().length in 1..240){"Dê um nome ao estudo."};StudyRules.error(input)?.let{error(it)};require(!date.isAfter(LocalDate.now())){"A data não pode estar no futuro."}
+            val owner=account.value?.uid;val d=dao(owner);val ended=date.atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val row=JSONObject().put("id",id).put("data",date.toString()).put("registradoEm",Instant.now().toString()).put("topicoNome",title.trim()).put("tipo",category).put("duracaoMin",input.seconds/60.0).put("qFeitas",input.questions).put("qCertas",input.correct).put("estudoLivre",true).put("planoId",JSONObject.NULL).put("topicoId",JSONObject.NULL)
+            if(owner==null)d.recordFree(Session(id,"","",input.seconds,input.questions,input.correct,ended),row.toString()) else d.mutate(mutation(d,"free-session",JSONObject().put("session",row)))
+            onDone(null)
+        }catch(e:Exception){onDone(e.message?:"Não foi possível registrar.")}
+    }
+    fun setPhoto(uri:android.net.Uri?,owner:String,onDone:(String?)->Unit)=viewModelScope.launch{
+        try{
+            val image=if(uri==null)""else withContext(Dispatchers.IO){ProfilePhoto.encode(getApplication(),uri)}
+            check(owner==account.value?.uid.orEmpty()){"A conta mudou. Abra seu perfil novamente."}
+            val d=dao(owner.takeIf{it.isNotEmpty()});val current=d.currentSnapshot()?.json?:StateCompat.empty().toString()
+            val op=mutation(d,"profile-photo",JSONObject().put("image",image).put("before",ProfilePhoto.value(current)))
+            if(owner.isEmpty())d.localPlan(op)else d.mutate(op)
+            onDone(null)
+        }catch(e:Exception){onDone(e.message?:"Não foi possível salvar a foto.")}
     }
     override fun onCleared(){cloud.close();connectivity.unregisterNetworkCallback(network);super.onCleared()}
 }

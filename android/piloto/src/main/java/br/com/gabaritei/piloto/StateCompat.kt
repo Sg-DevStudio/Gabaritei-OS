@@ -16,7 +16,7 @@ object StateCompat {
     fun empty():JSONObject = JSONObject().put("versao",2).put("planos",JSONArray()).put("config",JSONObject())
         .put("sessoes",JSONArray()).put("revisoes",JSONArray()).put("simulados",JSONArray()).put("flashcards",JSONArray()).put("agenda",JSONArray()).put("editais",JSONArray())
     fun generation(json:String) = JSONObject(json).optJSONObject("config")?.optString("syncGeneration").orEmpty()
-    private fun encoded(s:String)=URLEncoder.encode(s,"UTF-8").replace("+","%20").replace("%21","!").replace("%27","'").replace("%28","(").replace("%29",")").replace("%7E","~")
+    internal fun encoded(s:String)=URLEncoder.encode(s,"UTF-8").replace("+","%20").replace("%21","!").replace("%27","'").replace("%28","(").replace("%29",")").replace("%7E","~")
     private fun deleted(s:JSONObject,type:String,plan:String,id:String)=s.obj("config").obj("entidadesExcluidas").optBoolean("$type:$plan:${encoded(id)}")
     private fun removed(s:JSONObject,id:String)=s.obj("config").array("removidos").let{a->(0 until a.length()).any{a.optString(it)==id}}
     private fun field(o:JSONObject,key:String,value:Any,now:String){
@@ -39,6 +39,17 @@ object StateCompat {
                     p.optJSONArray("agenda")?.objects()?.forEach{block->if(!removed(s,block.optString("id"))&&!deleted(s,"agenda",id,block.optString("id")))s.array("agenda").put(block)}
                 }
                 if(s.isNull("planoAtivoId"))s.put("planoAtivoId",id)
+            } else if(m.kind=="profile-photo"){
+                val image=p.getString("image");require(image.isEmpty()||ProfilePhoto.safe(image)){"Foto inválida."}
+                val config=s.obj("config");val previous=config.optJSONObject("fotoPerfil")
+                if(!force&&p.optString("before")!=previous?.optString("imagem").orEmpty()&&image!=previous?.optString("imagem").orEmpty())throw SyncConflict("A foto foi alterada em outro aparelho. Revise antes de reaplicar.")
+                if(image!=previous?.optString("imagem").orEmpty())config.put("fotoPerfil",JSONObject().put("imagem",image).put("rev",(previous?.optLong("rev")?:0)+1).put("em",now))
+            } else if(m.kind=="structure"){
+                PlanEdits.apply(s,p,now,force)
+            } else if(m.kind=="free-session"){
+                val row=p.getJSONObject("session");val id=row.getString("id")
+                require(row.optDouble("duracaoMin")>0&&row.optInt("qCertas") in 0..row.optInt("qFeitas"))
+                if(!removed(s,id)&&s.array("sessoes").objects().none{it.optString("id")==id})s.array("sessoes").put(row.put("planoId",JSONObject.NULL).put("topicoId",JSONObject.NULL).put("estudoLivre",true).put("atualizadoEm",now))
             } else {
                 val planId=p.getString("planId");val topicId=p.getString("topicId")
                 val plan=s.array("planos").objects().find{it.optString("id")==planId}
@@ -68,6 +79,7 @@ object StateCompat {
                                 }
                             }else if(topic.optString("status","pendente")=="pendente")field(topic,"status","em_curso",now)
                             topic.put("atualizadoEm",now)
+                            if(session.optString("tipo")=="revisao")s.array("revisoes").objects().filter{it.optString("planoId")==planId&&it.optString("topicoId")==topicId&&it.isNull("dataConcluida")&&!removed(s,it.optString("id"))}.minByOrNull{it.optString("dataAgendada")}?.put("dataConcluida",session.getString("data"))?.put("duracaoConcluidaMin",session.optDouble("duracaoMin"))?.put("atualizadoEm",now)
                             val minutes=session.getDouble("duracaoMin");val date=session.getString("data")
                             val agenda=s.array("agenda")
                             val type=session.optString("tipo")
@@ -129,14 +141,14 @@ object StateCompat {
         val enrolled=s.array("planos").objects().filter{!s.obj("config").obj("planosExcluidos").has(it.optString("id"))}.map{p->
             val meta=p.obj("plano");val origin=meta.optString("origemEditalId")
             val source=catalog.firstOrNull{it.id==origin||it.name==meta.optString("concurso")}
-            Plan(p.getString("id"),meta.optString("concurso","Plano de estudos"),p.array("disciplinas").objects().filter{!deleted(s,"disc",p.getString("id"),it.optString("id"))}.map{d->
-                Discipline(d.getString("id"),d.optString("nome"),d.array("topicos").objects().filter{!it.optBoolean("removidoDoEdital")&&!it.optBoolean("orfao")&&!deleted(s,"top",p.getString("id"),it.optString("id"))}.map{t->
+            Plan(p.getString("id"),meta.optString("concurso","Plano de estudos"),p.array("disciplinas").objects().sortedBy{it.optInt("ordem")}.filter{!deleted(s,"disc",p.getString("id"),it.optString("id"))}.map{d->
+                Discipline(d.getString("id"),d.optString("nome"),d.array("topicos").objects().filter{!it.optBoolean("removidoDoEdital")&&!it.optBoolean("orfao")&&!it.optBoolean("androidArquivado")&&!deleted(s,"top",p.getString("id"),it.optString("id"))}.map{t->
                     val ref=source?.topics?.firstOrNull{it.id==t.optString("id")||it.name==t.optString("nome")}
                     val personal=p.array("links").objects().any{it.optString("tipo")=="trilha"&&it.optString("topicoChave")=="plano:${d.optString("id")}:${t.optString("id")}"}
                     Topic(t.getString("id"),t.optString("nome"),if(personal)null else ref?.link,if(personal)"Links pessoais deste tópico" else ref?.note?:"Adicione um link de questões para este tópico.",ref?.noQuestions?:false)
-                })
-            }.filter{it.topics.isNotEmpty()},origin,true,logoAsset=source?.logoAsset.orEmpty())
-        }.filter{it.topics.isNotEmpty()}
+                },d.optString("cor","#3B82F6"),d.optString("planejamentoStatus")=="paused",d.optBoolean("androidArquivada"))
+            },origin,true,logoAsset=source?.logoAsset.orEmpty())
+        }
         return enrolled+catalog.filter{c->enrolled.none{it.originId==c.id||it.name==c.name}}
     }
     fun sessions(json:String):List<Session>{val s=JSONObject(json);return s.array("sessoes").objects().filter{!removed(s,it.optString("id"))}.map{r->
@@ -147,8 +159,8 @@ object StateCompat {
             studyDate!=null->studyDate.atTime(12,0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
             else->0L
         }
-        val inferred=if(r.optString("planoId").isNotEmpty())r.optString("planoId") else s.array("planos").objects().filter{p->p.array("disciplinas").objects().any{d->d.array("topicos").objects().any{it.optString("id")==r.optString("topicoId")}}}.singleOrNull()?.optString("id").orEmpty()
-        Session(r.getString("id"),r.optString("planoId").ifEmpty{inferred},r.optString("topicoId"),(r.optDouble("duracaoMin",0.0)*60).toLong(),r.optInt("qFeitas"),r.optInt("qCertas"),ended)
+        val inferred=if(!r.isNull("planoId")&&r.optString("planoId").isNotEmpty())r.optString("planoId") else s.array("planos").objects().filter{p->p.array("disciplinas").objects().any{d->d.array("topicos").objects().any{it.optString("id")==r.optString("topicoId")}}}.singleOrNull()?.optString("id").orEmpty()
+        Session(r.getString("id"),(if(r.isNull("planoId"))"" else r.optString("planoId")).ifEmpty{inferred},if(r.isNull("topicoId"))"" else r.optString("topicoId"),(r.optDouble("duracaoMin",0.0)*60).toLong(),r.optInt("qFeitas"),r.optInt("qCertas"),ended)
     }.sortedByDescending{it.endedAt}}
     fun progress(json:String):List<Progress> = JSONObject(json).array("planos").objects().flatMap{p->p.array("disciplinas").objects().flatMap{d->d.array("topicos").objects().filter{it.optString("status") in listOf("teoria_concluida","dominado")}.map{Progress(p.getString("id"),it.getString("id"),true)}}}
     fun links(json:String):List<PersonalLink> = JSONObject(json).array("planos").objects().flatMap{p->

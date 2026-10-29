@@ -12533,13 +12533,23 @@
       '</div>';
   }
 
+  function atualizarFotoPerfil() {
+    const button = document.getElementById('botao-perfil'); if (!button || !window.ProfilePhoto) return;
+    const photo = (modoDemo || usuarioLogado()) ? window.ProfilePhoto.value(state.config) : '';
+    button.innerHTML = photo ? '<img class="foto-perfil-mini" src="' + esc(photo) + '" alt="">' : '<svg aria-hidden="true"><use href="#ic-perfil"/></svg>';
+  }
+
   function abrirPerfilUsuario() {
     const atual = statusSincronizacao();
     const email = atual && atual.usuario && atual.usuario.email ? atual.usuario.email : null;
     const pushDisponivel = !!(window.FirebaseSync && window.FirebaseSync.pushConfigurado &&
       window.FirebaseSync.pushConfigurado());
+    const profileState = state;
+    let photo = window.ProfilePhoto.value(state.config);
+    let photoChanged = false, photoBusy = false;
     const m = abrirModal(
       '<h3>Perfil</h3>' +
+      '<div class="pf-photo-row"><div id="pf-photo-preview" class="pf-photo-preview"></div><div><button type="button" class="botao-quieto" id="pf-photo-choose">Escolher foto</button><button type="button" class="botao-quieto" id="pf-photo-remove">Remover foto</button><input type="file" id="pf-photo-file" accept="image/jpeg,image/png,image/webp" hidden><small>Recorte central · JPG, PNG ou WebP</small></div></div><p id="pf-photo-message" class="sub" role="status" aria-live="polite"></p>' +
       '<label for="pf-nome">Seu nome na tela Hoje</label>' +
       '<input id="pf-nome" type="text" maxlength="40" value="' + esc(state.config.nomeUsuario || nomeUsuario()) + '">' +
       '<label class="pf-toggle" for="pf-som-conquistas">' +
@@ -12559,6 +12569,25 @@
       '<button type="button" id="pf-salvar-nome">Salvar</button></div>' +
       '<button type="button" id="pf-feedback" class="pf-feedback"><svg aria-hidden="true"><use href="#ic-feedback"/></svg>Feedback, erros e sugestões</button>'
     );
+    function paintPhoto() {
+      m.querySelector('#pf-photo-preview').innerHTML = photo ? '<img src="' + esc(photo) + '" alt="Prévia da foto do perfil">' : '<svg aria-label="Sem foto"><use href="#ic-perfil"/></svg>';
+      m.querySelector('#pf-photo-remove').hidden = !photo;
+    }
+    paintPhoto();
+    m.querySelector('#pf-photo-choose').addEventListener('click', function () { m.querySelector('#pf-photo-file').click(); });
+    m.querySelector('#pf-photo-remove').addEventListener('click', function () { photo=''; photoChanged=true; paintPhoto(); });
+    m.querySelector('#pf-photo-file').addEventListener('change', async function (event) {
+      const file = event.target.files[0]; if (!file) return;
+      photoBusy=true; m.querySelector('#pf-salvar-nome').disabled=true;
+      m.querySelector('#pf-photo-message').textContent='Preparando foto…';
+      try {
+        const image = await window.ProfilePhoto.fromFile(file);
+        if (!m.isConnected || state !== profileState) return;
+        photo=image; photoChanged=true; paintPhoto();
+        m.querySelector('#pf-photo-message').textContent='Prévia pronta. Toque em Salvar para confirmar.';
+      } catch (error) { if(m.isConnected)m.querySelector('#pf-photo-message').textContent=error.message || 'Não foi possível abrir essa foto.'; }
+      finally {photoBusy=false;if(m.isConnected)m.querySelector('#pf-salvar-nome').disabled=false;event.target.value='';}
+    });
     m.querySelector('#pf-config').addEventListener('click', fecharModal);
     m.querySelector('#pf-feedback').addEventListener('click', function () {
       fecharModal(); abrirFeedback();
@@ -12605,6 +12634,8 @@
       toast('Lembretes diários ativados neste aparelho.', 'sucesso');
     });
     m.querySelector('#pf-salvar-nome').addEventListener('click', function () {
+      if(photoBusy || state !== profileState) return;
+      if(photoChanged) window.ProfilePhoto.change(state.config,photo);
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
       state.config.onboardingNomeVisto = true;
       state.config.somConquistasOff = pfSom ? !pfSom.checked : state.config.somConquistasOff;
@@ -12774,11 +12805,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-v1.0.0-beta1/gabaritei-os.apk';
-    const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Seus planos e estudos também no celular.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
-      '<a class="botao" href="' + url + '">Baixar APK · beta</a><small>Android 8 ou superior · versão beta</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-v1.0.0-beta1" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.4.0/Gabaritei.apk';
+    const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v040" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.4.0 · em testes</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.4.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
@@ -12960,6 +12991,7 @@
   }
 
   function render() {
+    atualizarFotoPerfil();
     ultimaDataRender = D.hojeISO();
     aplicarTema();
     const conteudo = document.getElementById('conteudo');

@@ -44,7 +44,12 @@ jobs:
           git diff --exit-code -- android/piloto/src/main/assets/catalog.json
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Compilar, testar domínio e verificar lint
-        run: gradle -p android :piloto:assembleDebug :piloto:testDebugUnitTest :piloto:lintDebug :piloto:assembleQaAndroidTest --console plain
+        env:
+          GABARITEI_FIXTURE_OUT: /tmp/gabaritei-contract.json
+          GABARITEI_EDITS_FIXTURE_OUT: /tmp/gabaritei-edits-contract.json
+        run: gradle -p android :piloto:assembleDebug :piloto:assembleRelease :piloto:testDebugUnitTest :piloto:lintDebug :piloto:assembleQaAndroidTest --console plain
+      - name: Conferir contrato de dados com o site
+        run: node scripts/android-contract-check.cjs /tmp/gabaritei-contract.json /tmp/gabaritei-edits-contract.json
       - uses: actions/upload-artifact@v4
         with:
           name: Gabaritei-Piloto-verificacoes

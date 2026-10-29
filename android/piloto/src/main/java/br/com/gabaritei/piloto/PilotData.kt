@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
 
 data class Topic(val id: String, val name: String, val link: String?, val note: String, val noQuestions: Boolean = false)
-data class Discipline(val id: String, val name: String, val topics: List<Topic>)
+data class Discipline(val id: String, val name: String, val topics: List<Topic>, val color:String="#3B82F6", val paused:Boolean=false, val archived:Boolean=false)
 data class Plan(val id: String, val name: String, val disciplines: List<Discipline>, val originId: String = id, val enrolled: Boolean = false, val owner: String = "", val logoAsset:String = "") {
     val topics get() = disciplines.flatMap { it.topics }
     fun discipline(topic: Topic) = disciplines.first { d -> d.topics.any { it.id == topic.id } }
@@ -62,15 +62,20 @@ object Catalog {
         timer(value)
         return true
     }
-    @Transaction open suspend fun record(value: Session, completed: Boolean, fromTimer: Boolean) {
+    @Transaction open suspend fun record(value: Session, completed: Boolean, fromTimer: Boolean, metadata: String? = null) {
         if (insert(value) != -1L && completed) progress(Progress(value.planId, value.topicId, true))
         val current=currentSnapshot()
         if(current!=null&&JSONObject(current.json).array("planos").objects().any{it.optString("id")==value.planId}){
-            val row=JSONObject().put("id",value.id).put("planoId",value.planId).put("topicoId",value.topicId).put("data",java.time.Instant.ofEpochMilli(value.endedAt).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()).put("tipo",if(value.questions>0)"questoes" else "teoria").put("duracaoMin",value.seconds/60.0).put("qFeitas",value.questions).put("qCertas",value.correct)
+            val row=(metadata?.let{JSONObject(it)}?:JSONObject()).put("id",value.id).put("planoId",value.planId).put("topicoId",value.topicId).put("data",java.time.Instant.ofEpochMilli(value.endedAt).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()).put("tipo",metadata?.let{JSONObject(it).optString("tipo")}?.takeIf{it.isNotBlank()}?:if(value.questions>0)"questoes" else "teoria").put("duracaoMin",value.seconds/60.0).put("qFeitas",value.questions).put("qCertas",value.correct)
             val op=PendingMutation(value.id,"session",JSONObject().put("planId",value.planId).put("topicId",value.topicId).put("session",row).put("completed",completed).toString(),"",value.endedAt)
             snapshot(current.copy(json=StateCompat.apply(current.json,listOf(op),true)))
         }
         if (fromTimer) clearTimer(value.id)
+    }
+    @Transaction open suspend fun recordFree(value:Session,row:String){
+        insert(value)
+        val op=PendingMutation(value.id,"free-session",JSONObject().put("session",JSONObject(row)).toString(),"",value.endedAt)
+        localPlan(op)
     }
     @Transaction open suspend fun localPlan(op:PendingMutation){val current=currentSnapshot();snapshot(RemoteSnapshot(json=StateCompat.apply(current?.json?:StateCompat.empty().toString(),listOf(op),true),syncedAt=0))}
     @Transaction open suspend fun mutate(value: PendingMutation, clearTimerId: String? = null) {

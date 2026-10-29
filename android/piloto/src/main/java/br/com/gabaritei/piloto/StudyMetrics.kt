@@ -3,17 +3,34 @@ package br.com.gabaritei.piloto
 import java.time.*
 import org.json.JSONObject
 
-data class StudyActivity(val id:String,val date:LocalDate,val minutes:Double,val questions:Int,val correct:Int,val discipline:String?,val simulated:Boolean=false)
+data class StudyActivity(val id:String,val date:LocalDate,val minutes:Double,val questions:Int,val correct:Int,val discipline:String?,val simulated:Boolean=false,val topic:String?=null,val category:String="teoria",val title:String="")
 data class Achievement(val name:String,val description:String,val icon:String,val earned:Boolean)
 object StudyMetrics {
+    fun sessionTitle(plan:Plan,session:Session,raw:String):String {
+        val root=runCatching{JSONObject(raw)}.getOrDefault(JSONObject())
+        return plan.topics.find{it.id==session.topicId}?.name?.takeIf{it.isNotBlank()}
+            ?:root.array("sessoes").objects().find{it.optString("id")==session.id}?.optString("topicoNome")?.takeIf{it.isNotBlank()}
+            ?:root.array("planos").objects().find{it.optString("id")==session.planId}?.array("disciplinas")?.objects()?.flatMap{it.array("topicos").objects()}?.find{it.optString("id")==session.topicId}?.optString("nome")?.takeIf{it.isNotBlank()}
+            ?:"Estudo arquivado"
+    }
+    fun counted(count:Int,singular:String,plural:String)="$count ${if(count==1)singular else plural}"
+    fun time(minutes:Double)="${(minutes/60).toInt()}h ${minutes.toInt()%60}min"
+    fun freeActivities(sessions:List<Session>,raw:String):List<StudyActivity>{
+        val meta=runCatching{JSONObject(raw).array("sessoes").objects().associateBy{it.optString("id")}}.getOrDefault(emptyMap())
+        return sessions.filter{it.planId.isEmpty()}.map{s->StudyActivity(s.id,Instant.ofEpochMilli(s.endedAt).atZone(ZoneId.systemDefault()).toLocalDate(),s.seconds/60.0,s.questions,s.correct,null,topic=null,category=meta[s.id]?.optString("tipo")?:"teoria",title=meta[s.id]?.optString("topicoNome").orEmpty())}
+    }
+
     fun activities(plan:Plan,sessions:List<Session>,raw:String):List<StudyActivity>{
-        val result=sessions.filter{it.planId==plan.id}.map{s->StudyActivity(s.id,Instant.ofEpochMilli(s.endedAt).atZone(ZoneId.systemDefault()).toLocalDate(),s.seconds/60.0,s.questions,s.correct.coerceIn(0,s.questions.coerceAtLeast(0)),plan.disciplines.firstOrNull{d->d.topics.any{it.id==s.topicId}}?.id)}.toMutableList()
+        val metadata=runCatching{JSONObject(raw).array("sessoes").objects().associateBy{it.optString("id")}}.getOrDefault(emptyMap())
+        val rawDisciplines=runCatching{JSONObject(raw).array("planos").objects().find{it.optString("id")==plan.id}?.array("disciplinas")?.objects().orEmpty()}.getOrDefault(emptyList())
+        val historicalTopics=rawDisciplines.flatMap{d->d.array("topicos").objects().map{it.optString("id") to d.optString("id")}}.toMap()
+        val result=sessions.filter{it.planId==plan.id}.map{s->StudyActivity(s.id,Instant.ofEpochMilli(s.endedAt).atZone(ZoneId.systemDefault()).toLocalDate(),s.seconds/60.0,s.questions,s.correct.coerceIn(0,s.questions.coerceAtLeast(0)),plan.disciplines.firstOrNull{d->d.topics.any{it.id==s.topicId}}?.id?:historicalTopics[s.topicId],topic=s.topicId,category=metadata[s.id]?.optString("tipo")?:if(s.questions>0)"questoes" else "teoria",title=metadata[s.id]?.optString("topicoNome").orEmpty())}.toMutableList()
         runCatching{val root=JSONObject(raw);val removed=root.optJSONObject("config")?.optJSONArray("removidos")
             root.optJSONArray("simulados")?.objects()?.filter{it.optString("planoId")==plan.id&&(removed==null||(0 until removed.length()).none{i->removed.optString(i)==it.optString("id")})}?.forEach{s->
                 val rows=s.optJSONArray("acertos")?.objects().orEmpty();val date=runCatching{LocalDate.parse(s.optString("data"))}.getOrNull()?:return@forEach
                 // Tempo do simulado é contado uma vez; acertos ficam por disciplina.
-                result+=StudyActivity("sim:${s.optString("id")}",date,s.optDouble("duracaoMin",0.0),0,0,null,true)
-                rows.forEachIndexed{i,r->val q=r.optInt("total").coerceAtLeast(0);result+=StudyActivity("sim:${s.optString("id")}:$i",date,0.0,q,r.optInt("certas").coerceIn(0,q),r.optString("disciplinaId"),true)}
+                result+=StudyActivity("sim:${s.optString("id")}",date,s.optDouble("duracaoMin",0.0),0,0,null,true,category="simulado")
+                rows.forEachIndexed{i,r->val q=r.optInt("total").coerceAtLeast(0);result+=StudyActivity("sim:${s.optString("id")}:$i",date,0.0,q,r.optInt("certas").coerceIn(0,q),r.optString("disciplinaId"),true,category="simulado")}
             }
         }
         return result

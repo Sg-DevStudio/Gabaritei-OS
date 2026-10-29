@@ -51,6 +51,16 @@ class SyncEmulatorTest {
             val roundTrip=JSONObject(a.dao().currentSnapshot()!!.json)
             assertEquals(2,roundTrip.getJSONArray("sessoes").length());assertEquals(raw.getString("campoDesconhecido"),roundTrip.getString("campoDesconhecido"))
             assertTrue(a.dao().pendingNow().isEmpty());assertTrue(b.dao().pendingNow().isEmpty());assertEquals(2,roundTrip.getJSONArray("agenda").length())
+            // Foto e edição de disciplina em aparelhos diferentes preservam as duas alterações.
+            val photo="data:image/jpeg;base64,/9j/AA=="
+            a.dao().mutate(PendingMutation("photo","profile-photo",JSONObject().put("image",photo).put("before","").toString(),"principal-emulator",System.currentTimeMillis()))
+            b.dao().mutate(PendingMutation("rename","structure",JSONObject().put("action","discipline").put("planId","p").put("disciplineId","d").put("beforeName","Direito").put("name","Direito atualizado").toString(),"principal-emulator",System.currentTimeMillis()))
+            awaitAll(async{clientA.synchronize(uid,a.dao())},async{clientB.synchronize(uid,b.dao())});clientA.synchronize(uid,a.dao())
+            assertFalse(clientA.status.value.text,clientA.status.value.failed);assertFalse(clientB.status.value.text,clientB.status.value.failed)
+            val edited=a.dao().currentSnapshot()!!.json
+            assertEquals(photo,ProfilePhoto.value(edited));assertEquals("Direito atualizado",JSONObject(edited).array("planos").getJSONObject(0).array("disciplinas").getJSONObject(0).getString("nome"))
+            a.dao().mutate(PendingMutation("remove-photo","profile-photo",JSONObject().put("image","").put("before",photo).toString(),"principal-emulator",System.currentTimeMillis()));clientA.synchronize(uid,a.dao());clientB.synchronize(uid,b.dao())
+            assertEquals("",ProfilePhoto.value(b.dao().currentSnapshot()!!.json))
             // Uma conta nova não pode ler o histórico da anterior.
             auth.signOut();auth.createUserWithEmailAndPassword("other-$id@example.test","OnlyLocalTest123!").await()
             try{ref.get(Source.SERVER).await();fail("Outra conta conseguiu ler o histórico.")}catch(e:FirebaseFirestoreException){assertEquals(FirebaseFirestoreException.Code.PERMISSION_DENIED,e.code)}

@@ -5198,3 +5198,13 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .hoje-integrada .hoje-conquistas-topo .medalha-titulo { line-height:1.25; }
 @media(max-width:1280px) { .hoje-integrada .hoje-conquistas-topo .conquistas-grade { grid-template-columns:repeat(5,minmax(0,1fr)); row-gap:10px; } .hoje-integrada .hoje-conquistas-topo .medalha:nth-child(5n+1) { border-left:0; } }
 @media(max-width:760px) { .hoje-integrada .hoje-conquistas-topo { padding:12px 10px; } .hoje-integrada .hoje-conquistas-topo .medalha:nth-child(n) { padding:4px 3px; } .hoje-integrada .hoje-conquistas-topo .medalha-titulo { font-size:.62rem; } .hoje-integrada .hoje-conquistas-topo .medalha small { display:none; } }
+
+/* Foto de perfil: mesma escala no cabeçalho e prévia sem deformar. */
+.foto-perfil-mini{width:30px;height:30px;border-radius:50%;object-fit:cover;display:block}
+.pf-photo-row{display:flex;align-items:center;gap:1rem;margin:.5rem 0 1rem}
+.pf-photo-row>div:last-child{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.pf-photo-row small{flex-basis:100%;color:var(--grafite);font-size:.78rem}
+.pf-photo-preview{flex:0 0 72px;width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--gelo,#eef2f8);display:grid;place-items:center}
+.pf-photo-preview img{width:100%;height:100%;object-fit:cover}
+.pf-photo-preview svg{width:36px;height:36px;fill:none;stroke:var(--azul,#2751e5);stroke-width:1.8}
+.pf-photo-row [hidden]{display:none!important}

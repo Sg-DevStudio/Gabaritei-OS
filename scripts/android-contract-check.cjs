@@ -11,3 +11,16 @@ assert.equal(state.planos[0].disciplinas[0].topicos[0].futuro,'não apagar');
 assert.equal(state.revisoes.length,5);assert.equal(state.agenda.length,1);
 assert.equal(state.outraRaiz.valor,true);assert.equal(state.config.metaDesconhecida,'preservada');
 console.log('Contrato Kotlin → site: tempo, questões, acertos, conclusão, agenda, revisões e campos desconhecidos preservados.');
+
+if(process.argv[3]){
+  const edited=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));edited.planoAtivoId='p';
+  const normalized=c.window.Store.normalizar(edited);
+  assert.equal(normalized.sessoes.length,2);
+  const free=normalized.sessoes.find(s=>s.id==='free');
+  assert.equal(free.estudoLivre,true);assert.equal(free.planoId,null);
+  assert.equal(free.topicoNome,'Leitura livre');
+  assert.equal(normalized.planos[0].disciplinas[0].campoFuturo,99);
+  const planned=c.window.Dominio.totaisEstudo(normalized);
+  assert.equal(planned.minutos,20);assert.equal(planned.qFeitas,10);
+  console.log('Estudo livre preservado no site e separado dos totais do plano.');
+}

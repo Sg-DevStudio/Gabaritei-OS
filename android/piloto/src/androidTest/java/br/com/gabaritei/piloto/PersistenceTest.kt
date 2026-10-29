@@ -37,4 +37,25 @@ class PersistenceTest {
             assertEquals("https://example.com",db.dao().links().first().single().url)
         } finally { db.close();context.deleteDatabase(name) }
     }
+
+    @Test fun explicitCategorySurvivesLocalRecord()=runBlocking {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val db=Room.inMemoryDatabaseBuilder(context,PilotDatabase::class.java).build()
+        try {
+            val raw=StateCompat.empty().put("planos",org.json.JSONArray().put(org.json.JSONObject().put("id","p").put("plano",org.json.JSONObject()).put("disciplinas",org.json.JSONArray().put(org.json.JSONObject().put("id","d").put("nome","Direito").put("topicos",org.json.JSONArray().put(org.json.JSONObject().put("id","t").put("nome","Tema")))))))
+            db.dao().snapshot(RemoteSnapshot(json=raw.toString(),syncedAt=0))
+            db.dao().record(Session("review","p","t",1800,10,8,System.currentTimeMillis()),false,false,org.json.JSONObject().put("tipo","revisao").toString())
+            assertEquals("revisao",org.json.JSONObject(db.dao().currentSnapshot()!!.json).array("sessoes").getJSONObject(0).getString("tipo"))
+        }finally{db.close()}
+    }
+    @Test fun selectedPhotoIsReducedToPrivateJpeg(){
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val file=java.io.File(context.cacheDir,"avatar-test.png")
+        val bitmap=android.graphics.Bitmap.createBitmap(128,256,android.graphics.Bitmap.Config.ARGB_8888)
+        try {bitmap.eraseColor(android.graphics.Color.BLUE);file.outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+            val image=ProfilePhoto.encode(context,android.net.Uri.fromFile(file));assertTrue(ProfilePhoto.safe(image))
+            val bytes=android.util.Base64.decode(image.substringAfter(','),android.util.Base64.DEFAULT);val result=android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.size)
+            assertEquals(256,result.width);assertEquals(256,result.height);result.recycle()
+        }finally{bitmap.recycle();file.delete()}
+    }
 }

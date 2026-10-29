@@ -11,13 +11,16 @@ android {
         applicationId 'br.com.gabaritei.os.piloto'
         minSdk 26
         targetSdk 35
-        versionCode 3
-        versionName '0.3.0-estudos'
+        versionCode 4
+        versionName '0.4.0-rotina'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildFeatures { compose true }
     // Testes em aparelho usam outro pacote; o runner não pode remover o app do aluno.
     buildTypes {
+        // Mantém o certificado já instalado; a distribuição manual desativa depuração.
+        // A chave fica fora do repositório e não é publicada pelo CI.
+        release { signingConfig signingConfigs.debug; debuggable false; minifyEnabled false }
         qa {
             initWith debug
             applicationIdSuffix '.qa'

@@ -1339,6 +1339,11 @@
         });
       }
     }
+    // Relógio próprio da foto: salvar outra preferência não recupera uma foto removida.
+    const fotoA = merged.config.fotoPerfil, fotoB = outro.config && outro.config.fotoPerfil;
+    function chaveFoto(foto) { return foto && typeof foto.imagem === 'string' ? [Math.max(0, Number(foto.rev) || 0), String(foto.em || ''), foto.imagem] : [-1, '', '']; }
+    const ca=chaveFoto(fotoA), cb=chaveFoto(fotoB);
+    if(cb[0]>ca[0] || (cb[0]===ca[0] && (cb[1]>ca[1] || (cb[1]===ca[1] && cb[2]>ca[2])))) merged.config.fotoPerfil=clonarJson(fotoB);
     // Flags de onboarding são "sticky": uma vez vistas, não devem regredir para
     // false por causa de uma base remota mais antiga que não tinha o campo.
     if (outro.config) {
