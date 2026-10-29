@@ -50,3 +50,16 @@ Limites: a seleção da conta Google de produção continua adiada a pedido do u
 
 
 Distribuição manual: APK `release` com depuração desativada e certificado compatível com a versão nativa instalada. Botão de download, detalhes da versão e QR do site passam a apontar para `android-native-v0.4.0/Gabaritei.apk`; o QR foi gerado localmente e decodificado para conferir o destino. A distribuição antiga por TWA continua preservada no histórico de releases.
+
+
+## Rodada 0.5.0-planos — 29/10/2026
+
+Catálogo público carregado sem login no S25: 14 planos na data da conferência, com seis modelos locais e cache para offline. Card abre detalhes do próprio concurso, com disciplinas recolhíveis, dados cadastrados e referência. Planos sem caderno mostram indisponibilidade e permitem acrescentar links pessoais depois de criar o plano. Planos iniciados não são reescritos pelo catálogo.
+
+Comparação nativa conferida em 63 casos contra a regra do site. Disponibilidade na criação em horas por dia (2 ou 2,5), mantendo os blocos em minutos. Cabeçalhos expansíveis corrigidos para não recortar nomes em múltiplas linhas, incluindo detalhes, caderno e seletor de assuntos.
+
+Lembretes opcionais: dias, horário aproximado, prévia com emoji, canal separado do cronômetro e no máximo um envio regular por dia. Não avisar durante timer ativo; considerar os estudos/simulados disponíveis no aparelho. Reagendar após reinício, ajuste de relógio/fuso e atualização. Desativados por padrão.
+
+Gran Questões 5.2.37: registrados `/aluno/filtro/concursos` e `/simulados/`; URLs dos cadernos usam `/questoes`. A adaptação nativa mantém toda a query, usa o pacote do Gran e deixa a URL web original como alternativa. Interpretação de Textos e Regência/Crase foram abertos e conferidos sem responder questões, inclusive com o Gran já aberto. Fonte Android: https://developer.android.com/training/app-links/about . O comportamento depende da versão do aplicativo Gran; o site conserva os links web.
+
+Verificação: 50 testes JVM aprovados; sete testes físicos no pacote QA aprovados, incluindo cache offline/corrompido, entrega de notificação, supressão após estudo e durante cronômetro, persistência e sincronização com Firebase Emulator. Site: 335 testes aprovados, sete ignorados. Lint sem erros (39 avisos). A cópia QA recebeu nome distinto e backup prévio (zero sessões), sem alterar o banco do app principal. Não incluir capturas pessoais no Git.

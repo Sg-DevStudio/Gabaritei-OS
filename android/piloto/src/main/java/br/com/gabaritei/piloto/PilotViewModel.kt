@@ -33,20 +33,25 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     val rawSnapshot=MutableStateFlow(StateCompat.empty().toString())
     val ready=MutableStateFlow(false)
     private val enrollmentLock=Mutex()
-    private var catalog=listOf<Plan>()
+    private val catalog=MutableStateFlow<List<Plan>>(emptyList())
+    val catalogStatus=MutableStateFlow("Catálogo offline")
+    val catalogBusy=MutableStateFlow(false)
+    private val catalogLock=Mutex()
     private val connectivity=application.getSystemService(ConnectivityManager::class.java)
-    private val network=object:ConnectivityManager.NetworkCallback(){override fun onAvailable(network:Network){synchronize()}}
+    private val network=object:ConnectivityManager.NetworkCallback(){override fun onAvailable(network:Network){synchronize();refreshCatalog()}}
     private fun boot()=AndroidSettings.Global.getInt(getApplication<Application>().contentResolver,AndroidSettings.Global.BOOT_COUNT,-1)
     private fun dao(uid:String?=account.value?.uid)=PilotDatabase.get(getApplication(),uid).dao()
     init {
         connectivity.registerDefaultNetworkCallback(network)
         viewModelScope.launch{dao(null).sessions().collect{guestRecords.value=it.size}}
         viewModelScope.launch {
-            catalog=withContext(Dispatchers.IO){Catalog.load(application)}
+            catalog.value=withContext(Dispatchers.IO){Catalog.load(application)}
+            refreshCatalog()
             var bound:String?=null;var initialized=false
             account.collectLatest { a ->
                 if(initialized&&bound!=a?.uid){val previous=dao(bound);previous.currentTimer()?.let{previous.timer(it.copy(seconds=elapsed(it),startedElapsed=null))};TimerNotices.cancel(application)}
                 bound=a?.uid;initialized=true
+                application.getSharedPreferences("study_reminders",0).edit().putString("owner",a?.uid.orEmpty()).apply()
                 ready.value=false;rawSnapshot.value=StateCompat.empty().toString();plans.value=emptyList();sessions.value=emptyList();progress.value=emptyList();links.value=emptyList();timer.value=null;settings.value=null;pendingCount.value=0
                 val d=dao(a?.uid)
                 coroutineScope {
@@ -55,12 +60,12 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
                         if(t!=null&&t.startedElapsed!=null&&t.boot!=boot())d.timer(t.copy(startedElapsed=null,boot=boot())) else {timer.value=t;if(t==null)TimerNotices.cancel(application) else TimerNotices.schedule(application,t,elapsed(t))}
                     }}
                     if(a==null){
-                        launch{d.snapshot().collectLatest{snap->val raw=snap?.json?:StateCompat.empty().toString();val projected=withContext(Dispatchers.Default){StateCompat.plans(raw,catalog)};rawSnapshot.value=raw;plans.value=projected;ready.value=true}}
+                        launch{combine(d.snapshot(),catalog){snap,bases->snap to bases}.collectLatest{(snap,bases)->val raw=snap?.json?:StateCompat.empty().toString();val projected=withContext(Dispatchers.Default){StateCompat.plans(raw,bases)};rawSnapshot.value=raw;plans.value=projected;ready.value=true}}
                         launch{d.sessions().collect{sessions.value=it}};launch{d.progress().collect{progress.value=it}};launch{d.links().collect{links.value=it}}
                     }else{
-                        launch{d.snapshot().collectLatest { snap ->
+                        launch{combine(d.snapshot(),catalog){snap,bases->snap to bases}.collectLatest { (snap,bases) ->
                             val raw=snap?.json?:StateCompat.empty().toString()
-                            val projection=withContext(Dispatchers.Default){Triple(StateCompat.plans(raw,catalog).map{it.copy(owner=a.uid)},StateCompat.sessions(raw),Pair(StateCompat.progress(raw),StateCompat.links(raw)))}
+                            val projection=withContext(Dispatchers.Default){Triple(StateCompat.plans(raw,bases).map{it.copy(owner=a.uid)},StateCompat.sessions(raw),Pair(StateCompat.progress(raw),StateCompat.links(raw)))}
                             rawSnapshot.value=raw;plans.value=projection.first;sessions.value=projection.second;progress.value=projection.third.first;links.value=projection.third.second
                             if(settings.value==null){val active=JSONObject(raw).optString("planoAtivoId");val p=plans.value.find{it.id==active};if(p!=null)d.settings(Settings(planId=p.id,topicId=p.topics.firstOrNull()?.id.orEmpty()))}
                             ready.value=true
@@ -72,6 +77,18 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
                     awaitCancellation()
                 }
             }
+        }
+    }
+    fun refreshCatalog()=viewModelScope.launch{
+        if(catalogBusy.value)return@launch
+        catalogLock.withLock{
+            catalogBusy.value=true
+            try{
+                val rows=withTimeout(20000){cloud.publicCatalog()}
+                val loaded=withContext(Dispatchers.IO){val merged=Catalog.merge(Catalog.bundled(getApplication()),rows);require(merged.isNotEmpty());val dest=java.io.File(getApplication<Application>().filesDir,"catalog-public.json");val temp=java.io.File(getApplication<Application>().filesDir,"catalog-public.tmp");temp.writeText(rows.toString());check(temp.renameTo(dest));merged}
+                catalog.value=loaded;catalogStatus.value="Catálogo atualizado"
+            }catch(_:Exception){catalogStatus.value="Usando a última cópia disponível"}
+            finally{catalogBusy.value=false}
         }
     }
     fun signIn(activity:Activity)=viewModelScope.launch {
@@ -103,7 +120,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
                     d.mutate(mutation(d,"free-session",JSONObject().put("session",row)));continue
                 }
                 val mapped=imported[s.planId]
-                val p=if(mapped!=null)StateCompat.plans(d.currentSnapshot()!!.json,catalog).first{it.id==mapped}.copy(owner=uid) else {val base=catalog.firstOrNull{it.id==s.planId}?:continue;ensurePlan(base.copy(owner=uid),d)}
+                val p=if(mapped!=null)StateCompat.plans(d.currentSnapshot()!!.json,catalog.value).first{it.id==mapped}.copy(owner=uid) else {val base=catalog.value.firstOrNull{it.id==s.planId}?:continue;ensurePlan(base.copy(owner=uid),d)}
                 val exists=JSONObject(d.currentSnapshot()!!.json).array("sessoes").objects().any{it.optString("id")==s.id}
                 if(exists)continue
                 val date=Instant.ofEpochMilli(s.endedAt).atZone(ZoneId.systemDefault()).toLocalDate().toString()
@@ -128,11 +145,10 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
         check(p.owner==account.value?.uid.orEmpty()){ "A conta mudou. Escolha novamente o plano." }
         if(account.value==null)return@withLock p
         val raw=d.currentSnapshot()?.json?:StateCompat.empty().toString()
-        val enrolled=StateCompat.plans(raw,catalog).find{it.enrolled&&(it.id==p.id||(!p.enrolled&&it.originId==p.originId))}
+        val enrolled=StateCompat.plans(raw,catalog.value).find{it.enrolled&&(it.id==p.id||(!p.enrolled&&it.originId==p.originId))}
         if(enrolled!=null)return@withLock enrolled.copy(owner=p.owner)
         check(!p.enrolled){"Este plano não pertence à conta atual."}
-        val all=JSONObject(getApplication<Application>().assets.open("catalog.json").bufferedReader().use{it.readText()}).getJSONArray("plans")
-        val base=all.objects().first{it.getString("id")==p.originId}.getJSONObject("webBase")
+        val base=Catalog.base(p)
         val id="android-pl-"+UUID.randomUUID().toString();val now=Instant.now().toString()
         val meta=JSONObject().put("concurso",p.name).put("origemEditalId",p.originId).put("origemEditalVersao",base.optString("atualizadoEm")).put("banca",base.optString("banca")).put("foto",base.optString("foto")).put("orgao",base.optString("orgao")).put("cargo",base.optString("cargo"))
         val ds=base.getJSONArray("disciplinas");ds.objects().forEach{d->d.array("topicos").objects().forEach{it.put("status","pendente")}}
@@ -145,8 +161,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             check(plan.owner==account.value?.uid.orEmpty()){ "A conta mudou. Reabra o plano." }
             val d=dao(plan.owner.takeIf{it.isNotEmpty()})
             val payload=withContext(Dispatchers.Default){
-                val all=JSONObject(getApplication<Application>().assets.open("catalog.json").bufferedReader().use{it.readText()}).getJSONArray("plans")
-                val base=all.objects().first{it.optString("id")==plan.originId}.getJSONObject("webBase")
+                val base=Catalog.base(plan)
                 val now=Instant.now().toString();val id=if(plan.owner.isEmpty())plan.id else "android-pl-"+UUID.randomUUID().toString()
                 val meta=JSONObject().put("concurso",plan.name).put("origemEditalId",plan.originId).put("origemEditalVersao",base.optString("atualizadoEm")).put("banca",base.optString("banca")).put("foto",base.optString("foto")).put("orgao",base.optString("orgao")).put("cargo",base.optString("cargo"))
                 val ds=base.getJSONArray("disciplinas");ds.objects().forEach{disc->disc.array("topicos").objects().forEach{it.put("status","pendente")}}
@@ -215,7 +230,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun ensureLocalEditable(plan:Plan,d:PilotDao):Plan{
         if(plan.owner.isNotEmpty())return ensurePlan(plan,d)
         if(d.currentSnapshot()?.json?.let{JSONObject(it).array("planos").objects().any{p->p.optString("id")==plan.id}}==true)return plan
-        val source=JSONObject(getApplication<Application>().assets.open("catalog.json").bufferedReader().use{it.readText()}).getJSONArray("plans").objects().first{it.optString("id")==plan.originId}.getJSONObject("webBase")
+        val source=Catalog.base(plan)
         val entry=JSONObject().put("id",plan.id).put("plano",JSONObject().put("concurso",plan.name).put("origemEditalId",plan.originId)).put("disciplinas",source.getJSONArray("disciplinas")).put("links",org.json.JSONArray()).put("cronogramas",JSONObject())
         d.localPlan(mutation(d,"plan",JSONObject().put("entry",entry)))
         return plan

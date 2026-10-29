@@ -11,9 +11,10 @@ android {
         applicationId 'br.com.gabaritei.os.piloto'
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName '0.4.0-rotina'
+        versionCode 5
+        versionName '0.5.0-planos'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        manifestPlaceholders = [appLabel: "Gabaritei"]
     }
     buildFeatures { compose true }
     // Testes em aparelho usam outro pacote; o runner não pode remover o app do aluno.
@@ -24,6 +25,7 @@ android {
         qa {
             initWith debug
             applicationIdSuffix '.qa'
+            manifestPlaceholders = [appLabel: 'Gabaritei QA']
             versionNameSuffix '-qa'
             matchingFallbacks = ['debug']
         }

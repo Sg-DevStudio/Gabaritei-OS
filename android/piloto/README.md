@@ -1,4 +1,4 @@
-# Gabaritei — Android nativo 0.4
+# Gabaritei — Android nativo 0.5
 
 Kotlin, Jetpack Compose e Room; pacote `br.com.gabaritei.os.piloto`, separado do beta TWA. O piloto oferece modo local e entrada Google no mesmo projeto Firebase do site. A integração usa o contrato existente, sem substituir o estado remoto por um modelo Kotlin reduzido.
 
@@ -19,7 +19,7 @@ node scripts/android-pilot-catalog.cjs
 gradle -p android :piloto:assembleDebug :piloto:testDebugUnitTest :piloto:lintDebug :piloto:assembleQaAndroidTest
 ```
 
-Nome exibido: **Gabaritei**. O identificador técnico do pacote permanece igual para preservar a atualização e os dados. APK de entrega: `Gabaritei-0.4.0.apk` (origem: `android/piloto/build/outputs/apk/release/piloto-release.apk`). Atualizar com `adb install -r`; não desinstalar nem limpar dados. O login Google requer que a impressão SHA do certificado que assinou o APK esteja registrada no Firebase. O CI verifica código e publica relatórios, não um APK com chave debug diferente.
+Nome exibido: **Gabaritei**. O identificador técnico do pacote permanece igual para preservar a atualização e os dados. APK de entrega: `Gabaritei-0.5.0.apk` (origem: `android/piloto/build/outputs/apk/release/piloto-release.apk`). Atualizar com `adb install -r`; não desinstalar nem limpar dados. O login Google requer que a impressão SHA do certificado que assinou o APK esteja registrada no Firebase. O CI verifica código e publica relatórios, não um APK com chave debug diferente.
 
 No Windows, executar o build em cópia com caminho ASCII se a JVM não localizar classes sob `App_Gestão_Estudos`. Conferir os hashes dos fontes entre cópia e projeto. Esquemas Room versionados; migrações destrutivas são proibidas.
 
@@ -40,3 +40,21 @@ Sem o argumento, o teste remoto é ignorado; não tratar como validado. Nunca us
 Escolha pelo seletor de fotos Android, sem permissão ampla da galeria. A imagem é reprocessada como JPEG quadrado de 256px, sem metadados, com até 50.000 caracteres na representação armazenada. A conta usa `config.fotoPerfil = { imagem, rev, em }`, compartilhado com o site. Remoção mantém a revisão para impedir restauração por aparelho antigo. No modo local, a foto fica no banco local; entrar em uma conta não copia sua foto local automaticamente. A troca de conta durante a seleção cancela o salvamento nesse perfil.
 
 A distribuição manual 0.4 usa a variante `release`, com depuração desativada e o mesmo certificado dos APKs já instalados, para preservar atualizações. A chave de assinatura permanece fora do Git. O CI compila essa variante para verificação, sem publicar o APK assinado pelo ambiente temporário. A publicação em loja exige planejamento próprio de assinatura e validação completa do login.
+
+## Catálogo, detalhes e comparação (0.5)
+
+O catálogo público de `public/catalogo` carrega sem login, com atualização manual e cópia privada offline. Os seis modelos versionados servem de fallback; novas publicações entram sem reinstalar o APK. A revisão mais antiga do catálogo não substitui um modelo mais recente. Exclusão do catálogo não apaga planos iniciados. Editais particulares da conta entram apenas na projeção pessoal e não são escritos no cache público.
+
+Criar plano usa os dados reais do item selecionado, inclusive quando veio da nuvem. Abrir um card mostra disciplinas/tópicos, escolaridade, banca, remuneração informada, benefícios, previsão e referência cadastrada. Não atualizar salários nem tratar previsão como prova confirmada sem fonte oficial. A comparação usa a mesma heurística de nomes/cargas do site, com 63 casos de paridade; é estimativa, não equivalência integral de editais.
+
+## Lembretes da rotina (0.5)
+
+No perfil, Lembretes de estudo permite escolher dias, horário aproximado, ativação e somente se ainda não estudou no dia. Desativado por padrão; o usuário pode enviar uma prévia com emoji. Canal separado do aviso do cronômetro. Usa alarme inexato sem exigir permissão de alarme preciso; o Android pode adiar o envio. Não enviar mais de um lembrete regular por dia, nem enquanto houver timer rodando. Registros e simulados da conta ativa contam para suprimir o aviso, respeitando exclusões. Mudança de fuso/hora, reinício e atualização reagendam os avisos. Forçar parada do aplicativo nas configurações do Android suspende alarmes até reabri-lo.
+
+## Abrir no Gran Questões
+
+No Android, Preferir app do Gran encaminha as URLs de `/questoes` à rota registrada `/aluno/filtro/concursos`, mantendo a query e o fragmento sem decodificação/reencodificação. Host exato, HTTPS e rotas permitidas; links de questões individuais e outras plataformas não são alterados. Tenta o pacote Gran Questões e, se indisponível, abre a URL original. O site mantém suas URLs web.
+
+Conferido no Gran Questões 5.2.37 do S25: Interpretação de Textos e Regência/Crase, incluindo troca de assunto com o app já aberto. A versão futura do Gran pode mudar essa integração. Não preencher respostas nem criar registros de resolução nesses testes. Referência Android: https://developer.android.com/training/app-links/about
+
+Rotina: disponibilidade diária em horas (2 ou 2,5), convertida para minutos somente ao gerar a agenda; blocos continuam em minutos.

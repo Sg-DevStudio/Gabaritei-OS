@@ -16,4 +16,5 @@ class PlanningMetricsTest {
         val samples=StudyMetrics.activities(p,listOf(session),raw);assertEquals(80,samples.sumOf{it.questions});assertEquals(60,samples.sumOf{it.correct});assertEquals(90.0,samples.sumOf{it.minutes},0.0);assertEquals(2,samples.filter{it.discipline=="d"}.size)
     }
     @Test fun streakUsesDistinctConsecutiveStudyDays(){val days=listOf("2026-10-26","2026-10-27","2026-10-27","2026-10-29").map{LocalDate.parse(it)};assertEquals(2,StudyMetrics.streak(days))}
+    @org.junit.Test fun dailyHoursAreConvertedOnlyAtTheBoundary(){org.junit.Assert.assertEquals(120,PlanRoutine.minutesFromHours("2"));org.junit.Assert.assertEquals(150,PlanRoutine.minutesFromHours("2,5"));org.junit.Assert.assertEquals(150,PlanRoutine.minutesFromHours("2.5"));org.junit.Assert.assertEquals(15,PlanRoutine.minutesFromHours("0,25"));org.junit.Assert.assertNull(PlanRoutine.minutesFromHours("120"));org.junit.Assert.assertNull(PlanRoutine.minutesFromHours("NaN"));org.junit.Assert.assertNull(PlanRoutine.minutesFromHours("0"))}
 }

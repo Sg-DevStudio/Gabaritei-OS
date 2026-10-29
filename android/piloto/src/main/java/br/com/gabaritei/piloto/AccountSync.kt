@@ -40,6 +40,10 @@ class AccountSync(private val context:Context, firebaseApp:FirebaseApp?=null) {
         authListener=FirebaseAuth.AuthStateListener{a->account.value=a.currentUser?.let{Account(it.uid,it.email.orEmpty(),it.displayName.orEmpty())}}
         auth.addAuthStateListener(authListener)
     }
+    suspend fun publicCatalog():org.json.JSONArray {
+        val rows=cloud.document("public/catalogo").get(Source.SERVER).await().data?.get("editais") as? List<*> ?: error("Catálogo público indisponível.")
+        return org.json.JSONArray(rows)
+    }
     suspend fun signIn(activity:Activity) {
         val nonce=ByteArray(32).also{SecureRandom().nextBytes(it)}.let{Base64.encodeToString(it,Base64.NO_WRAP or Base64.URL_SAFE or Base64.NO_PADDING)}
         val request=GetCredentialRequest.Builder().addCredentialOption(GetGoogleIdOption.Builder().setServerClientId(context.getString(R.string.firebase_web_client_id)).setFilterByAuthorizedAccounts(false).setAutoSelectEnabled(false).setNonce(nonce).build()).build()

@@ -7,24 +7,9 @@ import org.json.JSONObject
 
 data class Topic(val id: String, val name: String, val link: String?, val note: String, val noQuestions: Boolean = false)
 data class Discipline(val id: String, val name: String, val topics: List<Topic>, val color:String="#3B82F6", val paused:Boolean=false, val archived:Boolean=false)
-data class Plan(val id: String, val name: String, val disciplines: List<Discipline>, val originId: String = id, val enrolled: Boolean = false, val owner: String = "", val logoAsset:String = "") {
+data class Plan(val id: String, val name: String, val disciplines: List<Discipline>, val originId: String = id, val enrolled: Boolean = false, val owner: String = "", val logoAsset:String = "", val details:String = "{}") {
     val topics get() = disciplines.flatMap { it.topics }
     fun discipline(topic: Topic) = disciplines.first { d -> d.topics.any { it.id == topic.id } }
-}
-object Catalog {
-    fun load(context: Context): List<Plan> {
-        val array = JSONObject(context.assets.open("catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plans")
-        return (0 until array.length()).map { i ->
-            val p = array.getJSONObject(i); val ds = p.getJSONArray("disciplines")
-            Plan(p.getString("id"), p.getString("name"), (0 until ds.length()).map { j ->
-                val d = ds.getJSONObject(j); val ts = d.getJSONArray("topics")
-                Discipline(d.getString("id"), d.getString("name"), (0 until ts.length()).map { k ->
-                    val t = ts.getJSONObject(k)
-                    Topic(t.getString("id"), t.getString("name"), t.optString("link").takeIf { it.isNotBlank() }, t.optString("note"), t.optBoolean("noQuestions"))
-                })
-            },logoAsset=p.optString("logoAsset"))
-        }
-    }
 }
 @Entity data class Session(@PrimaryKey val id: String, val planId: String, val topicId: String, val seconds: Long, val questions: Int, val correct: Int, val endedAt: Long)
 @Entity(primaryKeys = ["planId", "topicId"]) data class Progress(val planId: String, val topicId: String, val completed: Boolean)

@@ -6,14 +6,18 @@ on:
     paths:
       - 'android/**'
       - 'data/**'
+      - 'assets/carreiras/**'
       - 'scripts/android-pilot-catalog.cjs'
+      - 'js/domain.js'
       - 'scripts/android-contract-check.cjs'
       - '.github/workflows/android-pilot.yml'
   pull_request:
     paths:
       - 'android/**'
       - 'data/**'
+      - 'assets/carreiras/**'
       - 'scripts/android-pilot-catalog.cjs'
+      - 'js/domain.js'
       - 'scripts/android-contract-check.cjs'
       - '.github/workflows/android-pilot.yml'
 permissions:
@@ -41,7 +45,7 @@ jobs:
       - name: Preparar catálogo e SDK
         run: |
           node scripts/android-pilot-catalog.cjs
-          git diff --exit-code -- android/piloto/src/main/assets/catalog.json
+          git diff --exit-code -- android/piloto/src/main/assets android/piloto/src/test/resources/plan-comparison.json
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Compilar, testar domínio e verificar lint
         env:

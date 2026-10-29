@@ -21,6 +21,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -66,6 +67,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class MainActivity : ComponentActivity() {
+    override fun onResume(){super.onResume();DailyReminders.schedule(this)}
     override fun onWindowFocusChanged(hasFocus:Boolean){
         super.onWindowFocusChanged(hasFocus)
         if(hasFocus&&getSharedPreferences("native_display",MODE_PRIVATE).getBoolean("fullscreen",true)){
@@ -85,7 +87,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(fullscreen){val bars=WindowCompat.getInsetsController(window,window.decorView);bars.systemBarsBehavior=WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE;if(fullscreen)bars.hide(WindowInsetsCompat.Type.systemBars())else bars.show(WindowInsetsCompat.Type.systemBars())}
             GabariteiTheme(mode) {
                 PilotApp(theme=mode,onTheme={mode=it;preferences.edit().putString("theme",it).apply()},fullscreen=fullscreen,onFullscreen={fullscreen=it;preferences.edit().putBoolean("fullscreen",it).apply()},onOpen={ url ->
-                    if(StudyRules.safeLink(url))try { startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) }
+                    if(StudyRules.safeLink(url))try { GranLinks.open(this,url,preferences.getBoolean("prefer_gran_app",true)) }
                     catch (_:ActivityNotFoundException){Toast.makeText(this,"Nenhum aplicativo disponível para abrir este link.",Toast.LENGTH_LONG).show()}
                 })
             }
@@ -96,6 +98,12 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
 @Composable internal fun Block(content:@Composable ColumnScope.()->Unit) {
     Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp),content=content)
+    }
+}
+@Composable internal fun ExpandableTitle(text:String,expanded:Boolean,onClick:()->Unit){
+    Row(Modifier.fillMaxWidth().heightIn(min=48.dp).clickable(role=androidx.compose.ui.semantics.Role.Button,onClick=onClick).padding(horizontal=4.dp,vertical=8.dp),horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.CenterVertically){
+        Text(text,Modifier.weight(1f),color=MaterialTheme.colorScheme.onSurface,fontSize=14.sp,lineHeight=20.sp,fontWeight=FontWeight.SemiBold)
+        Icon(if(expanded)Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,if(expanded)"Recolher"else"Expandir",Modifier.size(22.dp))
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,6 +129,10 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var achievementDialog by remember{mutableStateOf(false)}
     var creatingPlan by remember{mutableStateOf<Plan?>(null)}
     var freeStudy by remember{mutableStateOf(false)}
+    var preferGranApp by rememberSaveable{mutableStateOf(preferences.getBoolean("prefer_gran_app",true))}
+    var reminderSettings by remember{mutableStateOf(false)}
+    val catalogStatus by vm.catalogStatus.collectAsStateWithLifecycle()
+    val catalogBusy by vm.catalogBusy.collectAsStateWithLifecycle()
     var recordCategory by remember{mutableStateOf("")}
     val notificationPermission=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){granted->notifications=granted;TimerNotices.optIn(context,granted);if(granted)vm.timer.value?.let{TimerNotices.schedule(context,it,vm.elapsed(it))}}
 
@@ -145,6 +157,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var editLink by remember { mutableStateOf<Topic?>(null) }
     var discard by remember { mutableStateOf<Timer?>(null) }
     val plan=plans.find { it.id==settings?.planId } ?: plans.firstOrNull()
+    var personalNotebook by rememberSaveable(plan?.id){mutableStateOf(false)}
     var questionSearch by rememberSaveable(plan?.id){mutableStateOf("")}
     var historyDay by rememberSaveable{mutableStateOf<String?>(null)}
     var historyFree by rememberSaveable{mutableStateOf(false)}
@@ -222,27 +235,23 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     if(due>0)item{Block{Text("$due revisões pendentes",fontWeight=FontWeight.SemiBold);TextButton(onClick={tab=7}){Text("Revisar agora")}}}
                     item { Block {Text("Um tópico por vez. Cada sessão conta.",style=MaterialTheme.typography.bodyMedium);Text(if(account==null)"Entre com Google para compartilhar o histórico com o site." else "Seus estudos são salvos no aparelho e sincronizados com sua conta.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)} }
                 }
-                1 -> items(plans,key={it.id}) { p -> Block {
-                    Row(horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically){Surface(shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.primaryContainer){PlanLogo(p,Modifier.size(52.dp).padding(4.dp))};Column(Modifier.weight(1f)){Text(p.name.replace(Regex(" \\(.*?\\)"),""),fontSize=15.sp,lineHeight=21.sp,fontWeight=FontWeight.SemiBold);Spacer(Modifier.height(5.dp));Text("${p.disciplines.size} disciplinas · ${p.topics.size} tópicos",fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
-                    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                        Button(onClick={if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},shape=RoundedCornerShape(10.dp)){Text(if(!p.enrolled)"Criar plano" else if(p.id==plan.id)"Continuar plano" else "Estudar este plano")}
-                        TextButton(onClick={vm.preview(p);tab=2}){Text("Caderno")}
-                        if(p.enrolled)IconButton(onClick={vm.preview(p);tab=6}){Icon(Icons.Outlined.Edit,"Organizar disciplinas de ${p.name}")}
-
-                    }
-                } }
+                1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);tab=6},onOpen=onOpen)}
                 2 -> {
                     item{Row(verticalAlignment=Alignment.CenterVertically){Text("Caderno de questões",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold);TextButton(onClick={howTo=true}){Text("Como usar?")}}}
+                    val hasLinks=plan.topics.any{it.link!=null}||personal.any{it.planId==plan.id}
+                    if(!hasLinks&&!personalNotebook)item{Block{
+                        Text("Caderno ainda não disponível",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+                        Text("Este concurso ainda não tem links organizados. Você pode montar seu caderno com links de outras plataformas.",style=MaterialTheme.typography.bodySmall)
+                        Button(onClick={if(plan.enrolled)personalNotebook=true else creatingPlan=plan}){Text(if(plan.enrolled)"Adicionar meus links"else"Criar plano para adicionar links")}
+                    }}
+                    if(hasLinks||personalNotebook){
                     item{OutlinedTextField(questionSearch,{questionSearch=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Buscar disciplina ou tópico")},trailingIcon={if(questionSearch.isNotBlank())IconButton(onClick={questionSearch=""}){Icon(Icons.Outlined.Clear,"Limpar busca")}})}
                     val filtered=plan.disciplines.filter{d->searchKey(d.name).contains(searchKey(questionSearch))||d.topics.any{searchKey(it.name).contains(searchKey(questionSearch))}}
                     if(filtered.isEmpty())item{Block{Text("Nenhum tópico encontrado.")}}
                     items(filtered,key={it.id}) { d ->
                         var expanded by rememberSaveable(plan.id,d.id){mutableStateOf(false)}
                         Block {
-                            TextButton(onClick={expanded=!expanded},contentPadding=PaddingValues(0.dp)) {
-                                Text("${d.name} (${d.topics.size})",Modifier.weight(1f),color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.SemiBold)
-                                Icon(if(expanded)Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,if(expanded)"Recolher" else "Expandir")
-                            }
+                            ExpandableTitle("${d.name} (${d.topics.size})",expanded){expanded=!expanded}
                             if(expanded||questionSearch.isNotBlank())d.topics.filter{searchKey(d.name).contains(searchKey(questionSearch))||searchKey(it.name).contains(searchKey(questionSearch))}.forEach { t ->
                                 val link=personal.firstOrNull { it.planId==plan?.id&&it.topicId==t.id }?.url ?: t.link
                                 HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
@@ -255,6 +264,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                             }
                         }
                     }
+                }
                 }
                 3 -> {item{StatisticsScreen(plan,activities,progress,raw,sessions,onOpen)}}
                 5 -> {item{PlanningScreen(plan,raw,vm,onChoose={vm.select(plan,it);picker=true},onStart={vm.start(plan,it);tab=0})}}
@@ -294,8 +304,11 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         Text("Aparência",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
         Row(horizontalArrangement=Arrangement.spacedBy(5.dp)){listOf("system" to "Auto","light" to "Claro","dark" to "Escuro").forEach{(key,label)->FilterChip(selected=theme==key,onClick={onTheme(key)},label={Text(label,fontSize=11.sp,lineHeight=15.sp)})}}
         Row(verticalAlignment=Alignment.CenterVertically){Text("Tela cheia",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium);Switch(checked=fullscreen,onCheckedChange=onFullscreen)}
-        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Notificações de estudo",style=MaterialTheme.typography.bodyMedium);Text("Avisar ao atingir a meta do cronômetro",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(checked=notifications,onCheckedChange={enabled->if(enabled){if(Build.VERSION.SDK_INT>=33&&!TimerNotices.allowed(context))notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)else{TimerNotices.optIn(context,true);notifications=TimerNotices.allowed(context);vm.timer.value?.let{TimerNotices.schedule(context,it,vm.elapsed(it))}}}else{notifications=false;TimerNotices.optIn(context,false)}})}
-        if(notifications){TextButton(onClick={TimerNotices.show(context,true)}){Text("Testar aviso")};if(Build.VERSION.SDK_INT>=31&&!context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms())TextButton(onClick={context.startActivity(Intent(SystemSettings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:${context.packageName}")))}){Text("Permitir avisos precisos")}}
+        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Aviso do cronômetro",style=MaterialTheme.typography.bodyMedium);Text("Avisar ao atingir a meta do cronômetro",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(checked=notifications,onCheckedChange={enabled->if(enabled){if(Build.VERSION.SDK_INT>=33&&!TimerNotices.allowed(context))notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)else{TimerNotices.optIn(context,true);notifications=TimerNotices.allowed(context);vm.timer.value?.let{TimerNotices.schedule(context,it,vm.elapsed(it))}}}else{notifications=false;TimerNotices.optIn(context,false)}})}
+        if(notifications){TextButton(onClick={TimerNotices.show(context,true)}){Text("Testar alerta")};if(Build.VERSION.SDK_INT>=31&&!context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms())TextButton(onClick={context.startActivity(Intent(SystemSettings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:${context.packageName}")))}){Text("Permitir avisos precisos")}}
+        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Preferir app do Gran",style=MaterialTheme.typography.bodyMedium);Text("Abrir questões com os filtros do caderno",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(preferGranApp,{preferGranApp=it;preferences.edit().putBoolean("prefer_gran_app",it).apply()})}
+        OutlinedButton(onClick={reminderSettings=true},modifier=Modifier.fillMaxWidth()){Text("Lembretes de estudo")}
+        Text(if(DailyReminders.read(context).enabled)"Lembretes configurados neste aparelho."else"Lembretes diários desativados.",style=MaterialTheme.typography.bodySmall)
         Text("Meta do cronômetro",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
         Row(horizontalArrangement=Arrangement.spacedBy(5.dp)){(listOf(0,25,50)+focusMinutes).distinct().sorted().forEach{min->FilterChip(selected=focusMinutes==min,onClick={focusMinutes=min;preferences.edit().putInt("focusMinutes",min).apply()},label={Text(if(min==0)"Livre" else "${min}min",fontSize=11.sp,lineHeight=15.sp)})}}
         HorizontalDivider()
@@ -318,6 +331,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             TextButton(onClick={vm.signOut();accountDialog=false}){Text("Sair desta conta")}
         }
     }},confirmButton={TextButton(onClick={accountDialog=false}){Text("Fechar")}})
+    if(reminderSettings)ReminderSettingsDialog{reminderSettings=false}
     if(achievementDialog)AchievementsDialog(achievements){achievementDialog=false;accountDialog=true}
     creatingPlan?.let{p->CreatePlanDialog(p,onClose={creatingPlan=null},onCreate={routine,done->vm.createPlan(p,routine){message->if(message==null){creatingPlan=null;tab=0;focusMinutes=routine.blockMinutes}else done(message)}})}
     if(confirmImport)AlertDialog(onDismissRequest={confirmImport=false},title={Text("Trazer os estudos locais?")},text={Text("Os $guestCount registros locais serão incluídos na conta ${account?.email.orEmpty()}. A cópia local será mantida e repetir a importação não duplicará os mesmos registros.")},confirmButton={TextButton(onClick={confirmImport=false;vm.importGuest()}){Text("Trazer estudos")}},dismissButton={TextButton(onClick={confirmImport=false}){Text("Cancelar")}})
@@ -359,9 +373,9 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     items(ds,key={it.id}) { d ->
                         var expanded by rememberSaveable(d.id){mutableStateOf(false)}
                         Block {
-                            TextButton(onClick={expanded=!expanded},contentPadding=PaddingValues(0.dp)){Text(d.name,Modifier.weight(1f));Icon(if(expanded)Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,null)}
+                            ExpandableTitle(d.name,expanded){expanded=!expanded}
                             if(expanded||search.isNotBlank())d.topics.filter{it.name.contains(search,true)||d.name.contains(search,true)}.forEach { t ->
-                                TextButton(onClick={onSelect(t)},contentPadding=PaddingValues(0.dp)) {
+                                TextButton(onClick={onSelect(t)},contentPadding=PaddingValues(horizontal=8.dp,vertical=6.dp),shape=RoundedCornerShape(8.dp),modifier=Modifier.fillMaxWidth()) {
                                     RadioButton(selected=t.id==selected,onClick=null)
                                     Column(Modifier.weight(1f)){Text(t.name,color=MaterialTheme.colorScheme.onSurface);if(progress.any{it.topicId==t.id&&it.completed})Text("Concluído",style=MaterialTheme.typography.labelSmall)}
                                 }
@@ -431,8 +445,9 @@ internal fun searchKey(value:String)=java.text.Normalizer.normalize(value,java.t
     }
 }
 
-@Composable private fun PlanLogo(plan:Plan,modifier:Modifier=Modifier){
+@Composable internal fun PlanLogo(plan:Plan,modifier:Modifier=Modifier){
     val context=LocalContext.current
-    val bitmap=remember(plan.logoAsset){if(plan.logoAsset.isBlank())null else runCatching{context.assets.open(plan.logoAsset).use{BitmapFactory.decodeStream(it)}?.asImageBitmap()}.getOrNull()}
-    if(bitmap==null)Icon(painterResource(R.drawable.book_outline),null,modifier,tint=MaterialTheme.colorScheme.primary)else Image(bitmap,null,modifier)
+    val photo=remember(plan.details){runCatching{JSONObject(plan.details).optString("foto")}.getOrDefault("")}
+    val bitmap by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null,plan.logoAsset,photo){value=withContext(Dispatchers.IO){OrgLogos.load(context,plan.logoAsset,photo)?.asImageBitmap()}}
+    if(bitmap==null)Icon(painterResource(R.drawable.book_outline),null,modifier,tint=MaterialTheme.colorScheme.primary)else Image(bitmap!!,null,modifier)
 }

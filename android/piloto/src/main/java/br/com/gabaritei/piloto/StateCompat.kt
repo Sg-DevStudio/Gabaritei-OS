@@ -136,8 +136,9 @@ object StateCompat {
         return result.ifEmpty{listOf("")}
     }
     fun summary(s:JSONObject)=mapOf("planos" to s.array("planos").length(),"registros" to listOf("sessoes","revisoes","simulados","flashcards").sumOf{s.array(it).length()})
-    fun plans(json:String,catalog:List<Plan>):List<Plan> {
+    fun plans(json:String,bases:List<Plan>):List<Plan> {
         val s=JSONObject(json)
+        val catalog=Catalog.personal(bases,json)
         val enrolled=s.array("planos").objects().filter{!s.obj("config").obj("planosExcluidos").has(it.optString("id"))}.map{p->
             val meta=p.obj("plano");val origin=meta.optString("origemEditalId")
             val source=catalog.firstOrNull{it.id==origin||it.name==meta.optString("concurso")}
@@ -147,7 +148,7 @@ object StateCompat {
                     val personal=p.array("links").objects().any{it.optString("tipo")=="trilha"&&it.optString("topicoChave")=="plano:${d.optString("id")}:${t.optString("id")}"}
                     Topic(t.getString("id"),t.optString("nome"),if(personal)null else ref?.link,if(personal)"Links pessoais deste tópico" else ref?.note?:"Adicione um link de questões para este tópico.",ref?.noQuestions?:false)
                 },d.optString("cor","#3B82F6"),d.optString("planejamentoStatus")=="paused",d.optBoolean("androidArquivada"))
-            },origin,true,logoAsset=source?.logoAsset.orEmpty())
+            },origin,true,logoAsset=source?.logoAsset.orEmpty(),details=(JSONObject(source?.details?:"{}").also{details->meta.keys().forEach{key->details.put(key,meta.get(key))};details.put("titulo",meta.optString("concurso")).put("id",p.getString("id")).put("disciplinas",p.array("disciplinas"))}).toString())
         }
         return enrolled+catalog.filter{c->enrolled.none{it.originId==c.id||it.name==c.name}}
     }

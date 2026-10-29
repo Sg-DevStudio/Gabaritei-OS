@@ -7,6 +7,8 @@ import kotlin.math.roundToInt
 
 data class Routine(val days:Set<Int>,val dailyMinutes:Int,val blockMinutes:Int)
 object PlanRoutine {
+    fun minutesFromHours(value:String):Int? = value.trim().replace(',','.').toDoubleOrNull()?.takeIf{it.isFinite()&&it in .25..12.0}?.let{(it*60).roundToInt()}
+
     fun validate(r:Routine)=r.days.isNotEmpty()&&r.days.all{it in 1..7}&&r.dailyMinutes in 15..720&&r.blockMinutes in 15..120
     fun agenda(entry:JSONObject,r:Routine,start:LocalDate):JSONArray{
         require(validate(r)){"Escolha pelo menos um dia, 15 a 720 minutos por dia e blocos de 15 a 120 minutos."}
