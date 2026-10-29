@@ -39,7 +39,7 @@ test('caderno TRT4: um filtro por tópico, FCC, superior e isolamento por cargo 
   const html=w.Trilha.render(state);
   assert.equal((html.match(/class="trilha-topico"/g)||[]).length,133);
   const urls=[...html.matchAll(/href="([^"]*questoes\.grancursosonline[^\"]*)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&')));
-  assert.equal(urls.length,127);
+  assert.equal(urls.length,125);
   for(const u of urls){assert.equal(u.searchParams.get('banca'),'92');assert.equal(u.searchParams.get('nivel'),'1');assert(u.searchParams.get('assunto'));}
   assert(Object.values(w.TrilhaVinculosTRT4).every(t=>t.links.length<=1));
   for(const titulo of ['TRT4 Técnico Administrativo (Edital 2022)','TRT4 Analista Administrativo (Edital 2026)','TRT4 Técnico Administrativo Polícia Judicial (Edital 2026)','TRF2 Analista Administrativo']) {
@@ -57,22 +57,24 @@ test('Lei 8.112 usa capítulos por subtópico e não o filtro da lei inteira',()
 });
 test('assuntos específicos corrigidos não voltam a usar filtros de disciplina',()=>{
   const m=load().window.TrilhaVinculosTRT4;
-  for(const [id,code] of Object.entries({'POR-16':'406881','MAT-10':'7194,7195,7202,7206,7212','LTRT-02':'399889','DAD-15':'395730','DAD-17':'459054','DPT-08':'431650,406839'})){
+  for(const [id,code] of Object.entries({'POR-16':'406881','MAT-10':'7194,7195,7202,7206,7212','DAD-15':'395730','DAD-17':'404517','DPT-08':'431650,406839'})){
     assert.equal(m[id].links[0].code,code,id);
   }
   const proibidos=new Set(['403587','403825','404335','403716','404571','406746','406809','407069','404430']);
   for(const [id,t] of Object.entries(m))for(const l of t.links){
     assert(l.code.split(',').every(code=>!proibidos.has(code)),id);
     assert.equal(l.assuntosVerificados.length,l.code.split(',').length,id);
+    assert(l.assuntosVerificados.every(a=>a.questoesCatalogo>0),id+' precisa de categoria com acervo');
     if(l.filtroAmplo)assert(l.aviso.length>30,id);
   }
   assert.equal(m['LTRT-06'].links.length,0);
   assert(m['LTRT-06'].pendencia.includes('Código de Conduta'));
+  assert.equal(m['LTRT-02'].links.length,0);assert.equal(m['INF-11'].links.length,0);
 });
 test('auditoria registra origem e exceções; correção mantém links pessoais do aluno',()=>{
   const w=load().window,a=JSON.parse(fs.readFileSync('data/caderno-trt4-gran-auditoria.json','utf8'));
-  assert.equal(a.vinculos.length,127);assert.equal(a.pendencias.length,6);
-  assert.equal(a.vinculos.filter(v=>v.tipo==='amplo').length,3);
+  assert.equal(a.vinculos.length,125);assert.equal(a.pendencias.length,8);
+  assert.equal(a.vinculos.filter(v=>v.tipo==='amplo').length,5);
   assert(a.vinculos.filter(v=>v.tipo==='amplo').every(v=>v.motivo.length>30));
   const b=w.CadernoTRT4Base;
   const custom={id:'pessoal',tipo:'trilha',topicoChave:'plano:LEG:LEG-02',nome:'Meu caderno',url:'https://example.org/minhas-questoes'};

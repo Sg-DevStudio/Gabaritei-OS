@@ -34,6 +34,8 @@ Exemplos:
 Só utilize um filtro amplo quando não houver categoria adequada para o recorte após pesquisar a hierarquia e termos equivalentes. Registre o motivo e identifique esse filtro como amplo. Se apenas parte do tópico tiver correspondência, informe a cobertura parcial e o que falta. Se não houver nem uma categoria ampla pertinente, deixe o tema para complemento; não coloque um link de assunto diferente para aparentar cobertura. Redação e materiais sem questões correspondentes também devem ser tratados com honestidade.
 
 4. MONTE E VALIDE OS LINKS
+A existência de um ID na árvore não basta: confira se a categoria tem acervo e é aplicada pela página de questões. O catálogo pode conter categorias novas, internas ou sem questões. Não conte essas categorias como cobertura pronta. Se houver alternativa pertinente com acervo, justifique o recorte utilizado; caso contrário, sinalize o tema para complemento. Nunca deixe um ID ignorado pelo Gran ampliar a busca silenciosamente.
+
 Preserve as bancas escolhidas e confira escolaridade, anos e exclusão de anuladas/desatualizadas conforme o plano. Abra amostras representativas no Gran e confira os assuntos realmente selecionados e a pertinência das questões, especialmente leis e títulos compostos. Verifique todos os IDs e parâmetros contra o catálogo. Resposta HTTP 200, URL bem formada ou teste local não provam que o filtro está correto. Se o filtro específico não tiver questões para a combinação de banca/ano/nível, informe essa situação; não amplie o assunto silenciosamente para aumentar o volume. Não prometa que cada questão foi validada ou que todos os resultados seguem a legislação atual sem ter conferido isso.
 
 5. INTEGRE AO GABARITEI

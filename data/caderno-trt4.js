@@ -1222,7 +1222,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403701",
             "nome": "Interpretação de Texto",
-            "pai": 403587
+            "pai": 403587,
+            "questoesCatalogo": 248115
           }
         ]
       }
@@ -1245,7 +1246,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403713",
             "nome": "Equivalência, substituição, reorganização e transformação de palavras ou trechos do texto",
-            "pai": 403712
+            "pai": 403712,
+            "questoesCatalogo": 24094
           }
         ]
       }
@@ -1268,7 +1270,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403613",
             "nome": "Ortografia oficial e acentuação gráfica",
-            "pai": 403587
+            "pai": 403587,
+            "questoesCatalogo": 35917
           }
         ]
       }
@@ -1291,7 +1294,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403612",
             "nome": "Acentuação gráfica",
-            "pai": 419321
+            "pai": 419321,
+            "questoesCatalogo": 12075
           }
         ]
       }
@@ -1315,22 +1319,26 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "409117",
             "nome": "Flexão do substantivo",
-            "pai": 403622
+            "pai": 403622,
+            "questoesCatalogo": 2504
           },
           {
             "id": "409143",
             "nome": "Flexão do adjetivo",
-            "pai": 403623
+            "pai": 403623,
+            "questoesCatalogo": 386
           },
           {
             "id": "409160",
             "nome": "Flexão do numeral",
-            "pai": 403621
+            "pai": 403621,
+            "questoesCatalogo": 8
           },
           {
             "id": "409189",
             "nome": "Flexões verbais",
-            "pai": 403628
+            "pai": 403628,
+            "questoesCatalogo": 14631
           }
         ]
       }
@@ -1354,12 +1362,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403641",
             "nome": "Pronomes",
-            "pai": 419336
+            "pai": 419336,
+            "questoesCatalogo": 10565
           },
           {
             "id": "403650",
             "nome": "Colocação Pronominal",
-            "pai": 403651
+            "pai": 403651,
+            "questoesCatalogo": 7155
           }
         ]
       }
@@ -1383,17 +1393,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "419374",
             "nome": "Emprego dos modos verbais",
-            "pai": 403631
+            "pai": 403631,
+            "questoesCatalogo": 3915
           },
           {
             "id": "419381",
             "nome": "Emprego dos tempos verbais",
-            "pai": 403630
+            "pai": 403630,
+            "questoesCatalogo": 2485
           },
           {
             "id": "403634",
             "nome": "Flexão de voz (ativa, passiva, reflexiva)",
-            "pai": 409189
+            "pai": 409189,
+            "questoesCatalogo": 2972
           }
         ]
       }
@@ -1416,12 +1429,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403658",
             "nome": "Concordância verbal",
-            "pai": 409455
+            "pai": 409455,
+            "questoesCatalogo": 9218
           },
           {
             "id": "409456",
             "nome": "Concordância Nominal",
-            "pai": 409455
+            "pai": 409455,
+            "questoesCatalogo": 3063
           }
         ]
       }
@@ -1444,12 +1459,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403657",
             "nome": "Regência verbal",
-            "pai": 409479
+            "pai": 409479,
+            "questoesCatalogo": 6512
           },
           {
             "id": "409483",
             "nome": "Regência nominal",
-            "pai": 409479
+            "pai": 409479,
+            "questoesCatalogo": 2217
           }
         ]
       }
@@ -1472,7 +1489,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403682",
             "nome": "Emprego do sinal indicativo de crase",
-            "pai": 403651
+            "pai": 403651,
+            "questoesCatalogo": 14553
           }
         ]
       }
@@ -1495,7 +1513,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403666",
             "nome": "Pontuação",
-            "pai": 403651
+            "pai": 403651,
+            "questoesCatalogo": 24593
           }
         ]
       }
@@ -1519,17 +1538,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403706",
             "nome": "Linguagem denotativa e linguagem conotativa (denotação e conotação)",
-            "pai": 403701
+            "pai": 403701,
+            "questoesCatalogo": 4530
           },
           {
             "id": "403704",
             "nome": "Relações de sinonímia e antonímia (sinônimos e antônimos)",
-            "pai": 409318
+            "pai": 409318,
+            "questoesCatalogo": 7658
           },
           {
             "id": "409484",
             "nome": "Figuras de linguagem",
-            "pai": 403709
+            "pai": 403709,
+            "questoesCatalogo": 8099
           }
         ]
       }
@@ -1552,7 +1574,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "419180",
             "nome": "Tipos de discurso narrativo",
-            "pai": 409512
+            "pai": 409512,
+            "questoesCatalogo": 867
           }
         ]
       }
@@ -1576,12 +1599,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403617",
             "nome": "Morfologia",
-            "pai": 403587
+            "pai": 403587,
+            "questoesCatalogo": 10844
           },
           {
             "id": "403651",
             "nome": "Morfossintaxe do período",
-            "pai": 403587
+            "pai": 403587,
+            "questoesCatalogo": 124770
           }
         ]
       }
@@ -1605,12 +1630,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "419436",
             "nome": "A sintaxe do período composto",
-            "pai": 403651
+            "pai": 403651,
+            "questoesCatalogo": 9962
           },
           {
             "id": "403626",
             "nome": "Conjunções",
-            "pai": 419336
+            "pai": 419336,
+            "questoesCatalogo": 10761
           }
         ]
       }
@@ -1634,7 +1661,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406881",
             "nome": "Redação Oficial",
-            "pai": null
+            "pai": null,
+            "questoesCatalogo": 16713
           }
         ]
       }
@@ -1658,17 +1686,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "408662",
             "nome": "Conjunto dos Números Inteiros",
-            "pai": 408638
+            "pai": 408638,
+            "questoesCatalogo": 776
           },
           {
             "id": "403827",
             "nome": "Operações Fundamentais",
-            "pai": 403826
+            "pai": 403826,
+            "questoesCatalogo": 12509
           },
           {
             "id": "403828",
             "nome": "Divisibilidade e Critérios de Divisibilidade",
-            "pai": 403826
+            "pai": 403826,
+            "questoesCatalogo": 536
           }
         ]
       }
@@ -1691,7 +1722,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403830",
             "nome": "Frações e Números Decimais",
-            "pai": 403826
+            "pai": 403826,
+            "questoesCatalogo": 6747
           }
         ]
       }
@@ -1715,12 +1747,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403831",
             "nome": "Razão e proporção (proporcionalidade)",
-            "pai": 403826
+            "pai": 403826,
+            "questoesCatalogo": 6705
           },
           {
             "id": "403833",
             "nome": "Regra de Três",
-            "pai": 403826
+            "pai": 403826,
+            "questoesCatalogo": 6726
           }
         ]
       }
@@ -1743,7 +1777,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403835",
             "nome": "Porcentagem",
-            "pai": 403826
+            "pai": 403826,
+            "questoesCatalogo": 11534
           }
         ]
       }
@@ -1755,8 +1790,8 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Relações lógicas, deduções e conclusões a partir de hipóteses",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=461192%2C461174%2C461185%2C461187&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "461192,461174,461185,461187",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404280%2C404266&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404280,404266",
         "exact": true,
         "filtroAmplo": false,
         "aviso": "",
@@ -1765,24 +1800,16 @@ window.TrilhaVinculosTRT4 = {
         "verificadoEm": "2026-10-29",
         "assuntosVerificados": [
           {
-            "id": "461192",
-            "nome": "Estrutura lógica das relações arbitrárias entre pessoas, lugares, coisas, eventos fictícios",
-            "pai": 461172
+            "id": "404280",
+            "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+            "pai": 404257,
+            "questoesCatalogo": 1786
           },
           {
-            "id": "461174",
-            "nome": "Avaliar as condições usadas para estabelecer a estrutura das relações",
-            "pai": 461172
-          },
-          {
-            "id": "461185",
-            "nome": "Conclusões determinadas",
-            "pai": 461172
-          },
-          {
-            "id": "461187",
-            "nome": "Dedução de novas informações a partir de informações fornecidas",
-            "pai": 461172
+            "id": "404266",
+            "nome": "Lógica de Argumentação ",
+            "pai": 404257,
+            "questoesCatalogo": 7652
           }
         ]
       }
@@ -1794,49 +1821,32 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Raciocínio verbal, matemático, sequencial e orientação espacial e temporal",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=461199%2C461197%2C404276%2C461195%2C461196%2C461194%2C461190&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "461199,461197,404276,461195,461196,461194,461190",
-        "exact": true,
-        "filtroAmplo": false,
-        "aviso": "",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404280%2C404276%2C411113&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404280,404276,411113",
+        "exact": false,
+        "filtroAmplo": true,
+        "aviso": "As categorias novas de raciocínio verbal e orientação espacial não têm acervo validado; o link reúne estruturas lógicas, raciocínio sequencial e orientação temporal com questões catalogadas.",
         "consolidado": true,
         "coberturaParcial": false,
         "verificadoEm": "2026-10-29",
         "assuntosVerificados": [
           {
-            "id": "461199",
-            "nome": "Raciocínio verbal",
-            "pai": 461172
-          },
-          {
-            "id": "461197",
-            "nome": "Raciocínio matemático",
-            "pai": 461172
+            "id": "404280",
+            "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+            "pai": 404257,
+            "questoesCatalogo": 1786
           },
           {
             "id": "404276",
             "nome": "Raciocínio Sequencial",
-            "pai": 425328
+            "pai": 425328,
+            "questoesCatalogo": 1987
           },
           {
-            "id": "461195",
-            "nome": "Estruturas Lógicas: orientação espacial",
-            "pai": 461172
-          },
-          {
-            "id": "461196",
-            "nome": "Estruturas Lógicas: orientação temporal",
-            "pai": 461172
-          },
-          {
-            "id": "461194",
-            "nome": "Estruturas Lógicas: formação de conceitos",
-            "pai": 461172
-          },
-          {
-            "id": "461190",
-            "nome": "Discriminação de elementos",
-            "pai": 461172
+            "id": "411113",
+            "nome": "Orientação Temporal e Calendários",
+            "pai": 425328,
+            "questoesCatalogo": 690
           }
         ]
       }
@@ -1860,27 +1870,32 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "7194",
             "nome": "Média Aritmética",
-            "pai": 7193
+            "pai": 7193,
+            "questoesCatalogo": 593
           },
           {
             "id": "7195",
             "nome": "Média Ponderada",
-            "pai": 7193
+            "pai": 7193,
+            "questoesCatalogo": 112
           },
           {
             "id": "7202",
             "nome": "Mediana",
-            "pai": 7192
+            "pai": 7192,
+            "questoesCatalogo": 1177
           },
           {
             "id": "7206",
             "nome": "Moda",
-            "pai": 7192
+            "pai": 7192,
+            "questoesCatalogo": 605
           },
           {
             "id": "7212",
             "nome": "Medidas de Variabilidade (ou de dispersão)",
-            "pai": 416549
+            "pai": 416549,
+            "questoesCatalogo": 2528
           }
         ]
       }
@@ -1903,7 +1918,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403910",
             "nome": "Análise de Gráficos e Tabelas",
-            "pai": 403826
+            "pai": 403826,
+            "questoesCatalogo": 2465
           }
         ]
       }
@@ -1926,7 +1942,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "433177",
             "nome": "Resolução nº 400/2021 - Dispõe sobre a política de sustentabilidade no âmbito do Poder Judiciário.",
-            "pai": 397403
+            "pai": 397403,
+            "questoesCatalogo": 121
           }
         ]
       }
@@ -1940,27 +1957,8 @@ window.TrilhaVinculosTRT4 = {
   },
   "LTRT-02": {
     "nome": "Regimento Interno do TRT4, atualizado até o Assento Regimental 04/2026",
-    "links": [
-      {
-        "nome": "Regimento Interno do TRT4, atualizado até o Assento Regimental 04/2026",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=399889&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "399889",
-        "exact": true,
-        "filtroAmplo": false,
-        "aviso": "",
-        "consolidado": true,
-        "coberturaParcial": false,
-        "verificadoEm": "2026-10-29",
-        "assuntosVerificados": [
-          {
-            "id": "399889",
-            "nome": "Regimento Interno - TRT 4ª Região",
-            "pai": 399888
-          }
-        ]
-      }
-    ],
-    "pendencia": ""
+    "links": [],
+    "pendencia": "Regimento Interno do TRT4: categoria encontrada, mas sem questões no catálogo consultado; adicione um link complementar."
   },
   "LTRT-07": {
     "nome": "Violência, assédio e discriminação: Resolução CSJT 360/2023",
@@ -1978,7 +1976,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "449610",
             "nome": "Resolução nº 360/2023 - Institui a Política de Prevenção e Enfrentamento da Violência, do Assédio e de Todas as Formas de Discriminação no âmbito da Justiça do Trabalho de primeiro e segundo graus.",
-            "pai": 399690
+            "pai": 399690,
+            "questoesCatalogo": 2
           }
         ]
       }
@@ -2001,12 +2000,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "436342",
             "nome": "Resolução 351/2020",
-            "pai": 397403
+            "pai": 397403,
+            "questoesCatalogo": 24
           },
           {
             "id": "436375",
             "nome": "Resolução 351/2020 CNJ",
-            "pai": 397403
+            "pai": 397403,
+            "questoesCatalogo": 28
           }
         ]
       }
@@ -2030,22 +2031,26 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407073",
             "nome": "Evolução histórica dos direitos humanos",
-            "pai": 407070
+            "pai": 407070,
+            "questoesCatalogo": 356
           },
           {
             "id": "407074",
             "nome": "Características dos direitos humanos",
-            "pai": 407070
+            "pai": 407070,
+            "questoesCatalogo": 362
           },
           {
             "id": "407075",
             "nome": "Categorias e gerações dos direitos humanos",
-            "pai": 407070
+            "pai": 407070,
+            "questoesCatalogo": 265
           },
           {
             "id": "423167",
             "nome": "Teoria geral dos direitos humanos",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 654
           }
         ]
       }
@@ -2069,12 +2074,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "421824",
             "nome": "Controle de convencionalidade",
-            "pai": 405319
+            "pai": 405319,
+            "questoesCatalogo": 11
           },
           {
             "id": "407070",
             "nome": "Direito Internacional dos Direitos Humanos",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 1726
           }
         ]
       }
@@ -2098,7 +2105,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407127",
             "nome": "Incorporação de tratados internacionais de direitos humanos no direito brasileiro (EC n.o 45)",
-            "pai": 407108
+            "pai": 407108,
+            "questoesCatalogo": 501
           }
         ]
       }
@@ -2121,7 +2129,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407086",
             "nome": "Declaração Universal dos Direitos Humanos",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 1851
           }
         ]
       }
@@ -2145,12 +2154,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407087",
             "nome": "Pacto Internacional de Direitos Civis e Políticos",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 161
           },
           {
             "id": "407088",
             "nome": "Pacto Internacional de Direitos Econômicos e Sociais e Culturais",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 96
           }
         ]
       }
@@ -2173,12 +2184,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407089",
             "nome": "Convenção Internacional sobre Eliminação de Todas as Formas de Discriminação Racial",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 126
           },
           {
             "id": "407090",
             "nome": "Convenção sobre a Eliminação de Todas as Formas de Discriminação contra a Mulher",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 106
           }
         ]
       }
@@ -2201,12 +2214,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407093",
             "nome": "Convenção sobre os Direitos da Criança",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 165
           },
           {
             "id": "407096",
             "nome": "Convenção sobre os Direitos das Pessoas com Deficiência",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 274
           }
         ]
       }
@@ -2230,12 +2245,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "397326",
             "nome": "Conferências e Tratados Ambientais",
-            "pai": 397297
+            "pai": 397297,
+            "questoesCatalogo": 287
           },
           {
             "id": "433492",
             "nome": "Decreto nº 2.519/1998 - Promulga a Convenção sobre Diversidade Biológica, assinada no Rio de Janeiro, em 05 de junho de 1992.",
-            "pai": 418540
+            "pai": 418540,
+            "questoesCatalogo": 11
           }
         ]
       }
@@ -2258,7 +2275,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "430252",
             "nome": "Declaração das Nações Unidas sobre os direitos dos povos indígenas",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 27
           }
         ]
       }
@@ -2282,17 +2300,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "443740",
             "nome": "Declaração Americana de Direitos e Deveres do Homem",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 3
           },
           {
             "id": "407112",
             "nome": "Convenção Americana sobre Direitos Humanos (Pacto de San José)",
-            "pai": 407106
+            "pai": 407106,
+            "questoesCatalogo": 919
           },
           {
             "id": "428037",
             "nome": "Decreto nº 3.321 de 1999 - Protocolo de São Salvador",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 9
           }
         ]
       }
@@ -2316,12 +2337,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407104",
             "nome": "Comissão Interamericana de Direitos Humanos",
-            "pai": 407103
+            "pai": 407103,
+            "questoesCatalogo": 184
           },
           {
             "id": "407105",
             "nome": "Corte Interamericana de Direitos Humanos",
-            "pai": 407103
+            "pai": 407103,
+            "questoesCatalogo": 337
           }
         ]
       }
@@ -2345,17 +2368,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407076",
             "nome": "Sistema Global de Proteção dos Direitos Humanos: Instituições e Mecanismos",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 242
           },
           {
             "id": "407108",
             "nome": "Direitos Humanos no Ordenamento Nacional",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 1189
           },
           {
             "id": "452385",
             "nome": "Direitos Fundamentais / Grupos Vulneráveis",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 10
           }
         ]
       }
@@ -2378,7 +2404,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "437046",
             "nome": "Resolução nº. 492/2023 - Estabelece, para adoção de Perspectiva de Gênero nos julgamentos em todo o Poder Judiciário, as diretrizes do protocolo aprovado pelo Grupo de Trabalho constituído pela Portaria CNJ n. 27/2021",
-            "pai": 397403
+            "pai": 397403,
+            "questoesCatalogo": 11
           }
         ]
       }
@@ -2401,7 +2428,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "449643",
             "nome": "Resolução nº 368/2023 - Institui o Programa de Equidade de Raça, Gênero e Diversidade no âmbito da Justiça do Trabalho.",
-            "pai": 399690
+            "pai": 399690,
+            "questoesCatalogo": 2
           }
         ]
       }
@@ -2424,7 +2452,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407082",
             "nome": "Estatuto de Roma e o Tribunal Penal Internacional",
-            "pai": 407069
+            "pai": 407069,
+            "questoesCatalogo": 103
           }
         ]
       }
@@ -2447,12 +2476,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407085",
             "nome": "Carta da ONU",
-            "pai": 407084
+            "pai": 407084,
+            "questoesCatalogo": 49
           },
           {
             "id": "407081",
             "nome": "Corte Internacional de Justiça",
-            "pai": 407076
+            "pai": 407076,
+            "questoesCatalogo": 13
           }
         ]
       }
@@ -2481,32 +2512,38 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405052",
             "nome": "Conceitos Gerais e Funcionamento",
-            "pai": 405050
+            "pai": 405050,
+            "questoesCatalogo": 2486
           },
           {
             "id": "405161",
             "nome": "Intranet",
-            "pai": 405157
+            "pai": 405157,
+            "questoesCatalogo": 1172
           },
           {
             "id": "405054",
             "nome": "Mozilla Firefox",
-            "pai": 405053
+            "pai": 405053,
+            "questoesCatalogo": 1545
           },
           {
             "id": "405056",
             "nome": "Google Chrome",
-            "pai": 405053
+            "pai": 405053,
+            "questoesCatalogo": 3049
           },
           {
             "id": "406727",
             "nome": "Microsoft Edge",
-            "pai": 405053
+            "pai": 405053,
+            "questoesCatalogo": 627
           },
           {
             "id": "405173",
             "nome": "Mecanismos de Busca na Internet",
-            "pai": 405050
+            "pai": 405050,
+            "questoesCatalogo": 1730
           }
         ]
       }
@@ -2529,7 +2566,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "420719",
             "nome": "Gerenciamento de Arquivos e Pastas",
-            "pai": 405085
+            "pai": 405085,
+            "questoesCatalogo": 4266
           }
         ]
       }
@@ -2552,12 +2590,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405101",
             "nome": "Windows 10",
-            "pai": 405084
+            "pai": 405084,
+            "questoesCatalogo": 5773
           },
           {
             "id": "430398",
             "nome": "Windows 11",
-            "pai": 405084
+            "pai": 405084,
+            "questoesCatalogo": 1547
           }
         ]
       }
@@ -2569,24 +2609,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Microsoft Office 365: textos, planilhas, apresentações, e-mail e agenda",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=459901%2C405059&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "459901,405059",
-        "exact": true,
-        "filtroAmplo": false,
-        "aviso": "",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405111%2C405059&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405111,405059",
+        "exact": false,
+        "filtroAmplo": true,
+        "aviso": "A categoria Microsoft 365 encontrada não tem acervo validado; usa Microsoft Office, que inclui outras versões, mais correio eletrônico.",
         "consolidado": true,
         "coberturaParcial": false,
         "verificadoEm": "2026-10-29",
         "assuntosVerificados": [
           {
-            "id": "459901",
-            "nome": "Microsoft 365; Microsoft Office",
-            "pai": 459900
+            "id": "405111",
+            "nome": "Microsoft Office",
+            "pai": 405107,
+            "questoesCatalogo": 46674
           },
           {
             "id": "405059",
             "nome": "Correio Eletrônico (E-mail)",
-            "pai": 405030
+            "pai": 405030,
+            "questoesCatalogo": 6776
           }
         ]
       }
@@ -2610,7 +2652,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "420599",
             "nome": "Google Workspace (antigo Google G Suíte)",
-            "pai": 405107
+            "pai": 405107,
+            "questoesCatalogo": 1038
           }
         ]
       }
@@ -2633,7 +2676,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "420158",
             "nome": "Google Drive",
-            "pai": 420157
+            "pai": 420157,
+            "questoesCatalogo": 359
           }
         ]
       }
@@ -2642,37 +2686,8 @@ window.TrilhaVinculosTRT4 = {
   },
   "INF-11": {
     "nome": "Google Agenda, Tarefas e Meet: eventos, participantes e videoconferência",
-    "links": [
-      {
-        "nome": "Google Agenda, Tarefas e Meet: eventos, participantes e videoconferência",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=459987%2C459989%2C460047&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "459987,459989,460047",
-        "exact": true,
-        "filtroAmplo": false,
-        "aviso": "",
-        "consolidado": true,
-        "coberturaParcial": false,
-        "verificadoEm": "2026-10-29",
-        "assuntosVerificados": [
-          {
-            "id": "459987",
-            "nome": "Tarefas Google; Google Tasks",
-            "pai": 459772
-          },
-          {
-            "id": "459989",
-            "nome": "Agenda Google; Google Calendar",
-            "pai": 459772
-          },
-          {
-            "id": "460047",
-            "nome": "Google Meet",
-            "pai": 460045
-          }
-        ]
-      }
-    ],
-    "pendencia": ""
+    "links": [],
+    "pendencia": "Google Agenda, Tarefas e Meet: categorias encontradas sem acervo validado; adicione um link complementar."
   },
   "INF-12": {
     "nome": "Gmail: configurações, painel de visualização e marcadores",
@@ -2690,7 +2705,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405063",
             "nome": "Gmail",
-            "pai": 405059
+            "pai": 405059,
+            "questoesCatalogo": 523
           }
         ]
       }
@@ -2713,7 +2729,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405067",
             "nome": "Segurança da Informação",
-            "pai": 405030
+            "pai": 405030,
+            "questoesCatalogo": 13083
           }
         ]
       }
@@ -2736,7 +2753,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405209",
             "nome": "Aplicabilidade das normas constitucionais, eficácia e aplicabilidade das normas constitucionais ou classificação das normas constitucionais ou vigência e eficácia das normas constitucionais ou normas constitucionais: classificação e eficácia",
-            "pai": 405200
+            "pai": 405200,
+            "questoesCatalogo": 1145
           }
         ]
       }
@@ -2760,17 +2778,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "407762",
             "nome": "Ação direta de inconstitucionalidade ou ação direta de inconstitucionalidade genérica ou ADI ou ADIN ",
-            "pai": 405324
+            "pai": 405324,
+            "questoesCatalogo": 702
           },
           {
             "id": "407763",
             "nome": "Ação direta de constitucionalidade ou ação declaratória de constitucionalidade ou ADC ou ADECON",
-            "pai": 405324
+            "pai": 405324,
+            "questoesCatalogo": 257
           },
           {
             "id": "407764",
             "nome": "Arguição de Descumprimento de Preceito Fundamental (ADPF)",
-            "pai": 405324
+            "pai": 405324,
+            "questoesCatalogo": 486
           }
         ]
       }
@@ -2793,7 +2814,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405212",
             "nome": "Princípios fundamentais - Título I - Artigos 1º a 4º da CF",
-            "pai": 405199
+            "pai": 405199,
+            "questoesCatalogo": 4798
           }
         ]
       }
@@ -2816,7 +2838,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405219",
             "nome": "Direitos e deveres individuais e coletivos ou direitos e deveres individuais e coletivos; direito à vida, à liberdade, à igualdade,  à  segurança  e  à  propriedade (artigo 5º da CF)",
-            "pai": 405217
+            "pai": 405217,
+            "questoesCatalogo": 12757
           }
         ]
       }
@@ -2839,12 +2862,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405227",
             "nome": "Direitos sociais (artigos 6º a 11 da CF)",
-            "pai": 405217
+            "pai": 405217,
+            "questoesCatalogo": 4839
           },
           {
             "id": "405228",
             "nome": "Direitos de nacionalidade ou da nacionalidade (artigos 12 e 13 da CF)",
-            "pai": 405217
+            "pai": 405217,
+            "questoesCatalogo": 3763
           }
         ]
       }
@@ -2868,12 +2893,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405229",
             "nome": "Direitos Políticos (artigos 14 a 16 da CF)",
-            "pai": 405217
+            "pai": 405217,
+            "questoesCatalogo": 4267
           },
           {
             "id": "405230",
             "nome": "Partidos políticos (artigo 17 da CF)",
-            "pai": 405217
+            "pai": 405217,
+            "questoesCatalogo": 621
           }
         ]
       }
@@ -2897,37 +2924,44 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405233",
             "nome": "Organização politico-administrativa (artigos 18 e 19)",
-            "pai": 405231
+            "pai": 405231,
+            "questoesCatalogo": 2286
           },
           {
             "id": "407596",
             "nome": "União ou Da União",
-            "pai": 405231
+            "pai": 405231,
+            "questoesCatalogo": 360
           },
           {
             "id": "407598",
             "nome": "Estados ou Dos Estados (artigos 25 a 28 da CF)",
-            "pai": 405231
+            "pai": 405231,
+            "questoesCatalogo": 825
           },
           {
             "id": "407614",
             "nome": "Municípios (artigos 29 a 31 da CF)",
-            "pai": 405231
+            "pai": 405231,
+            "questoesCatalogo": 2577
           },
           {
             "id": "421775",
             "nome": "Distrito Federal (artigo 32 da CF)",
-            "pai": 405231
+            "pai": 405231,
+            "questoesCatalogo": 186
           },
           {
             "id": "421782",
             "nome": "Territórios ou territórios federais (artigo 33 da CF)",
-            "pai": 405231
+            "pai": 405231,
+            "questoesCatalogo": 150
           },
           {
             "id": "405239",
             "nome": "Intervenção federal e estadual (artigos 34 a 36 da CF)",
-            "pai": 405231
+            "pai": 405231,
+            "questoesCatalogo": 1035
           }
         ]
       }
@@ -2951,7 +2985,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405242",
             "nome": "Disposições gerais (artigo 37 da CF)",
-            "pai": 405240
+            "pai": 405240,
+            "questoesCatalogo": 5053
           }
         ]
       }
@@ -2974,7 +3009,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405243",
             "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
-            "pai": 405240
+            "pai": 405240,
+            "questoesCatalogo": 3786
           }
         ]
       }
@@ -2998,17 +3034,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405262",
             "nome": "Presidente e Vice-Presidente da República (artigos 76 a 83 da CF)",
-            "pai": 405260
+            "pai": 405260,
+            "questoesCatalogo": 696
           },
           {
             "id": "405263",
             "nome": "Atribuições do Presidente da República (artigo 84 da CF)",
-            "pai": 405260
+            "pai": 405260,
+            "questoesCatalogo": 888
           },
           {
             "id": "407646",
             "nome": "Responsabilidade do Presidente da República (artigos 85 e 86 da CF)",
-            "pai": 405260
+            "pai": 405260,
+            "questoesCatalogo": 558
           }
         ]
       }
@@ -3032,12 +3071,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405253",
             "nome": "Processo Legislativo (artigos 59 a 69 da CF)",
-            "pai": 405248
+            "pai": 405248,
+            "questoesCatalogo": 5071
           },
           {
             "id": "405258",
             "nome": "Fiscalização Contábil, Financeira e Orçamentária da União",
-            "pai": 405248
+            "pai": 405248,
+            "questoesCatalogo": 3124
           }
         ]
       }
@@ -3061,27 +3102,32 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405267",
             "nome": "Disposições gerais (artigos 92 a 100 da CF)",
-            "pai": 405266
+            "pai": 405266,
+            "questoesCatalogo": 1494
           },
           {
             "id": "405273",
             "nome": "Do Supremo Tribunal Federal (artigos 101 a 103 da CF)",
-            "pai": 407639
+            "pai": 407639,
+            "questoesCatalogo": 2054
           },
           {
             "id": "405275",
             "nome": "Conselho Nacional de Justiça: organização, composição e competências (artigo 103-B da CF)",
-            "pai": 407639
+            "pai": 407639,
+            "questoesCatalogo": 692
           },
           {
             "id": "405274",
             "nome": "Do Superior Tribunal de Justiça (artigos 104 e 105 da CF)",
-            "pai": 407639
+            "pai": 407639,
+            "questoesCatalogo": 752
           },
           {
             "id": "405277",
             "nome": "Do Tribunal Superior do Trabalho, Tribunais Regionais do Trabalho e juízes do trabalho (artigos 111 a 117)",
-            "pai": 407639
+            "pai": 407639,
+            "questoesCatalogo": 562
           }
         ]
       }
@@ -3104,7 +3150,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405281",
             "nome": "Funções essenciais à Justiça (artigos 127 a 135 da CF)",
-            "pai": 405246
+            "pai": 405246,
+            "questoesCatalogo": 3799
           }
         ]
       }
@@ -3128,7 +3175,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404358",
             "nome": "Regime Jurídico Administrativo",
-            "pai": 404335
+            "pai": 404335,
+            "questoesCatalogo": 9384
           }
         ]
       }
@@ -3152,7 +3200,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "405866",
             "nome": "Lei de Introdução às Normas do Direito Brasileiro - LINDB",
-            "pai": 405864
+            "pai": 405864,
+            "questoesCatalogo": 1995
           }
         ]
       }
@@ -3176,12 +3225,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404363",
             "nome": "Poderes da Administração",
-            "pai": 404335
+            "pai": 404335,
+            "questoesCatalogo": 8586
           },
           {
             "id": "406521",
             "nome": "Lei do Abuso de Autoridade - Lei nº 13.869/2019",
-            "pai": 406351
+            "pai": 406351,
+            "questoesCatalogo": 1387
           }
         ]
       }
@@ -3204,7 +3255,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404372",
             "nome": "Atos Administrativos",
-            "pai": 404335
+            "pai": 404335,
+            "questoesCatalogo": 14692
           }
         ]
       }
@@ -3227,7 +3279,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404427",
             "nome": "Processo Administrativo - Lei 9.784/99",
-            "pai": 404335
+            "pai": 404335,
+            "questoesCatalogo": 7236
           }
         ]
       }
@@ -3250,7 +3303,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404409",
             "nome": "Controle da Administração",
-            "pai": 404335
+            "pai": 404335,
+            "questoesCatalogo": 3375
           }
         ]
       }
@@ -3273,7 +3327,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404431",
             "nome": "Improbidade Administrativa - Lei 8.429/92 e suas alterações",
-            "pai": 404335
+            "pai": 404335,
+            "questoesCatalogo": 10744
           }
         ]
       }
@@ -3297,17 +3352,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "433219",
             "nome": "Disposições Preliminares",
-            "pai": 429796
+            "pai": 429796,
+            "questoesCatalogo": 2091
           },
           {
             "id": "433224",
             "nome": "Das Licitações",
-            "pai": 429796
+            "pai": 429796,
+            "questoesCatalogo": 6296
           },
           {
             "id": "433266",
             "nome": "Das irregularidades",
-            "pai": 429796
+            "pai": 429796,
+            "questoesCatalogo": 478
           }
         ]
       }
@@ -3331,7 +3389,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "433253",
             "nome": "Dos Contratos Administrativos",
-            "pai": 429796
+            "pai": 429796,
+            "questoesCatalogo": 2521
           }
         ]
       }
@@ -3355,27 +3414,32 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404355",
             "nome": "Conceito de Agentes Públicos",
-            "pai": 404354
+            "pai": 404354,
+            "questoesCatalogo": 347
           },
           {
             "id": "404356",
             "nome": "Classificação ou espécies de Agentes Públicos",
-            "pai": 404354
+            "pai": 404354,
+            "questoesCatalogo": 721
           },
           {
             "id": "404357",
             "nome": "Cargo, Emprego e Função Pública",
-            "pai": 404354
+            "pai": 404354,
+            "questoesCatalogo": 1216
           },
           {
             "id": "408014",
             "nome": "Acesso aos Cargos e Empregos Públicos",
-            "pai": 404354
+            "pai": 404354,
+            "questoesCatalogo": 1786
           },
           {
             "id": "404509",
             "nome": "Capítulo V - Dos Afastamentos",
-            "pai": 404504
+            "pai": 404504,
+            "questoesCatalogo": 160
           }
         ]
       }
@@ -3399,12 +3463,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "408003",
             "nome": "Direito de greve dos servidores públicos",
-            "pai": 408001
+            "pai": 408001,
+            "questoesCatalogo": 245
           },
           {
             "id": "405243",
             "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
-            "pai": 405240
+            "pai": 405240,
+            "questoesCatalogo": 3786
           }
         ]
       }
@@ -3428,7 +3494,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "395730",
             "nome": "Lei nº 11.416/2006 -  Dispõe sobre as Carreiras dos Servidores do Poder Judiciário da União; revoga as Leis nos 9.421, de 24 de dezembro de 1996, 10.475, de 27 de junho de 2002, 10.417, de 5 de abril de 2002, e 10.944, de 16 de setembro de 2004; e dá outr",
-            "pai": 395699
+            "pai": 395699,
+            "questoesCatalogo": 134
           }
         ]
       }
@@ -3452,12 +3519,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "394873",
             "nome": "Lei nº 9.962/2000 - Disciplina o regime de emprego público do pessoal da Administração federal direta, autárquica e fundacional, e dá outras providências",
-            "pai": 395700
+            "pai": 395700,
+            "questoesCatalogo": 9
           },
           {
             "id": "406755",
             "nome": "Do Contrato de Trabalho",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 2308
           }
         ]
       }
@@ -3469,8 +3538,8 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Responsabilidade civil, administrativa e penal dos agentes públicos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=459054&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "459054",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404517&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404517",
         "exact": true,
         "filtroAmplo": false,
         "aviso": "",
@@ -3479,9 +3548,10 @@ window.TrilhaVinculosTRT4 = {
         "verificadoEm": "2026-10-29",
         "assuntosVerificados": [
           {
-            "id": "459054",
-            "nome": "Responsabilidade civil, criminal e administrativa do agente público",
-            "pai": 459041
+            "id": "404517",
+            "nome": "Capítulo IV - Das Responsabilidades",
+            "pai": 404513,
+            "questoesCatalogo": 272
           }
         ]
       }
@@ -3505,17 +3575,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404501",
             "nome": "Título I - Capítulo Único",
-            "pai": 404430
+            "pai": 404430,
+            "questoesCatalogo": 100
           },
           {
             "id": "404503",
             "nome": "Capítulo I - Do Provimento",
-            "pai": 404502
+            "pai": 404502,
+            "questoesCatalogo": 1814
           },
           {
             "id": "404512",
             "nome": "Capítulo II - Da Vacância",
-            "pai": 404502
+            "pai": 404502,
+            "questoesCatalogo": 143
           }
         ]
       }
@@ -3539,12 +3612,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404511",
             "nome": "Capítulo III - Da Remoção e da Redistribuição",
-            "pai": 404502
+            "pai": 404502,
+            "questoesCatalogo": 168
           },
           {
             "id": "404510",
             "nome": "Capítulo IV - Da Substituição",
-            "pai": 404502
+            "pai": 404502,
+            "questoesCatalogo": 14
           }
         ]
       }
@@ -3568,27 +3643,32 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404505",
             "nome": "Capítulo I - Do Vencimento e da Remuneração",
-            "pai": 404504
+            "pai": 404504,
+            "questoesCatalogo": 239
           },
           {
             "id": "404506",
             "nome": "Capítulo II - Das Vantagens",
-            "pai": 404504
+            "pai": 404504,
+            "questoesCatalogo": 335
           },
           {
             "id": "404507",
             "nome": "Capítulo III - Das Férias",
-            "pai": 404504
+            "pai": 404504,
+            "questoesCatalogo": 93
           },
           {
             "id": "404508",
             "nome": "Capítulo IV - Das Licenças",
-            "pai": 404504
+            "pai": 404504,
+            "questoesCatalogo": 472
           },
           {
             "id": "422909",
             "nome": "Capítulo VIII - Do Direito de Petição",
-            "pai": 404504
+            "pai": 404504,
+            "questoesCatalogo": 28
           }
         ]
       }
@@ -3612,17 +3692,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404514",
             "nome": "Capítulo I - Dos Deveres",
-            "pai": 404513
+            "pai": 404513,
+            "questoesCatalogo": 326
           },
           {
             "id": "404515",
             "nome": "Capítulo II - Das Proibições",
-            "pai": 404513
+            "pai": 404513,
+            "questoesCatalogo": 224
           },
           {
             "id": "404516",
             "nome": "Capítulo III - Da Acumulação",
-            "pai": 404513
+            "pai": 404513,
+            "questoesCatalogo": 213
           }
         ]
       }
@@ -3646,12 +3729,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404517",
             "nome": "Capítulo IV - Das Responsabilidades",
-            "pai": 404513
+            "pai": 404513,
+            "questoesCatalogo": 272
           },
           {
             "id": "404518",
             "nome": "Capítulo V - Das Penalidades",
-            "pai": 404513
+            "pai": 404513,
+            "questoesCatalogo": 871
           }
         ]
       }
@@ -3675,7 +3760,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404519",
             "nome": "Título V - Do Processo Administrativo Disciplinar",
-            "pai": 404430
+            "pai": 404430,
+            "questoesCatalogo": 896
           }
         ]
       }
@@ -3699,7 +3785,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404625",
             "nome": "Estrutura Organizacional",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 6747
           }
         ]
       }
@@ -3722,7 +3809,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "417276",
             "nome": "Teorias da Administração",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 7621
           }
         ]
       }
@@ -3746,17 +3834,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "417386",
             "nome": "Convergências e Diferenças entre Gestão Pública e a Privada",
-            "pai": 403716
+            "pai": 403716,
+            "questoesCatalogo": 267
           },
           {
             "id": "404551",
             "nome": "Princípios aplicáveis à Administração Pública",
-            "pai": 404546
+            "pai": 404546,
+            "questoesCatalogo": 639
           },
           {
             "id": "403774",
             "nome": "Gestão por Resultados nos Serviços Públicos",
-            "pai": 403716
+            "pai": 403716,
+            "questoesCatalogo": 785
           }
         ]
       }
@@ -3780,7 +3871,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "403755",
             "nome": "Comunicação na Gestão Pública e Gestão de Redes Organizacionais",
-            "pai": 403716
+            "pai": 403716,
+            "questoesCatalogo": 395
           }
         ]
       }
@@ -3804,7 +3896,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404659",
             "nome": "Gestão de Pessoas",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 13804
           }
         ]
       }
@@ -3828,17 +3921,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404674",
             "nome": "Processo organizacional (PODC)",
-            "pai": 404572
+            "pai": 404572,
+            "questoesCatalogo": 6522
           },
           {
             "id": "425506",
             "nome": "Comunicação",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 2933
           },
           {
             "id": "404668",
             "nome": "Avaliação do Desempenho",
-            "pai": 404659
+            "pai": 404659,
+            "questoesCatalogo": 2596
           }
         ]
       }
@@ -3862,17 +3958,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404609",
             "nome": "Planejamento Estratégico",
-            "pai": 425402
+            "pai": 425402,
+            "questoesCatalogo": 1739
           },
           {
             "id": "425403",
             "nome": "Planejamento Tático ",
-            "pai": 425402
+            "pai": 425402,
+            "questoesCatalogo": 325
           },
           {
             "id": "425404",
             "nome": "Planejamento Operacional ",
-            "pai": 425402
+            "pai": 425402,
+            "questoesCatalogo": 261
           }
         ]
       }
@@ -3895,7 +3994,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404626",
             "nome": "Gestão de processos",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 3875
           }
         ]
       }
@@ -3918,7 +4018,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404636",
             "nome": "Gestão de Projetos",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 4723
           }
         ]
       }
@@ -3930,8 +4031,8 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Gestão de contratos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=464329&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "464329",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404498&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404498",
         "exact": true,
         "filtroAmplo": false,
         "aviso": "",
@@ -3940,9 +4041,10 @@ window.TrilhaVinculosTRT4 = {
         "verificadoEm": "2026-10-29",
         "assuntosVerificados": [
           {
-            "id": "464329",
-            "nome": "Gestão e Fiscalização de Contratos",
-            "pai": 464226
+            "id": "404498",
+            "nome": "Acompanhamento e Fiscalização da Execução dos Contratos",
+            "pai": 404429,
+            "questoesCatalogo": 538
           }
         ]
       }
@@ -3965,7 +4067,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "417247",
             "nome": "Gestão da Qualidade",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 5018
           }
         ]
       }
@@ -3988,12 +4091,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404664",
             "nome": "Liderança",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 3095
           },
           {
             "id": "404670",
             "nome": "Motivação",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 3619
           }
         ]
       }
@@ -4016,7 +4121,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "404631",
             "nome": "Processo Decisório",
-            "pai": 404571
+            "pai": 404571,
+            "questoesCatalogo": 2288
           }
         ]
       }
@@ -4040,17 +4146,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406748",
             "nome": "Princípios do Direito do Trabalho",
-            "pai": 406747
+            "pai": 406747,
+            "questoesCatalogo": 290
           },
           {
             "id": "406749",
             "nome": "Fontes do Direito do Trabalho",
-            "pai": 406747
+            "pai": 406747,
+            "questoesCatalogo": 131
           },
           {
             "id": "433159",
             "nome": "Direitos do Trabalhador na Constituição Federal",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 16
           }
         ]
       }
@@ -4073,7 +4182,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406752",
             "nome": "Da Relação de Trabalho e de Emprego - Distinção",
-            "pai": 406747
+            "pai": 406747,
+            "questoesCatalogo": 408
           }
         ]
       }
@@ -4096,7 +4206,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406757",
             "nome": "Sujeitos do contrato de trabalho ",
-            "pai": 406755
+            "pai": 406755,
+            "questoesCatalogo": 535
           }
         ]
       }
@@ -4120,12 +4231,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406755",
             "nome": "Do Contrato de Trabalho",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 2308
           },
           {
             "id": "406759",
             "nome": "Alteração, Interrupção e Suspensão do Contrato de Trabalho",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 1650
           }
         ]
       }
@@ -4149,12 +4262,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406786",
             "nome": "Terminação do contrato de trabalho",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 1510
           },
           {
             "id": "406795",
             "nome": "Aviso Prévio",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 345
           }
         ]
       }
@@ -4177,7 +4292,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406772",
             "nome": "Jornada de Trabalho",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 2279
           }
         ]
       }
@@ -4200,7 +4316,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406773",
             "nome": "Remuneração e Salário",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 1783
           }
         ]
       }
@@ -4223,17 +4340,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406783",
             "nome": "Férias",
-            "pai": 415832
+            "pai": 415832,
+            "questoesCatalogo": 912
           },
           {
             "id": "415812",
             "nome": "Proteção ao trabalho da mulher",
-            "pai": 406762
+            "pai": 406762,
+            "questoesCatalogo": 190
           },
           {
             "id": "433421",
             "nome": "Proteção ao trabalho do menor",
-            "pai": 406762
+            "pai": 406762,
+            "questoesCatalogo": 144
           }
         ]
       }
@@ -4257,17 +4377,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406800",
             "nome": "Grupo Econômico",
-            "pai": 433130
+            "pai": 433130,
+            "questoesCatalogo": 98
           },
           {
             "id": "433133",
             "nome": "Sucessão de empregadores",
-            "pai": 433130
+            "pai": 433130,
+            "questoesCatalogo": 26
           },
           {
             "id": "433138",
             "nome": "Responsabilidade Solidária e Subsidiária",
-            "pai": 433130
+            "pai": 433130,
+            "questoesCatalogo": 211
           }
         ]
       }
@@ -4290,7 +4413,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406796",
             "nome": "FGTS",
-            "pai": 406797
+            "pai": 406797,
+            "questoesCatalogo": 222
           }
         ]
       }
@@ -4313,7 +4437,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406754",
             "nome": "Prescrição e decadência",
-            "pai": 406747
+            "pai": 406747,
+            "questoesCatalogo": 164
           }
         ]
       }
@@ -4336,7 +4461,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406776",
             "nome": "Normas de Medicina e Segurança do Trabalho",
-            "pai": 406762
+            "pai": 406762,
+            "questoesCatalogo": 852
           }
         ]
       }
@@ -4359,7 +4485,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "415831",
             "nome": "Convenção e acordo coletivo de trabalho",
-            "pai": 406777
+            "pai": 406777,
+            "questoesCatalogo": 161
           }
         ]
       }
@@ -4382,12 +4509,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406806",
             "nome": "Comissões de Conciliação Prévia",
-            "pai": 406777
+            "pai": 406777,
+            "questoesCatalogo": 91
           },
           {
             "id": "406799",
             "nome": "Renúncia e Transação",
-            "pai": 406759
+            "pai": 406759,
+            "questoesCatalogo": 17
           }
         ]
       }
@@ -4411,12 +4540,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "433123",
             "nome": "Trabalho em domicílio e o teletrabalho",
-            "pai": 433120
+            "pai": 433120,
+            "questoesCatalogo": 86
           },
           {
             "id": "430174",
             "nome": "Reforma Trabalhista - Lei nº 13.467/2017",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 113
           }
         ]
       }
@@ -4439,7 +4570,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406801",
             "nome": "Dano moral e material nas relações de trabalho",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 45
           }
         ]
       }
@@ -4463,7 +4595,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406778",
             "nome": "Jurisprudência",
-            "pai": 406746
+            "pai": 406746,
+            "questoesCatalogo": 376
           }
         ]
       }
@@ -4487,22 +4620,26 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "431451",
             "nome": "Composição, funcionamento, jurisdição e competência de seus órgãos.",
-            "pai": 406813
+            "pai": 406813,
+            "questoesCatalogo": 225
           },
           {
             "id": "416262",
             "nome": "Competências da Justiça do Trabalho em Razão da Matéria",
-            "pai": 431450
+            "pai": 431450,
+            "questoesCatalogo": 412
           },
           {
             "id": "416264",
             "nome": "Competência Territorial da Justiça do Trabalho",
-            "pai": 431450
+            "pai": 431450,
+            "questoesCatalogo": 77
           },
           {
             "id": "416266",
             "nome": "Competência Funcional da Justiça do Trabalho",
-            "pai": 431450
+            "pai": 431450,
+            "questoesCatalogo": 23
           }
         ]
       }
@@ -4526,22 +4663,26 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "431453",
             "nome": "Varas do Trabalho",
-            "pai": 431451
+            "pai": 431451,
+            "questoesCatalogo": 16
           },
           {
             "id": "406815",
             "nome": "Tribunais Regionais do Trabalho",
-            "pai": 431451
+            "pai": 431451,
+            "questoesCatalogo": 63
           },
           {
             "id": "431455",
             "nome": "Das secretarias das Varas do Trabalho",
-            "pai": 430113
+            "pai": 430113,
+            "questoesCatalogo": 7
           },
           {
             "id": "431456",
             "nome": "Dos distribuidores",
-            "pai": 430113
+            "pai": 430113,
+            "questoesCatalogo": 2
           }
         ]
       }
@@ -4564,7 +4705,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406811",
             "nome": "Princípios do Direito Processual do Trabalho",
-            "pai": 406810
+            "pai": 406810,
+            "questoesCatalogo": 183
           }
         ]
       }
@@ -4588,17 +4730,20 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406826",
             "nome": "Atos Processuais e Prazos",
-            "pai": 406809
+            "pai": 406809,
+            "questoesCatalogo": 720
           },
           {
             "id": "431574",
             "nome": "Custas Processuais",
-            "pai": 431570
+            "pai": 431570,
+            "questoesCatalogo": 101
           },
           {
             "id": "406830",
             "nome": "Emolumentos",
-            "pai": 431570
+            "pai": 431570,
+            "questoesCatalogo": 146
           }
         ]
       }
@@ -4622,27 +4767,32 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406821",
             "nome": "Das Partes",
-            "pai": 406820
+            "pai": 406820,
+            "questoesCatalogo": 92
           },
           {
             "id": "406822",
             "nome": "Procuradores",
-            "pai": 406820
+            "pai": 406820,
+            "questoesCatalogo": 136
           },
           {
             "id": "431605",
             "nome": "Substituição das Partes e dos Procuradores",
-            "pai": 406820
+            "pai": 406820,
+            "questoesCatalogo": 21
           },
           {
             "id": "431595",
             "nome": "Assistência Judiciária e Justiça Gratuita",
-            "pai": 431570
+            "pai": 431570,
+            "questoesCatalogo": 43
           },
           {
             "id": "431580",
             "nome": "Honorários Advocatícios",
-            "pai": 431570
+            "pai": 431570,
+            "questoesCatalogo": 114
           }
         ]
       }
@@ -4666,12 +4816,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406845",
             "nome": "Audiência",
-            "pai": 406809
+            "pai": 406809,
+            "questoesCatalogo": 438
           },
           {
             "id": "406831",
             "nome": "Comunicação dos Atos Processuais",
-            "pai": 431612
+            "pai": 431612,
+            "questoesCatalogo": 47
           }
         ]
       }
@@ -4695,12 +4847,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406844",
             "nome": "Petição Inicial do Dissídio Individual do Trabalho",
-            "pai": 406836
+            "pai": 406836,
+            "questoesCatalogo": 43
           },
           {
             "id": "406843",
             "nome": "Requisitos da Petição Inicial",
-            "pai": 406836
+            "pai": 406836,
+            "questoesCatalogo": 163
           }
         ]
       }
@@ -4724,12 +4878,14 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "431650",
             "nome": "Procedimento Ordinário",
-            "pai": 431649
+            "pai": 431649,
+            "questoesCatalogo": 28
           },
           {
             "id": "406839",
             "nome": "Procedimento Sumaríssimo",
-            "pai": 431649
+            "pai": 431649,
+            "questoesCatalogo": 371
           }
         ]
       }
@@ -4753,7 +4909,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406838",
             "nome": "Processo de Execução",
-            "pai": 406809
+            "pai": 406809,
+            "questoesCatalogo": 1038
           }
         ]
       }
@@ -4777,7 +4934,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "406837",
             "nome": "Sistema recursal trabalhista",
-            "pai": 406809
+            "pai": 406809,
+            "questoesCatalogo": 1703
           }
         ]
       }
@@ -4800,7 +4958,8 @@ window.TrilhaVinculosTRT4 = {
           {
             "id": "430130",
             "nome": "Aspectos gerais da Lei Federal nº 11.419/2006.",
-            "pai": 416280
+            "pai": 416280,
+            "questoesCatalogo": 1
           }
         ]
       }
