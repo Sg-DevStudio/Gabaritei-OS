@@ -83,10 +83,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Emprego de tempos e modos verbais",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=419336&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "419336",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=419374%2C419381&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "419374,419381",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -352,10 +353,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Grandezas e medidas: quantidade, tempo, comprimento, superfície, capacidade e massa",
-        "url": "https://questoes.grancursosonline.com.br/raciocinio-logico-404257",
-        "code": null,
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=408593&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "408593",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -527,10 +529,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Ordem social: disposições gerais da seguridade e previdência social",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=421934%2C405309&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "421934,405309",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405307&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405307",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -705,10 +708,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Seguridade do servidor e previdência complementar: Lei 12.618/2012",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404430&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "404430",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404430%2C407067&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404430,407067",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -843,10 +847,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Pressupostos processuais e sujeitos do processo",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=402094&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "402094",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402094%2C402106&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "402094,402106",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -859,10 +864,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Tutela jurisdicional: espécies",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=402094&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "402094",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402141&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "402141",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -874,10 +880,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Acesso à justiça, gratuidade e métodos apropriados de solução de conflitos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=402091&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "402091",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402091%2C402236&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "402091,402236",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -905,10 +912,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Imputabilidade penal",
-        "url": "https://questoes.grancursosonline.com.br/direito-penal-406223",
-        "code": null,
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=413791&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "413791",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1125,10 +1133,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Processo decisório",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404609&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "404609",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404631&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404631",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1156,10 +1165,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Organização informal e cultura organizacional",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404625&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "404625",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404625%2C404617&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404625,404617",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1206,10 +1216,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Qualidade e excelência gerencial: teóricos, contribuições e ferramentas",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=403763&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "403763",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=417247&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "417247",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1268,10 +1279,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Noções de estatística para controle e melhoria de processos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404626&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "404626",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=425617&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "425617",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1492,10 +1504,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Gestão de riscos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404626&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "404626",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=436564&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "436564",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1522,10 +1535,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Análise e tomada de decisão e gerenciamento de crise",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=404609&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "404609",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404631&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404631",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1816,10 +1830,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Acessibilidade: normas gerais e critérios da Lei 10.098/2000",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=433274&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "433274",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=395332&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "395332",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [
@@ -1831,10 +1846,11 @@ window.TrilhaVinculosTRF2 = {
     "links": [
       {
         "nome": "Prioridade de atendimento: Lei 10.048/2000",
-        "url": "https://questoes.grancursosonline.com.br/questoes?desatualizada=0&anulada=0&assunto=433274&banca=982%2C92&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&nivel=1",
-        "code": "433274",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=291373&banca=982%2C92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "291373",
         "exact": false,
-        "consolidado": true
+        "consolidado": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "referencias": [

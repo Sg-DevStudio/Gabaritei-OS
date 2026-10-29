@@ -588,11 +588,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Falsa identidade e fraude em certames: arts. 307, 308 e 311-A do CP",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=414053%2C406430&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "414053,406430",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406428%2C406430&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406428,406430",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -658,11 +659,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Juiz, MP, acusado, defensor e auxiliares: arts. 251 a 258, 261 a 267 e 274 do CPP",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&disciplina=406602&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": null,
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406660&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406660",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -714,11 +716,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Recursos e habeas corpus: arts. 574 a 667 do CPP",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406683&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "406683",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406683%2C406701&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406683,406701",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -770,11 +773,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Tutela provisória: arts. 294 a 311 do CPC",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402128%2C402141&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "402128,402141",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402141&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "402141",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -798,11 +802,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Sentença, coisa julgada e cumprimento: arts. 485 a 538 do CPC",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402212&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "402212",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=402163%2C423913%2C402165&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "402163,423913,402165",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -840,11 +845,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Direitos e deveres individuais e coletivos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405212&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "405212",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405219&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405219",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -854,11 +860,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Direitos sociais",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405219&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "405219",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405227&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405227",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -868,11 +875,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Nacionalidade",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405227&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "405227",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405228&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405228",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -910,11 +918,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Poder Judiciário: artigo 92 da Constituição",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405266&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "405266",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405268&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405268",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -1172,11 +1181,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Operações com números reais, MMC e MDC",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403827%2C408655&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "403827,408655",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403827%2C408655%2C408656&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "403827,408655,408656",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -1256,11 +1266,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Geometria: perimetro, área, volume, angulos e Pitagoras",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=425202&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": "425202",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=425202%2C403890&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "425202,403890",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
@@ -1340,11 +1351,12 @@ window.TrilhaVinculosTJSP = {
     "links": [
       {
         "nome": "Internet: navegacao, URL, links, sites, busca e impressao",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&disciplina=405030&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
-        "code": null,
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=429400&banca=252%2C982%2C102&nivel=2&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "429400",
         "exact": false,
         "aviso": "Filtro amplo: confira o recorte de artigos e assuntos no Gran.",
-        "filtroAmplo": true
+        "filtroAmplo": true,
+        "revisadoEm": "2026-10-28"
       }
     ],
     "pendencia": null
