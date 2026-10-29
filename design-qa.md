@@ -27,3 +27,12 @@ Comparação: referência e captura desktop reunidas em comparacao-v3.png, viewp
 O concurso, as conquistas, as datas e os números da demonstração diferem dos dados ilustrativos da referência. São preservados os controles existentes de registro e os ícones do sistema. A faixa de conquistas permite acessar todas, em vez de simular conquistas que o aluno não obteve. O aviso de modo exemplo permanece apenas na demonstração.
 
 Limite: autenticação e sincronização com uma conta real não foram exercitadas nesta rodada visual.
+
+## Ajustes posteriores solicitados
+
+- Restaurados os ícones originais específicos das conquistas e troféu no cabeçalho.
+- Grade responsiva sem rolagem horizontal: seis conquistas no desktop amplo, três em larguras intermediárias e duas no celular; Ver todas expande a coleção completa.
+- Editar prova aparece com hover/foco em dispositivos com mouse e permanece acessível em telas de toque.
+- Retirado o nome redundante do plano no cabeçalho da disciplina.
+- Separados percentuais e totais; no celular os totais ficam na linha seguinte.
+- Cenários exercitados em navegador: expansão/detalhe de conquista, hover, escolha de tópico e timer, metas, abertura de disciplina e ausência de overflow.

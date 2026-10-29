@@ -73,9 +73,9 @@
       conquistas.classList.remove('conquistas-compactas');
       conquistas.classList.add('hoje-conquistas-topo');
       const dica = conquistas.querySelector('.conquistas-dica'); if(dica) dica.remove();
-      const icones=['ic-edital','ic-agenda','ic-stats','ic-revisoes','ic-livro','ic-simulados'];
+      const trofeu=document.createElement('span'); trofeu.className='conquistas-trofeu'; trofeu.textContent='🏆'; trofeu.setAttribute('aria-hidden','true');
+      conquistas.querySelector('h3').insertBefore(trofeu, conquistas.querySelector('.conquistas-contador'));
       conquistas.querySelectorAll('.medalha').forEach((b,i) => {
-        b.querySelector('.medalha-icone').innerHTML='<svg class="nav-ic" aria-hidden="true"><use href="#'+icones[i%icones.length]+'"/></svg>';
         const status=document.createElement('small'); status.textContent=b.classList.contains('ganha')?'Concluído':'Em progresso'; b.append(status);
       });
     }

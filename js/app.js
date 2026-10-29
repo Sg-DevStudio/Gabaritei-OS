@@ -5027,7 +5027,7 @@
     const m = metricasDisciplina(disc);
     const metaPct = state.plano && state.plano.meta ? state.plano.meta.corte_pct : 70;
     let html = '<button class="det-voltar-flutuante" id="det-voltar" aria-label="Voltar"><span aria-hidden="true">←</span><span class="det-voltar-txt">Voltar</span></button>';
-    html += '<div class="cab-pagina detalhe-disc-cab"><div><span class="rotulo-pagina">' + esc(state.plano ? state.plano.concurso : 'Plano manual') + '</span>' +
+    html += '<div class="cab-pagina detalhe-disc-cab"><div>' +
       '<h1>' + esc(nomeDiscCurto(disc.nome)) + '</h1></div></div>';
 
     html += '<div class="linha-cards detalhe-metricas">' +
