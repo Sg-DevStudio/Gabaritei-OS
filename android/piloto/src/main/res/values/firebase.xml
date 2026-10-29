@@ -1,0 +1,7 @@
+<!-- Configuração pública do aplicativo Firebase; não contém segredo de servidor. -->
+<resources>
+    <string name="firebase_app_id" translatable="false">1:450464644014:android:ced143a4d58040a60c663f</string>
+    <string name="firebase_api_key" translatable="false">AIzaSyDGZppnf2SYcx59aE_-pkyqUoaaynkQcgA</string>
+    <string name="firebase_project_id" translatable="false">app-gestao-estudos</string>
+    <string name="firebase_web_client_id" translatable="false">450464644014-duu7j7oqfvdg6fu3pgu1gkibcsqfp9m7.apps.googleusercontent.com</string>
+</resources>

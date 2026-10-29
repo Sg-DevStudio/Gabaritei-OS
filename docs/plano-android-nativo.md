@@ -58,7 +58,7 @@ Testar pausa, retomada, término, Pomodoro, bloqueio de tela, retorno do segundo
 
 ### 4. Integrar a conta e a sincronização
 
-Conferir o contrato atual em `js/firebase-sync.js`, incluindo o documento `users/{uid}/state/app`, identificação dos planos, versões e regras de segurança. O mesmo login deve identificar a mesma pessoa. Não sobrescrever o documento inteiro a partir de um modelo Kotlin incompleto.
+Conferir o contrato atual em `js/firebase-sync.js`, incluindo o documento `users/{uid}/state/current`, identificação dos planos, versões e regras de segurança. O mesmo login deve identificar a mesma pessoa. Não sobrescrever o documento inteiro a partir de um modelo Kotlin incompleto.
 
 Primeiro usar backups de teste e comparação de importação/exportação. Definir versionamento, fila de alterações locais, deduplicação de sessões e resolução de conflitos antes de gravar dados reais. Validar edição offline seguida de sincronização, uso simultâneo do site e app, troca de conta e interrupção de rede. Mudanças de esquema precisam preservar compatibilidade durante a transição.
 

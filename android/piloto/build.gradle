@@ -11,14 +11,24 @@ android {
         applicationId 'br.com.gabaritei.os.piloto'
         minSdk 26
         targetSdk 35
-        versionCode 1
-        versionName '0.1.0-local'
+        versionCode 3
+        versionName '0.3.0-estudos'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildFeatures { compose true }
+    // Testes em aparelho usam outro pacote; o runner não pode remover o app do aluno.
+    buildTypes {
+        qa {
+            initWith debug
+            applicationIdSuffix '.qa'
+            versionNameSuffix '-qa'
+            matchingFallbacks = ['debug']
+        }
+    }
+    testBuildType 'qa'
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = '17' }
-    testOptions { unitTests.returnDefaultValues = true }
+    testOptions { unitTests.returnDefaultValues = true; unitTests.includeAndroidResources = true }
 }
 ksp { arg('room.schemaLocation', "$projectDir/schemas") }
 dependencies {
@@ -32,6 +42,15 @@ dependencies {
     implementation 'androidx.room:room-ktx:2.7.1'
     ksp 'androidx.room:room-compiler:2.7.1'
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+    implementation platform('com.google.firebase:firebase-bom:33.13.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'androidx.credentials:credentials:1.3.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.3.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.1'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test:runner:1.6.2'
 }

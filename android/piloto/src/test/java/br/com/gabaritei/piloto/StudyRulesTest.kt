@@ -3,6 +3,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class StudyRulesTest {
+    @Test fun percentagesMatchTheWebsiteRounding(){assertEquals(73,StudyRules.percentage(40,55));assertEquals(1,StudyRules.percentage(1,121));assertNull(StudyRules.percentage(0,0))}
     @Test fun invalidRecordsAreRejected() {
         assertNotNull(StudyRules.error(StudyInput(0,10,8)))
         assertNotNull(StudyRules.error(StudyInput(600,10,11)))

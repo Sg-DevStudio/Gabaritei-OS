@@ -13,7 +13,17 @@ const sources=[
 ];
 const plans=sources.map(([base,map])=>{
   if(!base)throw Error('Plano ausente na fonte');
-  return {id:base.id,name:base.titulo,disciplines:base.disciplinas.map(d=>({id:d.id,name:d.nome,topics:d.topicos.filter(t=>!t.removidoDoEdital).map(t=>{
+  const full=(w.CATALOGO_EDITAIS_BASE||[]).find(p=>p.id===base.id)||base;
+  const photoFallback=/trf2/i.test(base.titulo)?'assets/carreiras/logo-trf2.png':/tjsp/i.test(base.titulo)?'assets/carreiras/logo-tjsp.jpg':/trt4/i.test(base.titulo)?'assets/carreiras/logo-trt4.jpg':'';
+  const webBase={...full,...base,foto:photoFallback||full.foto||base.foto||''};
+  let logoAsset='';const photo=webBase.foto;
+  if(photo){
+    const data=photo.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/s);
+    const source=!data&&fs.existsSync(path.join(root,photo))?path.join(root,photo):null;
+    if(data||source){const ext=data?(data[1]==='jpeg'?'jpg':data[1]):path.extname(source).slice(1);logoAsset='planlogos/'+base.id+'.'+ext;
+      const dest=path.join(root,'android/piloto/src/main/assets',logoAsset);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,data?Buffer.from(data[2],'base64'):fs.readFileSync(source));}
+  }
+  return {id:base.id,name:base.titulo,logoAsset,webBase,disciplines:base.disciplinas.map(d=>({id:d.id,name:d.nome,topics:d.topicos.filter(t=>!t.removidoDoEdital).map(t=>{
     const v=Object.values(map).find(v=>normal(v.nome)===normal(t.nome));
     const l=v?.links[0];
     return {id:t.id,name:t.nome,link:l?.url||'',noQuestions:!!l?.semResultadosNoRecorte,note:(l?.semResultadosNoRecorte?'Sem questões no recorte selecionado. ':'')+(v?.pendencia||l?.aviso||(!l?'Adicione um link complementar para este tópico.':''))};

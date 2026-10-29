@@ -43,3 +43,8 @@ Limite: autenticação e sincronização com uma conta real não foram exercitad
 - Revisão restrita ao caderno TRT4: 120 tópicos com filtros específicos, 5 amplos com motivo documentado e 8 para complemento. Comparados códigos e nomes à árvore pública oficial do Gran (40.619 categorias). Seis amostras finais abertas no site do Gran confirmaram assuntos e banca selecionados e questões disponíveis. Categorias novas sem acervo foram substituídas ou identificadas como pendentes. Busca de remoção/redistribuição abre capítulos específicos; validada em desktop e celular de 390 px. Browser plugin not available; QA com Playwright/Chrome. Testes: 323 aprovados e 7 ignorados por ambiente. Outros cadernos não foram modificados nesta etapa.
 
 - Revisão integral TRF2/TJSP (29/10/2026): 13 disciplinas/121 tópicos e 12 disciplinas/80 tópicos conferidos, com registro por disciplina. Links recortados preservam bancas e dados pessoais; indisponibilidade no recorte da LBI fica explícita. Novo plano TRT4 Analista Área Judiciária: 13 disciplinas/228 tópicos, requisito Direito, estudo de caso e ausência de corte/incidência aferidos. Testados detalhes, isolamento dos cadernos, busca e links em desktop e 390 px; sem overflow da página nem erros JS. Textos longos da ajuda quebram linha. 330 testes aprovados, 7 ignorados por ambiente. Browser plugin not available: Playwright/Chrome. Prompt movido à raiz; roteiro Android é planejamento, sem substituir o APK atual.
+
+
+## Android nativo — 29/10/2026
+
+A revisão do piloto 0.3 e suas limitações estão em [docs/android-design-qa.md](docs/android-design-qa.md). Este registro não altera os resultados anteriores do site.

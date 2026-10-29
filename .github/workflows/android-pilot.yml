@@ -7,12 +7,14 @@ on:
       - 'android/**'
       - 'data/**'
       - 'scripts/android-pilot-catalog.cjs'
+      - 'scripts/android-contract-check.cjs'
       - '.github/workflows/android-pilot.yml'
   pull_request:
     paths:
       - 'android/**'
       - 'data/**'
       - 'scripts/android-pilot-catalog.cjs'
+      - 'scripts/android-contract-check.cjs'
       - '.github/workflows/android-pilot.yml'
 permissions:
   contents: read
@@ -42,9 +44,11 @@ jobs:
           git diff --exit-code -- android/piloto/src/main/assets/catalog.json
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Compilar, testar domínio e verificar lint
-        run: gradle -p android :piloto:assembleDebug :piloto:testDebugUnitTest :piloto:lintDebug :piloto:assembleDebugAndroidTest --console plain
+        run: gradle -p android :piloto:assembleDebug :piloto:testDebugUnitTest :piloto:lintDebug :piloto:assembleQaAndroidTest --console plain
       - uses: actions/upload-artifact@v4
         with:
-          name: Gabaritei-Piloto-local
-          path: android/piloto/build/outputs/apk/debug/piloto-debug.apk
+          name: Gabaritei-Piloto-verificacoes
+          path: |
+            android/piloto/build/reports/tests/testDebugUnitTest/
+            android/piloto/build/reports/lint-results-debug.html
           retention-days: 7

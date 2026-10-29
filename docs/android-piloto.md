@@ -1,5 +1,9 @@
 # Gabaritei — piloto Android nativo
 
+## Versão atual: 0.3.0-estudos
+
+O piloto agora tem conta Google, sincronização compatível, criação de rotina, notificações opcionais, temas, tela cheia, logos, desempenho e conquistas no perfil. Consulte [contas e sincronização](android-contas-sync.md) e [verificação visual](android-design-qa.md). As seções abaixo registram o escopo histórico da versão 0.1 e suas pendências à época.
+
 ## Decisões aprovadas em 29/10/2026
 
 - Android como única plataforma móvel neste momento; Kotlin e Jetpack Compose.
