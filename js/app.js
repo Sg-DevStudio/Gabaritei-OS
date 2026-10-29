@@ -509,7 +509,7 @@
       state = window.Store.estadoVazio();
       window.Store.salvar(state, { marcarAlterado: false });
     }
-    localStorage.setItem(CHAVE_ULTIMO_USUARIO, u.uid);
+    if (ultimo !== u.uid) localStorage.setItem(CHAVE_ULTIMO_USUARIO, u.uid);
   }
 
   function toast(msg, tipo) {
@@ -12485,6 +12485,21 @@
     });
   }
 
+  function abrirMetasHoje() {
+    const m = abrirModal('<h3>Metas de estudo</h3>' + perfilMetasHtml() + '<p class="sub">As horas semanais seguem sua rotina no Planejamento.</p><button type="button" class="botao-quieto" id="metas-rotina">Ajustar rotina e horas</button><div class="modal-acoes"><button type="button" id="metas-fechar" class="botao-quieto">Cancelar</button><button type="button" id="metas-salvar">Salvar metas</button></div>');
+    m.querySelector('#metas-fechar').onclick = fecharModal;
+    m.querySelector('#metas-rotina').onclick = function () { fecharModal(); abrirGerarPlanoComRotina(); };
+    m.querySelector('#metas-salvar').onclick = function () {
+      state.config.metaQuestoesSemana = Math.max(0, Math.min(2000, parseInt(m.querySelector('#pf-meta-q').value,10) || 0));
+      const geral = parseInt(m.querySelector('#pf-meta-geral').value,10);
+      state.config.metaAcertoPct = geral > 0 && geral <= 100 ? geral : null;
+      const mapa = {};
+      m.querySelectorAll('[data-meta-disc]').forEach(inp => { const n = parseInt(inp.value,10); if(n>0 && n<=100) mapa[inp.dataset.metaDisc] = n; });
+      state.config.metaAcertoDisc = mapa;
+      salvar(); fecharModal(); render(); toast('Metas atualizadas', 'sucesso');
+    };
+  }
+
   // ---------------- Perfil (menu superior) ----------------
   // Bloco de metas no Perfil: questões/semana, % de acerto geral e por disciplina.
   function perfilMetasHtml() {
@@ -12533,7 +12548,6 @@
       (state.config.lembretesPush ? ' checked' : '') + (pushDisponivel ? '' : ' disabled') + '></label>' +
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
-      perfilMetasHtml() +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
@@ -12589,17 +12603,6 @@
       state.config.nomeUsuario = m.querySelector('#pf-nome').value.trim();
       state.config.onboardingNomeVisto = true;
       state.config.somConquistasOff = pfSom ? !pfSom.checked : state.config.somConquistasOff;
-      // Metas
-      const mq = m.querySelector('#pf-meta-q');
-      if (mq) state.config.metaQuestoesSemana = Math.max(0, Math.min(2000, parseInt(mq.value, 10) || 0));
-      const mg = m.querySelector('#pf-meta-geral');
-      if (mg) { const v = parseInt(mg.value, 10); state.config.metaAcertoPct = (v > 0 && v <= 100) ? v : null; }
-      const mapa = {};
-      m.querySelectorAll('[data-meta-disc]').forEach(function (inp) {
-        const v = parseInt(inp.value, 10);
-        if (v > 0 && v <= 100) mapa[inp.getAttribute('data-meta-disc')] = v;
-      });
-      state.config.metaAcertoDisc = mapa;
       salvar();
       fecharModal();
       render();
@@ -12918,6 +12921,7 @@
     // Links de apoio e avisos não desaparecem; ficam depois da atividade do dia.
     const apoio = raiz.querySelector('.hoje-links-apoio'); if (apoio) raiz.append(apoio);
     reposicionarTopoInicio(raiz);
+    if (window.InicioLayout) window.InicioLayout.aplicar(raiz, state, D, {metas:abrirMetasHoje, prova:abrirEditarProva});
   }
 
   function reposicionarTopoInicio(raiz) {

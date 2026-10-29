@@ -53,6 +53,10 @@
       if (summary && /^como (usar|funciona)/i.test(summary.textContent.trim())) preparar(d);
     });
   }
-  new MutationObserver(atualizar).observe(document.body, { childList: true, subtree: true });
+  // Contadores do timer alteram só texto: não precisam varrer todas as ajudas.
+  new MutationObserver(registros => {
+    if (registros.some(r => Array.from(r.addedNodes).some(n => n.nodeType === 1 &&
+      (n.matches(seletores + ',details') || n.querySelector(seletores + ',details'))))) atualizar();
+  }).observe(document.body, { childList: true, subtree: true });
   atualizar();
 })();

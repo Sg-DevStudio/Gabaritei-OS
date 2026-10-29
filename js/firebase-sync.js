@@ -601,12 +601,16 @@ function registrarReSyncPrimeiroPlano() {
   if (reSyncRegistrado) return;
   reSyncRegistrado = true;
 
-  function reconciliarFresco() {
-    if (!refEstado) return;
+  let ultimaRetomada = 0;
+  function reconciliarFresco(forcar) {
+    if (!refEstado || reconciliando || enviando || document.hidden) return;
+    const agora = Date.now();
+    if (forcar !== true && agora - ultimaRetomada < 30000) return;
+    ultimaRetomada = agora;
     reconciliarComRemoto(true).then(observarMudancas);
   }
 
-  window.addEventListener('online', reconciliarFresco);
+  window.addEventListener('online', function () { reconciliarFresco(true); });
   window.addEventListener('focus', reconciliarFresco);
   window.addEventListener('pagehide', flushEnvio);
   document.addEventListener('visibilitychange', function () {

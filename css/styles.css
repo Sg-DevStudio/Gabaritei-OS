@@ -5010,3 +5010,69 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .inicio-topico-opcao small { color:var(--grafite); white-space:nowrap; }
 .inicio-topico-opcao.selecionado { border-color:var(--caneta); background:var(--caneta-suave); }
 @media(max-width:760px) { .proximo-estudo .fila-corpo { grid-template-columns:minmax(0,1fr); } .proximo-estudo .fila-rodape { margin-top:4px; } .proximo-estudo .fila-acoes { width:100%; } .inicio-trocar-topico { min-height:44px; height:44px; flex-basis:32px; } }
+
+/* Hoje: uma atividade de cada vez, metas no contexto e ritmo visual uniforme. */
+.hoje-refinada { --hoje-gap:18px; }
+.hoje-painel { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(300px,1fr); align-items:start; gap:var(--hoje-gap); margin-bottom:var(--hoje-gap); }
+.hoje-painel-lateral { display:grid; gap:var(--hoje-gap); min-width:0; }
+.hoje-refinada .card { border-radius:18px; box-shadow:none; }
+.hoje-refinada .proximo-estudo { margin:0; padding:20px; border-left:1px solid var(--linha); }
+.hoje-refinada .proximo-estudo > h2 { display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; margin:0 0 16px; font-size:.73rem; text-transform:uppercase; letter-spacing:.06em; }
+.hoje-refinada .proximo-estudo > h2 span { font-size:.72rem; font-weight:400; text-transform:none; letter-spacing:0; color:var(--caneta); }
+.hoje-refinada .proximo-estudo > .fila-item { background:var(--caneta-suave); padding:18px; border-radius:13px; }
+.hoje-refinada .proximo-estudo .disciplina-destaque { font-size:.92rem; }
+.hoje-refinada .proximo-estudo .fila-corpo { grid-template-columns:minmax(0,1fr); }
+.hoje-refinada .proximo-estudo .fila-rodape { justify-content:flex-end; }
+.hoje-refinada .proximo-estudo .fila-acoes { width:auto; }
+.hoje-ainda { border-top:1px solid var(--linha); margin-top:18px; padding-top:14px; }
+.hoje-ainda-cab { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; font-size:.73rem; color:var(--grafite); }
+.hoje-ainda .fila-item { padding:6px 0; }
+.hoje-ainda .fila-titulo { font-size:.82rem; }
+.hoje-card-cab { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.hoje-refinada .hoje-metas { padding:16px 20px; margin:0; }
+.hoje-card-cab h2, .hoje-resumo h2 { margin:0; font-size:.73rem; text-transform:uppercase; letter-spacing:.05em; color:var(--grafite); }
+.hoje-engrenagem { display:grid; place-items:center; width:36px; height:36px; padding:7px; border:0; box-shadow:none; }
+.hoje-engrenagem svg { width:18px; height:18px; }
+.hoje-meta-item { padding:14px 0; border:0; border-radius:0; background:transparent; }
+.hoje-meta-item + .hoje-meta-item { border-top:1px solid var(--linha); }
+.hoje-meta-item .card-kpi-valor { font-size:1.15rem; margin-top:6px; }
+.hoje-meta-alvo { font-size:.85rem; font-weight:400; color:var(--grafite); }
+.hoje-meta-item .barra { height:5px; }
+.hoje-prova { display:flex; gap:16px; justify-content:space-between; align-items:center; padding:16px 20px; margin:0; }
+.hoje-prova h2 { margin:0 0 6px; font-size:.9rem; }
+.hoje-prova .sub { font-size:.77rem; }
+.hoje-prova-dias { display:grid; justify-items:center; min-width:100px; padding-left:14px; border-left:1px solid var(--linha); text-align:center; }
+.hoje-prova-dias strong { font-size:1.8rem; line-height:1.1; color:var(--caneta); }
+.hoje-prova-dias small { font-size:.68rem; color:var(--grafite); }
+.hoje-prova-dias button { font-size:.74rem; margin-top:5px; }
+.hoje-resumos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--hoje-gap); margin-bottom:var(--hoje-gap); }
+.hoje-resumo { padding:20px; margin:0; min-width:0; }
+.hoje-resumo h2 { margin:0 0 16px; }
+.hoje-numero { font-size:1.6rem; line-height:1.1; }
+.hoje-resumo > span:not(.hoje-aspas) { font-size:.8rem; color:var(--grafite); }
+.hoje-resumo .sub { font-size:.75rem; margin:10px 0; }
+.hoje-resumo > a { display:inline-block; margin-top:12px; font-size:.75rem; }
+.hoje-resumo .barra { margin-top:14px; height:5px; }
+.hoje-frase { display:flex; flex-direction:column; justify-content:center; position:relative; }
+.hoje-frase .frase-dia { border:0; padding:0; background:transparent; font-size:.88rem; line-height:1.65; margin:0; }
+.hoje-aspas { color:var(--caneta); opacity:.3; font-size:3rem; height:30px; line-height:1; }
+.hoje-secundarios { display:grid; gap:var(--hoje-gap); }
+.hoje-secundarios > * { margin:0; }
+.hoje-secundarios .inicio-semana { padding:20px; border-radius:18px; }
+.hoje-conquistas > summary { cursor:pointer; color:var(--grafite); font-size:.85rem; padding:10px 0; }
+.aviso-atualizacao { position:fixed; right:20px; bottom:calc(var(--abas-alt) + 18px); z-index:150; max-width:calc(100vw - 40px); }
+@media(max-width:1000px) { .hoje-painel { grid-template-columns:minmax(0,1fr) minmax(280px,.85fr); } }
+@media(max-width:760px) {
+ .hoje-painel { display:flex; flex-direction:column; }
+ .hoje-painel > *, .hoje-painel-lateral { width:100%; }
+ .hoje-resumos { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .hoje-frase { grid-column:1 / -1; }
+ .hoje-resumo { padding:16px; }
+ .hoje-refinada .proximo-estudo { padding:16px; }
+ .hoje-refinada .proximo-estudo > .fila-item { padding:14px; }
+ .hoje-ainda-cab a { text-align:right; }
+ .hoje-refinada .proximo-estudo .inicio-iniciar { min-height:44px; }
+}
+.hoje-refinada .hoje-meta-item { display:block; min-height:0; gap:0; }
+
+.hoje-refinada .hoje-meta-item:hover { transform:none; box-shadow:none; }
