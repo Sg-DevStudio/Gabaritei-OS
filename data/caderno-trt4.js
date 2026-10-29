@@ -1210,11 +1210,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Compreensão e interpretação de textos; contexto histórico e intertextualidade",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403701&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403701&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "403701",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403701",
+            "nome": "Interpretação de Texto",
+            "pai": 403587
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1226,9 +1236,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Reescrita: frases corretas e incorretas, organização e transformação de períodos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403713&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403713",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403713",
+            "nome": "Equivalência, substituição, reorganização e transformação de palavras ou trechos do texto",
+            "pai": 403712
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1240,9 +1259,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Ortografia oficial",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403613&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403613",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403613",
+            "nome": "Ortografia oficial e acentuação gráfica",
+            "pai": 403587
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1254,9 +1282,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Acentuação gráfica",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403612&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403612",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403612",
+            "nome": "Acentuação gráfica",
+            "pai": 419321
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1266,11 +1303,36 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Flexão nominal e verbal",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403617&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403617",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=409117%2C409143%2C409160%2C409189&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "409117,409143,409160,409189",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "409117",
+            "nome": "Flexão do substantivo",
+            "pai": 403622
+          },
+          {
+            "id": "409143",
+            "nome": "Flexão do adjetivo",
+            "pai": 403623
+          },
+          {
+            "id": "409160",
+            "nome": "Flexão do numeral",
+            "pai": 403621
+          },
+          {
+            "id": "409189",
+            "nome": "Flexões verbais",
+            "pai": 403628
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1280,11 +1342,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Pronomes: emprego e colocação",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403617&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403617",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403641%2C403650&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "403641,403650",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403641",
+            "nome": "Pronomes",
+            "pai": 419336
+          },
+          {
+            "id": "403650",
+            "nome": "Colocação Pronominal",
+            "pai": 403651
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1294,11 +1371,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Tempos, modos e vozes verbais",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=419374,419381&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "419374,419381",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=419374%2C419381%2C403634&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "419374,419381,403634",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "419374",
+            "nome": "Emprego dos modos verbais",
+            "pai": 403631
+          },
+          {
+            "id": "419381",
+            "nome": "Emprego dos tempos verbais",
+            "pai": 403630
+          },
+          {
+            "id": "403634",
+            "nome": "Flexão de voz (ativa, passiva, reflexiva)",
+            "pai": 409189
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1310,9 +1407,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Concordância nominal e verbal",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403658,409456&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403658,409456",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403658",
+            "nome": "Concordância verbal",
+            "pai": 409455
+          },
+          {
+            "id": "409456",
+            "nome": "Concordância Nominal",
+            "pai": 409455
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1324,9 +1435,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Regência nominal e verbal",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403657,409483&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403657,409483",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403657",
+            "nome": "Regência verbal",
+            "pai": 409479
+          },
+          {
+            "id": "409483",
+            "nome": "Regência nominal",
+            "pai": 409479
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1338,9 +1463,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Crase",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403682&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403682",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403682",
+            "nome": "Emprego do sinal indicativo de crase",
+            "pai": 403651
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1352,9 +1486,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Pontuação",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403666&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403666",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403666",
+            "nome": "Pontuação",
+            "pai": 403651
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1364,11 +1507,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Denotação, conotação, sinonímia, antonímia e figuras de linguagem",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=409314&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "409314",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403706%2C403704%2C409484&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "403706,403704,409484",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403706",
+            "nome": "Linguagem denotativa e linguagem conotativa (denotação e conotação)",
+            "pai": 403701
+          },
+          {
+            "id": "403704",
+            "nome": "Relações de sinonímia e antonímia (sinônimos e antônimos)",
+            "pai": 409318
+          },
+          {
+            "id": "409484",
+            "nome": "Figuras de linguagem",
+            "pai": 403709
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1380,9 +1543,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Discurso direto, indireto e indireto livre",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=419180&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "419180",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "419180",
+            "nome": "Tipos de discurso narrativo",
+            "pai": 409512
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1392,11 +1564,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Morfossintaxe e formação de palavras",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403617,403619&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403617,403619",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403617%2C403651&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "403617,403651",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403617",
+            "nome": "Morfologia",
+            "pai": 403587
+          },
+          {
+            "id": "403651",
+            "nome": "Morfossintaxe do período",
+            "pai": 403587
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1406,11 +1593,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Coordenação, subordinação e conectivos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403651&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403651",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=419436%2C403626&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "419436,403626",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "419436",
+            "nome": "A sintaxe do período composto",
+            "pai": 403651
+          },
+          {
+            "id": "403626",
+            "nome": "Conjunções",
+            "pai": 419336
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1420,11 +1622,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Redação oficial",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403587&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403587",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406881&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406881",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406881",
+            "nome": "Redação Oficial",
+            "pai": null
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1434,11 +1646,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Números inteiros: operações, expressões, múltiplos e divisores",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=408662&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "408662",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=408662%2C403827%2C403828&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "408662,403827,403828",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "408662",
+            "nome": "Conjunto dos Números Inteiros",
+            "pai": 408638
+          },
+          {
+            "id": "403827",
+            "nome": "Operações Fundamentais",
+            "pai": 403826
+          },
+          {
+            "id": "403828",
+            "nome": "Divisibilidade e Critérios de Divisibilidade",
+            "pai": 403826
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1450,9 +1682,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Números racionais, frações e operações",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403830&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403830",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403830",
+            "nome": "Frações e Números Decimais",
+            "pai": 403826
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1462,11 +1703,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Razão, proporção, divisão proporcional e regra de três",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403831&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403831",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403831%2C403833&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "403831,403833",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403831",
+            "nome": "Razão e proporção (proporcionalidade)",
+            "pai": 403826
+          },
+          {
+            "id": "403833",
+            "nome": "Regra de Três",
+            "pai": 403826
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1478,9 +1734,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Porcentagem, acréscimos e descontos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403835&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403835",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403835",
+            "nome": "Porcentagem",
+            "pai": 403826
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1490,11 +1755,36 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Relações lógicas, deduções e conclusões a partir de hipóteses",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404257&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404257",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=461192%2C461174%2C461185%2C461187&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "461192,461174,461185,461187",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "461192",
+            "nome": "Estrutura lógica das relações arbitrárias entre pessoas, lugares, coisas, eventos fictícios",
+            "pai": 461172
+          },
+          {
+            "id": "461174",
+            "nome": "Avaliar as condições usadas para estabelecer a estrutura das relações",
+            "pai": 461172
+          },
+          {
+            "id": "461185",
+            "nome": "Conclusões determinadas",
+            "pai": 461172
+          },
+          {
+            "id": "461187",
+            "nome": "Dedução de novas informações a partir de informações fornecidas",
+            "pai": 461172
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1504,11 +1794,51 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Raciocínio verbal, matemático, sequencial e orientação espacial e temporal",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404257&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404257",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=461199%2C461197%2C404276%2C461195%2C461196%2C461194%2C461190&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "461199,461197,404276,461195,461196,461194,461190",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "461199",
+            "nome": "Raciocínio verbal",
+            "pai": 461172
+          },
+          {
+            "id": "461197",
+            "nome": "Raciocínio matemático",
+            "pai": 461172
+          },
+          {
+            "id": "404276",
+            "nome": "Raciocínio Sequencial",
+            "pai": 425328
+          },
+          {
+            "id": "461195",
+            "nome": "Estruturas Lógicas: orientação espacial",
+            "pai": 461172
+          },
+          {
+            "id": "461196",
+            "nome": "Estruturas Lógicas: orientação temporal",
+            "pai": 461172
+          },
+          {
+            "id": "461194",
+            "nome": "Estruturas Lógicas: formação de conceitos",
+            "pai": 461172
+          },
+          {
+            "id": "461190",
+            "nome": "Discriminação de elementos",
+            "pai": 461172
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1518,11 +1848,41 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Estatística: moda, mediana, médias e medidas de dispersão",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403825&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403825",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=7194%2C7195%2C7202%2C7206%2C7212&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "7194,7195,7202,7206,7212",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "7194",
+            "nome": "Média Aritmética",
+            "pai": 7193
+          },
+          {
+            "id": "7195",
+            "nome": "Média Ponderada",
+            "pai": 7193
+          },
+          {
+            "id": "7202",
+            "nome": "Mediana",
+            "pai": 7192
+          },
+          {
+            "id": "7206",
+            "nome": "Moda",
+            "pai": 7192
+          },
+          {
+            "id": "7212",
+            "nome": "Medidas de Variabilidade (ou de dispersão)",
+            "pai": 416549
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1534,9 +1894,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Leitura e interpretação de gráficos, infográficos e tabelas",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403910&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "403910",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403910",
+            "nome": "Análise de Gráficos e Tabelas",
+            "pai": 403826
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1548,37 +1917,47 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Sustentabilidade no Judiciário: Resolução CNJ 400/2021",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=433177&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "433177",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "433177",
+            "nome": "Resolução nº 400/2021 - Dispõe sobre a política de sustentabilidade no âmbito do Poder Judiciário.",
+            "pai": 397403
+          }
+        ]
       }
     ],
     "pendencia": ""
   },
   "LTRT-06": {
     "nome": "Código de Conduta e Valores Éticos do TRT4: Portaria 4.573/2023, com alterações de 2025",
-    "links": [
-      {
-        "nome": "Código de Conduta e Valores Éticos do TRT4: Portaria 4.573/2023, com alterações de 2025",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=399888&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "399888",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
-      }
-    ],
-    "pendencia": ""
+    "links": [],
+    "pendencia": "Código de Conduta do TRT4: categoria correspondente não encontrada no Gran. Adicione um link complementar."
   },
   "LTRT-02": {
     "nome": "Regimento Interno do TRT4, atualizado até o Assento Regimental 04/2026",
     "links": [
       {
         "nome": "Regimento Interno do TRT4, atualizado até o Assento Regimental 04/2026",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=399888&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "399888",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=399889&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "399889",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "399889",
+            "nome": "Regimento Interno - TRT 4ª Região",
+            "pai": 399888
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1590,9 +1969,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Violência, assédio e discriminação: Resolução CSJT 360/2023",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=449610&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "449610",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "449610",
+            "nome": "Resolução nº 360/2023 - Institui a Política de Prevenção e Enfrentamento da Violência, do Assédio e de Todas as Formas de Discriminação no âmbito da Justiça do Trabalho de primeiro e segundo graus.",
+            "pai": 399690
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1604,9 +1992,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Assédio moral, sexual e discriminação: Resolução CNJ 351/2020",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=436342,436375&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "436342,436375",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "436342",
+            "nome": "Resolução 351/2020",
+            "pai": 397403
+          },
+          {
+            "id": "436375",
+            "nome": "Resolução 351/2020 CNJ",
+            "pai": 397403
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1616,11 +2018,36 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Evolução histórica, fundamentos filosóficos, fontes, princípios e gerações",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407070,423167&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407070,423167",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407073%2C407074%2C407075%2C423167&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "407073,407074,407075,423167",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407073",
+            "nome": "Evolução histórica dos direitos humanos",
+            "pai": 407070
+          },
+          {
+            "id": "407074",
+            "nome": "Características dos direitos humanos",
+            "pai": 407070
+          },
+          {
+            "id": "407075",
+            "nome": "Categorias e gerações dos direitos humanos",
+            "pai": 407070
+          },
+          {
+            "id": "423167",
+            "nome": "Teoria geral dos direitos humanos",
+            "pai": 407069
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1630,11 +2057,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Interpretação dos tratados, colisão de direitos e controle de convencionalidade",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407069&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407069",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=421824%2C407070&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "421824,407070",
         "exact": false,
         "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "aviso": "Controle de convencionalidade tem filtro específico. Interpretação e colisão de tratados não foram encontradas isoladamente; inclui a categoria de Direito Internacional dos Direitos Humanos.",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "421824",
+            "nome": "Controle de convencionalidade",
+            "pai": 405319
+          },
+          {
+            "id": "407070",
+            "nome": "Direito Internacional dos Direitos Humanos",
+            "pai": 407069
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1644,11 +2086,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Tratados de direitos humanos e Constituição de 1988",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407069&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407069",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407127&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "407127",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407127",
+            "nome": "Incorporação de tratados internacionais de direitos humanos no direito brasileiro (EC n.o 45)",
+            "pai": 407108
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1660,9 +2112,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Declaração Universal dos Direitos Humanos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407086&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "407086",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407086",
+            "nome": "Declaração Universal dos Direitos Humanos",
+            "pai": 407084
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1672,11 +2133,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "PIDCP, PIDESC e protocolos facultativos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407087,407080&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407087,407080",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407087%2C407088&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "407087,407088",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407087",
+            "nome": "Pacto Internacional de Direitos Civis e Políticos",
+            "pai": 407084
+          },
+          {
+            "id": "407088",
+            "nome": "Pacto Internacional de Direitos Econômicos e Sociais e Culturais",
+            "pai": 407084
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1688,9 +2164,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Convenções contra a discriminação racial e contra a mulher; protocolo facultativo",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407089,407090&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "407089,407090",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407089",
+            "nome": "Convenção Internacional sobre Eliminação de Todas as Formas de Discriminação Racial",
+            "pai": 407084
+          },
+          {
+            "id": "407090",
+            "nome": "Convenção sobre a Eliminação de Todas as Formas de Discriminação contra a Mulher",
+            "pai": 407084
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1702,9 +2192,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Convenções sobre os direitos da criança e da pessoa com deficiência; protocolos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407093,407096&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "407093,407096",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407093",
+            "nome": "Convenção sobre os Direitos da Criança",
+            "pai": 407084
+          },
+          {
+            "id": "407096",
+            "nome": "Convenção sobre os Direitos das Pessoas com Deficiência",
+            "pai": 407084
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1714,11 +2218,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Patrimônio mundial, Declaração de Estocolmo e diversidade biológica",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407069&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407069",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=397326%2C433492&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "397326,433492",
         "exact": false,
         "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "aviso": "Não foi encontrado no catálogo um conjunto específico para os três instrumentos ambientais deste subtópico.",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "397326",
+            "nome": "Conferências e Tratados Ambientais",
+            "pai": 397297
+          },
+          {
+            "id": "433492",
+            "nome": "Decreto nº 2.519/1998 - Promulga a Convenção sobre Diversidade Biológica, assinada no Rio de Janeiro, em 05 de junho de 1992.",
+            "pai": 418540
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1730,9 +2249,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Declaração da ONU sobre os direitos dos povos indígenas",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=430252&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "430252",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "430252",
+            "nome": "Declaração das Nações Unidas sobre os direitos dos povos indígenas",
+            "pai": 407069
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1742,11 +2270,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Sistema interamericano: Declaração Americana, Convenção Americana e Protocolo de San Salvador",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407106&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407106",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=443740%2C407112%2C428037&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "443740,407112,428037",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "443740",
+            "nome": "Declaração Americana de Direitos e Deveres do Homem",
+            "pai": 407084
+          },
+          {
+            "id": "407112",
+            "nome": "Convenção Americana sobre Direitos Humanos (Pacto de San José)",
+            "pai": 407106
+          },
+          {
+            "id": "428037",
+            "nome": "Decreto nº 3.321 de 1999 - Protocolo de São Salvador",
+            "pai": 407069
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1756,11 +2304,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Comissão e Corte Interamericanas: composição, funcionamento, atribuições e decisões",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407103&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407103",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407104%2C407105&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "407104,407105",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407104",
+            "nome": "Comissão Interamericana de Direitos Humanos",
+            "pai": 407103
+          },
+          {
+            "id": "407105",
+            "nome": "Corte Interamericana de Direitos Humanos",
+            "pai": 407103
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1770,11 +2333,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Mecanismos de proteção nacionais e internacionais; grupos vulneráveis e minorias",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407069&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "407069",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407076%2C407108%2C452385&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "407076,407108,452385",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407076",
+            "nome": "Sistema Global de Proteção dos Direitos Humanos: Instituições e Mecanismos",
+            "pai": 407069
+          },
+          {
+            "id": "407108",
+            "nome": "Direitos Humanos no Ordenamento Nacional",
+            "pai": 407069
+          },
+          {
+            "id": "452385",
+            "nome": "Direitos Fundamentais / Grupos Vulneráveis",
+            "pai": 407069
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1786,9 +2369,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Perspectiva de gênero no Judiciário: Resolução CNJ 492/2023",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=437046&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "437046",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "437046",
+            "nome": "Resolução nº. 492/2023 - Estabelece, para adoção de Perspectiva de Gênero nos julgamentos em todo o Poder Judiciário, as diretrizes do protocolo aprovado pelo Grupo de Trabalho constituído pela Portaria CNJ n. 27/2021",
+            "pai": 397403
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1800,9 +2392,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Equidade de raça, gênero e diversidade: Resolução CSJT 368/2023",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=449643&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "449643",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "449643",
+            "nome": "Resolução nº 368/2023 - Institui o Programa de Equidade de Raça, Gênero e Diversidade no âmbito da Justiça do Trabalho.",
+            "pai": 399690
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1814,9 +2415,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Tribunal Penal Internacional, Estatuto de Roma e Decreto 4.388/2002",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407082&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "407082",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407082",
+            "nome": "Estatuto de Roma e o Tribunal Penal Internacional",
+            "pai": 407069
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1828,9 +2438,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Carta da ONU, Estatuto da Corte Internacional de Justiça e Decreto 19.841/1945",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407085,407081&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "407085,407081",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407085",
+            "nome": "Carta da ONU",
+            "pai": 407084
+          },
+          {
+            "id": "407081",
+            "nome": "Corte Internacional de Justiça",
+            "pai": 407076
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1845,11 +2469,46 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Internet, intranet, redes, navegadores Firefox, Chrome e Edge; mecanismos de busca",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405030&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405030",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405052%2C405161%2C405054%2C405056%2C406727%2C405173&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405052,405161,405054,405056,406727,405173",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405052",
+            "nome": "Conceitos Gerais e Funcionamento",
+            "pai": 405050
+          },
+          {
+            "id": "405161",
+            "nome": "Intranet",
+            "pai": 405157
+          },
+          {
+            "id": "405054",
+            "nome": "Mozilla Firefox",
+            "pai": 405053
+          },
+          {
+            "id": "405056",
+            "nome": "Google Chrome",
+            "pai": 405053
+          },
+          {
+            "id": "406727",
+            "nome": "Microsoft Edge",
+            "pai": 405053
+          },
+          {
+            "id": "405173",
+            "nome": "Mecanismos de Busca na Internet",
+            "pai": 405050
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1861,9 +2520,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Organização e gerenciamento de arquivos, pastas e programas",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=420719&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "420719",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "420719",
+            "nome": "Gerenciamento de Arquivos e Pastas",
+            "pai": 405085
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1875,9 +2543,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Windows 10 e Windows 11",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405101,430398&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405101,430398",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405101",
+            "nome": "Windows 10",
+            "pai": 405084
+          },
+          {
+            "id": "430398",
+            "nome": "Windows 11",
+            "pai": 405084
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1887,11 +2569,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Microsoft Office 365: textos, planilhas, apresentações, e-mail e agenda",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405111&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405111",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=459901%2C405059&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "459901,405059",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "459901",
+            "nome": "Microsoft 365; Microsoft Office",
+            "pai": 459900
+          },
+          {
+            "id": "405059",
+            "nome": "Correio Eletrônico (E-mail)",
+            "pai": 405030
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1901,11 +2598,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Google Workspace: Documentos, planilhas, apresentações e compartilhamento",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=420599&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=420599&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "420599",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "420599",
+            "nome": "Google Workspace (antigo Google G Suíte)",
+            "pai": 405107
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1917,9 +2624,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Google Drive: criação, edição, compartilhamento e permissões",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=420158&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "420158",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "420158",
+            "nome": "Google Drive",
+            "pai": 420157
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1929,11 +2645,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Google Agenda, Tarefas e Meet: eventos, participantes e videoconferência",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=420599&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "420599",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=459987%2C459989%2C460047&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "459987,459989,460047",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "459987",
+            "nome": "Tarefas Google; Google Tasks",
+            "pai": 459772
+          },
+          {
+            "id": "459989",
+            "nome": "Agenda Google; Google Calendar",
+            "pai": 459772
+          },
+          {
+            "id": "460047",
+            "nome": "Google Meet",
+            "pai": 460045
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1945,9 +2681,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Gmail: configurações, painel de visualização e marcadores",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405063&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405063",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405063",
+            "nome": "Gmail",
+            "pai": 405059
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1959,9 +2704,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Segurança: vírus, worms, antivírus, firewall, antispyware, senhas e autenticação em dois fatores",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405067&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405067",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405067",
+            "nome": "Segurança da Informação",
+            "pai": 405030
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1973,9 +2727,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Aplicabilidade: normas de eficácia plena, contida e limitada; normas programáticas",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405209&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405209",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405209",
+            "nome": "Aplicabilidade das normas constitucionais, eficácia e aplicabilidade das normas constitucionais ou classificação das normas constitucionais ou vigência e eficácia das normas constitucionais ou normas constitucionais: classificação e eficácia",
+            "pai": 405200
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -1985,11 +2748,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Controle de constitucionalidade: ADI, ADC e ADPF",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405319&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405319",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=407762%2C407763%2C407764&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "407762,407763,407764",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "407762",
+            "nome": "Ação direta de inconstitucionalidade ou ação direta de inconstitucionalidade genérica ou ADI ou ADIN ",
+            "pai": 405324
+          },
+          {
+            "id": "407763",
+            "nome": "Ação direta de constitucionalidade ou ação declaratória de constitucionalidade ou ADC ou ADECON",
+            "pai": 405324
+          },
+          {
+            "id": "407764",
+            "nome": "Arguição de Descumprimento de Preceito Fundamental (ADPF)",
+            "pai": 405324
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2001,9 +2784,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Princípios fundamentais da República",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405212&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405212",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405212",
+            "nome": "Princípios fundamentais - Título I - Artigos 1º a 4º da CF",
+            "pai": 405199
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2015,9 +2807,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Direitos e deveres individuais e coletivos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405219&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405219",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405219",
+            "nome": "Direitos e deveres individuais e coletivos ou direitos e deveres individuais e coletivos; direito à vida, à liberdade, à igualdade,  à  segurança  e  à  propriedade (artigo 5º da CF)",
+            "pai": 405217
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2029,9 +2830,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Direitos sociais e nacionalidade",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405227,405228&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405227,405228",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405227",
+            "nome": "Direitos sociais (artigos 6º a 11 da CF)",
+            "pai": 405217
+          },
+          {
+            "id": "405228",
+            "nome": "Direitos de nacionalidade ou da nacionalidade (artigos 12 e 13 da CF)",
+            "pai": 405217
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2041,11 +2856,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Direitos políticos e partidos políticos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405229&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405229",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405229%2C405230&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405229,405230",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405229",
+            "nome": "Direitos Políticos (artigos 14 a 16 da CF)",
+            "pai": 405217
+          },
+          {
+            "id": "405230",
+            "nome": "Partidos políticos (artigo 17 da CF)",
+            "pai": 405217
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2055,11 +2885,51 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Organização político-administrativa: União, Estados, Municípios, DF, Territórios e intervenção",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405231&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405231",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405233%2C407596%2C407598%2C407614%2C421775%2C421782%2C405239&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405233,407596,407598,407614,421775,421782,405239",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405233",
+            "nome": "Organização politico-administrativa (artigos 18 e 19)",
+            "pai": 405231
+          },
+          {
+            "id": "407596",
+            "nome": "União ou Da União",
+            "pai": 405231
+          },
+          {
+            "id": "407598",
+            "nome": "Estados ou Dos Estados (artigos 25 a 28 da CF)",
+            "pai": 405231
+          },
+          {
+            "id": "407614",
+            "nome": "Municípios (artigos 29 a 31 da CF)",
+            "pai": 405231
+          },
+          {
+            "id": "421775",
+            "nome": "Distrito Federal (artigo 32 da CF)",
+            "pai": 405231
+          },
+          {
+            "id": "421782",
+            "nome": "Territórios ou territórios federais (artigo 33 da CF)",
+            "pai": 405231
+          },
+          {
+            "id": "405239",
+            "nome": "Intervenção federal e estadual (artigos 34 a 36 da CF)",
+            "pai": 405231
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2069,11 +2939,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Administração Pública: disposições gerais",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405240&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405240",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405242&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405242",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405242",
+            "nome": "Disposições gerais (artigo 37 da CF)",
+            "pai": 405240
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2085,9 +2965,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Servidores públicos na Constituição",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405243&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405243",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405243",
+            "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+            "pai": 405240
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2097,11 +2986,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Organização dos Poderes; Executivo: Presidente, Vice, atribuições e responsabilidades",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405260&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405260",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405262%2C405263%2C407646&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405262,405263,407646",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405262",
+            "nome": "Presidente e Vice-Presidente da República (artigos 76 a 83 da CF)",
+            "pai": 405260
+          },
+          {
+            "id": "405263",
+            "nome": "Atribuições do Presidente da República (artigo 84 da CF)",
+            "pai": 405260
+          },
+          {
+            "id": "407646",
+            "nome": "Responsabilidade do Presidente da República (artigos 85 e 86 da CF)",
+            "pai": 405260
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2111,11 +3020,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Legislativo: processo legislativo e fiscalização contábil, financeira e orçamentária",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405248,405253&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405248,405253",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405253%2C405258&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405253,405258",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405253",
+            "nome": "Processo Legislativo (artigos 59 a 69 da CF)",
+            "pai": 405248
+          },
+          {
+            "id": "405258",
+            "nome": "Fiscalização Contábil, Financeira e Orçamentária da União",
+            "pai": 405248
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2125,11 +3049,41 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Judiciário: disposições gerais, STF, CNJ, STJ, TST, TRTs, juízes e CSJT",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405266,405268&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "405266,405268",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405267%2C405273%2C405275%2C405274%2C405277&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405267,405273,405275,405274,405277",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405267",
+            "nome": "Disposições gerais (artigos 92 a 100 da CF)",
+            "pai": 405266
+          },
+          {
+            "id": "405273",
+            "nome": "Do Supremo Tribunal Federal (artigos 101 a 103 da CF)",
+            "pai": 407639
+          },
+          {
+            "id": "405275",
+            "nome": "Conselho Nacional de Justiça: organização, composição e competências (artigo 103-B da CF)",
+            "pai": 407639
+          },
+          {
+            "id": "405274",
+            "nome": "Do Superior Tribunal de Justiça (artigos 104 e 105 da CF)",
+            "pai": 407639
+          },
+          {
+            "id": "405277",
+            "nome": "Do Tribunal Superior do Trabalho, Tribunais Regionais do Trabalho e juízes do trabalho (artigos 111 a 117)",
+            "pai": 407639
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2141,9 +3095,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Funções essenciais à Justiça: MP, Advocacia Pública, advocacia e Defensoria",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405281&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "405281",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405281",
+            "nome": "Funções essenciais à Justiça (artigos 127 a 135 da CF)",
+            "pai": 405246
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2153,11 +3116,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Administração Pública, regime jurídico e princípios explícitos e implícitos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404335&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404335",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404358&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404358",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404358",
+            "nome": "Regime Jurídico Administrativo",
+            "pai": 404335
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2167,11 +3140,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "LINDB e sua aplicação na Administração Pública",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404335&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404335",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=405866&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "405866",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "405866",
+            "nome": "Lei de Introdução às Normas do Direito Brasileiro - LINDB",
+            "pai": 405864
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2181,11 +3164,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Poderes e deveres administrativos; uso e abuso do poder; Lei 13.869/2019",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404363&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404363",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404363%2C406521&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404363,406521",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404363",
+            "nome": "Poderes da Administração",
+            "pai": 404335
+          },
+          {
+            "id": "406521",
+            "nome": "Lei do Abuso de Autoridade - Lei nº 13.869/2019",
+            "pai": 406351
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2197,9 +3195,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Atos administrativos: elementos, atributos, classificação, efeitos e extinção",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404372&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404372",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404372",
+            "nome": "Atos Administrativos",
+            "pai": 404335
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2211,9 +3218,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Processo administrativo federal: Lei 9.784/1999",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404427&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404427",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404427",
+            "nome": "Processo Administrativo - Lei 9.784/99",
+            "pai": 404335
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2225,9 +3241,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Controle da Administração: Judiciário, Legislativo e Tribunais de Contas",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404409&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404409",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404409",
+            "nome": "Controle da Administração",
+            "pai": 404335
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2239,9 +3264,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Improbidade administrativa: Lei 8.429/1992 e alterações",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404431&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404431",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404431",
+            "nome": "Improbidade Administrativa - Lei 8.429/92 e suas alterações",
+            "pai": 404335
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2251,11 +3285,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Licitações: Lei 14.133/2021, modalidades, contratação direta, procedimentos, recursos e sanções",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404428&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404428",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=433219%2C433224%2C433266&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "433219,433224,433266",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "433219",
+            "nome": "Disposições Preliminares",
+            "pai": 429796
+          },
+          {
+            "id": "433224",
+            "nome": "Das Licitações",
+            "pai": 429796
+          },
+          {
+            "id": "433266",
+            "nome": "Das irregularidades",
+            "pai": 429796
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2265,11 +3319,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Contratos administrativos: formalização, execução, duração, prorrogação, revisão e extinção",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404429&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404429",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=433253&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "433253",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "433253",
+            "nome": "Dos Contratos Administrativos",
+            "pai": 429796
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2279,11 +3343,41 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Agentes públicos: cargos, empregos, funções, provimento, exercício e afastamentos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404354&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404354",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404355%2C404356%2C404357%2C408014%2C404509&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404355,404356,404357,408014,404509",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404355",
+            "nome": "Conceito de Agentes Públicos",
+            "pai": 404354
+          },
+          {
+            "id": "404356",
+            "nome": "Classificação ou espécies de Agentes Públicos",
+            "pai": 404354
+          },
+          {
+            "id": "404357",
+            "nome": "Cargo, Emprego e Função Pública",
+            "pai": 404354
+          },
+          {
+            "id": "408014",
+            "nome": "Acesso aos Cargos e Empregos Públicos",
+            "pai": 404354
+          },
+          {
+            "id": "404509",
+            "nome": "Capítulo V - Dos Afastamentos",
+            "pai": 404504
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2293,11 +3387,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Direito de greve e regime constitucional dos servidores",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404354&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404354",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=408003%2C405243&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "408003,405243",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "408003",
+            "nome": "Direito de greve dos servidores públicos",
+            "pai": 408001
+          },
+          {
+            "id": "405243",
+            "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+            "pai": 405240
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2307,11 +3416,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Carreiras do Judiciário Federal: Lei 11.416/2006",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404335&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404335",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=395730&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "395730",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "395730",
+            "nome": "Lei nº 11.416/2006 -  Dispõe sobre as Carreiras dos Servidores do Poder Judiciário da União; revoga as Leis nos 9.421, de 24 de dezembro de 1996, 10.475, de 27 de junho de 2002, 10.417, de 5 de abril de 2002, e 10.944, de 16 de setembro de 2004; e dá outr",
+            "pai": 395699
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2321,11 +3440,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Emprego público e disposições aplicáveis da CLT",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404354&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404354",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=394873%2C406755&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "394873,406755",
         "exact": false,
         "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "aviso": "O regime de emprego público tem categoria própria na Lei 9.962/2000, mas não há uma categoria que isole as disposições da CLT aplicáveis a empregados públicos; o complemento usa contrato de trabalho.",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "394873",
+            "nome": "Lei nº 9.962/2000 - Disciplina o regime de emprego público do pessoal da Administração federal direta, autárquica e fundacional, e dá outras providências",
+            "pai": 395700
+          },
+          {
+            "id": "406755",
+            "nome": "Do Contrato de Trabalho",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2335,11 +3469,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Responsabilidade civil, administrativa e penal dos agentes públicos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404354&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404354",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=459054&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "459054",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "459054",
+            "nome": "Responsabilidade civil, criminal e administrativa do agente público",
+            "pai": 459041
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2349,11 +3493,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Disposições preliminares, provimento e vacância",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404430&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404430",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404501%2C404503%2C404512&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404501,404503,404512",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404501",
+            "nome": "Título I - Capítulo Único",
+            "pai": 404430
+          },
+          {
+            "id": "404503",
+            "nome": "Capítulo I - Do Provimento",
+            "pai": 404502
+          },
+          {
+            "id": "404512",
+            "nome": "Capítulo II - Da Vacância",
+            "pai": 404502
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2363,11 +3527,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Remoção, redistribuição e substituição",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404430&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404430",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404511%2C404510&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404511,404510",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404511",
+            "nome": "Capítulo III - Da Remoção e da Redistribuição",
+            "pai": 404502
+          },
+          {
+            "id": "404510",
+            "nome": "Capítulo IV - Da Substituição",
+            "pai": 404502
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2377,11 +3556,41 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Vencimento, remuneração, vantagens, férias, licenças e direito de petição",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404430&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404430",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404505%2C404506%2C404507%2C404508%2C422909&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404505,404506,404507,404508,422909",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404505",
+            "nome": "Capítulo I - Do Vencimento e da Remuneração",
+            "pai": 404504
+          },
+          {
+            "id": "404506",
+            "nome": "Capítulo II - Das Vantagens",
+            "pai": 404504
+          },
+          {
+            "id": "404507",
+            "nome": "Capítulo III - Das Férias",
+            "pai": 404504
+          },
+          {
+            "id": "404508",
+            "nome": "Capítulo IV - Das Licenças",
+            "pai": 404504
+          },
+          {
+            "id": "422909",
+            "nome": "Capítulo VIII - Do Direito de Petição",
+            "pai": 404504
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2391,11 +3600,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Deveres, proibições e acumulação",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404430&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404430",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404514%2C404515%2C404516&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404514,404515,404516",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404514",
+            "nome": "Capítulo I - Dos Deveres",
+            "pai": 404513
+          },
+          {
+            "id": "404515",
+            "nome": "Capítulo II - Das Proibições",
+            "pai": 404513
+          },
+          {
+            "id": "404516",
+            "nome": "Capítulo III - Da Acumulação",
+            "pai": 404513
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2405,11 +3634,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Responsabilidades e penalidades",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404430&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404430",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404517%2C404518&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404517,404518",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404517",
+            "nome": "Capítulo IV - Das Responsabilidades",
+            "pai": 404513
+          },
+          {
+            "id": "404518",
+            "nome": "Capítulo V - Das Penalidades",
+            "pai": 404513
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2419,11 +3663,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Regime e processo administrativo disciplinar",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404430&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404430",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404519&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404519",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404519",
+            "nome": "Título V - Do Processo Administrativo Disciplinar",
+            "pai": 404430
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2433,11 +3687,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Organizações formais modernas: estruturas, natureza, finalidades e departamentalização",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404625&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404625&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
         "code": "404625",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404625",
+            "nome": "Estrutura Organizacional",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2449,9 +3713,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Evolução das teorias das organizações",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=417276&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "417276",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "417276",
+            "nome": "Teorias da Administração",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2461,11 +3734,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Gestão pública e privada, princípios e gestão de resultados em serviços públicos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403716&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403716",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=417386%2C404551%2C403774&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "417386,404551,403774",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "417386",
+            "nome": "Convergências e Diferenças entre Gestão Pública e a Privada",
+            "pai": 403716
+          },
+          {
+            "id": "404551",
+            "nome": "Princípios aplicáveis à Administração Pública",
+            "pai": 404546
+          },
+          {
+            "id": "403774",
+            "nome": "Gestão por Resultados nos Serviços Públicos",
+            "pai": 403716
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2475,11 +3768,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Comunicação na gestão pública e redes organizacionais",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403716&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403716",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403755&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "403755",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "403755",
+            "nome": "Comunicação na Gestão Pública e Gestão de Redes Organizacionais",
+            "pai": 403716
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2489,11 +3792,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Gestão de pessoas próprias e terceirizadas; gestão e modelos de avaliação de desempenho",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404668&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404668",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404659&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404659",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404659",
+            "nome": "Gestão de Pessoas",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2503,11 +3816,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Processo organizacional: planejamento, direção, coordenação, comunicação, controle e avaliação",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404571&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404571",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404674%2C425506%2C404668&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404674,425506,404668",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404674",
+            "nome": "Processo organizacional (PODC)",
+            "pai": 404572
+          },
+          {
+            "id": "425506",
+            "nome": "Comunicação",
+            "pai": 404571
+          },
+          {
+            "id": "404668",
+            "nome": "Avaliação do Desempenho",
+            "pai": 404659
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2517,11 +3850,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Gestão estratégica: planejamento estratégico, tático e operacional",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404609&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "404609",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404609%2C425403%2C425404&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "404609,425403,425404",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404609",
+            "nome": "Planejamento Estratégico",
+            "pai": 425402
+          },
+          {
+            "id": "425403",
+            "nome": "Planejamento Tático ",
+            "pai": 425402
+          },
+          {
+            "id": "425404",
+            "nome": "Planejamento Operacional ",
+            "pai": 425402
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2533,9 +3886,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Gestão por processos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404626&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404626",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404626",
+            "nome": "Gestão de processos",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2547,9 +3909,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Gestão por projetos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404636&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404636",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404636",
+            "nome": "Gestão de Projetos",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2559,11 +3930,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Gestão de contratos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=403716&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "403716",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=464329&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "464329",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "464329",
+            "nome": "Gestão e Fiscalização de Contratos",
+            "pai": 464226
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2575,9 +3956,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Gestão da qualidade e excelência nos serviços públicos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=417247&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "417247",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "417247",
+            "nome": "Gestão da Qualidade",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2589,9 +3979,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Motivação e liderança",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404664,404670&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404664,404670",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404664",
+            "nome": "Liderança",
+            "pai": 404571
+          },
+          {
+            "id": "404670",
+            "nome": "Motivação",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2603,9 +4007,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Tipos de decisão e processo decisório",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=404631&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "404631",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "404631",
+            "nome": "Processo Decisório",
+            "pai": 404571
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2615,11 +4028,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Princípios, fontes e direitos constitucionais dos trabalhadores",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406748,406749,405227&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406748,406749,405227",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406748%2C406749%2C433159&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406748,406749,433159",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406748",
+            "nome": "Princípios do Direito do Trabalho",
+            "pai": 406747
+          },
+          {
+            "id": "406749",
+            "nome": "Fontes do Direito do Trabalho",
+            "pai": 406747
+          },
+          {
+            "id": "433159",
+            "nome": "Direitos do Trabalhador na Constituição Federal",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2631,9 +4064,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Relação de trabalho e relação de emprego: requisitos e distinções",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406752&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406752",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406752",
+            "nome": "Da Relação de Trabalho e de Emprego - Distinção",
+            "pai": 406747
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2645,9 +4087,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Empregado, empregador e poderes do empregador",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406757&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406757",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406757",
+            "nome": "Sujeitos do contrato de trabalho ",
+            "pai": 406755
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2657,11 +4108,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Contrato individual: classificação, alteração, jus variandi, suspensão e interrupção",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406755&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406755",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406755%2C406759&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406755,406759",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406755",
+            "nome": "Do Contrato de Trabalho",
+            "pai": 406746
+          },
+          {
+            "id": "406759",
+            "nome": "Alteração, Interrupção e Suspensão do Contrato de Trabalho",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2671,11 +4137,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Rescisão, justas causas, despedida indireta, dispensa arbitrária, culpa recíproca e aviso prévio",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406786&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406786",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406786%2C406795&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406786,406795",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406786",
+            "nome": "Terminação do contrato de trabalho",
+            "pai": 406746
+          },
+          {
+            "id": "406795",
+            "nome": "Aviso Prévio",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2687,9 +4168,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Duração do trabalho, jornada, intervalos, descanso semanal, noturno e extraordinário",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406772&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406772",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406772",
+            "nome": "Jornada de Trabalho",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2701,9 +4191,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Salário e remuneração: mínimo, proteção, composição, modalidades, pagamento e 13º",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406773&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406773",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406773",
+            "nome": "Remuneração e Salário",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2715,9 +4214,28 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Férias, proteção ao menor e à mulher, estabilidade da gestante e licença-maternidade",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406783,415812,433421&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406783,415812,433421",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406783",
+            "nome": "Férias",
+            "pai": 415832
+          },
+          {
+            "id": "415812",
+            "nome": "Proteção ao trabalho da mulher",
+            "pai": 406762
+          },
+          {
+            "id": "433421",
+            "nome": "Proteção ao trabalho do menor",
+            "pai": 406762
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2727,11 +4245,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Grupo econômico, sucessão de empregadores e responsabilidade solidária",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406757&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406757",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406800%2C433133%2C433138&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406800,433133,433138",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406800",
+            "nome": "Grupo Econômico",
+            "pai": 433130
+          },
+          {
+            "id": "433133",
+            "nome": "Sucessão de empregadores",
+            "pai": 433130
+          },
+          {
+            "id": "433138",
+            "nome": "Responsabilidade Solidária e Subsidiária",
+            "pai": 433130
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2743,9 +4281,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Fundo de Garantia do Tempo de Serviço — FGTS",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406796&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406796",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406796",
+            "nome": "FGTS",
+            "pai": 406797
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2757,9 +4304,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Prescrição e decadência",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406754&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406754",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406754",
+            "nome": "Prescrição e decadência",
+            "pai": 406747
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2771,9 +4327,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Segurança e medicina do trabalho; atividades perigosas e insalubres",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406776&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406776",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406776",
+            "nome": "Normas de Medicina e Segurança do Trabalho",
+            "pai": 406762
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2785,9 +4350,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Direito coletivo: convenções e acordos coletivos",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=415831&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "415831",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "415831",
+            "nome": "Convenção e acordo coletivo de trabalho",
+            "pai": 406777
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2799,9 +4373,23 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Comissões de Conciliação Prévia; renúncia e transação",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406806,406799&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406806,406799",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406806",
+            "nome": "Comissões de Conciliação Prévia",
+            "pai": 406777
+          },
+          {
+            "id": "406799",
+            "nome": "Renúncia e Transação",
+            "pai": 406759
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2811,11 +4399,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Teletrabalho e Reforma Trabalhista — Lei 13.467/2017",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=433123,406746&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "433123,406746",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=433123%2C430174&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "433123,430174",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "433123",
+            "nome": "Trabalho em domicílio e o teletrabalho",
+            "pai": 433120
+          },
+          {
+            "id": "430174",
+            "nome": "Reforma Trabalhista - Lei nº 13.467/2017",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2827,9 +4430,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Dano moral e material nas relações de trabalho",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406801&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406801",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406801",
+            "nome": "Dano moral e material nas relações de trabalho",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2839,11 +4451,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Precedentes vinculantes (IRDR e IAC), súmulas, OJs, instruções e atos do TST; súmulas vinculantes do STF",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406746&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406746",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406778&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406778",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406778",
+            "nome": "Jurisprudência",
+            "pai": 406746
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2853,11 +4475,36 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Justiça do Trabalho: organização, jurisdição e competência",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406813,416262,416264,416266&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406813,416262,416264,416266",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=431451%2C416262%2C416264%2C416266&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "431451,416262,416264,416266",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "431451",
+            "nome": "Composição, funcionamento, jurisdição e competência de seus órgãos.",
+            "pai": 406813
+          },
+          {
+            "id": "416262",
+            "nome": "Competências da Justiça do Trabalho em Razão da Matéria",
+            "pai": 431450
+          },
+          {
+            "id": "416264",
+            "nome": "Competência Territorial da Justiça do Trabalho",
+            "pai": 431450
+          },
+          {
+            "id": "416266",
+            "nome": "Competência Funcional da Justiça do Trabalho",
+            "pai": 431450
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2867,11 +4514,36 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Varas, TRTs, secretarias e distribuidores",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406813,430113&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406813,430113",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=431453%2C406815%2C431455%2C431456&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "431453,406815,431455,431456",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "431453",
+            "nome": "Varas do Trabalho",
+            "pai": 431451
+          },
+          {
+            "id": "406815",
+            "nome": "Tribunais Regionais do Trabalho",
+            "pai": 431451
+          },
+          {
+            "id": "431455",
+            "nome": "Das secretarias das Varas do Trabalho",
+            "pai": 430113
+          },
+          {
+            "id": "431456",
+            "nome": "Dos distribuidores",
+            "pai": 430113
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2883,9 +4555,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Princípios gerais e aplicação subsidiária do CPC",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406811&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "406811",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406811",
+            "nome": "Princípios do Direito Processual do Trabalho",
+            "pai": 406810
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2895,11 +4576,31 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Atos, termos, prazos, custas e emolumentos",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406826,431574&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406826,431574",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406826%2C431574%2C406830&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406826,431574,406830",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406826",
+            "nome": "Atos Processuais e Prazos",
+            "pai": 406809
+          },
+          {
+            "id": "431574",
+            "nome": "Custas Processuais",
+            "pai": 431570
+          },
+          {
+            "id": "406830",
+            "nome": "Emolumentos",
+            "pai": 431570
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2909,11 +4610,41 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Partes, procuradores, jus postulandi, substituição, representação, assistência e honorários",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406820&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406820",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406821%2C406822%2C431605%2C431595%2C431580&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406821,406822,431605,431595,431580",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406821",
+            "nome": "Das Partes",
+            "pai": 406820
+          },
+          {
+            "id": "406822",
+            "nome": "Procuradores",
+            "pai": 406820
+          },
+          {
+            "id": "431605",
+            "nome": "Substituição das Partes e dos Procuradores",
+            "pai": 406820
+          },
+          {
+            "id": "431595",
+            "nome": "Assistência Judiciária e Justiça Gratuita",
+            "pai": 431570
+          },
+          {
+            "id": "431580",
+            "nome": "Honorários Advocatícios",
+            "pai": 431570
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2923,11 +4654,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Audiências, notificação, arquivamento, revelia e confissão",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406845&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406845",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406845%2C406831&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406845,406831",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406845",
+            "nome": "Audiência",
+            "pai": 406809
+          },
+          {
+            "id": "406831",
+            "nome": "Comunicação dos Atos Processuais",
+            "pai": 431612
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2937,11 +4683,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Dissídios individuais, reclamação escrita e verbal e legitimidade",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=431649&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "431649",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406844%2C406843&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406844,406843",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406844",
+            "nome": "Petição Inicial do Dissídio Individual do Trabalho",
+            "pai": 406836
+          },
+          {
+            "id": "406843",
+            "nome": "Requisitos da Petição Inicial",
+            "pai": 406836
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2951,11 +4712,26 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Procedimentos ordinário e sumaríssimo",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=431649&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "431649",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=431650%2C406839&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "431650,406839",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "431650",
+            "nome": "Procedimento Ordinário",
+            "pai": 431649
+          },
+          {
+            "id": "406839",
+            "nome": "Procedimento Sumaríssimo",
+            "pai": 431649
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2965,11 +4741,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Execução: procedimentos, embargos, praça, leilão e arrematação",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406838,406858&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "406838,406858",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406838&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406838",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406838",
+            "nome": "Processo de Execução",
+            "pai": 406809
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2979,11 +4765,21 @@ window.TrilhaVinculosTRT4 = {
     "links": [
       {
         "nome": "Recursos no processo do trabalho",
-        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=432022,406849,406850&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
-        "code": "432022,406849,406850",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=406837&banca=92&nivel=1&anos=2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026",
+        "code": "406837",
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "consolidado": true,
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "406837",
+            "nome": "Sistema recursal trabalhista",
+            "pai": 406809
+          }
+        ]
       }
     ],
     "pendencia": ""
@@ -2995,9 +4791,18 @@ window.TrilhaVinculosTRT4 = {
         "nome": "Informatização do processo judicial — Lei 11.419/2006",
         "url": "https://questoes.grancursosonline.com.br/questoes?anulada=0&desatualizada=0&assunto=430130&banca=92&nivel=1&anos=2017,2018,2019,2020,2021,2022,2023,2024,2025,2026",
         "code": "430130",
-        "exact": false,
-        "filtroAmplo": true,
-        "aviso": "Categoria do Gran pode abranger conteúdos adicionais; confira o recorte do edital."
+        "exact": true,
+        "filtroAmplo": false,
+        "aviso": "",
+        "coberturaParcial": false,
+        "verificadoEm": "2026-10-29",
+        "assuntosVerificados": [
+          {
+            "id": "430130",
+            "nome": "Aspectos gerais da Lei Federal nº 11.419/2006.",
+            "pai": 416280
+          }
+        ]
       }
     ],
     "pendencia": ""

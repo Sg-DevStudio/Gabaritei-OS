@@ -1,0 +1,2448 @@
+{
+  "verificadoEm": "2026-10-29",
+  "fonte": "https://rota-api.grancursosonline.com.br/open/assuntos/arvore",
+  "categoriasConsultadas": 40619,
+  "sha256Catalogo": "925dde30487cc50f56fcb951c7e6fecfc5ae730f3f7a6a90821325d6d5e9de3e",
+  "criterio": "Correspondência revisada por conteúdo e hierarquia; união das categorias específicas em um link. Amplo somente quando falta categoria para o recorte. Não atesta contagem de questões após banca/ano/nível.",
+  "vinculos": [
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-01",
+      "topico": "Compreensão e interpretação de textos; contexto histórico e intertextualidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403701",
+          "nome": "Interpretação de Texto",
+          "pai": 403587
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-02",
+      "topico": "Reescrita: frases corretas e incorretas, organização e transformação de períodos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403713",
+          "nome": "Equivalência, substituição, reorganização e transformação de palavras ou trechos do texto",
+          "pai": 403712
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-03",
+      "topico": "Ortografia oficial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403613",
+          "nome": "Ortografia oficial e acentuação gráfica",
+          "pai": 403587
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-11",
+      "topico": "Acentuação gráfica",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403612",
+          "nome": "Acentuação gráfica",
+          "pai": 419321
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-04",
+      "topico": "Flexão nominal e verbal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "409117",
+          "nome": "Flexão do substantivo",
+          "pai": 403622
+        },
+        {
+          "id": "409143",
+          "nome": "Flexão do adjetivo",
+          "pai": 403623
+        },
+        {
+          "id": "409160",
+          "nome": "Flexão do numeral",
+          "pai": 403621
+        },
+        {
+          "id": "409189",
+          "nome": "Flexões verbais",
+          "pai": 403628
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-05",
+      "topico": "Pronomes: emprego e colocação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403641",
+          "nome": "Pronomes",
+          "pai": 419336
+        },
+        {
+          "id": "403650",
+          "nome": "Colocação Pronominal",
+          "pai": 403651
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-06",
+      "topico": "Tempos, modos e vozes verbais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419374",
+          "nome": "Emprego dos modos verbais",
+          "pai": 403631
+        },
+        {
+          "id": "419381",
+          "nome": "Emprego dos tempos verbais",
+          "pai": 403630
+        },
+        {
+          "id": "403634",
+          "nome": "Flexão de voz (ativa, passiva, reflexiva)",
+          "pai": 409189
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-07",
+      "topico": "Concordância nominal e verbal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403658",
+          "nome": "Concordância verbal",
+          "pai": 409455
+        },
+        {
+          "id": "409456",
+          "nome": "Concordância Nominal",
+          "pai": 409455
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-08",
+      "topico": "Regência nominal e verbal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403657",
+          "nome": "Regência verbal",
+          "pai": 409479
+        },
+        {
+          "id": "409483",
+          "nome": "Regência nominal",
+          "pai": 409479
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-09",
+      "topico": "Crase",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403682",
+          "nome": "Emprego do sinal indicativo de crase",
+          "pai": 403651
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-10",
+      "topico": "Pontuação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403666",
+          "nome": "Pontuação",
+          "pai": 403651
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-12",
+      "topico": "Denotação, conotação, sinonímia, antonímia e figuras de linguagem",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403706",
+          "nome": "Linguagem denotativa e linguagem conotativa (denotação e conotação)",
+          "pai": 403701
+        },
+        {
+          "id": "403704",
+          "nome": "Relações de sinonímia e antonímia (sinônimos e antônimos)",
+          "pai": 409318
+        },
+        {
+          "id": "409484",
+          "nome": "Figuras de linguagem",
+          "pai": 403709
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-13",
+      "topico": "Discurso direto, indireto e indireto livre",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419180",
+          "nome": "Tipos de discurso narrativo",
+          "pai": 409512
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-14",
+      "topico": "Morfossintaxe e formação de palavras",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403617",
+          "nome": "Morfologia",
+          "pai": 403587
+        },
+        {
+          "id": "403651",
+          "nome": "Morfossintaxe do período",
+          "pai": 403587
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-15",
+      "topico": "Coordenação, subordinação e conectivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419436",
+          "nome": "A sintaxe do período composto",
+          "pai": 403651
+        },
+        {
+          "id": "403626",
+          "nome": "Conjunções",
+          "pai": 419336
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "POR-16",
+      "topico": "Redação oficial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406881",
+          "nome": "Redação Oficial",
+          "pai": null
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-01",
+      "topico": "Números inteiros: operações, expressões, múltiplos e divisores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408662",
+          "nome": "Conjunto dos Números Inteiros",
+          "pai": 408638
+        },
+        {
+          "id": "403827",
+          "nome": "Operações Fundamentais",
+          "pai": 403826
+        },
+        {
+          "id": "403828",
+          "nome": "Divisibilidade e Critérios de Divisibilidade",
+          "pai": 403826
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-02",
+      "topico": "Números racionais, frações e operações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403830",
+          "nome": "Frações e Números Decimais",
+          "pai": 403826
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-03",
+      "topico": "Razão, proporção, divisão proporcional e regra de três",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403831",
+          "nome": "Razão e proporção (proporcionalidade)",
+          "pai": 403826
+        },
+        {
+          "id": "403833",
+          "nome": "Regra de Três",
+          "pai": 403826
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-07",
+      "topico": "Porcentagem, acréscimos e descontos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403835",
+          "nome": "Porcentagem",
+          "pai": 403826
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-08",
+      "topico": "Relações lógicas, deduções e conclusões a partir de hipóteses",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "461192",
+          "nome": "Estrutura lógica das relações arbitrárias entre pessoas, lugares, coisas, eventos fictícios",
+          "pai": 461172
+        },
+        {
+          "id": "461174",
+          "nome": "Avaliar as condições usadas para estabelecer a estrutura das relações",
+          "pai": 461172
+        },
+        {
+          "id": "461185",
+          "nome": "Conclusões determinadas",
+          "pai": 461172
+        },
+        {
+          "id": "461187",
+          "nome": "Dedução de novas informações a partir de informações fornecidas",
+          "pai": 461172
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-09",
+      "topico": "Raciocínio verbal, matemático, sequencial e orientação espacial e temporal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "461199",
+          "nome": "Raciocínio verbal",
+          "pai": 461172
+        },
+        {
+          "id": "461197",
+          "nome": "Raciocínio matemático",
+          "pai": 461172
+        },
+        {
+          "id": "404276",
+          "nome": "Raciocínio Sequencial",
+          "pai": 425328
+        },
+        {
+          "id": "461195",
+          "nome": "Estruturas Lógicas: orientação espacial",
+          "pai": 461172
+        },
+        {
+          "id": "461196",
+          "nome": "Estruturas Lógicas: orientação temporal",
+          "pai": 461172
+        },
+        {
+          "id": "461194",
+          "nome": "Estruturas Lógicas: formação de conceitos",
+          "pai": 461172
+        },
+        {
+          "id": "461190",
+          "nome": "Discriminação de elementos",
+          "pai": 461172
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-10",
+      "topico": "Estatística: moda, mediana, médias e medidas de dispersão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "7194",
+          "nome": "Média Aritmética",
+          "pai": 7193
+        },
+        {
+          "id": "7195",
+          "nome": "Média Ponderada",
+          "pai": 7193
+        },
+        {
+          "id": "7202",
+          "nome": "Mediana",
+          "pai": 7192
+        },
+        {
+          "id": "7206",
+          "nome": "Moda",
+          "pai": 7192
+        },
+        {
+          "id": "7212",
+          "nome": "Medidas de Variabilidade (ou de dispersão)",
+          "pai": 416549
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "MAT-11",
+      "topico": "Leitura e interpretação de gráficos, infográficos e tabelas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403910",
+          "nome": "Análise de Gráficos e Tabelas",
+          "pai": 403826
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LTRT-05",
+      "topico": "Sustentabilidade no Judiciário: Resolução CNJ 400/2021",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433177",
+          "nome": "Resolução nº 400/2021 - Dispõe sobre a política de sustentabilidade no âmbito do Poder Judiciário.",
+          "pai": 397403
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LTRT-02",
+      "topico": "Regimento Interno do TRT4, atualizado até o Assento Regimental 04/2026",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "399889",
+          "nome": "Regimento Interno - TRT 4ª Região",
+          "pai": 399888
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LTRT-07",
+      "topico": "Violência, assédio e discriminação: Resolução CSJT 360/2023",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "449610",
+          "nome": "Resolução nº 360/2023 - Institui a Política de Prevenção e Enfrentamento da Violência, do Assédio e de Todas as Formas de Discriminação no âmbito da Justiça do Trabalho de primeiro e segundo graus.",
+          "pai": 399690
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LTRT-08",
+      "topico": "Assédio moral, sexual e discriminação: Resolução CNJ 351/2020",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "436342",
+          "nome": "Resolução 351/2020",
+          "pai": 397403
+        },
+        {
+          "id": "436375",
+          "nome": "Resolução 351/2020 CNJ",
+          "pai": 397403
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-01",
+      "topico": "Evolução histórica, fundamentos filosóficos, fontes, princípios e gerações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407073",
+          "nome": "Evolução histórica dos direitos humanos",
+          "pai": 407070
+        },
+        {
+          "id": "407074",
+          "nome": "Características dos direitos humanos",
+          "pai": 407070
+        },
+        {
+          "id": "407075",
+          "nome": "Categorias e gerações dos direitos humanos",
+          "pai": 407070
+        },
+        {
+          "id": "423167",
+          "nome": "Teoria geral dos direitos humanos",
+          "pai": 407069
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-02",
+      "topico": "Interpretação dos tratados, colisão de direitos e controle de convencionalidade",
+      "tipo": "amplo",
+      "motivo": "Controle de convencionalidade tem filtro específico. Interpretação e colisão de tratados não foram encontradas isoladamente; inclui a categoria de Direito Internacional dos Direitos Humanos.",
+      "assuntos": [
+        {
+          "id": "421824",
+          "nome": "Controle de convencionalidade",
+          "pai": 405319
+        },
+        {
+          "id": "407070",
+          "nome": "Direito Internacional dos Direitos Humanos",
+          "pai": 407069
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-03",
+      "topico": "Tratados de direitos humanos e Constituição de 1988",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407127",
+          "nome": "Incorporação de tratados internacionais de direitos humanos no direito brasileiro (EC n.o 45)",
+          "pai": 407108
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-04",
+      "topico": "Declaração Universal dos Direitos Humanos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407086",
+          "nome": "Declaração Universal dos Direitos Humanos",
+          "pai": 407084
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-05",
+      "topico": "PIDCP, PIDESC e protocolos facultativos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407087",
+          "nome": "Pacto Internacional de Direitos Civis e Políticos",
+          "pai": 407084
+        },
+        {
+          "id": "407088",
+          "nome": "Pacto Internacional de Direitos Econômicos e Sociais e Culturais",
+          "pai": 407084
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-06",
+      "topico": "Convenções contra a discriminação racial e contra a mulher; protocolo facultativo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407089",
+          "nome": "Convenção Internacional sobre Eliminação de Todas as Formas de Discriminação Racial",
+          "pai": 407084
+        },
+        {
+          "id": "407090",
+          "nome": "Convenção sobre a Eliminação de Todas as Formas de Discriminação contra a Mulher",
+          "pai": 407084
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-07",
+      "topico": "Convenções sobre os direitos da criança e da pessoa com deficiência; protocolos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407093",
+          "nome": "Convenção sobre os Direitos da Criança",
+          "pai": 407084
+        },
+        {
+          "id": "407096",
+          "nome": "Convenção sobre os Direitos das Pessoas com Deficiência",
+          "pai": 407084
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-08",
+      "topico": "Patrimônio mundial, Declaração de Estocolmo e diversidade biológica",
+      "tipo": "amplo",
+      "motivo": "Não foi encontrado no catálogo um conjunto específico para os três instrumentos ambientais deste subtópico.",
+      "assuntos": [
+        {
+          "id": "397326",
+          "nome": "Conferências e Tratados Ambientais",
+          "pai": 397297
+        },
+        {
+          "id": "433492",
+          "nome": "Decreto nº 2.519/1998 - Promulga a Convenção sobre Diversidade Biológica, assinada no Rio de Janeiro, em 05 de junho de 1992.",
+          "pai": 418540
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-09",
+      "topico": "Declaração da ONU sobre os direitos dos povos indígenas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "430252",
+          "nome": "Declaração das Nações Unidas sobre os direitos dos povos indígenas",
+          "pai": 407069
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-10",
+      "topico": "Sistema interamericano: Declaração Americana, Convenção Americana e Protocolo de San Salvador",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "443740",
+          "nome": "Declaração Americana de Direitos e Deveres do Homem",
+          "pai": 407084
+        },
+        {
+          "id": "407112",
+          "nome": "Convenção Americana sobre Direitos Humanos (Pacto de San José)",
+          "pai": 407106
+        },
+        {
+          "id": "428037",
+          "nome": "Decreto nº 3.321 de 1999 - Protocolo de São Salvador",
+          "pai": 407069
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-11",
+      "topico": "Comissão e Corte Interamericanas: composição, funcionamento, atribuições e decisões",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407104",
+          "nome": "Comissão Interamericana de Direitos Humanos",
+          "pai": 407103
+        },
+        {
+          "id": "407105",
+          "nome": "Corte Interamericana de Direitos Humanos",
+          "pai": 407103
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-12",
+      "topico": "Mecanismos de proteção nacionais e internacionais; grupos vulneráveis e minorias",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407076",
+          "nome": "Sistema Global de Proteção dos Direitos Humanos: Instituições e Mecanismos",
+          "pai": 407069
+        },
+        {
+          "id": "407108",
+          "nome": "Direitos Humanos no Ordenamento Nacional",
+          "pai": 407069
+        },
+        {
+          "id": "452385",
+          "nome": "Direitos Fundamentais / Grupos Vulneráveis",
+          "pai": 407069
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-13",
+      "topico": "Perspectiva de gênero no Judiciário: Resolução CNJ 492/2023",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "437046",
+          "nome": "Resolução nº. 492/2023 - Estabelece, para adoção de Perspectiva de Gênero nos julgamentos em todo o Poder Judiciário, as diretrizes do protocolo aprovado pelo Grupo de Trabalho constituído pela Portaria CNJ n. 27/2021",
+          "pai": 397403
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-14",
+      "topico": "Equidade de raça, gênero e diversidade: Resolução CSJT 368/2023",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "449643",
+          "nome": "Resolução nº 368/2023 - Institui o Programa de Equidade de Raça, Gênero e Diversidade no âmbito da Justiça do Trabalho.",
+          "pai": 399690
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-15",
+      "topico": "Tribunal Penal Internacional, Estatuto de Roma e Decreto 4.388/2002",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407082",
+          "nome": "Estatuto de Roma e o Tribunal Penal Internacional",
+          "pai": 407069
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DH-16",
+      "topico": "Carta da ONU, Estatuto da Corte Internacional de Justiça e Decreto 19.841/1945",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407085",
+          "nome": "Carta da ONU",
+          "pai": 407084
+        },
+        {
+          "id": "407081",
+          "nome": "Corte Internacional de Justiça",
+          "pai": 407076
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-02",
+      "topico": "Internet, intranet, redes, navegadores Firefox, Chrome e Edge; mecanismos de busca",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405052",
+          "nome": "Conceitos Gerais e Funcionamento",
+          "pai": 405050
+        },
+        {
+          "id": "405161",
+          "nome": "Intranet",
+          "pai": 405157
+        },
+        {
+          "id": "405054",
+          "nome": "Mozilla Firefox",
+          "pai": 405053
+        },
+        {
+          "id": "405056",
+          "nome": "Google Chrome",
+          "pai": 405053
+        },
+        {
+          "id": "406727",
+          "nome": "Microsoft Edge",
+          "pai": 405053
+        },
+        {
+          "id": "405173",
+          "nome": "Mecanismos de Busca na Internet",
+          "pai": 405050
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-04",
+      "topico": "Organização e gerenciamento de arquivos, pastas e programas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "420719",
+          "nome": "Gerenciamento de Arquivos e Pastas",
+          "pai": 405085
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-07",
+      "topico": "Windows 10 e Windows 11",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405101",
+          "nome": "Windows 10",
+          "pai": 405084
+        },
+        {
+          "id": "430398",
+          "nome": "Windows 11",
+          "pai": 405084
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-08",
+      "topico": "Microsoft Office 365: textos, planilhas, apresentações, e-mail e agenda",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "459901",
+          "nome": "Microsoft 365; Microsoft Office",
+          "pai": 459900
+        },
+        {
+          "id": "405059",
+          "nome": "Correio Eletrônico (E-mail)",
+          "pai": 405030
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-09",
+      "topico": "Google Workspace: Documentos, planilhas, apresentações e compartilhamento",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "420599",
+          "nome": "Google Workspace (antigo Google G Suíte)",
+          "pai": 405107
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-10",
+      "topico": "Google Drive: criação, edição, compartilhamento e permissões",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "420158",
+          "nome": "Google Drive",
+          "pai": 420157
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-11",
+      "topico": "Google Agenda, Tarefas e Meet: eventos, participantes e videoconferência",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "459987",
+          "nome": "Tarefas Google; Google Tasks",
+          "pai": 459772
+        },
+        {
+          "id": "459989",
+          "nome": "Agenda Google; Google Calendar",
+          "pai": 459772
+        },
+        {
+          "id": "460047",
+          "nome": "Google Meet",
+          "pai": 460045
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-12",
+      "topico": "Gmail: configurações, painel de visualização e marcadores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405063",
+          "nome": "Gmail",
+          "pai": 405059
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "INF-13",
+      "topico": "Segurança: vírus, worms, antivírus, firewall, antispyware, senhas e autenticação em dois fatores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405067",
+          "nome": "Segurança da Informação",
+          "pai": 405030
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-07",
+      "topico": "Aplicabilidade: normas de eficácia plena, contida e limitada; normas programáticas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405209",
+          "nome": "Aplicabilidade das normas constitucionais, eficácia e aplicabilidade das normas constitucionais ou classificação das normas constitucionais ou vigência e eficácia das normas constitucionais ou normas constitucionais: classificação e eficácia",
+          "pai": 405200
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-08",
+      "topico": "Controle de constitucionalidade: ADI, ADC e ADPF",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407762",
+          "nome": "Ação direta de inconstitucionalidade ou ação direta de inconstitucionalidade genérica ou ADI ou ADIN ",
+          "pai": 405324
+        },
+        {
+          "id": "407763",
+          "nome": "Ação direta de constitucionalidade ou ação declaratória de constitucionalidade ou ADC ou ADECON",
+          "pai": 405324
+        },
+        {
+          "id": "407764",
+          "nome": "Arguição de Descumprimento de Preceito Fundamental (ADPF)",
+          "pai": 405324
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-01",
+      "topico": "Princípios fundamentais da República",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405212",
+          "nome": "Princípios fundamentais - Título I - Artigos 1º a 4º da CF",
+          "pai": 405199
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-03",
+      "topico": "Direitos e deveres individuais e coletivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405219",
+          "nome": "Direitos e deveres individuais e coletivos ou direitos e deveres individuais e coletivos; direito à vida, à liberdade, à igualdade,  à  segurança  e  à  propriedade (artigo 5º da CF)",
+          "pai": 405217
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-09",
+      "topico": "Direitos sociais e nacionalidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405227",
+          "nome": "Direitos sociais (artigos 6º a 11 da CF)",
+          "pai": 405217
+        },
+        {
+          "id": "405228",
+          "nome": "Direitos de nacionalidade ou da nacionalidade (artigos 12 e 13 da CF)",
+          "pai": 405217
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-04",
+      "topico": "Direitos políticos e partidos políticos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405229",
+          "nome": "Direitos Políticos (artigos 14 a 16 da CF)",
+          "pai": 405217
+        },
+        {
+          "id": "405230",
+          "nome": "Partidos políticos (artigo 17 da CF)",
+          "pai": 405217
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-10",
+      "topico": "Organização político-administrativa: União, Estados, Municípios, DF, Territórios e intervenção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405233",
+          "nome": "Organização politico-administrativa (artigos 18 e 19)",
+          "pai": 405231
+        },
+        {
+          "id": "407596",
+          "nome": "União ou Da União",
+          "pai": 405231
+        },
+        {
+          "id": "407598",
+          "nome": "Estados ou Dos Estados (artigos 25 a 28 da CF)",
+          "pai": 405231
+        },
+        {
+          "id": "407614",
+          "nome": "Municípios (artigos 29 a 31 da CF)",
+          "pai": 405231
+        },
+        {
+          "id": "421775",
+          "nome": "Distrito Federal (artigo 32 da CF)",
+          "pai": 405231
+        },
+        {
+          "id": "421782",
+          "nome": "Territórios ou territórios federais (artigo 33 da CF)",
+          "pai": 405231
+        },
+        {
+          "id": "405239",
+          "nome": "Intervenção federal e estadual (artigos 34 a 36 da CF)",
+          "pai": 405231
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-05",
+      "topico": "Administração Pública: disposições gerais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405242",
+          "nome": "Disposições gerais (artigo 37 da CF)",
+          "pai": 405240
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-06",
+      "topico": "Servidores públicos na Constituição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405243",
+          "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+          "pai": 405240
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-11",
+      "topico": "Organização dos Poderes; Executivo: Presidente, Vice, atribuições e responsabilidades",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405262",
+          "nome": "Presidente e Vice-Presidente da República (artigos 76 a 83 da CF)",
+          "pai": 405260
+        },
+        {
+          "id": "405263",
+          "nome": "Atribuições do Presidente da República (artigo 84 da CF)",
+          "pai": 405260
+        },
+        {
+          "id": "407646",
+          "nome": "Responsabilidade do Presidente da República (artigos 85 e 86 da CF)",
+          "pai": 405260
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-12",
+      "topico": "Legislativo: processo legislativo e fiscalização contábil, financeira e orçamentária",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405253",
+          "nome": "Processo Legislativo (artigos 59 a 69 da CF)",
+          "pai": 405248
+        },
+        {
+          "id": "405258",
+          "nome": "Fiscalização Contábil, Financeira e Orçamentária da União",
+          "pai": 405248
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-13",
+      "topico": "Judiciário: disposições gerais, STF, CNJ, STJ, TST, TRTs, juízes e CSJT",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405267",
+          "nome": "Disposições gerais (artigos 92 a 100 da CF)",
+          "pai": 405266
+        },
+        {
+          "id": "405273",
+          "nome": "Do Supremo Tribunal Federal (artigos 101 a 103 da CF)",
+          "pai": 407639
+        },
+        {
+          "id": "405275",
+          "nome": "Conselho Nacional de Justiça: organização, composição e competências (artigo 103-B da CF)",
+          "pai": 407639
+        },
+        {
+          "id": "405274",
+          "nome": "Do Superior Tribunal de Justiça (artigos 104 e 105 da CF)",
+          "pai": 407639
+        },
+        {
+          "id": "405277",
+          "nome": "Do Tribunal Superior do Trabalho, Tribunais Regionais do Trabalho e juízes do trabalho (artigos 111 a 117)",
+          "pai": 407639
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "CON-14",
+      "topico": "Funções essenciais à Justiça: MP, Advocacia Pública, advocacia e Defensoria",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405281",
+          "nome": "Funções essenciais à Justiça (artigos 127 a 135 da CF)",
+          "pai": 405246
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-01",
+      "topico": "Administração Pública, regime jurídico e princípios explícitos e implícitos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404358",
+          "nome": "Regime Jurídico Administrativo",
+          "pai": 404335
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-07",
+      "topico": "LINDB e sua aplicação na Administração Pública",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405866",
+          "nome": "Lei de Introdução às Normas do Direito Brasileiro - LINDB",
+          "pai": 405864
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-08",
+      "topico": "Poderes e deveres administrativos; uso e abuso do poder; Lei 13.869/2019",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404363",
+          "nome": "Poderes da Administração",
+          "pai": 404335
+        },
+        {
+          "id": "406521",
+          "nome": "Lei do Abuso de Autoridade - Lei nº 13.869/2019",
+          "pai": 406351
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-09",
+      "topico": "Atos administrativos: elementos, atributos, classificação, efeitos e extinção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404372",
+          "nome": "Atos Administrativos",
+          "pai": 404335
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-10",
+      "topico": "Processo administrativo federal: Lei 9.784/1999",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404427",
+          "nome": "Processo Administrativo - Lei 9.784/99",
+          "pai": 404335
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-11",
+      "topico": "Controle da Administração: Judiciário, Legislativo e Tribunais de Contas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404409",
+          "nome": "Controle da Administração",
+          "pai": 404335
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-12",
+      "topico": "Improbidade administrativa: Lei 8.429/1992 e alterações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404431",
+          "nome": "Improbidade Administrativa - Lei 8.429/92 e suas alterações",
+          "pai": 404335
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-03",
+      "topico": "Licitações: Lei 14.133/2021, modalidades, contratação direta, procedimentos, recursos e sanções",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433219",
+          "nome": "Disposições Preliminares",
+          "pai": 429796
+        },
+        {
+          "id": "433224",
+          "nome": "Das Licitações",
+          "pai": 429796
+        },
+        {
+          "id": "433266",
+          "nome": "Das irregularidades",
+          "pai": 429796
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-13",
+      "topico": "Contratos administrativos: formalização, execução, duração, prorrogação, revisão e extinção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433253",
+          "nome": "Dos Contratos Administrativos",
+          "pai": 429796
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-02",
+      "topico": "Agentes públicos: cargos, empregos, funções, provimento, exercício e afastamentos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404355",
+          "nome": "Conceito de Agentes Públicos",
+          "pai": 404354
+        },
+        {
+          "id": "404356",
+          "nome": "Classificação ou espécies de Agentes Públicos",
+          "pai": 404354
+        },
+        {
+          "id": "404357",
+          "nome": "Cargo, Emprego e Função Pública",
+          "pai": 404354
+        },
+        {
+          "id": "408014",
+          "nome": "Acesso aos Cargos e Empregos Públicos",
+          "pai": 404354
+        },
+        {
+          "id": "404509",
+          "nome": "Capítulo V - Dos Afastamentos",
+          "pai": 404504
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-14",
+      "topico": "Direito de greve e regime constitucional dos servidores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408003",
+          "nome": "Direito de greve dos servidores públicos",
+          "pai": 408001
+        },
+        {
+          "id": "405243",
+          "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+          "pai": 405240
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-15",
+      "topico": "Carreiras do Judiciário Federal: Lei 11.416/2006",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "395730",
+          "nome": "Lei nº 11.416/2006 -  Dispõe sobre as Carreiras dos Servidores do Poder Judiciário da União; revoga as Leis nos 9.421, de 24 de dezembro de 1996, 10.475, de 27 de junho de 2002, 10.417, de 5 de abril de 2002, e 10.944, de 16 de setembro de 2004; e dá outr",
+          "pai": 395699
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-16",
+      "topico": "Emprego público e disposições aplicáveis da CLT",
+      "tipo": "amplo",
+      "motivo": "O regime de emprego público tem categoria própria na Lei 9.962/2000, mas não há uma categoria que isole as disposições da CLT aplicáveis a empregados públicos; o complemento usa contrato de trabalho.",
+      "assuntos": [
+        {
+          "id": "394873",
+          "nome": "Lei nº 9.962/2000 - Disciplina o regime de emprego público do pessoal da Administração federal direta, autárquica e fundacional, e dá outras providências",
+          "pai": 395700
+        },
+        {
+          "id": "406755",
+          "nome": "Do Contrato de Trabalho",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DAD-17",
+      "topico": "Responsabilidade civil, administrativa e penal dos agentes públicos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "459054",
+          "nome": "Responsabilidade civil, criminal e administrativa do agente público",
+          "pai": 459041
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LEG-01",
+      "topico": "Disposições preliminares, provimento e vacância",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404501",
+          "nome": "Título I - Capítulo Único",
+          "pai": 404430
+        },
+        {
+          "id": "404503",
+          "nome": "Capítulo I - Do Provimento",
+          "pai": 404502
+        },
+        {
+          "id": "404512",
+          "nome": "Capítulo II - Da Vacância",
+          "pai": 404502
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LEG-02",
+      "topico": "Remoção, redistribuição e substituição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404511",
+          "nome": "Capítulo III - Da Remoção e da Redistribuição",
+          "pai": 404502
+        },
+        {
+          "id": "404510",
+          "nome": "Capítulo IV - Da Substituição",
+          "pai": 404502
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LEG-03",
+      "topico": "Vencimento, remuneração, vantagens, férias, licenças e direito de petição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404505",
+          "nome": "Capítulo I - Do Vencimento e da Remuneração",
+          "pai": 404504
+        },
+        {
+          "id": "404506",
+          "nome": "Capítulo II - Das Vantagens",
+          "pai": 404504
+        },
+        {
+          "id": "404507",
+          "nome": "Capítulo III - Das Férias",
+          "pai": 404504
+        },
+        {
+          "id": "404508",
+          "nome": "Capítulo IV - Das Licenças",
+          "pai": 404504
+        },
+        {
+          "id": "422909",
+          "nome": "Capítulo VIII - Do Direito de Petição",
+          "pai": 404504
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LEG-04",
+      "topico": "Deveres, proibições e acumulação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404514",
+          "nome": "Capítulo I - Dos Deveres",
+          "pai": 404513
+        },
+        {
+          "id": "404515",
+          "nome": "Capítulo II - Das Proibições",
+          "pai": 404513
+        },
+        {
+          "id": "404516",
+          "nome": "Capítulo III - Da Acumulação",
+          "pai": 404513
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LEG-05",
+      "topico": "Responsabilidades e penalidades",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404517",
+          "nome": "Capítulo IV - Das Responsabilidades",
+          "pai": 404513
+        },
+        {
+          "id": "404518",
+          "nome": "Capítulo V - Das Penalidades",
+          "pai": 404513
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "LEG-06",
+      "topico": "Regime e processo administrativo disciplinar",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404519",
+          "nome": "Título V - Do Processo Administrativo Disciplinar",
+          "pai": 404430
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-01",
+      "topico": "Organizações formais modernas: estruturas, natureza, finalidades e departamentalização",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404625",
+          "nome": "Estrutura Organizacional",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-09",
+      "topico": "Evolução das teorias das organizações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "417276",
+          "nome": "Teorias da Administração",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-02",
+      "topico": "Gestão pública e privada, princípios e gestão de resultados em serviços públicos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "417386",
+          "nome": "Convergências e Diferenças entre Gestão Pública e a Privada",
+          "pai": 403716
+        },
+        {
+          "id": "404551",
+          "nome": "Princípios aplicáveis à Administração Pública",
+          "pai": 404546
+        },
+        {
+          "id": "403774",
+          "nome": "Gestão por Resultados nos Serviços Públicos",
+          "pai": 403716
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-10",
+      "topico": "Comunicação na gestão pública e redes organizacionais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403755",
+          "nome": "Comunicação na Gestão Pública e Gestão de Redes Organizacionais",
+          "pai": 403716
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-05",
+      "topico": "Gestão de pessoas próprias e terceirizadas; gestão e modelos de avaliação de desempenho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404659",
+          "nome": "Gestão de Pessoas",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-03",
+      "topico": "Processo organizacional: planejamento, direção, coordenação, comunicação, controle e avaliação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404674",
+          "nome": "Processo organizacional (PODC)",
+          "pai": 404572
+        },
+        {
+          "id": "425506",
+          "nome": "Comunicação",
+          "pai": 404571
+        },
+        {
+          "id": "404668",
+          "nome": "Avaliação do Desempenho",
+          "pai": 404659
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-04",
+      "topico": "Gestão estratégica: planejamento estratégico, tático e operacional",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404609",
+          "nome": "Planejamento Estratégico",
+          "pai": 425402
+        },
+        {
+          "id": "425403",
+          "nome": "Planejamento Tático ",
+          "pai": 425402
+        },
+        {
+          "id": "425404",
+          "nome": "Planejamento Operacional ",
+          "pai": 425402
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-11",
+      "topico": "Gestão por processos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404626",
+          "nome": "Gestão de processos",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-12",
+      "topico": "Gestão por projetos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404636",
+          "nome": "Gestão de Projetos",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-13",
+      "topico": "Gestão de contratos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "464329",
+          "nome": "Gestão e Fiscalização de Contratos",
+          "pai": 464226
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-07",
+      "topico": "Gestão da qualidade e excelência nos serviços públicos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "417247",
+          "nome": "Gestão da Qualidade",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-14",
+      "topico": "Motivação e liderança",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404664",
+          "nome": "Liderança",
+          "pai": 404571
+        },
+        {
+          "id": "404670",
+          "nome": "Motivação",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "APU-15",
+      "topico": "Tipos de decisão e processo decisório",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404631",
+          "nome": "Processo Decisório",
+          "pai": 404571
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-01",
+      "topico": "Princípios, fontes e direitos constitucionais dos trabalhadores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406748",
+          "nome": "Princípios do Direito do Trabalho",
+          "pai": 406747
+        },
+        {
+          "id": "406749",
+          "nome": "Fontes do Direito do Trabalho",
+          "pai": 406747
+        },
+        {
+          "id": "433159",
+          "nome": "Direitos do Trabalhador na Constituição Federal",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-02",
+      "topico": "Relação de trabalho e relação de emprego: requisitos e distinções",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406752",
+          "nome": "Da Relação de Trabalho e de Emprego - Distinção",
+          "pai": 406747
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-03",
+      "topico": "Empregado, empregador e poderes do empregador",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406757",
+          "nome": "Sujeitos do contrato de trabalho ",
+          "pai": 406755
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-04",
+      "topico": "Contrato individual: classificação, alteração, jus variandi, suspensão e interrupção",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406755",
+          "nome": "Do Contrato de Trabalho",
+          "pai": 406746
+        },
+        {
+          "id": "406759",
+          "nome": "Alteração, Interrupção e Suspensão do Contrato de Trabalho",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-05",
+      "topico": "Rescisão, justas causas, despedida indireta, dispensa arbitrária, culpa recíproca e aviso prévio",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406786",
+          "nome": "Terminação do contrato de trabalho",
+          "pai": 406746
+        },
+        {
+          "id": "406795",
+          "nome": "Aviso Prévio",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-06",
+      "topico": "Duração do trabalho, jornada, intervalos, descanso semanal, noturno e extraordinário",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406772",
+          "nome": "Jornada de Trabalho",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-07",
+      "topico": "Salário e remuneração: mínimo, proteção, composição, modalidades, pagamento e 13º",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406773",
+          "nome": "Remuneração e Salário",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-08",
+      "topico": "Férias, proteção ao menor e à mulher, estabilidade da gestante e licença-maternidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406783",
+          "nome": "Férias",
+          "pai": 415832
+        },
+        {
+          "id": "415812",
+          "nome": "Proteção ao trabalho da mulher",
+          "pai": 406762
+        },
+        {
+          "id": "433421",
+          "nome": "Proteção ao trabalho do menor",
+          "pai": 406762
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-09",
+      "topico": "Grupo econômico, sucessão de empregadores e responsabilidade solidária",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406800",
+          "nome": "Grupo Econômico",
+          "pai": 433130
+        },
+        {
+          "id": "433133",
+          "nome": "Sucessão de empregadores",
+          "pai": 433130
+        },
+        {
+          "id": "433138",
+          "nome": "Responsabilidade Solidária e Subsidiária",
+          "pai": 433130
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-10",
+      "topico": "Fundo de Garantia do Tempo de Serviço — FGTS",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406796",
+          "nome": "FGTS",
+          "pai": 406797
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-11",
+      "topico": "Prescrição e decadência",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406754",
+          "nome": "Prescrição e decadência",
+          "pai": 406747
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-12",
+      "topico": "Segurança e medicina do trabalho; atividades perigosas e insalubres",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406776",
+          "nome": "Normas de Medicina e Segurança do Trabalho",
+          "pai": 406762
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-13",
+      "topico": "Direito coletivo: convenções e acordos coletivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415831",
+          "nome": "Convenção e acordo coletivo de trabalho",
+          "pai": 406777
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-14",
+      "topico": "Comissões de Conciliação Prévia; renúncia e transação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406806",
+          "nome": "Comissões de Conciliação Prévia",
+          "pai": 406777
+        },
+        {
+          "id": "406799",
+          "nome": "Renúncia e Transação",
+          "pai": 406759
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-15",
+      "topico": "Teletrabalho e Reforma Trabalhista — Lei 13.467/2017",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433123",
+          "nome": "Trabalho em domicílio e o teletrabalho",
+          "pai": 433120
+        },
+        {
+          "id": "430174",
+          "nome": "Reforma Trabalhista - Lei nº 13.467/2017",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-16",
+      "topico": "Dano moral e material nas relações de trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406801",
+          "nome": "Dano moral e material nas relações de trabalho",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DTR-17",
+      "topico": "Precedentes vinculantes (IRDR e IAC), súmulas, OJs, instruções e atos do TST; súmulas vinculantes do STF",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406778",
+          "nome": "Jurisprudência",
+          "pai": 406746
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-01",
+      "topico": "Justiça do Trabalho: organização, jurisdição e competência",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431451",
+          "nome": "Composição, funcionamento, jurisdição e competência de seus órgãos.",
+          "pai": 406813
+        },
+        {
+          "id": "416262",
+          "nome": "Competências da Justiça do Trabalho em Razão da Matéria",
+          "pai": 431450
+        },
+        {
+          "id": "416264",
+          "nome": "Competência Territorial da Justiça do Trabalho",
+          "pai": 431450
+        },
+        {
+          "id": "416266",
+          "nome": "Competência Funcional da Justiça do Trabalho",
+          "pai": 431450
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-02",
+      "topico": "Varas, TRTs, secretarias e distribuidores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431453",
+          "nome": "Varas do Trabalho",
+          "pai": 431451
+        },
+        {
+          "id": "406815",
+          "nome": "Tribunais Regionais do Trabalho",
+          "pai": 431451
+        },
+        {
+          "id": "431455",
+          "nome": "Das secretarias das Varas do Trabalho",
+          "pai": 430113
+        },
+        {
+          "id": "431456",
+          "nome": "Dos distribuidores",
+          "pai": 430113
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-03",
+      "topico": "Princípios gerais e aplicação subsidiária do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406811",
+          "nome": "Princípios do Direito Processual do Trabalho",
+          "pai": 406810
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-04",
+      "topico": "Atos, termos, prazos, custas e emolumentos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406826",
+          "nome": "Atos Processuais e Prazos",
+          "pai": 406809
+        },
+        {
+          "id": "431574",
+          "nome": "Custas Processuais",
+          "pai": 431570
+        },
+        {
+          "id": "406830",
+          "nome": "Emolumentos",
+          "pai": 431570
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-05",
+      "topico": "Partes, procuradores, jus postulandi, substituição, representação, assistência e honorários",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406821",
+          "nome": "Das Partes",
+          "pai": 406820
+        },
+        {
+          "id": "406822",
+          "nome": "Procuradores",
+          "pai": 406820
+        },
+        {
+          "id": "431605",
+          "nome": "Substituição das Partes e dos Procuradores",
+          "pai": 406820
+        },
+        {
+          "id": "431595",
+          "nome": "Assistência Judiciária e Justiça Gratuita",
+          "pai": 431570
+        },
+        {
+          "id": "431580",
+          "nome": "Honorários Advocatícios",
+          "pai": 431570
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-06",
+      "topico": "Audiências, notificação, arquivamento, revelia e confissão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406845",
+          "nome": "Audiência",
+          "pai": 406809
+        },
+        {
+          "id": "406831",
+          "nome": "Comunicação dos Atos Processuais",
+          "pai": 431612
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-07",
+      "topico": "Dissídios individuais, reclamação escrita e verbal e legitimidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406844",
+          "nome": "Petição Inicial do Dissídio Individual do Trabalho",
+          "pai": 406836
+        },
+        {
+          "id": "406843",
+          "nome": "Requisitos da Petição Inicial",
+          "pai": 406836
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-08",
+      "topico": "Procedimentos ordinário e sumaríssimo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "431650",
+          "nome": "Procedimento Ordinário",
+          "pai": 431649
+        },
+        {
+          "id": "406839",
+          "nome": "Procedimento Sumaríssimo",
+          "pai": 431649
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-09",
+      "topico": "Execução: procedimentos, embargos, praça, leilão e arrematação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406838",
+          "nome": "Processo de Execução",
+          "pai": 406809
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-10",
+      "topico": "Recursos no processo do trabalho",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406837",
+          "nome": "Sistema recursal trabalhista",
+          "pai": 406809
+        }
+      ]
+    },
+    {
+      "caderno": "TRT4",
+      "topicoId": "DPT-11",
+      "topico": "Informatização do processo judicial — Lei 11.419/2006",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "430130",
+          "nome": "Aspectos gerais da Lei Federal nº 11.419/2006.",
+          "pai": 416280
+        }
+      ]
+    }
+  ],
+  "pendencias": [
+    {
+      "topicoId": "LTRT-06",
+      "topico": "Código de Conduta e Valores Éticos do TRT4: Portaria 4.573/2023, com alterações de 2025",
+      "motivo": "Código de Conduta do TRT4: categoria correspondente não encontrada no Gran. Adicione um link complementar."
+    },
+    {
+      "topicoId": "DH-17",
+      "topico": "Protocolos para atuação e julgamento na Justiça do Trabalho",
+      "motivo": "Categoria específica ainda não verificada; adicione um link complementar."
+    },
+    {
+      "topicoId": "RED-01",
+      "topico": "Texto dissertativo-argumentativo para FCC",
+      "motivo": "Prática de redação: adicione seu material ou proposta de texto."
+    },
+    {
+      "topicoId": "RED-02",
+      "topico": "Tese, repertório e desenvolvimento argumentativo",
+      "motivo": "Prática de redação: adicione seu material ou proposta de texto."
+    },
+    {
+      "topicoId": "RED-03",
+      "topico": "Coesão, coerência e progressão textual",
+      "motivo": "Prática de redação: adicione seu material ou proposta de texto."
+    },
+    {
+      "topicoId": "RED-04",
+      "topico": "Norma culta, clareza e transcrição final",
+      "motivo": "Prática de redação: adicione seu material ou proposta de texto."
+    }
+  ],
+  "validacaoAmostral": {
+    "data": "2026-10-29",
+    "contexto": "Gran público, sem sessão autenticada; FCC, superior, anos 2017 a 2026. Contagens são instantâneas, não garantia de disponibilidade futura.",
+    "amostras": [
+      {
+        "topicoId": "LEG-02",
+        "assuntos": [
+          "404511",
+          "404510"
+        ],
+        "resultado": "Filtro com dois assuntos e FCC reconhecido; questão exibida sobre remoção."
+      },
+      {
+        "topicoId": "POR-16",
+        "assuntos": [
+          "406881"
+        ],
+        "resultado": "Disciplina Redação Oficial e FCC reconhecidas; 16 questões encontradas."
+      },
+      {
+        "topicoId": "DPT-08",
+        "assuntos": [
+          "431650",
+          "406839"
+        ],
+        "resultado": "Procedimento Ordinário e Procedimento Sumaríssimo aparecem selecionados; 12 questões encontradas."
+      }
+    ]
+  }
+}
