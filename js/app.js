@@ -12790,6 +12790,20 @@
       }).join('') + '</div></section>';
   }
 
+  function escolherTopicoInicio(disc, atual, escolher) {
+    const tops = (disc.topicos || []).filter(t => !t.orfao && !t.removidoDoEdital);
+    const m = abrirModal('<div class="assuntos-modal-cab"><h3>O que estudar em ' + esc(disc.nome) + '?</h3><button class="modal-x" id="inicio-topico-fechar" aria-label="Fechar">×</button></div><input type="search" id="inicio-topico-busca" placeholder="Buscar tópico…" aria-label="Buscar tópico do edital"><div class="inicio-topicos-lista"></div>');
+    function desenhar() {
+      const q = normalizarBusca(m.querySelector('#inicio-topico-busca').value);
+      const lista = tops.filter(t => normalizarBusca(t.nome).includes(q));
+      m.querySelector('.inicio-topicos-lista').innerHTML = lista.map(t => '<button type="button" class="inicio-topico-opcao' + (t.id === atual ? ' selecionado' : '') + '" data-inicio-topico="' + esc(t.id) + '"><span>' + esc(t.nome) + '</span><small>' + (t.id === atual ? 'Selecionado' : t.status === 'dominado' ? 'Concluído' : 'Estudar') + '</small></button>').join('') || '<p class="sub">Nenhum tópico encontrado.</p>';
+      m.querySelectorAll('[data-inicio-topico]').forEach(b => b.onclick = () => { fecharModal(); escolher(b.dataset.inicioTopico); });
+    }
+    m.querySelector('#inicio-topico-fechar').onclick = fecharModal;
+    m.querySelector('#inicio-topico-busca').oninput = desenhar;
+    desenhar();
+  }
+
   function organizarInicio(raiz) {
     raiz.classList.add('inicio-moderno');
     const cab = raiz.querySelector('.home-cab, .cab-pagina');
@@ -12824,7 +12838,11 @@
         const destaque = document.createElement('section'); destaque.className = 'card proximo-estudo';
         destaque.innerHTML = '<h2>Próximo estudo</h2>';
         const tag = primeira.querySelector('.tag-disc');
-        const disc = tag && state.disciplinas.find(function (d) { return /Português/.test(tag.textContent) ? /portugu[eê]s/i.test(d.nome) : d.id === tag.textContent.trim(); });
+        const acaoDestaque = primeira.querySelector('[data-acao="timer-agenda"],[data-acao="estudar"],[data-acao="ciclo-timer"]');
+        const agendaDestaque = acaoDestaque && acaoDestaque.dataset.acao === 'timer-agenda' && state.agenda.find(a => a.id === acaoDestaque.dataset.id);
+        const disc = (agendaDestaque && D.disciplinaPorId(state, agendaDestaque.disciplinaId)) ||
+          (acaoDestaque && (D.disciplinaPorId(state, acaoDestaque.dataset.disc) || D.disciplinaDoTopico(state, acaoDestaque.dataset.id))) ||
+          (tag && state.disciplinas.find(function (d) { return /Português/.test(tag.textContent) ? /portugu[eê]s/i.test(d.nome) : d.id === tag.textContent.trim(); }));
         const texto = disc ? disc.nome : primeira.textContent || '';
         {
           const portugues = /portugu[eê]s/i.test(texto);
@@ -12836,6 +12854,34 @@
             const nome = document.createElement('strong'); nome.className = 'disciplina-destaque'; nome.textContent = disc.nome;
             primeira.querySelector('.fila-info').prepend(nome);
           }
+        }
+        if (disc && !primeira.querySelector('[data-acao="timer-revisao"]')) {
+          const titulo = primeira.querySelector('.fila-titulo');
+          const agendaBotao = primeira.querySelector('[data-acao="timer-agenda"]');
+          const agenda = agendaBotao && state.agenda.find(a => a.id === agendaBotao.dataset.id);
+          const acoes = primeira.querySelectorAll('[data-acao="estudar"],[data-acao="registrar"],[data-acao="ciclo-timer"],[data-acao="ciclo-registrar"]');
+          const preferidas = state.plano.topicosInicio || {};
+          let atual = agenda ? agenda.topicoId : (preferidas[disc.id] || (acoes[0] && acoes[0].dataset.id));
+          function aplicar(id) {
+            const t = disc.topicos.find(t => t.id === id && !t.removidoDoEdital && !t.orfao);
+            if (!t) return;
+            atual = id;
+            titulo.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ''; });
+            const tag = titulo.querySelector('.tag-disc'); if (tag) tag.remove();
+            let nome = titulo.querySelector('.inicio-topico-nome');
+            if (!nome) { nome = document.createElement('span'); nome.className = 'inicio-topico-nome'; titulo.append(nome); }
+            nome.textContent = t.nome;
+            acoes.forEach(b => b.dataset.id = id);
+          }
+          if (atual && !agenda) aplicar(atual);
+          const editar = document.createElement('button'); editar.type = 'button'; editar.className = 'inicio-trocar-topico'; editar.title = 'Escolher tópico'; editar.setAttribute('aria-label', 'Escolher tópico de ' + disc.nome);
+          editar.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L20 8l-4-4L4 16Zm10-10 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+          editar.disabled = !!(agenda && blocoParcial(agenda));
+          editar.onclick = () => escolherTopicoInicio(disc, atual, id => {
+            if (agenda) { agenda.topicoId = id; salvar(); render(); }
+            else { state.plano.topicosInicio = Object.assign({}, state.plano.topicosInicio, { [disc.id]: id }); aplicar(id); salvar(); }
+          });
+          titulo.prepend(editar);
         }
         destaque.append(primeira); principal.append(destaque);
         primeira.querySelectorAll('[data-acao^="timer"], [data-acao="estudar"], [data-acao="ciclo-timer"]').forEach(function (b) {
@@ -12892,7 +12938,10 @@
       (desktop ? cab : cab.querySelector('.cab-home > div')).append(frase);
     }
     if (conquistas) (desktop ? cab : lateral).append(conquistas);
-    if (prova) (desktop ? cab : lateral).append(prova);
+    if (prova) {
+      const android = /Android/i.test(navigator.userAgent) || (window.GabariteiAndroid && window.GabariteiAndroid.ativo());
+      if (android) prova.remove(); else (desktop ? cab : lateral).append(prova);
+    }
   }
 
   function render() {

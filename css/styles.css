@@ -4990,3 +4990,23 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .revisoes-controles .rev-seg, .revisoes-controles .revisoes-ajuda { margin:0; }
 
 @media (min-width:761px) { body.sidebar-recolhida #topbar .topbar-marca .marca-nome { display:none; } }
+
+/* Destaque de estudo compacto, com troca explícita de tópico. */
+.inicio-moderno .proximo-estudo { padding:16px 18px; border-left-width:3px; }
+.proximo-estudo h2 { font-size:.82rem; margin:0 0 12px; color:var(--grafite); }
+.proximo-estudo .disciplina-livro { width:40px; height:42px; border-radius:10px; }
+.proximo-estudo .disciplina-livro svg { width:23px; height:23px; }
+.proximo-estudo .fila-corpo { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px 16px; }
+.proximo-estudo .fila-info { min-width:0; }
+.proximo-estudo .disciplina-destaque { font-size:.95rem; margin-bottom:4px; }
+.proximo-estudo .fila-rodape { margin:0; gap:6px; }
+.proximo-estudo .fila-rodape > .etiqueta { display:none; }
+.proximo-estudo .fila-acoes { margin:0; width:auto; }
+.proximo-estudo .fila-titulo { display:flex; align-items:center; gap:5px; line-height:1.5; }
+.inicio-trocar-topico { display:inline-flex; flex:0 0 28px; align-items:center; justify-content:center; width:28px; height:30px; min-height:30px; padding:4px; color:var(--caneta); background:transparent; border:0; box-shadow:none; }
+.inicio-trocar-topico svg { width:17px; height:17px; }
+.inicio-topicos-lista { max-height:55vh; overflow:auto; margin-top:12px; }
+.inicio-topico-opcao { display:flex; width:100%; justify-content:space-between; align-items:center; gap:12px; text-align:left; margin:6px 0; padding:12px; background:var(--papel-card); color:var(--tinta); border:1px solid var(--linha); box-shadow:none; }
+.inicio-topico-opcao small { color:var(--grafite); white-space:nowrap; }
+.inicio-topico-opcao.selecionado { border-color:var(--caneta); background:var(--caneta-suave); }
+@media(max-width:760px) { .proximo-estudo .fila-corpo { grid-template-columns:minmax(0,1fr); } .proximo-estudo .fila-rodape { margin-top:4px; } .proximo-estudo .fila-acoes { width:100%; } .inicio-trocar-topico { min-height:44px; height:44px; flex-basis:32px; } }
