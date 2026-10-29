@@ -10,9 +10,9 @@ test('TJSP mantém as 12 disciplinas e 80 tópicos do plano cadastrado, com trê
  const html=c.window.Trilha.render(state);
  assert.equal((html.match(/class="trilha-topico"/g)||[]).length,80);
  const hrefs=[...html.matchAll(/href="([^"]*questoes\.grancursosonline[^\"]*)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&')));
- assert.equal(hrefs.length,74);
+ assert.equal(hrefs.length,73);
  for(const u of hrefs){assert.equal(u.searchParams.get('banca'),'252,982,102');assert.equal(u.searchParams.get('nivel'),'2');assert.equal(u.pathname,'/questoes');}
- assert.equal(Object.values(mapa).filter(t=>!t.links.length).length,6);
+ assert.equal(Object.values(mapa).filter(t=>!t.links.length).length,7);
  assert.ok(html.includes('Filtro amplo'));
  assert.ok(html.includes('gran-logo'));
  assert.ok(html.includes('aria-label="Resolver no Gran:'));

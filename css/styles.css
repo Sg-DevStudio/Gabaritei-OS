@@ -4939,7 +4939,7 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .ajuda-painel::backdrop { background:transparent; }
 .ajuda-painel p { margin:8px 0; }
 .ajuda-fechar { display:block; margin:16px 0 0 auto; padding:6px 12px; font-size:.8rem; }
-.ajuda-corpo { min-width:0; }
+.ajuda-corpo { min-width:0; overflow-wrap:anywhere; }
 @media print { .ajuda-compacta { display:none !important; } .caderno details:not([open]) > :not(summary) { display:block !important; } }
 
 .caderno-indisponivel { min-height:60vh; display:grid; place-items:center; text-align:center; padding:24px; }

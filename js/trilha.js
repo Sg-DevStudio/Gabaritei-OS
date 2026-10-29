@@ -7,7 +7,7 @@
     try { const u = new URL(s); return /^https?:$/.test(u.protocol) && !u.username && !u.password ? u.href : ''; } catch (_) { return ''; }
   }
   function rotuloLink(link) {
-    try { const u = new URL(link.url); if (u.hostname === 'questoes.grancursosonline.com.br') return u.pathname.replace(/\/$/,'') === '/questoes' ? 'Resolver no Gran' : 'Ver catálogo no Gran'; } catch (_) {}
+    try { const u = new URL(link.url); if (u.hostname === 'questoes.grancursosonline.com.br') return u.pathname.replace(/\/$/,'') === '/questoes' ? (link.semResultadosNoRecorte ? 'Consultar no Gran' : 'Resolver no Gran') : 'Ver catálogo no Gran'; } catch (_) {}
     return link.nome;
   }
   let impressao = [];
@@ -22,6 +22,15 @@
   const ehTRT4 = s => /trt4/.test(normal(s.plano && s.plano.concurso)) && /tecnico/.test(normal(s.plano.concurso)) && /administrativ/.test(normal(s.plano.concurso)) && !/policia/.test(normal(s.plano.concurso)) && /2026/.test(s.plano.concurso);
   const bancasCaderno = s => ehTRT4(s) ? '92' : ehTJSP(s) ? '252,982,102' : '982,92';
   const rotuloBancas = s => ehTRT4(s) ? 'FCC' : ehTJSP(s) ? 'Vunesp + AOCP + FGV' : 'AOCP + FCC';
+  function rotuloFiltroGran(state,t) {
+    const ls=t.vinculos && t.vinculos.links || [];
+    if(ls.some(l=>l.semResultadosNoRecorte)) return 'Sem questões no recorte selecionado';
+    if(ls.some(l=>l.verificadoEm)) {
+      if(ls.some(l=>l.coberturaParcial)) return 'Filtro parcial do Gran';
+      return ls.some(l=>l.filtroAmplo) ? 'Filtro amplo do Gran' : 'Filtro específico do Gran';
+    }
+    return ehTJSP(state) ? 'Filtro amplo do Gran' : 'Filtro do Gran';
+  }
   function conteudoLink(l) {
     if (/^https:\/\/questoes\.grancursosonline\.com\.br\//.test(l.url || '')) return '<img class="gran-logo" src="assets/ferramentas/logo-gran-questoes.webp" alt="" aria-hidden="true"><span class="gran-texto">' + esc(rotuloLink(l)) + ' ↗</span>';
     return esc(rotuloLink(l)) + ' ↗';
@@ -43,7 +52,7 @@
   function defaults(state,t) {
     if (t.vinculos) return t.vinculos.links.map((l,i) => {
       const u = new URL(l.url); u.searchParams.set('banca',bancasCaderno(state));
-      return {id:'referencia-' + t.chave + '-' + i,nome:(l.code == null && !l.filtroAmplo ? 'Ver catálogo: ' : 'Resolver: ') + l.nome,url:u.href,aviso:l.aviso || (l.code == null && !l.filtroAmplo ? 'Catálogo; sem filtro específico' : l.exact ? '' : 'Categoria ampla')};
+      return {id:'referencia-' + t.chave + '-' + i,nome:(l.code == null && !l.filtroAmplo ? 'Ver catálogo: ' : 'Resolver: ') + l.nome,url:u.href,semResultadosNoRecorte:!!l.semResultadosNoRecorte,aviso:l.aviso || (l.code == null && !l.filtroAmplo ? 'Catálogo; sem filtro específico' : l.exact ? '' : 'Categoria ampla')};
     });
     return [padrao(t,state)].filter(Boolean);
   }
@@ -56,7 +65,7 @@
       (window.TrilhaReferencia || []).forEach((d, i) => d.topics.forEach((r, j) => { if (normal(r.name) === normal(t.nome)) chaves.push('ref:trf2-2024:' + i + ':' + j); }));
       if (chaves.length === 1) pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === chaves[0]);
     }
-    return (pessoais.length ? pessoais : defaults(state,t)).filter(l => !l.oculto).sort((a, b) => Number(!!b.principal) - Number(!!a.principal));
+    return (pessoais.length ? pessoais : defaults(state,t)).filter(l => !l.oculto).sort((a, b) => Number(!!b.principal) - Number(!!a.principal)).map(l => pessoais.length ? Object.assign({},l,{pessoal:true,semResultadosNoRecorte:false}) : l);
   }
   function render(state) {
     if (!state.plano) return '<h1>Caderno de questões</h1><div class="card"><p>Escolha um plano para organizar seus cadernos.</p><a href="#planos">Escolher plano</a></div>';
@@ -73,7 +82,8 @@
       '<button type="button" id="caderno-editar" class="botao-mini botao-secundario" aria-pressed="' + (edicaoPlano === chaveCaderno(state) && !!edicaoPlano) + '">' + (edicaoPlano === chaveCaderno(state) && edicaoPlano ? 'Concluir edição' : 'Editar caderno') + '</button><button type="button" id="caderno-imprimir" class="botao-mini botao-quieto">Imprimir / PDF</button></div>' +
       '<div id="trilha-grupos">' + gs.map((g,i) => '<details class="card trilha-grupo" id="caderno-disc-' + i + '"' + ((disciplinasAbertas.get(chaveCaderno(state)) || new Set()).has(i) ? ' open' : '') + '><summary class="caderno-sec-head"><div><small>' + String(i+1).padStart(2,'0') + ' / ' + gs.length + (g.tipo ? ' · ' + esc(g.tipo) : '') + '</small><h2>' + esc(g.nome) + ' <span class="caderno-contagem">(' + g.topicos.length + ' subtópicos)</span></h2></div></summary><p class="sub">Escolha o subtópico e resolva quantas questões quiser.</p>' + g.topicos.map(t => {
         const ls = links(state,t);
-        return '<article class="trilha-topico" data-busca="' + esc(normal(g.nome+t.nome)) + '"><div class="caderno-tema"><h3>' + esc(t.nome) + '</h3><small title="' + esc((t.vinculos && t.vinculos.links || []).map(l => l.aviso || '').filter(Boolean).join(' ')) + '">' + esc(t.referencia ? (t.referencia.code == null ? 'Sem código específico verificado' : (t.referencia.exact ? 'Categoria identificada no arquivo' : 'Categoria mais ampla') + ' · assunto ' + t.referencia.code) : (defaults(state,t).length ? (t.vinculos && t.vinculos.links.length && t.vinculos.links.every(l => l.code == null && !l.filtroAmplo) ? 'Catálogo do Gran: filtro específico ainda pendente' : (ehTRT4(state) ? (t.vinculos && t.vinculos.links.some(l => l.filtroAmplo) ? 'Filtro amplo do Gran' : 'Filtro específico do Gran') : ehTJSP(state) ? 'Filtro amplo do Gran' : 'Filtro do Gran')) : ls.length ? 'Links adicionados por você' : t.vinculos && t.vinculos.pendencia || 'Sem link de questões cadastrado para este subtópico')) + '</small></div><div class="caderno-acessos">' + ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a class="' + (/^https:\/\/questoes\.grancursosonline\.com\.br\//.test(l.url || '') ? 'gran-link' : '') + '" href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer" title="' + esc(l.nome + (l.aviso ? ' — ' + l.aviso : '')) + '" aria-label="' + esc(rotuloLink(l) + ': ' + l.nome) + '">' + conteudoLink(l) + '</a>' : '<span>Link inválido</span>') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('') + '<button class="botao-mini botao-quieto caderno-adicionar" data-trilha-adicionar="' + esc(t.chave) + '">' + (ls.length ? '+ Adicionar link' : 'Adicionar questões') + '</button></div></article>';
+        const pessoal = ls.some(l => l.pessoal);
+        return '<article class="trilha-topico" data-busca="' + esc(normal(g.nome+t.nome)) + '"><div class="caderno-tema"><h3>' + esc(t.nome) + '</h3><small title="' + esc((t.vinculos && t.vinculos.links || []).map(l => l.aviso || '').filter(Boolean).join(' ')) + '">' + esc(pessoal ? 'Links adicionados por você' : t.referencia ? (t.referencia.code == null ? 'Sem código específico verificado' : (t.referencia.exact ? 'Categoria identificada no arquivo' : 'Categoria mais ampla') + ' · assunto ' + t.referencia.code) : (defaults(state,t).length ? (t.vinculos && t.vinculos.links.length && t.vinculos.links.every(l => l.code == null && !l.filtroAmplo) ? 'Catálogo do Gran: filtro específico ainda pendente' : rotuloFiltroGran(state,t)) : ls.length ? 'Links adicionados por você' : t.vinculos && t.vinculos.pendencia || 'Sem link de questões cadastrado para este subtópico')) + '</small></div><div class="caderno-acessos">' + ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a class="' + (/^https:\/\/questoes\.grancursosonline\.com\.br\//.test(l.url || '') ? 'gran-link' : '') + '" href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer" title="' + esc(l.nome + (l.aviso ? ' — ' + l.aviso : '')) + '" aria-label="' + esc(rotuloLink(l) + ': ' + l.nome) + '">' + conteudoLink(l) + '</a>' : '<span>Link inválido</span>') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('') + '<button class="botao-mini botao-quieto caderno-adicionar" data-trilha-adicionar="' + esc(t.chave) + '">' + (ls.length ? '+ Adicionar link' : 'Adicionar questões') + '</button></div></article>';
       }).join('') + '</details>').join('') + '</div><p id="trilha-vazia" hidden>Nenhum subtópico encontrado.</p><footer class="caderno-rodape">Seus links pertencem a este caderno. Acertos e erros das plataformas externas não são importados automaticamente.</footer></div></div></div>';
   }
   function ligar(state, api) {

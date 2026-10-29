@@ -1,0 +1,2224 @@
+{
+  "verificadoEm": "2026-10-29",
+  "fonte": "https://rota-api.grancursosonline.com.br/open/assuntos/arvore",
+  "categoriasConsultadas": 40619,
+  "criterio": "Conteúdo e hierarquia conferidos; todas as categorias utilizadas têm acervo geral. Contagens após banca/nível/ano exigem validação amostral.",
+  "vinculos": [
+    {
+      "topicoId": "POR-01",
+      "topico": "Análise, compreensão e interpretação de textos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403701",
+          "nome": "Interpretação de Texto",
+          "pai": 403587,
+          "questoesCatalogo": 248115
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-02",
+      "topico": "Informacoes literais, inferencias e ponto de vista do autor",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "409511",
+          "nome": "Pressupostos e subentendidos",
+          "pai": 403701,
+          "questoesCatalogo": 72499
+        },
+        {
+          "id": "430370",
+          "nome": "Inferência Textual",
+          "pai": 403701,
+          "questoesCatalogo": 16863
+        },
+        {
+          "id": "419149",
+          "nome": "Viés",
+          "pai": 403701,
+          "questoesCatalogo": 65
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-03",
+      "topico": "Estruturacao textual, relações entre ideias e coesao",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403711",
+          "nome": "Coesão e coerência",
+          "pai": 403701,
+          "questoesCatalogo": 12934
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-04",
+      "topico": "Significacao contextual, sinonimos, antonimos e sentido figurado",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403704",
+          "nome": "Relações de sinonímia e antonímia (sinônimos e antônimos)",
+          "pai": 409318,
+          "questoesCatalogo": 7658
+        },
+        {
+          "id": "403706",
+          "nome": "Linguagem denotativa e linguagem conotativa (denotação e conotação)",
+          "pai": 403701,
+          "questoesCatalogo": 4530
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-05",
+      "topico": "Substantivo, adjetivo, artigo e numeral",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403622",
+          "nome": "Substantivos",
+          "pai": 419336,
+          "questoesCatalogo": 7908
+        },
+        {
+          "id": "403623",
+          "nome": "Adjetivos",
+          "pai": 419336,
+          "questoesCatalogo": 5915
+        },
+        {
+          "id": "403620",
+          "nome": "Artigos",
+          "pai": 419336,
+          "questoesCatalogo": 1732
+        },
+        {
+          "id": "403621",
+          "nome": "Numerais",
+          "pai": 419336,
+          "questoesCatalogo": 836
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-06",
+      "topico": "Pronome e colocacao pronominal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403641",
+          "nome": "Pronomes",
+          "pai": 419336,
+          "questoesCatalogo": 10565
+        },
+        {
+          "id": "403650",
+          "nome": "Colocação Pronominal",
+          "pai": 403651,
+          "questoesCatalogo": 7155
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-07",
+      "topico": "Verbo e adverbio",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403628",
+          "nome": "Verbos",
+          "pai": 419336,
+          "questoesCatalogo": 23012
+        },
+        {
+          "id": "403624",
+          "nome": "Advérbios",
+          "pai": 419336,
+          "questoesCatalogo": 5161
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-08",
+      "topico": "Preposicao e conjuncao",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403625",
+          "nome": "Preposição",
+          "pai": 419336,
+          "questoesCatalogo": 4907
+        },
+        {
+          "id": "403626",
+          "nome": "Conjunções",
+          "pai": 419336,
+          "questoesCatalogo": 10761
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-09",
+      "topico": "Concordância verbal e nominal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403658",
+          "nome": "Concordância verbal",
+          "pai": 409455,
+          "questoesCatalogo": 9218
+        },
+        {
+          "id": "409456",
+          "nome": "Concordância Nominal",
+          "pai": 409455,
+          "questoesCatalogo": 3063
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-10",
+      "topico": "Regência verbal e nominal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403657",
+          "nome": "Regência verbal",
+          "pai": 409479,
+          "questoesCatalogo": 6512
+        },
+        {
+          "id": "409483",
+          "nome": "Regência nominal",
+          "pai": 409479,
+          "questoesCatalogo": 2217
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-11",
+      "topico": "Crase",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403682",
+          "nome": "Emprego do sinal indicativo de crase",
+          "pai": 403651,
+          "questoesCatalogo": 14553
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-12",
+      "topico": "Pontuação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403666",
+          "nome": "Pontuação",
+          "pai": 403651,
+          "questoesCatalogo": 24593
+        }
+      ]
+    },
+    {
+      "topicoId": "DPE-01",
+      "topico": "Falsidade documental: arts. 293 a 305 do Código Penal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406414",
+          "nome": "Falsidade Documental",
+          "pai": 406348,
+          "questoesCatalogo": 711
+        }
+      ]
+    },
+    {
+      "topicoId": "DPE-02",
+      "topico": "Falsa identidade e fraude em certames: arts. 307, 308 e 311-A do CP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "414053",
+          "nome": "Falsa identidade",
+          "pai": 406428,
+          "questoesCatalogo": 88
+        },
+        {
+          "id": "406430",
+          "nome": "Das Fraudes em Certames de Interesse Público",
+          "pai": 406348,
+          "questoesCatalogo": 37
+        }
+      ]
+    },
+    {
+      "topicoId": "DPE-03",
+      "topico": "Crimes de funcionário público: arts. 312 a 317 e 319 a 327 do CP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406432",
+          "nome": "Peculato ",
+          "pai": 406431,
+          "questoesCatalogo": 1051
+        },
+        {
+          "id": "406433",
+          "nome": "Peculato mediante erro de outrem",
+          "pai": 406431,
+          "questoesCatalogo": 81
+        },
+        {
+          "id": "406434",
+          "nome": "Inserção de dados falsos em sistema de informações",
+          "pai": 406431,
+          "questoesCatalogo": 94
+        },
+        {
+          "id": "406438",
+          "nome": "Modificação ou alteração não autorizada de sistema de informações",
+          "pai": 406431,
+          "questoesCatalogo": 60
+        },
+        {
+          "id": "406440",
+          "nome": "Extravio, sonegação ou inutilização de livro ou documento",
+          "pai": 406431,
+          "questoesCatalogo": 36
+        },
+        {
+          "id": "406442",
+          "nome": "Emprego irregular de verbas ou rendas públicas",
+          "pai": 406431,
+          "questoesCatalogo": 58
+        },
+        {
+          "id": "406446",
+          "nome": "Concussão",
+          "pai": 406431,
+          "questoesCatalogo": 540
+        },
+        {
+          "id": "406450",
+          "nome": "Excesso de exação",
+          "pai": 406431,
+          "questoesCatalogo": 242
+        },
+        {
+          "id": "406453",
+          "nome": "Corrupção passiva",
+          "pai": 406431,
+          "questoesCatalogo": 756
+        },
+        {
+          "id": "406455",
+          "nome": "Prevaricação",
+          "pai": 406431,
+          "questoesCatalogo": 517
+        },
+        {
+          "id": "406456",
+          "nome": "Condescendência criminosa",
+          "pai": 406431,
+          "questoesCatalogo": 223
+        },
+        {
+          "id": "406457",
+          "nome": "Advocacia administrativa",
+          "pai": 406431,
+          "questoesCatalogo": 215
+        },
+        {
+          "id": "406459",
+          "nome": "Violência arbitrária",
+          "pai": 406431,
+          "questoesCatalogo": 31
+        },
+        {
+          "id": "406460",
+          "nome": "Abandono de função",
+          "pai": 406431,
+          "questoesCatalogo": 70
+        },
+        {
+          "id": "406462",
+          "nome": "Violação de sigilo funcional",
+          "pai": 406431,
+          "questoesCatalogo": 92
+        },
+        {
+          "id": "418941",
+          "nome": "Conceito de Funcionário Público e Causa de Aumento de Pena",
+          "pai": 406431,
+          "questoesCatalogo": 215
+        }
+      ]
+    },
+    {
+      "topicoId": "DPE-04",
+      "topico": "Crimes de particular contra a Administração: arts. 328 a 333 do CP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406475",
+          "nome": "Usurpação de função pública",
+          "pai": 406474,
+          "questoesCatalogo": 59
+        },
+        {
+          "id": "406476",
+          "nome": "Resistência",
+          "pai": 406474,
+          "questoesCatalogo": 122
+        },
+        {
+          "id": "406477",
+          "nome": "Desobediência",
+          "pai": 406474,
+          "questoesCatalogo": 102
+        },
+        {
+          "id": "406478",
+          "nome": "Desacato",
+          "pai": 406474,
+          "questoesCatalogo": 118
+        },
+        {
+          "id": "406479",
+          "nome": "Tráfico de influência",
+          "pai": 406474,
+          "questoesCatalogo": 144
+        },
+        {
+          "id": "406480",
+          "nome": "Corrupção ativa",
+          "pai": 406474,
+          "questoesCatalogo": 325
+        }
+      ]
+    },
+    {
+      "topicoId": "DPE-05",
+      "topico": "Crimes contra a Administração da Justiça: arts. 339 a 347 do CP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406498",
+          "nome": "Denunciação caluniosa",
+          "pai": 406496,
+          "questoesCatalogo": 125
+        },
+        {
+          "id": "406499",
+          "nome": "Comunicação falsa de crime ou de contravenção",
+          "pai": 406496,
+          "questoesCatalogo": 48
+        },
+        {
+          "id": "406500",
+          "nome": "Autoacusação falsa",
+          "pai": 406496,
+          "questoesCatalogo": 30
+        },
+        {
+          "id": "406501",
+          "nome": "Falso testemunho ou falsa perícia",
+          "pai": 406496,
+          "questoesCatalogo": 111
+        },
+        {
+          "id": "418945",
+          "nome": "Corrupção Ativa de Testemunha, Servidor ou Auxiliar da Justiça.",
+          "pai": 406496,
+          "questoesCatalogo": 19
+        },
+        {
+          "id": "406502",
+          "nome": "Coação no curso do processo",
+          "pai": 406496,
+          "questoesCatalogo": 32
+        },
+        {
+          "id": "406503",
+          "nome": "Exercício arbitrário das próprias razões",
+          "pai": 406496,
+          "questoesCatalogo": 53
+        },
+        {
+          "id": "406504",
+          "nome": "Fraude processual",
+          "pai": 406496,
+          "questoesCatalogo": 35
+        }
+      ]
+    },
+    {
+      "topicoId": "DPE-06",
+      "topico": "Demais crimes do edital: arts. 336, 337, 357 e 359 do CP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406483",
+          "nome": "Inutilização de edital ou de sinal",
+          "pai": 406474,
+          "questoesCatalogo": 8
+        },
+        {
+          "id": "406484",
+          "nome": "Subtração ou inutilização de livro ou documento",
+          "pai": 406474,
+          "questoesCatalogo": 7
+        },
+        {
+          "id": "406515",
+          "nome": "Exploração de prestígio",
+          "pai": 406496,
+          "questoesCatalogo": 62
+        },
+        {
+          "id": "406517",
+          "nome": "Desobediência a decisão judicial sobre perda ou suspensão de direito",
+          "pai": 406496,
+          "questoesCatalogo": 7
+        }
+      ]
+    },
+    {
+      "topicoId": "DPP-01",
+      "topico": "Juiz, MP, acusado, defensor e auxiliares: arts. 251 a 258, 261 a 267 e 274 do CPP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406661",
+          "nome": "Juiz",
+          "pai": 406660,
+          "questoesCatalogo": 197
+        },
+        {
+          "id": "406663",
+          "nome": "Ministério Público",
+          "pai": 406660,
+          "questoesCatalogo": 114
+        },
+        {
+          "id": "406664",
+          "nome": "Acusado",
+          "pai": 406660,
+          "questoesCatalogo": 38
+        },
+        {
+          "id": "406665",
+          "nome": "Defensor",
+          "pai": 406660,
+          "questoesCatalogo": 121
+        },
+        {
+          "id": "421462",
+          "nome": "Assistentes e auxiliares da Justiça",
+          "pai": 406660,
+          "questoesCatalogo": 77
+        }
+      ]
+    },
+    {
+      "topicoId": "DPP-02",
+      "topico": "Citações e intimações: arts. 351 a 372 do CPP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406669",
+          "nome": "Citação",
+          "pai": 406668,
+          "questoesCatalogo": 571
+        },
+        {
+          "id": "406670",
+          "nome": "Intimação e notificação",
+          "pai": 406668,
+          "questoesCatalogo": 119
+        }
+      ]
+    },
+    {
+      "topicoId": "DPP-03",
+      "topico": "Procedimento comum: arts. 394 a 497 do CPP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406686",
+          "nome": "Procedimento comum",
+          "pai": 406679,
+          "questoesCatalogo": 382
+        }
+      ]
+    },
+    {
+      "topicoId": "DPP-04",
+      "topico": "Procedimento sumário e restauração de autos: arts. 531 a 538 e 541 a 548 do CPP",
+      "tipo": "parcial",
+      "motivo": "Procedimento sumário tem categoria específica; restauração de autos penais foi encontrada apenas em categoria sem acervo.",
+      "assuntos": [
+        {
+          "id": "406687",
+          "nome": "Procedimento comum sumário",
+          "pai": 406679,
+          "questoesCatalogo": 92
+        }
+      ]
+    },
+    {
+      "topicoId": "DPP-05",
+      "topico": "Recursos e habeas corpus: arts. 574 a 667 do CPP",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406683",
+          "nome": "Recursos",
+          "pai": 406602,
+          "questoesCatalogo": 1357
+        },
+        {
+          "id": "406701",
+          "nome": "Habeas Corpus",
+          "pai": 406684,
+          "questoesCatalogo": 590
+        }
+      ]
+    },
+    {
+      "topicoId": "DPP-06",
+      "topico": "Juizados Especiais Criminais: arts. 60 a 83, 88 e 89 da Lei 9.099/1995",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "414336",
+          "nome": "Juizados Especiais Criminais",
+          "pai": 414884,
+          "questoesCatalogo": 12
+        },
+        {
+          "id": "406711",
+          "nome": "Procedimento comum sumaríssimo (Lei n.º 9.099/95)",
+          "pai": 406679,
+          "questoesCatalogo": 1098
+        }
+      ]
+    },
+    {
+      "topicoId": "DPC-01",
+      "topico": "Impedimento, suspeição e atos processuais: arts. 144 a 155 e 188 a 211 do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "422776",
+          "nome": "Impedimentos e Suspeições",
+          "pai": 402121,
+          "questoesCatalogo": 168
+        },
+        {
+          "id": "422792",
+          "nome": "Dos Auxiliares de Justiça (CPC)",
+          "pai": 402106,
+          "questoesCatalogo": 150
+        },
+        {
+          "id": "402128",
+          "nome": "Dos Atos Processuais",
+          "pai": 402090,
+          "questoesCatalogo": 1996
+        }
+      ]
+    },
+    {
+      "topicoId": "DPC-02",
+      "topico": "Comunicação dos atos: arts. 212 a 275 do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402133",
+          "nome": "Tempo dos Atos Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 113
+        },
+        {
+          "id": "415754",
+          "nome": "Lugar da Prática dos Atos Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 28
+        },
+        {
+          "id": "423046",
+          "nome": "Prazos dos Atos Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 413
+        },
+        {
+          "id": "423087",
+          "nome": "Comunicação dos Atos Processuais",
+          "pai": 415621,
+          "questoesCatalogo": 574
+        }
+      ]
+    },
+    {
+      "topicoId": "DPC-03",
+      "topico": "Tutela provisória: arts. 294 a 311 do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402141",
+          "nome": "Da Tutela Provisória",
+          "pai": 402090,
+          "questoesCatalogo": 1145
+        }
+      ]
+    },
+    {
+      "topicoId": "DPC-04",
+      "topico": "Procedimento comum: arts. 318 a 484 do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402150",
+          "nome": "Do procedimento comum",
+          "pai": 402149,
+          "questoesCatalogo": 2724
+        }
+      ]
+    },
+    {
+      "topicoId": "DPC-05",
+      "topico": "Sentença, coisa julgada e cumprimento: arts. 485 a 538 do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402163",
+          "nome": "Sentença",
+          "pai": 402090,
+          "questoesCatalogo": 465
+        },
+        {
+          "id": "423913",
+          "nome": "Coisa Julgada",
+          "pai": 402090,
+          "questoesCatalogo": 301
+        },
+        {
+          "id": "402165",
+          "nome": "Do cumprimento da sentença",
+          "pai": 402090,
+          "questoesCatalogo": 549
+        }
+      ]
+    },
+    {
+      "topicoId": "DPC-06",
+      "topico": "Recursos civeis: arts. 994 a 1026 do CPC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "424455",
+          "nome": "Aspectos Gerais dos Recursais",
+          "pai": 424454,
+          "questoesCatalogo": 228
+        },
+        {
+          "id": "424505",
+          "nome": "Juízos de Admissibilidade e de Mérito",
+          "pai": 424454,
+          "questoesCatalogo": 224
+        },
+        {
+          "id": "402224",
+          "nome": "Da apelação",
+          "pai": 402222,
+          "questoesCatalogo": 191
+        },
+        {
+          "id": "402225",
+          "nome": "Do agravo de instrumento",
+          "pai": 402222,
+          "questoesCatalogo": 242
+        },
+        {
+          "id": "402226",
+          "nome": "Do agravo interno",
+          "pai": 402222,
+          "questoesCatalogo": 70
+        },
+        {
+          "id": "402227",
+          "nome": "Dos embargos de declaração",
+          "pai": 402222,
+          "questoesCatalogo": 124
+        }
+      ]
+    },
+    {
+      "topicoId": "DPC-07",
+      "topico": "Juizados Cíveis: arts. 3 a 19 da Lei 9.099/1995 e Lei 12.153/2009",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "424626",
+          "nome": "Juizados Especiais",
+          "pai": 402090,
+          "questoesCatalogo": 871
+        },
+        {
+          "id": "424588",
+          "nome": "Juizados Especiais da Fazenda Pública",
+          "pai": 424626,
+          "questoesCatalogo": 171
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-01",
+      "topico": "Direitos e deveres individuais e coletivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405219",
+          "nome": "Direitos e deveres individuais e coletivos ou direitos e deveres individuais e coletivos; direito à vida, à liberdade, à igualdade,  à  segurança  e  à  propriedade (artigo 5º da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 12757
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-02",
+      "topico": "Direitos sociais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405227",
+          "nome": "Direitos sociais (artigos 6º a 11 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 4839
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-03",
+      "topico": "Nacionalidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405228",
+          "nome": "Direitos de nacionalidade ou da nacionalidade (artigos 12 e 13 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 3763
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-04",
+      "topico": "Administração pública na Constituição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405240",
+          "nome": "Administração Pública (artigos 37 a 43 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 15363
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-05",
+      "topico": "Servidores públicos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405243",
+          "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+          "pai": 405240,
+          "questoesCatalogo": 3786
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-06",
+      "topico": "Poder Judiciário: artigo 92 da Constituição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405268",
+          "nome": "Órgãos do Poder Judiciário (artigo 92 da CF)",
+          "pai": 405267,
+          "questoesCatalogo": 266
+        }
+      ]
+    },
+    {
+      "topicoId": "DAD-01",
+      "topico": "Estatuto SP: disposições e provimento (arts. 1 a 86 da Lei 10.261/1968)",
+      "tipo": "amplo",
+      "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran.",
+      "assuntos": [
+        {
+          "id": "394651",
+          "nome": "Estatuto dos Funcionários Públicos do Estado de São Paulo - Lei nº 10.261/1968",
+          "pai": 395535,
+          "questoesCatalogo": 402
+        }
+      ]
+    },
+    {
+      "topicoId": "DAD-02",
+      "topico": "Estatuto SP: exercício e vencimentos (arts. 171 a 175)",
+      "tipo": "amplo",
+      "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran.",
+      "assuntos": [
+        {
+          "id": "394651",
+          "nome": "Estatuto dos Funcionários Públicos do Estado de São Paulo - Lei nº 10.261/1968",
+          "pai": 395535,
+          "questoesCatalogo": 402
+        }
+      ]
+    },
+    {
+      "topicoId": "DAD-03",
+      "topico": "Estatuto SP: deveres, proibições, responsabilidades e penalidades (arts. 239 a 263)",
+      "tipo": "amplo",
+      "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran.",
+      "assuntos": [
+        {
+          "id": "394651",
+          "nome": "Estatuto dos Funcionários Públicos do Estado de São Paulo - Lei nº 10.261/1968",
+          "pai": 395535,
+          "questoesCatalogo": 402
+        }
+      ]
+    },
+    {
+      "topicoId": "DAD-04",
+      "topico": "Estatuto SP: procedimentos disciplinares (arts. 264 a 323)",
+      "tipo": "amplo",
+      "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran.",
+      "assuntos": [
+        {
+          "id": "394651",
+          "nome": "Estatuto dos Funcionários Públicos do Estado de São Paulo - Lei nº 10.261/1968",
+          "pai": 395535,
+          "questoesCatalogo": 402
+        }
+      ]
+    },
+    {
+      "topicoId": "DAD-05",
+      "topico": "Improbidade administrativa: Lei 8.429/1992",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404431",
+          "nome": "Improbidade Administrativa - Lei 8.429/92 e suas alterações",
+          "pai": 404335,
+          "questoesCatalogo": 10744
+        }
+      ]
+    },
+    {
+      "topicoId": "DAD-06",
+      "topico": "Revisão integrada: arts. 1 a 86, 171 a 175 e 239 a 323 do Estatuto SP e Lei 8.429/1992",
+      "tipo": "amplo",
+      "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran.",
+      "assuntos": [
+        {
+          "id": "394651",
+          "nome": "Estatuto dos Funcionários Públicos do Estado de São Paulo - Lei nº 10.261/1968",
+          "pai": 395535,
+          "questoesCatalogo": 402
+        },
+        {
+          "id": "404431",
+          "nome": "Improbidade Administrativa - Lei 8.429/92 e suas alterações",
+          "pai": 404335,
+          "questoesCatalogo": 10744
+        }
+      ]
+    },
+    {
+      "topicoId": "LIN-01",
+      "topico": "Normas CGJ, Tomo I: Capítulo II, Seção I, subseções I e II",
+      "tipo": "amplo",
+      "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção.",
+      "assuntos": [
+        {
+          "id": "432497",
+          "nome": "Corregedoria Geral da Justiça de São Paulo - CGJ SP - Legislação Aplicada",
+          "pai": 396349,
+          "questoesCatalogo": 178
+        }
+      ]
+    },
+    {
+      "topicoId": "LIN-02",
+      "topico": "Normas CGJ, Tomo I: Capítulo III, seções I, II, V, VI e VII",
+      "tipo": "amplo",
+      "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção.",
+      "assuntos": [
+        {
+          "id": "432497",
+          "nome": "Corregedoria Geral da Justiça de São Paulo - CGJ SP - Legislação Aplicada",
+          "pai": 396349,
+          "questoesCatalogo": 178
+        }
+      ]
+    },
+    {
+      "topicoId": "LIN-03",
+      "topico": "Normas CGJ, Tomo I: Capítulo III, seção VIII, subseções I, II e III",
+      "tipo": "amplo",
+      "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção.",
+      "assuntos": [
+        {
+          "id": "432497",
+          "nome": "Corregedoria Geral da Justiça de São Paulo - CGJ SP - Legislação Aplicada",
+          "pai": 396349,
+          "questoesCatalogo": 178
+        }
+      ]
+    },
+    {
+      "topicoId": "LIN-04",
+      "topico": "Normas CGJ, Tomo I: Capítulo III, seções IX a XIX",
+      "tipo": "amplo",
+      "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção.",
+      "assuntos": [
+        {
+          "id": "432497",
+          "nome": "Corregedoria Geral da Justiça de São Paulo - CGJ SP - Legislação Aplicada",
+          "pai": 396349,
+          "questoesCatalogo": 178
+        }
+      ]
+    },
+    {
+      "topicoId": "LIN-05",
+      "topico": "Normas CGJ, Tomo I: Capítulo XI, seções I a VII",
+      "tipo": "amplo",
+      "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção.",
+      "assuntos": [
+        {
+          "id": "432497",
+          "nome": "Corregedoria Geral da Justiça de São Paulo - CGJ SP - Legislação Aplicada",
+          "pai": 396349,
+          "questoesCatalogo": 178
+        }
+      ]
+    },
+    {
+      "topicoId": "ATU-01",
+      "topico": "Fatos políticos e institucionais a partir do 1º semestre de 2026",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407354",
+          "nome": "Política Internacional / Relação entre Países",
+          "pai": 407347,
+          "questoesCatalogo": 4536
+        },
+        {
+          "id": "407406",
+          "nome": "Política",
+          "pai": 407400,
+          "questoesCatalogo": 5703
+        }
+      ]
+    },
+    {
+      "topicoId": "ATU-02",
+      "topico": "Fatos econômicos nacionais e internacionais a partir de 2026",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407348",
+          "nome": "Economia",
+          "pai": 407347,
+          "questoesCatalogo": 2806
+        },
+        {
+          "id": "407402",
+          "nome": "Economia",
+          "pai": 407400,
+          "questoesCatalogo": 4454
+        }
+      ]
+    },
+    {
+      "topicoId": "ATU-03",
+      "topico": "Fatos sociais e culturais nacionais e internacionais a partir de 2026",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407362",
+          "nome": "Arte e Cultura",
+          "pai": 407347,
+          "questoesCatalogo": 1159
+        },
+        {
+          "id": "407421",
+          "nome": "Arte e Cultura",
+          "pai": 407400,
+          "questoesCatalogo": 3347
+        },
+        {
+          "id": "407371",
+          "nome": "Movimentos Sociais e Desigualdade",
+          "pai": 407367,
+          "questoesCatalogo": 288
+        },
+        {
+          "id": "407424",
+          "nome": "Direitos Humanos/Direitos Sociais e outras Questões Sociais",
+          "pai": 407400,
+          "questoesCatalogo": 3934
+        }
+      ]
+    },
+    {
+      "topicoId": "ATU-04",
+      "topico": "Estatuto da Pessoa com Deficiência: arts. 1 a 13",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433292",
+          "nome": "Disposições Preliminares ",
+          "pai": 433274,
+          "questoesCatalogo": 1324
+        },
+        {
+          "id": "433279",
+          "nome": "Do direito à vida - Art. 10 ao 13",
+          "pai": 433278,
+          "questoesCatalogo": 90
+        }
+      ]
+    },
+    {
+      "topicoId": "ATU-05",
+      "topico": "Estatuto da Pessoa com Deficiência: arts. 34 a 38",
+      "tipo": "especifico",
+      "motivo": "O Gran não retornou questões para Vunesp, AOCP e FGV, nível médio, anos 2017–2026 nesta verificação. O assunto específico foi preservado; complemente o material ou edite o link.",
+      "assuntos": [
+        {
+          "id": "433284",
+          "nome": "Do direito ao trabalho",
+          "pai": 433278,
+          "questoesCatalogo": 260
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-01",
+      "topico": "Operações com números reais, MMC e MDC",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403827",
+          "nome": "Operações Fundamentais",
+          "pai": 403826,
+          "questoesCatalogo": 12509
+        },
+        {
+          "id": "408655",
+          "nome": "Mínimo Múltiplo Comum (MMC)",
+          "pai": 408639,
+          "questoesCatalogo": 475
+        },
+        {
+          "id": "408656",
+          "nome": "Máximo Divisor Comum (MDC)",
+          "pai": 408639,
+          "questoesCatalogo": 435
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-02",
+      "topico": "Razao, proporcao, porcentagem e regra de tres",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425067",
+          "nome": "Razões e proporções",
+          "pai": 408678,
+          "questoesCatalogo": 30
+        },
+        {
+          "id": "403833",
+          "nome": "Regra de Três",
+          "pai": 403826,
+          "questoesCatalogo": 6726
+        },
+        {
+          "id": "403835",
+          "nome": "Porcentagem",
+          "pai": 403826,
+          "questoesCatalogo": 11534
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-03",
+      "topico": "Média aritmética simples e ponderada",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408555",
+          "nome": "Média Aritmética Simples",
+          "pai": 408554,
+          "questoesCatalogo": 2118
+        },
+        {
+          "id": "408556",
+          "nome": "Média Aritmética Ponderada",
+          "pai": 408554,
+          "questoesCatalogo": 547
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-04",
+      "topico": "Juros simples",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403836",
+          "nome": "Juros Simples",
+          "pai": 425054,
+          "questoesCatalogo": 2583
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-05",
+      "topico": "Equações de 1o e 2o graus e sistemas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408707",
+          "nome": "Equação do primeiro grau (linear)",
+          "pai": 408703,
+          "questoesCatalogo": 3739
+        },
+        {
+          "id": "408715",
+          "nome": "Equação do segundo grau (quadrática)",
+          "pai": 408703,
+          "questoesCatalogo": 1730
+        },
+        {
+          "id": "403843",
+          "nome": "Sistemas de Equações ",
+          "pai": 403837,
+          "questoesCatalogo": 1185
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-06",
+      "topico": "Tabelas, gráficos e sistemas de medidas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "426555",
+          "nome": "Gráficos Estatísticos e Formas de Organização de Dados",
+          "pai": 416549,
+          "questoesCatalogo": 587
+        },
+        {
+          "id": "408593",
+          "nome": "Conversão de Medidas",
+          "pai": 403832,
+          "questoesCatalogo": 2567
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-07",
+      "topico": "Geometria: perimetro, área, volume, angulos e Pitagoras",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425219",
+          "nome": "Perímetro e Áreas de superfícies planas",
+          "pai": 425202,
+          "questoesCatalogo": 4465
+        },
+        {
+          "id": "403872",
+          "nome": "Ângulos ",
+          "pai": 425202,
+          "questoesCatalogo": 702
+        },
+        {
+          "id": "408879",
+          "nome": "Teorema de Pitágoras e suas aplicações",
+          "pai": 425202,
+          "questoesCatalogo": 755
+        },
+        {
+          "id": "408895",
+          "nome": "Volumes",
+          "pai": 403890,
+          "questoesCatalogo": 3036
+        }
+      ]
+    },
+    {
+      "topicoId": "MAT-08",
+      "topico": "Resolução de situacoes-problema",
+      "tipo": "amplo",
+      "motivo": "A categoria isolada de situações-problema não tem acervo validado; utiliza operações fundamentais.",
+      "assuntos": [
+        {
+          "id": "403827",
+          "nome": "Operações Fundamentais",
+          "pai": 403826,
+          "questoesCatalogo": 12509
+        }
+      ]
+    },
+    {
+      "topicoId": "INF-01",
+      "topico": "Windows 10 ou superior: pastas, arquivos, atalhos e área de transferencia",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "429009",
+          "nome": "Windows 10",
+          "pai": 8146,
+          "questoesCatalogo": 351
+        },
+        {
+          "id": "430488",
+          "nome": "Windows 11",
+          "pai": 8146,
+          "questoesCatalogo": 109
+        }
+      ]
+    },
+    {
+      "topicoId": "INF-02",
+      "topico": "Word: edição, formatacao, tabelas, impressao e objetos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405112",
+          "nome": "Microsoft Word",
+          "pai": 420355,
+          "questoesCatalogo": 20356
+        }
+      ]
+    },
+    {
+      "topicoId": "INF-03",
+      "topico": "Excel: células, fórmulas, funções, macros, dados externos, gráficos e impressão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405118",
+          "nome": "Microsoft Excel",
+          "pai": 420298,
+          "questoesCatalogo": 20101
+        }
+      ]
+    },
+    {
+      "topicoId": "INF-04",
+      "topico": "Correio eletrônico: envio, preparo de mensagens e anexos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405059",
+          "nome": "Correio Eletrônico (E-mail)",
+          "pai": 405030,
+          "questoesCatalogo": 6776
+        }
+      ]
+    },
+    {
+      "topicoId": "INF-05",
+      "topico": "Internet: navegacao, URL, links, sites, busca e impressao",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "429400",
+          "nome": "Internet",
+          "pai": 8174,
+          "questoesCatalogo": 578
+        }
+      ]
+    },
+    {
+      "topicoId": "INF-06",
+      "topico": "Microsoft Teams: chats, chamadas, grupos, reunioes e gravacao",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "442653",
+          "nome": "Microsoft Teams",
+          "pai": 430413,
+          "questoesCatalogo": 189
+        }
+      ]
+    },
+    {
+      "topicoId": "INF-07",
+      "topico": "Microsoft 365, SharePoint, OneNote, PowerPoint e OneDrive",
+      "tipo": "amplo",
+      "motivo": "Não há categoria Microsoft 365/SharePoint com acervo validado; reúne Office, OneNote, PowerPoint e OneDrive, incluindo outras versões.",
+      "assuntos": [
+        {
+          "id": "405111",
+          "nome": "Microsoft Office",
+          "pai": 405107,
+          "questoesCatalogo": 46674
+        },
+        {
+          "id": "405109",
+          "nome": "Microsoft OneNote",
+          "pai": 405111,
+          "questoesCatalogo": 22
+        },
+        {
+          "id": "405124",
+          "nome": "Microsoft PowerPoint",
+          "pai": 420405,
+          "questoesCatalogo": 4779
+        },
+        {
+          "id": "420160",
+          "nome": "OneDrive",
+          "pai": 420157,
+          "questoesCatalogo": 252
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-01",
+      "topico": "Estruturas logicas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404280",
+          "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+          "pai": 404257,
+          "questoesCatalogo": 1786
+        },
+        {
+          "id": "404263",
+          "nome": "Equivalências Lógicas - (Proposições Logicamente equivalentes)",
+          "pai": 404259,
+          "questoesCatalogo": 2583
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-02",
+      "topico": "Logica de argumentação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404266",
+          "nome": "Lógica de Argumentação ",
+          "pai": 404257,
+          "questoesCatalogo": 7652
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-03",
+      "topico": "Diagramas logicos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404270",
+          "nome": "Diagramas Lógicos / Diagrama de Venn / Operações com conjuntos",
+          "pai": 404266,
+          "questoesCatalogo": 2703
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-04",
+      "topico": "Sequencias numericas",
+      "tipo": "amplo",
+      "motivo": "O catálogo com acervo agrupa sequências numéricas, letras, palavras e figuras, sem categoria isolada para números.",
+      "assuntos": [
+        {
+          "id": "404279",
+          "nome": "Sequências com números, letras, palavras e figuras",
+          "pai": 425328,
+          "questoesCatalogo": 2836
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-05",
+      "topico": "Sequencias figurais e padroes",
+      "tipo": "amplo",
+      "motivo": "O catálogo com acervo agrupa sequências numéricas, letras, palavras e figuras, sem categoria isolada para figuras.",
+      "assuntos": [
+        {
+          "id": "404279",
+          "nome": "Sequências com números, letras, palavras e figuras",
+          "pai": 425328,
+          "questoesCatalogo": 2836
+        }
+      ]
+    }
+  ],
+  "pendencias": [
+    {
+      "topicoId": "LIN-06",
+      "topico": "Resolução TJSP 850/2021: teletrabalho",
+      "motivo": "Resolução TJSP 850/2021: categoria correspondente não encontrada; adicione material complementar."
+    },
+    {
+      "topicoId": "LIN-07",
+      "topico": "Resolução TJSP 963/2025: governanca e eproc",
+      "motivo": "Resolução TJSP 963/2025: categoria correspondente não encontrada; adicione material complementar."
+    },
+    {
+      "topicoId": "LIN-08",
+      "topico": "LC 1.111/2010 e Regimento Interno do TJSP",
+      "motivo": "Regimento Interno TJSP: categoria sem acervo; LC 1.111/2010 sem categoria própria encontrada. Adicione material complementar."
+    },
+    {
+      "topicoId": "RED-01",
+      "topico": "Texto dissertativo-argumentativo",
+      "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+    },
+    {
+      "topicoId": "RED-02",
+      "topico": "Tese, posicionamento e defesa de ponto de vista",
+      "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+    },
+    {
+      "topicoId": "RED-03",
+      "topico": "Coesao, coerência e progressão argumentativa",
+      "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+    },
+    {
+      "topicoId": "RED-04",
+      "topico": "Norma-padrao, clareza e legibilidade",
+      "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+    }
+  ],
+  "disciplinasConferidas": [
+    {
+      "id": "POR",
+      "nome": "Língua Portuguesa",
+      "topicos": [
+        {
+          "id": "POR-01",
+          "nome": "Análise, compreensão e interpretação de textos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-02",
+          "nome": "Informacoes literais, inferencias e ponto de vista do autor",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-03",
+          "nome": "Estruturacao textual, relações entre ideias e coesao",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-04",
+          "nome": "Significacao contextual, sinonimos, antonimos e sentido figurado",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-05",
+          "nome": "Substantivo, adjetivo, artigo e numeral",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-06",
+          "nome": "Pronome e colocacao pronominal",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-07",
+          "nome": "Verbo e adverbio",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-08",
+          "nome": "Preposicao e conjuncao",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-09",
+          "nome": "Concordância verbal e nominal",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-10",
+          "nome": "Regência verbal e nominal",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-11",
+          "nome": "Crase",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-12",
+          "nome": "Pontuação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "DPE",
+      "nome": "Direito Penal",
+      "topicos": [
+        {
+          "id": "DPE-01",
+          "nome": "Falsidade documental: arts. 293 a 305 do Código Penal",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPE-02",
+          "nome": "Falsa identidade e fraude em certames: arts. 307, 308 e 311-A do CP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPE-03",
+          "nome": "Crimes de funcionário público: arts. 312 a 317 e 319 a 327 do CP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPE-04",
+          "nome": "Crimes de particular contra a Administração: arts. 328 a 333 do CP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPE-05",
+          "nome": "Crimes contra a Administração da Justiça: arts. 339 a 347 do CP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPE-06",
+          "nome": "Demais crimes do edital: arts. 336, 337, 357 e 359 do CP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "DPP",
+      "nome": "Direito Processual Penal",
+      "topicos": [
+        {
+          "id": "DPP-01",
+          "nome": "Juiz, MP, acusado, defensor e auxiliares: arts. 251 a 258, 261 a 267 e 274 do CPP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPP-02",
+          "nome": "Citações e intimações: arts. 351 a 372 do CPP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPP-03",
+          "nome": "Procedimento comum: arts. 394 a 497 do CPP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPP-04",
+          "nome": "Procedimento sumário e restauração de autos: arts. 531 a 538 e 541 a 548 do CPP",
+          "tipo": "parcial",
+          "semResultadosNoRecorte": false,
+          "motivo": "Procedimento sumário tem categoria específica; restauração de autos penais foi encontrada apenas em categoria sem acervo."
+        },
+        {
+          "id": "DPP-05",
+          "nome": "Recursos e habeas corpus: arts. 574 a 667 do CPP",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPP-06",
+          "nome": "Juizados Especiais Criminais: arts. 60 a 83, 88 e 89 da Lei 9.099/1995",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "DPC",
+      "nome": "Direito Processual Civil",
+      "topicos": [
+        {
+          "id": "DPC-01",
+          "nome": "Impedimento, suspeição e atos processuais: arts. 144 a 155 e 188 a 211 do CPC",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPC-02",
+          "nome": "Comunicação dos atos: arts. 212 a 275 do CPC",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPC-03",
+          "nome": "Tutela provisória: arts. 294 a 311 do CPC",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPC-04",
+          "nome": "Procedimento comum: arts. 318 a 484 do CPC",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPC-05",
+          "nome": "Sentença, coisa julgada e cumprimento: arts. 485 a 538 do CPC",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPC-06",
+          "nome": "Recursos civeis: arts. 994 a 1026 do CPC",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DPC-07",
+          "nome": "Juizados Cíveis: arts. 3 a 19 da Lei 9.099/1995 e Lei 12.153/2009",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "CON",
+      "nome": "Direito Constitucional",
+      "topicos": [
+        {
+          "id": "CON-01",
+          "nome": "Direitos e deveres individuais e coletivos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-02",
+          "nome": "Direitos sociais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-03",
+          "nome": "Nacionalidade",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-04",
+          "nome": "Administração pública na Constituição",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-05",
+          "nome": "Servidores públicos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-06",
+          "nome": "Poder Judiciário: artigo 92 da Constituição",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "DAD",
+      "nome": "Direito Administrativo",
+      "topicos": [
+        {
+          "id": "DAD-01",
+          "nome": "Estatuto SP: disposições e provimento (arts. 1 a 86 da Lei 10.261/1968)",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran."
+        },
+        {
+          "id": "DAD-02",
+          "nome": "Estatuto SP: exercício e vencimentos (arts. 171 a 175)",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran."
+        },
+        {
+          "id": "DAD-03",
+          "nome": "Estatuto SP: deveres, proibições, responsabilidades e penalidades (arts. 239 a 263)",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran."
+        },
+        {
+          "id": "DAD-04",
+          "nome": "Estatuto SP: procedimentos disciplinares (arts. 264 a 323)",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran."
+        },
+        {
+          "id": "DAD-05",
+          "nome": "Improbidade administrativa: Lei 8.429/1992",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DAD-06",
+          "nome": "Revisão integrada: arts. 1 a 86, 171 a 175 e 239 a 323 do Estatuto SP e Lei 8.429/1992",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "O Estatuto SP aparece sem subdivisões por artigos na árvore ativa do Gran."
+        }
+      ]
+    },
+    {
+      "id": "LIN",
+      "nome": "Legislação Interna TJSP",
+      "topicos": [
+        {
+          "id": "LIN-01",
+          "nome": "Normas CGJ, Tomo I: Capítulo II, Seção I, subseções I e II",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção."
+        },
+        {
+          "id": "LIN-02",
+          "nome": "Normas CGJ, Tomo I: Capítulo III, seções I, II, V, VI e VII",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção."
+        },
+        {
+          "id": "LIN-03",
+          "nome": "Normas CGJ, Tomo I: Capítulo III, seção VIII, subseções I, II e III",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção."
+        },
+        {
+          "id": "LIN-04",
+          "nome": "Normas CGJ, Tomo I: Capítulo III, seções IX a XIX",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção."
+        },
+        {
+          "id": "LIN-05",
+          "nome": "Normas CGJ, Tomo I: Capítulo XI, seções I a VII",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "A categoria da CGJ-SP não apresenta subdivisões por capítulo e seção."
+        },
+        {
+          "id": "LIN-06",
+          "nome": "Resolução TJSP 850/2021: teletrabalho",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Resolução TJSP 850/2021: categoria correspondente não encontrada; adicione material complementar."
+        },
+        {
+          "id": "LIN-07",
+          "nome": "Resolução TJSP 963/2025: governanca e eproc",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Resolução TJSP 963/2025: categoria correspondente não encontrada; adicione material complementar."
+        },
+        {
+          "id": "LIN-08",
+          "nome": "LC 1.111/2010 e Regimento Interno do TJSP",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Regimento Interno TJSP: categoria sem acervo; LC 1.111/2010 sem categoria própria encontrada. Adicione material complementar."
+        }
+      ]
+    },
+    {
+      "id": "ATU",
+      "nome": "Atualidades",
+      "topicos": [
+        {
+          "id": "ATU-01",
+          "nome": "Fatos políticos e institucionais a partir do 1º semestre de 2026",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ATU-02",
+          "nome": "Fatos econômicos nacionais e internacionais a partir de 2026",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ATU-03",
+          "nome": "Fatos sociais e culturais nacionais e internacionais a partir de 2026",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ATU-04",
+          "nome": "Estatuto da Pessoa com Deficiência: arts. 1 a 13",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ATU-05",
+          "nome": "Estatuto da Pessoa com Deficiência: arts. 34 a 38",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": true,
+          "motivo": "O Gran não retornou questões para Vunesp, AOCP e FGV, nível médio, anos 2017–2026 nesta verificação. O assunto específico foi preservado; complemente o material ou edite o link."
+        }
+      ]
+    },
+    {
+      "id": "MAT",
+      "nome": "Matemática",
+      "topicos": [
+        {
+          "id": "MAT-01",
+          "nome": "Operações com números reais, MMC e MDC",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "MAT-02",
+          "nome": "Razao, proporcao, porcentagem e regra de tres",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "MAT-03",
+          "nome": "Média aritmética simples e ponderada",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "MAT-04",
+          "nome": "Juros simples",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "MAT-05",
+          "nome": "Equações de 1o e 2o graus e sistemas",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "MAT-06",
+          "nome": "Tabelas, gráficos e sistemas de medidas",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "MAT-07",
+          "nome": "Geometria: perimetro, área, volume, angulos e Pitagoras",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "MAT-08",
+          "nome": "Resolução de situacoes-problema",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "A categoria isolada de situações-problema não tem acervo validado; utiliza operações fundamentais."
+        }
+      ]
+    },
+    {
+      "id": "INF",
+      "nome": "Informática",
+      "topicos": [
+        {
+          "id": "INF-01",
+          "nome": "Windows 10 ou superior: pastas, arquivos, atalhos e área de transferencia",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "INF-02",
+          "nome": "Word: edição, formatacao, tabelas, impressao e objetos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "INF-03",
+          "nome": "Excel: células, fórmulas, funções, macros, dados externos, gráficos e impressão",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "INF-04",
+          "nome": "Correio eletrônico: envio, preparo de mensagens e anexos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "INF-05",
+          "nome": "Internet: navegacao, URL, links, sites, busca e impressao",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "INF-06",
+          "nome": "Microsoft Teams: chats, chamadas, grupos, reunioes e gravacao",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "INF-07",
+          "nome": "Microsoft 365, SharePoint, OneNote, PowerPoint e OneDrive",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "Não há categoria Microsoft 365/SharePoint com acervo validado; reúne Office, OneNote, PowerPoint e OneDrive, incluindo outras versões."
+        }
+      ]
+    },
+    {
+      "id": "RLM",
+      "nome": "Raciocínio Lógico",
+      "topicos": [
+        {
+          "id": "RLM-01",
+          "nome": "Estruturas logicas",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-02",
+          "nome": "Logica de argumentação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-03",
+          "nome": "Diagramas logicos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-04",
+          "nome": "Sequencias numericas",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "O catálogo com acervo agrupa sequências numéricas, letras, palavras e figuras, sem categoria isolada para números."
+        },
+        {
+          "id": "RLM-05",
+          "nome": "Sequencias figurais e padroes",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "O catálogo com acervo agrupa sequências numéricas, letras, palavras e figuras, sem categoria isolada para figuras."
+        }
+      ]
+    },
+    {
+      "id": "RED",
+      "nome": "Redação",
+      "topicos": [
+        {
+          "id": "RED-01",
+          "nome": "Texto dissertativo-argumentativo",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+        },
+        {
+          "id": "RED-02",
+          "nome": "Tese, posicionamento e defesa de ponto de vista",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+        },
+        {
+          "id": "RED-03",
+          "nome": "Coesao, coerência e progressão argumentativa",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+        },
+        {
+          "id": "RED-04",
+          "nome": "Norma-padrao, clareza e legibilidade",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita: complemente com seu material ou ferramenta de correção."
+        }
+      ]
+    }
+  ],
+  "resumo": {
+    "disciplinas": 12,
+    "topicos": 80,
+    "especifico": 58,
+    "amplo": 14,
+    "parcial": 1,
+    "pendente": 7
+  },
+  "validacaoAmostral": [
+    "DPE-04: seis crimes, Vunesp/AOCP/FGV e nível médio, 16 questões.",
+    "DPP-04: procedimento sumário, mesmas bancas e nível, 4 questões; restauração sem acervo identificada como parcial.",
+    "ATU-05: direito ao trabalho da LBI, filtro específico reconhecido sem resultados no recorte; aviso exibido e banca/nível preservados."
+  ]
+}

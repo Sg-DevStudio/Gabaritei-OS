@@ -1,0 +1,3186 @@
+{
+  "verificadoEm": "2026-10-29",
+  "fonte": "https://rota-api.grancursosonline.com.br/open/assuntos/arvore",
+  "categoriasConsultadas": 40619,
+  "criterio": "Conteúdo e hierarquia conferidos; todas as categorias utilizadas têm acervo geral. Contagens após banca/nível/ano exigem validação amostral.",
+  "vinculos": [
+    {
+      "topicoId": "POR-01",
+      "topico": "Compreensão e interpretação de textos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403701",
+          "nome": "Interpretação de Texto",
+          "pai": 403587,
+          "questoesCatalogo": 248115
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-02",
+      "topico": "Tipologias e gêneros textuais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403703",
+          "nome": "Tipologias e Gêneros Textuais",
+          "pai": 403701,
+          "questoesCatalogo": 17325
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-03",
+      "topico": "Ortografia oficial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403613",
+          "nome": "Ortografia oficial e acentuação gráfica",
+          "pai": 403587,
+          "questoesCatalogo": 35917
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-04",
+      "topico": "Coesão e coerência: referenciação, substituição, repetição, conectores e sequenciação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403711",
+          "nome": "Coesão e coerência",
+          "pai": 403701,
+          "questoesCatalogo": 12934
+        },
+        {
+          "id": "409552",
+          "nome": "Emprego dos elementos de referenciação (coesão referencial)",
+          "pai": 409551,
+          "questoesCatalogo": 3798
+        },
+        {
+          "id": "409551",
+          "nome": "Mecanismos de coesão textual",
+          "pai": 403711,
+          "questoesCatalogo": 9581
+        },
+        {
+          "id": "409553",
+          "nome": "Emprego dos elementos de sequenciação (uso de conectivos)",
+          "pai": 409551,
+          "questoesCatalogo": 1373
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-05",
+      "topico": "Classes de palavras e emprego na oração",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419336",
+          "nome": "Classes de palavras (classes gramaticais)",
+          "pai": 403587,
+          "questoesCatalogo": 66818
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-06",
+      "topico": "Emprego de tempos e modos verbais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "419374",
+          "nome": "Emprego dos modos verbais",
+          "pai": 403631,
+          "questoesCatalogo": 3915
+        },
+        {
+          "id": "419381",
+          "nome": "Emprego dos tempos verbais",
+          "pai": 403630,
+          "questoesCatalogo": 2485
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-07",
+      "topico": "Sintaxe: termos da oração e relações de coordenação e subordinação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403651",
+          "nome": "Morfossintaxe do período",
+          "pai": 403587,
+          "questoesCatalogo": 124770
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-08",
+      "topico": "Pontuação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403666",
+          "nome": "Pontuação",
+          "pai": 403651,
+          "questoesCatalogo": 24593
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-09",
+      "topico": "Concordância verbal e nominal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403658",
+          "nome": "Concordância verbal",
+          "pai": 409455,
+          "questoesCatalogo": 9218
+        },
+        {
+          "id": "409456",
+          "nome": "Concordância Nominal",
+          "pai": 409455,
+          "questoesCatalogo": 3063
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-10",
+      "topico": "Regência verbal e nominal e emprego da crase",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403657",
+          "nome": "Regência verbal",
+          "pai": 409479,
+          "questoesCatalogo": 6512
+        },
+        {
+          "id": "409483",
+          "nome": "Regência nominal",
+          "pai": 409479,
+          "questoesCatalogo": 2217
+        },
+        {
+          "id": "403682",
+          "nome": "Emprego do sinal indicativo de crase",
+          "pai": 403651,
+          "questoesCatalogo": 14553
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-11",
+      "topico": "Colocação dos pronomes átonos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403650",
+          "nome": "Colocação Pronominal",
+          "pai": 403651,
+          "questoesCatalogo": 7155
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-12",
+      "topico": "Semântica e estilística: figuras, sinonímia, antonímia, polissemia, denotação e conotação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "409484",
+          "nome": "Figuras de linguagem",
+          "pai": 403709,
+          "questoesCatalogo": 8099
+        },
+        {
+          "id": "403704",
+          "nome": "Relações de sinonímia e antonímia (sinônimos e antônimos)",
+          "pai": 409318,
+          "questoesCatalogo": 7658
+        },
+        {
+          "id": "409317",
+          "nome": "Polissemia",
+          "pai": 409315,
+          "questoesCatalogo": 388
+        },
+        {
+          "id": "403706",
+          "nome": "Linguagem denotativa e linguagem conotativa (denotação e conotação)",
+          "pai": 403701,
+          "questoesCatalogo": 4530
+        }
+      ]
+    },
+    {
+      "topicoId": "POR-13",
+      "topico": "Redação oficial: Manual da Presidência, 3ª edição (2018), expedientes, linguagem e formato",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406881",
+          "nome": "Redação Oficial",
+          "pai": null,
+          "questoesCatalogo": 16713
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-01",
+      "topico": "Relações lógicas entre pessoas, tempo, características, lugares, objetos e eventos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404280",
+          "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+          "pai": 404257,
+          "questoesCatalogo": 1786
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-02",
+      "topico": "Dedução de informações e condições de validade de argumentos a partir de hipóteses",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404280",
+          "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+          "pai": 404257,
+          "questoesCatalogo": 1786
+        },
+        {
+          "id": "404266",
+          "nome": "Lógica de Argumentação ",
+          "pai": 404257,
+          "questoesCatalogo": 7652
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-03",
+      "topico": "Raciocínio verbal, formação de conceitos e discriminação de elementos",
+      "tipo": "amplo",
+      "motivo": "Não há categoria com acervo validado isolando raciocínio verbal, formação de conceitos e discriminação de elementos; usa estruturas lógicas.",
+      "assuntos": [
+        {
+          "id": "404280",
+          "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+          "pai": 404257,
+          "questoesCatalogo": 1786
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-04",
+      "topico": "Equivalências lógicas e utilização de quantificadores",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404263",
+          "nome": "Equivalências Lógicas - (Proposições Logicamente equivalentes)",
+          "pai": 404259,
+          "questoesCatalogo": 2583
+        },
+        {
+          "id": "404264",
+          "nome": "Quantificadores Lógicos - Lógica dos predicados ( Lógica de Primeira Ordem)",
+          "pai": 404259,
+          "questoesCatalogo": 350
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-05",
+      "topico": "Raciocínio sequencial e orientação espacial e temporal",
+      "tipo": "amplo",
+      "motivo": "Sequências e orientação temporal têm categorias próprias; a orientação espacial usa estruturas lógicas por falta de categoria isolada com acervo.",
+      "assuntos": [
+        {
+          "id": "404276",
+          "nome": "Raciocínio Sequencial",
+          "pai": 425328,
+          "questoesCatalogo": 1987
+        },
+        {
+          "id": "411113",
+          "nome": "Orientação Temporal e Calendários",
+          "pai": 425328,
+          "questoesCatalogo": 690
+        },
+        {
+          "id": "404280",
+          "nome": "Estruturas Lógicas - (Lógica de Primeira Ordem)",
+          "pai": 404257,
+          "questoesCatalogo": 1786
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-06",
+      "topico": "Operações, potenciação, radiciação e números racionais: frações e decimais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403827",
+          "nome": "Operações Fundamentais",
+          "pai": 403826,
+          "questoesCatalogo": 12509
+        },
+        {
+          "id": "403838",
+          "nome": "Potenciação e Raízes",
+          "pai": 403826,
+          "questoesCatalogo": 384
+        },
+        {
+          "id": "408666",
+          "nome": "Conjunto dos Números Racionais",
+          "pai": 408638,
+          "questoesCatalogo": 438
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-07",
+      "topico": "Razão, proporção e regra de três simples e composta",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425067",
+          "nome": "Razões e proporções",
+          "pai": 408678,
+          "questoesCatalogo": 30
+        },
+        {
+          "id": "403833",
+          "nome": "Regra de Três",
+          "pai": 403826,
+          "questoesCatalogo": 6726
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-08",
+      "topico": "Porcentagem e aplicações",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403835",
+          "nome": "Porcentagem",
+          "pai": 403826,
+          "questoesCatalogo": 11534
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-09",
+      "topico": "Juros simples e compostos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403836",
+          "nome": "Juros Simples",
+          "pai": 425054,
+          "questoesCatalogo": 2583
+        },
+        {
+          "id": "403834",
+          "nome": "Juros compostos ",
+          "pai": 425054,
+          "questoesCatalogo": 1104
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-10",
+      "topico": "Grandezas e medidas: quantidade, tempo, comprimento, superfície, capacidade e massa",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403832",
+          "nome": "Sistema Internacional de Unidades (SI)",
+          "pai": 403826,
+          "questoesCatalogo": 2931
+        },
+        {
+          "id": "408593",
+          "nome": "Conversão de Medidas",
+          "pai": 403832,
+          "questoesCatalogo": 2567
+        }
+      ]
+    },
+    {
+      "topicoId": "RLM-11",
+      "topico": "Estatística básica: médias simples e ponderadas, tabelas e gráficos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408555",
+          "nome": "Média Aritmética Simples",
+          "pai": 408554,
+          "questoesCatalogo": 2118
+        },
+        {
+          "id": "408556",
+          "nome": "Média Aritmética Ponderada",
+          "pai": 408554,
+          "questoesCatalogo": 547
+        },
+        {
+          "id": "426555",
+          "nome": "Gráficos Estatísticos e Formas de Organização de Dados",
+          "pai": 416549,
+          "questoesCatalogo": 587
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-01",
+      "topico": "Princípios fundamentais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405212",
+          "nome": "Princípios fundamentais - Título I - Artigos 1º a 4º da CF",
+          "pai": 405199,
+          "questoesCatalogo": 4798
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-02",
+      "topico": "Direitos e deveres individuais e coletivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405219",
+          "nome": "Direitos e deveres individuais e coletivos ou direitos e deveres individuais e coletivos; direito à vida, à liberdade, à igualdade,  à  segurança  e  à  propriedade (artigo 5º da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 12757
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-03",
+      "topico": "Direitos sociais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405227",
+          "nome": "Direitos sociais (artigos 6º a 11 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 4839
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-04",
+      "topico": "Nacionalidade e direitos políticos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405228",
+          "nome": "Direitos de nacionalidade ou da nacionalidade (artigos 12 e 13 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 3763
+        },
+        {
+          "id": "405229",
+          "nome": "Direitos Políticos (artigos 14 a 16 da CF)",
+          "pai": 405217,
+          "questoesCatalogo": 4267
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-05",
+      "topico": "Organização político-administrativa: União, Estados, Municípios, DF e Territórios",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405233",
+          "nome": "Organização politico-administrativa (artigos 18 e 19)",
+          "pai": 405231,
+          "questoesCatalogo": 2286
+        },
+        {
+          "id": "407596",
+          "nome": "União ou Da União",
+          "pai": 405231,
+          "questoesCatalogo": 360
+        },
+        {
+          "id": "407598",
+          "nome": "Estados ou Dos Estados (artigos 25 a 28 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 825
+        },
+        {
+          "id": "407614",
+          "nome": "Municípios (artigos 29 a 31 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 2577
+        },
+        {
+          "id": "421775",
+          "nome": "Distrito Federal (artigo 32 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 186
+        },
+        {
+          "id": "421782",
+          "nome": "Territórios ou territórios federais (artigo 33 da CF)",
+          "pai": 405231,
+          "questoesCatalogo": 150
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-06",
+      "topico": "Administração Pública: disposições gerais e servidores públicos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405242",
+          "nome": "Disposições gerais (artigo 37 da CF)",
+          "pai": 405240,
+          "questoesCatalogo": 5053
+        },
+        {
+          "id": "405243",
+          "nome": "Servidores Públicos (artigos 39 a 41 da CF)",
+          "pai": 405240,
+          "questoesCatalogo": 3786
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-07",
+      "topico": "Organização dos Poderes: Legislativo e Executivo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405248",
+          "nome": "Poder Legislativo (artigos 44 a 75 da CF)",
+          "pai": 405246,
+          "questoesCatalogo": 13321
+        },
+        {
+          "id": "405260",
+          "nome": "Poder Executivo (artigos 76 a 91 da CF)",
+          "pai": 405246,
+          "questoesCatalogo": 3357
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-08",
+      "topico": "Poder Judiciário: organização e competências",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405266",
+          "nome": "Poder Judiciário (artigos 92 a 126 da CF)",
+          "pai": 405246,
+          "questoesCatalogo": 7787
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-09",
+      "topico": "Funções essenciais à Justiça",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405281",
+          "nome": "Funções essenciais à Justiça (artigos 127 a 135 da CF)",
+          "pai": 405246,
+          "questoesCatalogo": 3799
+        }
+      ]
+    },
+    {
+      "topicoId": "CON-10",
+      "topico": "Ordem social: disposições gerais da seguridade e previdência social",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407687",
+          "nome": "Disposições gerais ou objetivos e financiamento da seguridade social (artigos 194 e 195 da CF)",
+          "pai": 405307,
+          "questoesCatalogo": 690
+        },
+        {
+          "id": "405309",
+          "nome": "Previdência social ou regime geral da previdência social (artigos 201 da CF)",
+          "pai": 405307,
+          "questoesCatalogo": 663
+        },
+        {
+          "id": "407733",
+          "nome": "Previdência complementar (artigo 202 da CF)",
+          "pai": 405307,
+          "questoesCatalogo": 55
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-01",
+      "topico": "Princípios básicos, supremacia do interesse público e indisponibilidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404360",
+          "nome": "Princípios da Administração Pública",
+          "pai": 404358,
+          "questoesCatalogo": 1621
+        },
+        {
+          "id": "404361",
+          "nome": "Princípio da Supremacia/Preponderância do Interesse Público",
+          "pai": 407787,
+          "questoesCatalogo": 355
+        },
+        {
+          "id": "407788",
+          "nome": "Princípio da Indisponibilidade do Interesse Público",
+          "pai": 407787,
+          "questoesCatalogo": 278
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-02",
+      "topico": "Administração direta e indireta: conceitos e características",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404345",
+          "nome": "Administração Direta",
+          "pai": 404342,
+          "questoesCatalogo": 995
+        },
+        {
+          "id": "404346",
+          "nome": "Administração Indireta",
+          "pai": 404342,
+          "questoesCatalogo": 3686
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-03",
+      "topico": "Atos administrativos: conceito, elementos, atributos, classificação e espécies",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404372",
+          "nome": "Atos Administrativos",
+          "pai": 404335,
+          "questoesCatalogo": 14692
+        },
+        {
+          "id": "404376",
+          "nome": "Atributos, Características ou Prerrogativas dos Atos Administrativos",
+          "pai": 404372,
+          "questoesCatalogo": 2395
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-04",
+      "topico": "Atos administrativos: revogação, anulação e convalidação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "408141",
+          "nome": "Anulação dos Atos Administrativos",
+          "pai": 404388,
+          "questoesCatalogo": 974
+        },
+        {
+          "id": "408142",
+          "nome": "Revogação dos Atos Administrativos",
+          "pai": 404388,
+          "questoesCatalogo": 837
+        },
+        {
+          "id": "408139",
+          "nome": "Convalidação dos Atos Administrativos",
+          "pai": 404389,
+          "questoesCatalogo": 549
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-05",
+      "topico": "Poderes vinculados, discricionário, hierárquico, disciplinar, regulamentar e de polícia",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404363",
+          "nome": "Poderes da Administração",
+          "pai": 404335,
+          "questoesCatalogo": 8586
+        },
+        {
+          "id": "404368",
+          "nome": "Poder de Polícia",
+          "pai": 404363,
+          "questoesCatalogo": 2798
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-06",
+      "topico": "Deveres dos administradores, uso e abuso do poder",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404363",
+          "nome": "Poderes da Administração",
+          "pai": 404335,
+          "questoesCatalogo": 8586
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-07",
+      "topico": "Agentes públicos: conceito, classificação, cargo, emprego e função",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404354",
+          "nome": "Agentes Públicos",
+          "pai": 404335,
+          "questoesCatalogo": 9323
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-08",
+      "topico": "Lei 8.112/1990: direitos, vantagens e direito de petição",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404504",
+          "nome": "Título III - Dos Direitos e Vantagens",
+          "pai": 404430,
+          "questoesCatalogo": 2373
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-09",
+      "topico": "Lei 8.112/1990: deveres, proibições, acumulação, responsabilidades e penalidades",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404514",
+          "nome": "Capítulo I - Dos Deveres",
+          "pai": 404513,
+          "questoesCatalogo": 326
+        },
+        {
+          "id": "404515",
+          "nome": "Capítulo II - Das Proibições",
+          "pai": 404513,
+          "questoesCatalogo": 224
+        },
+        {
+          "id": "404516",
+          "nome": "Capítulo III - Da Acumulação",
+          "pai": 404513,
+          "questoesCatalogo": 213
+        },
+        {
+          "id": "404517",
+          "nome": "Capítulo IV - Das Responsabilidades",
+          "pai": 404513,
+          "questoesCatalogo": 272
+        },
+        {
+          "id": "404518",
+          "nome": "Capítulo V - Das Penalidades",
+          "pai": 404513,
+          "questoesCatalogo": 871
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-10",
+      "topico": "Processo administrativo disciplinar e revisão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404519",
+          "nome": "Título V - Do Processo Administrativo Disciplinar",
+          "pai": 404430,
+          "questoesCatalogo": 896
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-11",
+      "topico": "Seguridade do servidor e previdência complementar: Lei 12.618/2012",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404523",
+          "nome": "Título VI - Da Seguridade Social do Servidor",
+          "pai": 404430,
+          "questoesCatalogo": 296
+        },
+        {
+          "id": "407067",
+          "nome": "Previdência Complementar dos Servidores Públicos Federais - Lei 12.618/12",
+          "pai": 406996,
+          "questoesCatalogo": 134
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-12",
+      "topico": "Improbidade administrativa: Lei 8.429/1992 e alterações vigentes",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404431",
+          "nome": "Improbidade Administrativa - Lei 8.429/92 e suas alterações",
+          "pai": 404335,
+          "questoesCatalogo": 10744
+        }
+      ]
+    },
+    {
+      "topicoId": "ADM-13",
+      "topico": "Processo administrativo federal: Lei 9.784/1999",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404427",
+          "nome": "Processo Administrativo - Lei 9.784/99",
+          "pai": 404335,
+          "questoesCatalogo": 7236
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-01",
+      "topico": "Princípios constitucionais processuais e princípios gerais do processo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402091",
+          "nome": "Princípios do Direito Processual Civil",
+          "pai": 415392,
+          "questoesCatalogo": 466
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-02",
+      "topico": "Normas processuais e materiais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415392",
+          "nome": "Normas fundamentais e aplicação das normas processuais civis",
+          "pai": 402090,
+          "questoesCatalogo": 792
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-03",
+      "topico": "Jurisdição: espécies, limites e poderes",
+      "tipo": "amplo",
+      "motivo": "A categoria com acervo reúne jurisdição e ação; não foi encontrada uma categoria isolada para todo o recorte de jurisdição.",
+      "assuntos": [
+        {
+          "id": "402094",
+          "nome": "Jurisdição e ação",
+          "pai": 402093,
+          "questoesCatalogo": 868
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-04",
+      "topico": "Ação: condições, classificação e elementos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "422641",
+          "nome": "Ação",
+          "pai": 402090,
+          "questoesCatalogo": 490
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-05",
+      "topico": "Competência absoluta e relativa; competência dos Juizados Especiais Federais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415469",
+          "nome": "Competência Absoluta e Competência Relativa",
+          "pai": 415465,
+          "questoesCatalogo": 184
+        },
+        {
+          "id": "394668",
+          "nome": "Lei nº 10.259/2001 - Juizados Especiais Cíveis e Criminais no âmbito da Justiça Federal",
+          "pai": 395701,
+          "questoesCatalogo": 60
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-06",
+      "topico": "Pressupostos processuais e sujeitos do processo",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "415438",
+          "nome": "Pressupostos Processuais",
+          "pai": 415441,
+          "questoesCatalogo": 134
+        },
+        {
+          "id": "402106",
+          "nome": "Sujeitos do processo",
+          "pai": 402090,
+          "questoesCatalogo": 2312
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-07",
+      "topico": "Tutela jurisdicional: espécies",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "402197",
+          "nome": "Classificação das Tutelas de Acordo com as Espécies de Crise",
+          "pai": 402196,
+          "questoesCatalogo": 10
+        }
+      ]
+    },
+    {
+      "topicoId": "TGP-08",
+      "topico": "Acesso à justiça, gratuidade e métodos apropriados de solução de conflitos",
+      "tipo": "amplo",
+      "motivo": "Acesso à Justiça utiliza princípios processuais e gratuidade, que incluem conteúdos adicionais.",
+      "assuntos": [
+        {
+          "id": "402091",
+          "nome": "Princípios do Direito Processual Civil",
+          "pai": 415392,
+          "questoesCatalogo": 466
+        },
+        {
+          "id": "402236",
+          "nome": "Da Gratuidade da Justiça",
+          "pai": 402106,
+          "questoesCatalogo": 227
+        },
+        {
+          "id": "424014",
+          "nome": "Formas Consensuais de Conflito",
+          "pai": 402176,
+          "questoesCatalogo": 3
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-01",
+      "topico": "Aplicação da lei penal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406245",
+          "nome": "Aplicação da Lei Penal",
+          "pai": 418418,
+          "questoesCatalogo": 2526
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-02",
+      "topico": "Imputabilidade penal",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "413791",
+          "nome": "Imputabilidade",
+          "pai": 413790,
+          "questoesCatalogo": 637
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-03",
+      "topico": "Concurso de pessoas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406278",
+          "nome": "Do Concurso de Pessoas",
+          "pai": 406223,
+          "questoesCatalogo": 857
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-04",
+      "topico": "Espécies e aplicação da pena",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "413854",
+          "nome": "Aplicação das Penas",
+          "pai": 413846,
+          "questoesCatalogo": 645
+        },
+        {
+          "id": "406285",
+          "nome": "Penas Privativas de Liberdade",
+          "pai": 413847,
+          "questoesCatalogo": 334
+        },
+        {
+          "id": "406289",
+          "nome": "Penas restritivas de direitos",
+          "pai": 413847,
+          "questoesCatalogo": 232
+        },
+        {
+          "id": "406290",
+          "nome": "Pena de multa",
+          "pai": 413847,
+          "questoesCatalogo": 79
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-05",
+      "topico": "Medidas de segurança e extinção da punibilidade",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406292",
+          "nome": "Medidas de Segurança",
+          "pai": 406284,
+          "questoesCatalogo": 283
+        },
+        {
+          "id": "413911",
+          "nome": "Causas de Extinção da Punibilidade",
+          "pai": 406304,
+          "questoesCatalogo": 1109
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-06",
+      "topico": "Crimes praticados por funcionário público contra a administração em geral",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406431",
+          "nome": "Crimes Praticados por Funcionário Público Contra a Administração em Geral",
+          "pai": 406349,
+          "questoesCatalogo": 4295
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-07",
+      "topico": "Crimes praticados por particular contra a administração em geral",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406474",
+          "nome": "Crimes Praticados por Particular Contra a Administração em Geral",
+          "pai": 406349,
+          "questoesCatalogo": 1212
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-08",
+      "topico": "Crimes contra a administração da justiça",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406496",
+          "nome": "Crimes Contra a Administração da Justiça",
+          "pai": 406349,
+          "questoesCatalogo": 792
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-09",
+      "topico": "Crimes de preconceito de raça ou cor: Leis 7.716/1989 e 14.532/2023",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406523",
+          "nome": "Crimes Resultantes de Preconceito de Raça ou Cor - Lei nº 7.716/1989",
+          "pai": 406351,
+          "questoesCatalogo": 563
+        },
+        {
+          "id": "439136",
+          "nome": "Lei n° 14.532/2023 - Altera a Lei nº 7.716, de 5 de janeiro de 1989 (Lei do Crime Racial), e o Decreto-Lei nº 2.848, de 7 de dezembro de 1940 (Código Penal), para tipificar como crime de racismo a injúria racial.",
+          "pai": 406351,
+          "questoesCatalogo": 14
+        }
+      ]
+    },
+    {
+      "topicoId": "PEN-10",
+      "topico": "Crimes de abuso de autoridade: Lei 13.869/2019",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "406521",
+          "nome": "Lei do Abuso de Autoridade - Lei nº 13.869/2019",
+          "pai": 406351,
+          "questoesCatalogo": 1387
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-01",
+      "topico": "Evolução da administração: abordagens clássica, humanística, comportamental, sistêmica e contingencial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "417276",
+          "nome": "Teorias da Administração",
+          "pai": 404571,
+          "questoesCatalogo": 7621
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-02",
+      "topico": "Modelos patrimonialista, burocrático e gerencial; reformas administrativas brasileiras e governança",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403725",
+          "nome": "Evolução dos Modelos/Paradigmas de Gestão",
+          "pai": 403716,
+          "questoesCatalogo": 2458
+        },
+        {
+          "id": "426176",
+          "nome": "Reformas, Histórico e Evolução Administrativa",
+          "pai": 403716,
+          "questoesCatalogo": 1476
+        },
+        {
+          "id": "403748",
+          "nome": "Governança, Governabilidade e Accountability",
+          "pai": 403716,
+          "questoesCatalogo": 2000
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-03",
+      "topico": "Processo administrativo: planejamento, organização, direção e controle",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404674",
+          "nome": "Processo organizacional (PODC)",
+          "pai": 404572,
+          "questoesCatalogo": 6522
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-04",
+      "topico": "Planejamento estratégico: conceitos, características, ferramentas, análise competitiva e estratégias genéricas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404609",
+          "nome": "Planejamento Estratégico",
+          "pai": 425402,
+          "questoesCatalogo": 1739
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-05",
+      "topico": "Redes e alianças; planejamento tático e operacional; administração por objetivos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "417300",
+          "nome": "Redes e Alianças",
+          "pai": 404608,
+          "questoesCatalogo": 47
+        },
+        {
+          "id": "425403",
+          "nome": "Planejamento Tático ",
+          "pai": 425402,
+          "questoesCatalogo": 325
+        },
+        {
+          "id": "425404",
+          "nome": "Planejamento Operacional ",
+          "pai": 425402,
+          "questoesCatalogo": 261
+        },
+        {
+          "id": "404581",
+          "nome": "Administração por objetivos (APO)",
+          "pai": 404579,
+          "questoesCatalogo": 262
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-06",
+      "topico": "Processo decisório",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404631",
+          "nome": "Processo Decisório",
+          "pai": 404571,
+          "questoesCatalogo": 2288
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-07",
+      "topico": "Estrutura organizacional e departamentalização: tipos, características, vantagens e desvantagens",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404625",
+          "nome": "Estrutura Organizacional",
+          "pai": 404571,
+          "questoesCatalogo": 6747
+        },
+        {
+          "id": "417233",
+          "nome": "Departamentalização",
+          "pai": 404625,
+          "questoesCatalogo": 1674
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-08",
+      "topico": "Organização informal e cultura organizacional",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425424",
+          "nome": "Estrutura formal e informal",
+          "pai": 404625,
+          "questoesCatalogo": 349
+        },
+        {
+          "id": "404617",
+          "nome": "Cultura organizacional",
+          "pai": 404571,
+          "questoesCatalogo": 2175
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-09",
+      "topico": "Direção: motivação, liderança, comunicação, descentralização e delegação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404670",
+          "nome": "Motivação",
+          "pai": 404571,
+          "questoesCatalogo": 3619
+        },
+        {
+          "id": "404664",
+          "nome": "Liderança",
+          "pai": 404571,
+          "questoesCatalogo": 3095
+        },
+        {
+          "id": "425506",
+          "nome": "Comunicação",
+          "pai": 404571,
+          "questoesCatalogo": 2933
+        },
+        {
+          "id": "404621",
+          "nome": "Centralização e descentralização",
+          "pai": 404625,
+          "questoesCatalogo": 468
+        },
+        {
+          "id": "427248",
+          "nome": "Delegação de Poderes e Definição de Responsabilidades",
+          "pai": 427245,
+          "questoesCatalogo": 5
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-10",
+      "topico": "Controle: características, tipos, vantagens, desvantagens e medição do desempenho organizacional",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404676",
+          "nome": "Controle",
+          "pai": 404674,
+          "questoesCatalogo": 1012
+        },
+        {
+          "id": "417298",
+          "nome": "Indicadores de desempenho",
+          "pai": 425538,
+          "questoesCatalogo": 924
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-11",
+      "topico": "Qualidade e excelência gerencial: teóricos, contribuições e ferramentas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "417247",
+          "nome": "Gestão da Qualidade",
+          "pai": 404571,
+          "questoesCatalogo": 5018
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-12",
+      "topico": "Projetos: definições, elaboração, análise, avaliação e ciclo de vida preditivo, adaptativo e híbrido",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404636",
+          "nome": "Gestão de Projetos",
+          "pai": 404571,
+          "questoesCatalogo": 4723
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-13",
+      "topico": "Tailoring e metodologias ágeis: Scrum, Kanban e Lean",
+      "tipo": "parcial",
+      "motivo": "Scrum, Kanban e Lean têm categorias próprias; tailoring não foi encontrado isoladamente com acervo.",
+      "assuntos": [
+        {
+          "id": "428797",
+          "nome": "Scrum",
+          "pai": 428796,
+          "questoesCatalogo": 780
+        },
+        {
+          "id": "428799",
+          "nome": "Kanban",
+          "pai": 428796,
+          "questoesCatalogo": 190
+        },
+        {
+          "id": "425621",
+          "nome": "Lean Management ",
+          "pai": 404626,
+          "questoesCatalogo": 37
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-14",
+      "topico": "Gestão de processos: abordagem, mapeamento, análise, melhoria e ISO 9000:2000",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404626",
+          "nome": "Gestão de processos",
+          "pai": 404571,
+          "questoesCatalogo": 3875
+        },
+        {
+          "id": "404602",
+          "nome": "Processos e Certificação ISO 9000:2000 ",
+          "pai": 417247,
+          "questoesCatalogo": 190
+        }
+      ]
+    },
+    {
+      "topicoId": "AGP-15",
+      "topico": "Noções de estatística para controle e melhoria de processos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425617",
+          "nome": "Noções de Estatística Aplicada ao Controle e à Melhoria de Processos ",
+          "pai": 404626,
+          "questoesCatalogo": 144
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-01",
+      "topico": "Finanças públicas: papel do Estado e formas e dimensões de intervenção na economia",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403973",
+          "nome": "Introdução Ao Papel do Estado na Economia ",
+          "pai": 403919,
+          "questoesCatalogo": 736
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-02",
+      "topico": "Orçamento: origens, tipos, instrumento de planejamento e princípios",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405630",
+          "nome": "Orçamento Público",
+          "pai": 405626,
+          "questoesCatalogo": 2899
+        },
+        {
+          "id": "405640",
+          "nome": "Princípios Orçamentários",
+          "pai": 405626,
+          "questoesCatalogo": 4178
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-03",
+      "topico": "Orçamento brasileiro: PPA, LDO, LOA e outros planos e programas",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405632",
+          "nome": "Plano Plurianual - PPA",
+          "pai": 405635,
+          "questoesCatalogo": 2125
+        },
+        {
+          "id": "405633",
+          "nome": "Lei de Diretrizes Orçamentárias - LDO",
+          "pai": 405635,
+          "questoesCatalogo": 1630
+        },
+        {
+          "id": "405634",
+          "nome": "Lei Orçamentária Anual - LOA",
+          "pai": 405635,
+          "questoesCatalogo": 2716
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-04",
+      "topico": "Ciclo orçamentário e classificações orçamentárias",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405637",
+          "nome": "Ciclo ou Processo Orçamentário",
+          "pai": 405626,
+          "questoesCatalogo": 2715
+        },
+        {
+          "id": "424769",
+          "nome": "Classificações",
+          "pai": 405648,
+          "questoesCatalogo": 2937
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-05",
+      "topico": "Programação e execução orçamentária e financeira: acompanhamento e sistemas de informação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "411792",
+          "nome": "Execução Orçamentária e Financeira",
+          "pai": 405637,
+          "questoesCatalogo": 329
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-06",
+      "topico": "Alterações orçamentárias e créditos ordinários e adicionais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405641",
+          "nome": "Créditos Adicionais e ordinários",
+          "pai": 405635,
+          "questoesCatalogo": 2743
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-07",
+      "topico": "Receita pública: categorias, fontes, estágios e dívida ativa",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405642",
+          "nome": "Receita Pública",
+          "pai": 405626,
+          "questoesCatalogo": 5127
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-08",
+      "topico": "Despesa pública: categorias e estágios",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405648",
+          "nome": "Despesa Pública",
+          "pai": 405626,
+          "questoesCatalogo": 8055
+        },
+        {
+          "id": "405651",
+          "nome": "Estágios/Etapas da Despesa Pública",
+          "pai": 405648,
+          "questoesCatalogo": 2408
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-09",
+      "topico": "Restos a pagar, despesas de exercícios anteriores, dívidas flutuante e fundada e suprimento de fundos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405652",
+          "nome": "Restos a Pagar - RP",
+          "pai": 405648,
+          "questoesCatalogo": 1203
+        },
+        {
+          "id": "405653",
+          "nome": "Despesas de Exercícios Anteriores - DEA",
+          "pai": 405648,
+          "questoesCatalogo": 378
+        },
+        {
+          "id": "411990",
+          "nome": "Dívida Pública Consolidada ou Fundada",
+          "pai": 424408,
+          "questoesCatalogo": 414
+        },
+        {
+          "id": "411995",
+          "nome": "Dívida Flutuante (Art. 92, Lei 4.320/64)",
+          "pai": 424408,
+          "questoesCatalogo": 275
+        },
+        {
+          "id": "405655",
+          "nome": "Suprimento de Fundos ou Regime de Adiantamento",
+          "pai": 405648,
+          "questoesCatalogo": 622
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-10",
+      "topico": "LRF: planejamento, receita e despesa pública",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "424276",
+          "nome": "Planejamento: PPA, LDO e LOA (Art. 3º ao Art. 10)",
+          "pai": 424258,
+          "questoesCatalogo": 1412
+        },
+        {
+          "id": "424293",
+          "nome": "Receita Pública (Art. 11 ao Art. 14)",
+          "pai": 424258,
+          "questoesCatalogo": 761
+        },
+        {
+          "id": "424297",
+          "nome": "Despesa Pública (Art. 15 ao Art. 24)",
+          "pai": 424258,
+          "questoesCatalogo": 1912
+        }
+      ]
+    },
+    {
+      "topicoId": "AFO-11",
+      "topico": "LRF: transparência, controle e fiscalização",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "424344",
+          "nome": "Transparência, Controle e Fiscalização (Art. 48 ao Art. 59)",
+          "pai": 424258,
+          "questoesCatalogo": 1325
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-01",
+      "topico": "Governança pública: conceitos e características; administração pública gerencial",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403748",
+          "nome": "Governança, Governabilidade e Accountability",
+          "pai": 403716,
+          "questoesCatalogo": 2000
+        },
+        {
+          "id": "426217",
+          "nome": "Governança no Setor Público",
+          "pai": 426209,
+          "questoesCatalogo": 281
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-02",
+      "topico": "Gestão por processos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404626",
+          "nome": "Gestão de processos",
+          "pai": 404571,
+          "questoesCatalogo": 3875
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-03",
+      "topico": "Gestão de riscos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "436564",
+          "nome": "Gestão de Riscos na Administração Pública",
+          "pai": 403716,
+          "questoesCatalogo": 11
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-04",
+      "topico": "Gestão de projetos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404636",
+          "nome": "Gestão de Projetos",
+          "pai": 404571,
+          "questoesCatalogo": 4723
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-05",
+      "topico": "Análise e tomada de decisão e gerenciamento de crise",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404631",
+          "nome": "Processo Decisório",
+          "pai": 404571,
+          "questoesCatalogo": 2288
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-06",
+      "topico": "Compliance: conceitos, apoio da alta administração e código de conduta",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "426222",
+          "nome": "Compliance",
+          "pai": 403748,
+          "questoesCatalogo": 100
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-07",
+      "topico": "Controles internos, treinamento e comunicação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "426379",
+          "nome": "Interno",
+          "pai": 426368,
+          "questoesCatalogo": 54
+        },
+        {
+          "id": "425683",
+          "nome": "Treinamento e Desenvolvimento ",
+          "pai": 417316,
+          "questoesCatalogo": 1407
+        },
+        {
+          "id": "425506",
+          "nome": "Comunicação",
+          "pai": 404571,
+          "questoesCatalogo": 2933
+        }
+      ]
+    },
+    {
+      "topicoId": "GOV-08",
+      "topico": "Governança das contratações no Judiciário: Resolução CNJ 347/2020",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433200",
+          "nome": "Resolução nº 347/2020 - Dispõe sobre a Política de Governança das Contratações Públicas no Poder Judiciário.",
+          "pai": 397403,
+          "questoesCatalogo": 15
+        }
+      ]
+    },
+    {
+      "topicoId": "EST-01",
+      "topico": "Estratégia do Poder Judiciário: Resolução CNJ 325/2020, ciclo 2021–2026 da referência",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433176",
+          "nome": "Resolução nº 325/2020 - Dispõe sobre a Estratégia Nacional do Poder Judiciário 2021-2026 e dá outras providências. ",
+          "pai": 397403,
+          "questoesCatalogo": 71
+        }
+      ]
+    },
+    {
+      "topicoId": "EST-03",
+      "topico": "Ferramentas de análise e planejamento estratégico, tático e operacional",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404609",
+          "nome": "Planejamento Estratégico",
+          "pai": 425402,
+          "questoesCatalogo": 1739
+        },
+        {
+          "id": "404614",
+          "nome": "Diagnóstico Estratégico – Análise SWOT",
+          "pai": 404608,
+          "questoesCatalogo": 988
+        },
+        {
+          "id": "425403",
+          "nome": "Planejamento Tático ",
+          "pai": 425402,
+          "questoesCatalogo": 325
+        },
+        {
+          "id": "425404",
+          "nome": "Planejamento Operacional ",
+          "pai": 425402,
+          "questoesCatalogo": 261
+        }
+      ]
+    },
+    {
+      "topicoId": "EST-04",
+      "topico": "Balanced Scorecard, estratégias e indicadores de gestão",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404594",
+          "nome": "Balanced Scorecard (BSC)",
+          "pai": 404608,
+          "questoesCatalogo": 912
+        },
+        {
+          "id": "417298",
+          "nome": "Indicadores de desempenho",
+          "pai": 425538,
+          "questoesCatalogo": 924
+        }
+      ]
+    },
+    {
+      "topicoId": "EST-05",
+      "topico": "Gestão de projetos e gestão por competências",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404636",
+          "nome": "Gestão de Projetos",
+          "pai": 404571,
+          "questoesCatalogo": 4723
+        },
+        {
+          "id": "425697",
+          "nome": "Gestão de Pessoas por Competências ",
+          "pai": 404659,
+          "questoesCatalogo": 1052
+        }
+      ]
+    },
+    {
+      "topicoId": "SUS-01",
+      "topico": "Meio ambiente: Constituição, art. 225",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405316",
+          "nome": "Do meio ambiente (artigo 225 da CF)",
+          "pai": 405306,
+          "questoesCatalogo": 1008
+        }
+      ]
+    },
+    {
+      "topicoId": "SUS-02",
+      "topico": "Desenvolvimento sustentável e Relatório Brundtland",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403095",
+          "nome": "Conceito de Desenvolvimento Sustentável",
+          "pai": 400898,
+          "questoesCatalogo": 165
+        }
+      ]
+    },
+    {
+      "topicoId": "SUS-03",
+      "topico": "Agenda Ambiental na Administração Pública (A3P)",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "434185",
+          "nome": "Agenda Ambiental na Administração Pública (A3P)",
+          "pai": 400898,
+          "questoesCatalogo": 11
+        }
+      ]
+    },
+    {
+      "topicoId": "SUS-04",
+      "topico": "Unidades socioambientais e Plano de Logística Sustentável: Resolução CNJ 400/2021",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433177",
+          "nome": "Resolução nº 400/2021 - Dispõe sobre a política de sustentabilidade no âmbito do Poder Judiciário.",
+          "pai": 397403,
+          "questoesCatalogo": 121
+        }
+      ]
+    },
+    {
+      "topicoId": "SUS-05",
+      "topico": "Política Nacional sobre Mudança do Clima: Lei 12.187/2009",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403126",
+          "nome": "Política Nacional de Mudança do Clima - Lei nº 12.187 de 2009",
+          "pai": 403115,
+          "questoesCatalogo": 258
+        }
+      ]
+    },
+    {
+      "topicoId": "SUS-06",
+      "topico": "Política Nacional de Resíduos Sólidos: Lei 12.305/2010 e Decreto 10.936/2022",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "403127",
+          "nome": "Política Nacional de Resíduos Sólidos - Lei nº 12.305 de 2010",
+          "pai": 403115,
+          "questoesCatalogo": 1532
+        },
+        {
+          "id": "432513",
+          "nome": "Decreto nº 10.936/2022 - Regulamenta a Lei nº 12.305, de 2 de agosto de 2010, que institui a Política Nacional de Resíduos Sólidos.",
+          "pai": 403115,
+          "questoesCatalogo": 67
+        }
+      ]
+    },
+    {
+      "topicoId": "DHA-01",
+      "topico": "Teoria geral dos direitos fundamentais e distinção entre direitos humanos e fundamentais",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "405218",
+          "nome": "Teoria Geral dos Direitos Fundamentais",
+          "pai": 405217,
+          "questoesCatalogo": 1254
+        },
+        {
+          "id": "423167",
+          "nome": "Teoria geral dos direitos humanos",
+          "pai": 407069,
+          "questoesCatalogo": 654
+        }
+      ]
+    },
+    {
+      "topicoId": "DHA-02",
+      "topico": "Declaração Universal dos Direitos Humanos",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "407086",
+          "nome": "Declaração Universal dos Direitos Humanos",
+          "pai": 407084,
+          "questoesCatalogo": 1851
+        }
+      ]
+    },
+    {
+      "topicoId": "DHA-03",
+      "topico": "Agenda 2030 da ONU",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "435329",
+          "nome": "ODS e Agenda 2030 da ONU",
+          "pai": 407069,
+          "questoesCatalogo": 29
+        }
+      ]
+    },
+    {
+      "topicoId": "DHA-04",
+      "topico": "Lei Brasileira de Inclusão: Lei 13.146/2015",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "433274",
+          "nome": "Lei nº 13.146/2015 - Estatuto da Pessoa com Deficiência",
+          "pai": null,
+          "questoesCatalogo": 5882
+        }
+      ]
+    },
+    {
+      "topicoId": "DHA-05",
+      "topico": "Acessibilidade: normas gerais e critérios da Lei 10.098/2000",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "395332",
+          "nome": "Lei nº 10.098/2000 -  Estabelece normas gerais e critérios básicos para a promoção da acessibilidade das pessoas portadoras de deficiência ou com mobilidade reduzida, e dá outras providências  ",
+          "pai": 395701,
+          "questoesCatalogo": 504
+        }
+      ]
+    },
+    {
+      "topicoId": "DHA-06",
+      "topico": "Prioridade de atendimento: Lei 10.048/2000",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "291373",
+          "nome": "Lei nº 10.048/2000 - Dá prioridade de atendimento às pessoas que especifica, e dá outras providências.",
+          "pai": 395701,
+          "questoesCatalogo": 168
+        }
+      ]
+    },
+    {
+      "topicoId": "alias-117",
+      "topico": "Gestão de pessoas: clima e cultura organizacional",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425536",
+          "nome": "Clima Organizacional ",
+          "pai": 404617,
+          "questoesCatalogo": 467
+        },
+        {
+          "id": "404617",
+          "nome": "Cultura organizacional",
+          "pai": 404571,
+          "questoesCatalogo": 2175
+        }
+      ]
+    },
+    {
+      "topicoId": "alias-118",
+      "topico": "Liderança e motivação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404664",
+          "nome": "Liderança",
+          "pai": 404571,
+          "questoesCatalogo": 3095
+        },
+        {
+          "id": "404670",
+          "nome": "Motivação",
+          "pai": 404571,
+          "questoesCatalogo": 3619
+        }
+      ]
+    },
+    {
+      "topicoId": "alias-119",
+      "topico": "Gestão de desempenho: indicadores e avaliação",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "417298",
+          "nome": "Indicadores de desempenho",
+          "pai": 425538,
+          "questoesCatalogo": 924
+        },
+        {
+          "id": "404668",
+          "nome": "Avaliação do Desempenho",
+          "pai": 404659,
+          "questoesCatalogo": 2596
+        }
+      ]
+    },
+    {
+      "topicoId": "alias-120",
+      "topico": "Gestão de processos: conceitos, princípios e mapeamento",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "404626",
+          "nome": "Gestão de processos",
+          "pai": 404571,
+          "questoesCatalogo": 3875
+        }
+      ]
+    },
+    {
+      "topicoId": "alias-121",
+      "topico": "Gestão de processos: análise e melhoria",
+      "tipo": "especifico",
+      "motivo": "",
+      "assuntos": [
+        {
+          "id": "425613",
+          "nome": "Técnicas de Análise e Melhoria de Processos ",
+          "pai": 425610,
+          "questoesCatalogo": 67
+        }
+      ]
+    }
+  ],
+  "pendencias": [
+    {
+      "topicoId": "ADM-14",
+      "topico": "Código de Conduta da Justiça Federal: Resolução CJF 147/2011",
+      "motivo": "Resolução CJF 147/2011: categoria correspondente não encontrada; complemente com seu material."
+    },
+    {
+      "topicoId": "EST-02",
+      "topico": "Estratégia da Justiça Federal: Resolução CJF 668/2020, ciclo 2021–2026 da referência",
+      "motivo": "Resolução CJF 668/2020: categoria correspondente não encontrada; complemente com seu material."
+    }
+  ],
+  "disciplinasConferidas": [
+    {
+      "id": "POR",
+      "nome": "Língua Portuguesa",
+      "topicos": [
+        {
+          "id": "POR-01",
+          "nome": "Compreensão e interpretação de textos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-02",
+          "nome": "Tipologias e gêneros textuais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-03",
+          "nome": "Ortografia oficial",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-04",
+          "nome": "Coesão e coerência: referenciação, substituição, repetição, conectores e sequenciação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-05",
+          "nome": "Classes de palavras e emprego na oração",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-06",
+          "nome": "Emprego de tempos e modos verbais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-07",
+          "nome": "Sintaxe: termos da oração e relações de coordenação e subordinação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-08",
+          "nome": "Pontuação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-09",
+          "nome": "Concordância verbal e nominal",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-10",
+          "nome": "Regência verbal e nominal e emprego da crase",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-11",
+          "nome": "Colocação dos pronomes átonos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-12",
+          "nome": "Semântica e estilística: figuras, sinonímia, antonímia, polissemia, denotação e conotação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "POR-13",
+          "nome": "Redação oficial: Manual da Presidência, 3ª edição (2018), expedientes, linguagem e formato",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "RLM",
+      "nome": "Raciocínio Lógico e Matemático",
+      "topicos": [
+        {
+          "id": "RLM-01",
+          "nome": "Relações lógicas entre pessoas, tempo, características, lugares, objetos e eventos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-02",
+          "nome": "Dedução de informações e condições de validade de argumentos a partir de hipóteses",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-03",
+          "nome": "Raciocínio verbal, formação de conceitos e discriminação de elementos",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "Não há categoria com acervo validado isolando raciocínio verbal, formação de conceitos e discriminação de elementos; usa estruturas lógicas."
+        },
+        {
+          "id": "RLM-04",
+          "nome": "Equivalências lógicas e utilização de quantificadores",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-05",
+          "nome": "Raciocínio sequencial e orientação espacial e temporal",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "Sequências e orientação temporal têm categorias próprias; a orientação espacial usa estruturas lógicas por falta de categoria isolada com acervo."
+        },
+        {
+          "id": "RLM-06",
+          "nome": "Operações, potenciação, radiciação e números racionais: frações e decimais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-07",
+          "nome": "Razão, proporção e regra de três simples e composta",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-08",
+          "nome": "Porcentagem e aplicações",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-09",
+          "nome": "Juros simples e compostos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-10",
+          "nome": "Grandezas e medidas: quantidade, tempo, comprimento, superfície, capacidade e massa",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "RLM-11",
+          "nome": "Estatística básica: médias simples e ponderadas, tabelas e gráficos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "CON",
+      "nome": "Noções de Direito Constitucional",
+      "topicos": [
+        {
+          "id": "CON-01",
+          "nome": "Princípios fundamentais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-02",
+          "nome": "Direitos e deveres individuais e coletivos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-03",
+          "nome": "Direitos sociais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-04",
+          "nome": "Nacionalidade e direitos políticos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-05",
+          "nome": "Organização político-administrativa: União, Estados, Municípios, DF e Territórios",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-06",
+          "nome": "Administração Pública: disposições gerais e servidores públicos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-07",
+          "nome": "Organização dos Poderes: Legislativo e Executivo",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-08",
+          "nome": "Poder Judiciário: organização e competências",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-09",
+          "nome": "Funções essenciais à Justiça",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "CON-10",
+          "nome": "Ordem social: disposições gerais da seguridade e previdência social",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "ADM",
+      "nome": "Noções de Direito Administrativo",
+      "topicos": [
+        {
+          "id": "ADM-01",
+          "nome": "Princípios básicos, supremacia do interesse público e indisponibilidade",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-02",
+          "nome": "Administração direta e indireta: conceitos e características",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-03",
+          "nome": "Atos administrativos: conceito, elementos, atributos, classificação e espécies",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-04",
+          "nome": "Atos administrativos: revogação, anulação e convalidação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-05",
+          "nome": "Poderes vinculados, discricionário, hierárquico, disciplinar, regulamentar e de polícia",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-06",
+          "nome": "Deveres dos administradores, uso e abuso do poder",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-07",
+          "nome": "Agentes públicos: conceito, classificação, cargo, emprego e função",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-08",
+          "nome": "Lei 8.112/1990: direitos, vantagens e direito de petição",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-09",
+          "nome": "Lei 8.112/1990: deveres, proibições, acumulação, responsabilidades e penalidades",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-10",
+          "nome": "Processo administrativo disciplinar e revisão",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-11",
+          "nome": "Seguridade do servidor e previdência complementar: Lei 12.618/2012",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-12",
+          "nome": "Improbidade administrativa: Lei 8.429/1992 e alterações vigentes",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-13",
+          "nome": "Processo administrativo federal: Lei 9.784/1999",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "ADM-14",
+          "nome": "Código de Conduta da Justiça Federal: Resolução CJF 147/2011",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Resolução CJF 147/2011: categoria correspondente não encontrada; complemente com seu material."
+        }
+      ]
+    },
+    {
+      "id": "TGP",
+      "nome": "Teoria Geral do Processo",
+      "topicos": [
+        {
+          "id": "TGP-01",
+          "nome": "Princípios constitucionais processuais e princípios gerais do processo",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "TGP-02",
+          "nome": "Normas processuais e materiais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "TGP-03",
+          "nome": "Jurisdição: espécies, limites e poderes",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "A categoria com acervo reúne jurisdição e ação; não foi encontrada uma categoria isolada para todo o recorte de jurisdição."
+        },
+        {
+          "id": "TGP-04",
+          "nome": "Ação: condições, classificação e elementos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "TGP-05",
+          "nome": "Competência absoluta e relativa; competência dos Juizados Especiais Federais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "TGP-06",
+          "nome": "Pressupostos processuais e sujeitos do processo",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "TGP-07",
+          "nome": "Tutela jurisdicional: espécies",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "TGP-08",
+          "nome": "Acesso à justiça, gratuidade e métodos apropriados de solução de conflitos",
+          "tipo": "amplo",
+          "semResultadosNoRecorte": false,
+          "motivo": "Acesso à Justiça utiliza princípios processuais e gratuidade, que incluem conteúdos adicionais."
+        }
+      ]
+    },
+    {
+      "id": "PEN",
+      "nome": "Noções de Direito Penal",
+      "topicos": [
+        {
+          "id": "PEN-01",
+          "nome": "Aplicação da lei penal",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-02",
+          "nome": "Imputabilidade penal",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-03",
+          "nome": "Concurso de pessoas",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-04",
+          "nome": "Espécies e aplicação da pena",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-05",
+          "nome": "Medidas de segurança e extinção da punibilidade",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-06",
+          "nome": "Crimes praticados por funcionário público contra a administração em geral",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-07",
+          "nome": "Crimes praticados por particular contra a administração em geral",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-08",
+          "nome": "Crimes contra a administração da justiça",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-09",
+          "nome": "Crimes de preconceito de raça ou cor: Leis 7.716/1989 e 14.532/2023",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "PEN-10",
+          "nome": "Crimes de abuso de autoridade: Lei 13.869/2019",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "AGP",
+      "nome": "Noções de Administração Geral e Pública",
+      "topicos": [
+        {
+          "id": "AGP-01",
+          "nome": "Evolução da administração: abordagens clássica, humanística, comportamental, sistêmica e contingencial",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-02",
+          "nome": "Modelos patrimonialista, burocrático e gerencial; reformas administrativas brasileiras e governança",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-03",
+          "nome": "Processo administrativo: planejamento, organização, direção e controle",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-04",
+          "nome": "Planejamento estratégico: conceitos, características, ferramentas, análise competitiva e estratégias genéricas",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-05",
+          "nome": "Redes e alianças; planejamento tático e operacional; administração por objetivos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-06",
+          "nome": "Processo decisório",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-07",
+          "nome": "Estrutura organizacional e departamentalização: tipos, características, vantagens e desvantagens",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-08",
+          "nome": "Organização informal e cultura organizacional",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-09",
+          "nome": "Direção: motivação, liderança, comunicação, descentralização e delegação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-10",
+          "nome": "Controle: características, tipos, vantagens, desvantagens e medição do desempenho organizacional",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-11",
+          "nome": "Qualidade e excelência gerencial: teóricos, contribuições e ferramentas",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-12",
+          "nome": "Projetos: definições, elaboração, análise, avaliação e ciclo de vida preditivo, adaptativo e híbrido",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-13",
+          "nome": "Tailoring e metodologias ágeis: Scrum, Kanban e Lean",
+          "tipo": "parcial",
+          "semResultadosNoRecorte": false,
+          "motivo": "Scrum, Kanban e Lean têm categorias próprias; tailoring não foi encontrado isoladamente com acervo."
+        },
+        {
+          "id": "AGP-14",
+          "nome": "Gestão de processos: abordagem, mapeamento, análise, melhoria e ISO 9000:2000",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AGP-15",
+          "nome": "Noções de estatística para controle e melhoria de processos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "AFO",
+      "nome": "Administração Financeira e Orçamentária e Orçamento Público",
+      "topicos": [
+        {
+          "id": "AFO-01",
+          "nome": "Finanças públicas: papel do Estado e formas e dimensões de intervenção na economia",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-02",
+          "nome": "Orçamento: origens, tipos, instrumento de planejamento e princípios",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-03",
+          "nome": "Orçamento brasileiro: PPA, LDO, LOA e outros planos e programas",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-04",
+          "nome": "Ciclo orçamentário e classificações orçamentárias",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-05",
+          "nome": "Programação e execução orçamentária e financeira: acompanhamento e sistemas de informação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-06",
+          "nome": "Alterações orçamentárias e créditos ordinários e adicionais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-07",
+          "nome": "Receita pública: categorias, fontes, estágios e dívida ativa",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-08",
+          "nome": "Despesa pública: categorias e estágios",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-09",
+          "nome": "Restos a pagar, despesas de exercícios anteriores, dívidas flutuante e fundada e suprimento de fundos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-10",
+          "nome": "LRF: planejamento, receita e despesa pública",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "AFO-11",
+          "nome": "LRF: transparência, controle e fiscalização",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "GOV",
+      "nome": "Noções de Governança",
+      "topicos": [
+        {
+          "id": "GOV-01",
+          "nome": "Governança pública: conceitos e características; administração pública gerencial",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "GOV-02",
+          "nome": "Gestão por processos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "GOV-03",
+          "nome": "Gestão de riscos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "GOV-04",
+          "nome": "Gestão de projetos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "GOV-05",
+          "nome": "Análise e tomada de decisão e gerenciamento de crise",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "GOV-06",
+          "nome": "Compliance: conceitos, apoio da alta administração e código de conduta",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "GOV-07",
+          "nome": "Controles internos, treinamento e comunicação",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "GOV-08",
+          "nome": "Governança das contratações no Judiciário: Resolução CNJ 347/2020",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "EST",
+      "nome": "Noções de Gestão Estratégica",
+      "topicos": [
+        {
+          "id": "EST-01",
+          "nome": "Estratégia do Poder Judiciário: Resolução CNJ 325/2020, ciclo 2021–2026 da referência",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "EST-02",
+          "nome": "Estratégia da Justiça Federal: Resolução CJF 668/2020, ciclo 2021–2026 da referência",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Resolução CJF 668/2020: categoria correspondente não encontrada; complemente com seu material."
+        },
+        {
+          "id": "EST-03",
+          "nome": "Ferramentas de análise e planejamento estratégico, tático e operacional",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "EST-04",
+          "nome": "Balanced Scorecard, estratégias e indicadores de gestão",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "EST-05",
+          "nome": "Gestão de projetos e gestão por competências",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "SUS",
+      "nome": "Noções de Sustentabilidade",
+      "topicos": [
+        {
+          "id": "SUS-01",
+          "nome": "Meio ambiente: Constituição, art. 225",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "SUS-02",
+          "nome": "Desenvolvimento sustentável e Relatório Brundtland",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "SUS-03",
+          "nome": "Agenda Ambiental na Administração Pública (A3P)",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "SUS-04",
+          "nome": "Unidades socioambientais e Plano de Logística Sustentável: Resolução CNJ 400/2021",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "SUS-05",
+          "nome": "Política Nacional sobre Mudança do Clima: Lei 12.187/2009",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "SUS-06",
+          "nome": "Política Nacional de Resíduos Sólidos: Lei 12.305/2010 e Decreto 10.936/2022",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "DHA",
+      "nome": "Direitos Humanos, Fundamentais e Acessibilidade",
+      "topicos": [
+        {
+          "id": "DHA-01",
+          "nome": "Teoria geral dos direitos fundamentais e distinção entre direitos humanos e fundamentais",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DHA-02",
+          "nome": "Declaração Universal dos Direitos Humanos",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DHA-03",
+          "nome": "Agenda 2030 da ONU",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DHA-04",
+          "nome": "Lei Brasileira de Inclusão: Lei 13.146/2015",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DHA-05",
+          "nome": "Acessibilidade: normas gerais e critérios da Lei 10.098/2000",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        },
+        {
+          "id": "DHA-06",
+          "nome": "Prioridade de atendimento: Lei 10.048/2000",
+          "tipo": "especifico",
+          "semResultadosNoRecorte": false,
+          "motivo": ""
+        }
+      ]
+    },
+    {
+      "id": "RED",
+      "nome": "Redação",
+      "topicos": [
+        {
+          "id": "RED-01",
+          "nome": "Estrutura dissertativa, tese, projeto de texto e progressão argumentativa",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita; adicione material de treino."
+        },
+        {
+          "id": "RED-02",
+          "nome": "Construção de argumentos, repertório pertinente e adequação ao tema",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita; adicione material de treino."
+        },
+        {
+          "id": "RED-03",
+          "nome": "Coesão, coerência e revisão da norma-padrão",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita; adicione material de treino."
+        },
+        {
+          "id": "RED-04",
+          "nome": "Treino de redação completa, correção e reescrita com os critérios da banca",
+          "tipo": "pendente",
+          "semResultadosNoRecorte": false,
+          "motivo": "Produção escrita; adicione material de treino."
+        }
+      ]
+    }
+  ],
+  "resumo": {
+    "disciplinas": 13,
+    "topicos": 121,
+    "especifico": 110,
+    "amplo": 4,
+    "parcial": 1,
+    "pendente": 6
+  },
+  "validacaoAmostral": [
+    "ADM-09: cinco capítulos da Lei 8.112, AOCP/FCC, 32 questões.",
+    "AFO-03: PPA, LDO e LOA, AOCP/FCC, 53 questões.",
+    "AGP-03: processo organizacional, AOCP/FCC, 48 questões."
+  ]
+}

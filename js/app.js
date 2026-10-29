@@ -5340,6 +5340,7 @@
     if (ampla != null) partes.push('Ampla ' + ampla + '%');
     if (c.negros != null) partes.push('CN ' + c.negros + '%');
     if (c.pcd != null) partes.push('PcD ' + c.pcd + '%');
+    if (e.notaCorteVerificada === false) return 'corte não aferido';
     return partes.length ? 'corte ' + partes.join(' · ') : 'corte ~' + (e.notaCorte || 70) + '%';
   }
 
@@ -5996,6 +5997,7 @@
   }
 
   function rotuloCorteEdital(e) {
+    if (e && e.notaCorteVerificada === false) return 'Não aferido';
     if (e && e.metaDesempenho) return (e.notaCorte || 80) + '%';
     // o rótulo do card já diz "Corte"; aqui vai só o valor: "73% · ampla"
     const lista = normalizarListaCorte(e.tipoCorte || e.corteTipo || e.modalidadeCorte || 'ampla');
@@ -6016,8 +6018,8 @@
       '<div class="catalogo-card-topo"><strong class="catalogo-titulo">' + esc(e.titulo) + '</strong></div>' +
       (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
       '<div class="catalogo-metricas">' +
-      metrica(e.metaDesempenho ? 'Meta' : 'Corte', (e.metaDesempenho ? '' : '~') + (e.notaCorte || 70) + '%') +
-      metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica(e.metaDesempenho ? 'Meta' : 'Corte', e.notaCorteVerificada === false ? 'Não aferido' : (e.metaDesempenho ? '' : '~') + (e.notaCorte || 70) + '%') +
+      metrica('Escolaridade', esc(e.requisito || NIVEIS_EDITAL[nivelEdital(e)])) +
       metrica('Data estimada', esc(janelaProvaTexto(e))) +
       metrica('Tempo médio', '~' + tempoMedioMesesEdital(e) + ' meses') +
       '</div>' +
@@ -6046,7 +6048,7 @@
         metrica('Perfil', esc(e.area || 'Área administrativa')) +
         metrica('Meta inicial', (e.notaCorte || 80) + '%')
       : metrica(e.metaDesempenho ? 'Meta' : 'Corte', esc(rotuloCorteEdital(e))) +
-        metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+        metrica('Escolaridade', esc(e.requisito || NIVEIS_EDITAL[nivelEdital(e)])) +
         metrica('Data estimada', esc(janelaProvaTexto(e)));
     return '<div class="card catalogo-card catalogo-card-compacto' + (carreira ? ' catalogo-card-carreira' : '') + (selComparar ? ' catalogo-card-comparando' : '') + '">' +
       '<div class="catalogo-card-topo">' + editalFotoHtml(e) +
@@ -6408,23 +6410,24 @@
     const carreira = ehPlanoCarreira(e);
     // Disciplinas com tópicos · incidência · horas (antiga "tela 2", agora direto)
     const discHtml = (e.disciplinas || []).map(function (d) {
-      const tops = (d.topicos || []).slice().sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
+      const tops = (d.topicos || []).slice();
+      if (e.incidenciaVerificada !== false) tops.sort(function (a, b) { return (b.incidencia_pct || 0) - (a.incidencia_pct || 0); });
       const linhas = tops.map(function (t) {
-        return '<tr><td>' + esc(t.nome) + '</td><td class="num">' + (t.incidencia_pct || 0) + '%</td><td class="num">' + (D.horasTeoriaTopico(t)) + 'h</td></tr>';
+        return '<tr><td>' + esc(t.nome) + '</td><td class="num">' + (e.incidenciaVerificada === false ? ('P' + (t.prioridade || 2)) : (t.incidencia_pct || 0) + '%') + '</td><td class="num">' + (D.horasTeoriaTopico(t)) + 'h</td></tr>';
       }).join('');
       const cor = /^#/.test(d.cor || '') ? d.cor : '#6B7180';
       return '<div class="detalhe-disc"><div class="detalhe-disc-cab">' +
         '<span class="tag-disc" style="background:' + esc(cor) + '22;color:' + esc(cor) + '">' + esc(d.nome) + '</span>' +
         '<span class="sub">peso ' + (d.peso || 1) + ' · ' + (d.topicos || []).length + ' tópicos</span></div>' +
-        '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">' + (carreira ? 'Prior.' : 'Incid.') + '</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
+        '<table class="tabela-topicos"><thead><tr><th>Tópico</th><th class="num">' + (carreira || e.incidenciaVerificada === false ? 'Prior.' : 'Incid.') + '</th><th class="num">Horas</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
     }).join('');
     function metrica(rot, val) { return '<span class="catalogo-metrica"><span class="cm-rotulo">' + rot + '</span><span class="cm-valor">' + val + '</span></span>'; }
     const m = abrirModal('<h3 class="detalhe-titulo">' + esc(e.titulo) + '</h3>' +
       '<p class="sub">' + (carreira ? '<span class="etiqueta etiqueta-carreira">plano de carreira</span> · ' : '') + esc(e.banca || 'banca não informada') + (e.orgao ? ' · ' + esc(e.orgao) : '') + (e.cargo ? ' · ' + esc(e.cargo) : '') + '</p>' +
       '<div class="catalogo-metricas" style="margin:0.5rem 0">' +
       (e.area ? metrica('Área', esc(e.area)) : '') +
-      metrica(carreira || e.metaDesempenho ? 'Meta inicial' : 'Corte', (carreira || e.metaDesempenho ? '' : '~') + (e.notaCorte || 70) + '%') +
-      metrica('Escolaridade', esc(NIVEIS_EDITAL[nivelEdital(e)])) +
+      metrica(carreira || e.metaDesempenho ? 'Meta inicial' : 'Corte', e.notaCorteVerificada === false ? 'Não aferido' : (carreira || e.metaDesempenho ? '' : '~') + (e.notaCorte || 70) + '%') +
+      metrica('Escolaridade', esc(e.requisito || NIVEIS_EDITAL[nivelEdital(e)])) +
       (carreira ? metrica('Cobertura', esc(e.cobertura || 'Nacional')) : metrica('Data estimada', esc(janelaProvaTexto(e)))) +
       metrica('Esforço', '~' + horasEsforcoEdital(e) + 'h') +
       (e.salario ? metrica('Salário', esc(e.salario)) : '') +
@@ -6436,10 +6439,10 @@
         '<p><strong>Fontes:</strong> ' + esc(e.fontesResumo || '') + '</p></div>' : '') +
       (!carreira && (e.observacoes || e.fonte) ? '<div class="carreira-metodologia"><strong>Sobre este plano</strong>' +
         (e.observacoes ? '<p>' + esc(e.observacoes) + '</p>' : '') +
-        (e.fonte ? '<p><strong>Base estatística:</strong> ' + esc(e.fonte) + '</p>' : '') + '</div>' : '') +
+        (e.fonte ? '<p><strong>' + (e.incidenciaVerificada === false ? 'Fonte oficial:' : 'Base estatística:') + '</strong> ' + esc(e.fonte) + '</p>' : '') + '</div>' : '') +
       fotoCreditoHtml(e) +
       '<div class="detalhe-caderno"><div><strong>Caderno de questões por subtópico</strong><p class="sub">Pratique na ordem do edital e complemente com links das suas plataformas.</p></div><button type="button" id="det-caderno">Abrir caderno de questões</button></div>' +
-      '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (' + (carreira ? 'prioridade relativa e horas estimadas' : 'incidência nas provas e horas estimadas') + ').</p>' +
+      '<p class="sub" style="margin:0.2rem 0 0.4rem">Disciplinas e tópicos (' + (carreira || e.incidenciaVerificada === false ? 'prioridades de planejamento e horas estimadas' : 'incidência nas provas e horas estimadas') + ').</p>' +
       '<div class="detalhe-discs">' + discHtml + '</div>' +
       (calc ? '<button type="button" class="botao-secundario det-calc" id="det-calc" style="width:100%;margin:0.2rem 0 0.6rem">' + calc.rotulo + '</button>' : '') +
       '<div class="modal-acoes"><button class="botao-quieto" id="det-fechar">Fechar</button>' +
@@ -9031,7 +9034,7 @@
         '<div class="fila-info"><div class="fila-titulo">' + esc(e.titulo) + '</div>' +
         (tags ? '<div class="edital-tags">' + tags + '</div>' : '') +
         '<div class="fila-sub">' + esc(e.banca || 'banca não informada') + ' · ' + (e.disciplinas || []).length + ' disciplinas · ' +
-        contarTopicosEdital(e) + ' tópicos · corte estimado ' + (e.notaCorte || 70) + '%</div></div>' +
+        contarTopicosEdital(e) + ' tópicos · ' + (e.notaCorteVerificada === false ? 'corte não aferido' : 'corte estimado ' + (e.notaCorte || 70) + '%') + '</div></div>' +
         (jaTem ? '<span class="etiqueta etiqueta-feito">plano criado ✓</span>' : '') +
         '</div>';
     }).join('');

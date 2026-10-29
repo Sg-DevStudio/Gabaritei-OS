@@ -1,0 +1,2011 @@
+{
+  "criadoEm": "2026-10-29",
+  "id": "edital-trt4-analista-judiciaria-2026",
+  "emAlta": false,
+  "cortes": {
+    "ampla": null,
+    "negros": null,
+    "pcd": null
+  },
+  "orgao": "Tribunal Regional do Trabalho da 4ª Região - TRT4/RS",
+  "nivel": "superior",
+  "area": "Judiciária",
+  "beneficios": "Auxílio-alimentação, assistência pré-escolar/auxílio-creche e assistência médica/odontológica",
+  "salario": "R$ 16.040,88",
+  "banca": "FCC",
+  "janelaProva": {
+    "inicio": "2027-01-31",
+    "fim": "2027-01-31"
+  },
+  "cargo": "Analista Judiciário — Área Judiciária",
+  "tipoCorte": "ampla",
+  "titulo": "TRT4 RS — Analista Judiciário · Área Judiciária (Edital 2026)",
+  "estado": "RS",
+  "arquivado": false,
+  "atualizadoEm": "2026-10-29T00:00:00.000Z",
+  "vagas": "Cadastro de reserva",
+  "notaCorte": "",
+  "fonte": "https://www.concursosfcc.com.br/concursos/trt4r125/trt4r125_edital_de_abertura_21_10_26__1___1__publicar.pdf",
+  "referencia": "Edital 01/2026, Anexo II — cargo 01",
+  "inscricoes": {
+    "inicio": "2026-10-26",
+    "fim": "2026-11-25"
+  },
+  "observacoes": "Cargo 01: graduação em Direito. Prova em Porto Alegre, na tarde de 31/01/2027: 30 questões gerais (peso 1), 30 específicas (peso 2) e um estudo de caso, em 4 horas. Horas e prioridades são estimativas; incidência e nota do último nomeado não foram aferidas.",
+  "disciplinas": [
+    {
+      "id": "POR",
+      "nome": "Língua Portuguesa",
+      "peso": 1,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#345caa",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "POR-01",
+          "nome": "Compreensão e interpretação de textos; contexto histórico e intertextualidade",
+          "horas_estimadas": 8.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-02",
+          "nome": "Reescrita: frases corretas e incorretas, organização e transformação de períodos",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-03",
+          "nome": "Ortografia oficial",
+          "horas_estimadas": 3.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-11",
+          "nome": "Acentuação gráfica",
+          "horas_estimadas": 3.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-04",
+          "nome": "Flexão nominal e verbal",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-05",
+          "nome": "Pronomes: emprego e colocação",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-06",
+          "nome": "Tempos, modos e vozes verbais",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 7,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-07",
+          "nome": "Concordância nominal e verbal",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-08",
+          "nome": "Regência nominal e verbal",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 9,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-09",
+          "nome": "Crase",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 10,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-10",
+          "nome": "Pontuação",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 11,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-12",
+          "nome": "Denotação, conotação, sinonímia, antonímia e figuras de linguagem",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 12,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-13",
+          "nome": "Discurso direto, indireto e indireto livre",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 13,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-14",
+          "nome": "Morfossintaxe e formação de palavras",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 14,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-15",
+          "nome": "Coordenação, subordinação e conectivos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 15,
+          "incidencia_pct": null
+        },
+        {
+          "id": "POR-16",
+          "nome": "Redação oficial",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 16,
+          "incidencia_pct": null
+        }
+      ]
+    },
+    {
+      "id": "MAT",
+      "nome": "Matemática e Raciocínio Lógico",
+      "peso": 1,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#247c83",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "MAT-01",
+          "nome": "Números inteiros: operações, expressões, múltiplos e divisores",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "MAT-02",
+          "nome": "Números racionais, frações e operações",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "MAT-03",
+          "nome": "Razão, proporção, divisão proporcional e regra de três",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "MAT-07",
+          "nome": "Porcentagem, acréscimos e descontos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "MAT-08",
+          "nome": "Relações lógicas, deduções e conclusões a partir de hipóteses",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "MAT-09",
+          "nome": "Raciocínio verbal, matemático, sequencial e orientação espacial e temporal",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "MAT-10",
+          "nome": "Estatística: moda, mediana, médias e medidas de dispersão",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 7,
+          "incidencia_pct": null
+        },
+        {
+          "id": "MAT-11",
+          "nome": "Leitura e interpretação de gráficos, infográficos e tabelas",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        }
+      ]
+    },
+    {
+      "id": "LTRT",
+      "nome": "Noções de Legislação",
+      "peso": 1,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#8b5f24",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "LTRT-05",
+          "nome": "Sustentabilidade no Judiciário: Resolução CNJ 400/2021",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LTRT-06",
+          "nome": "Código de Conduta e Valores Éticos do TRT4: Portaria 4.573/2023, com alterações de 2025",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LTRT-02",
+          "nome": "Regimento Interno do TRT4, atualizado até o Assento Regimental 04/2026",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LTRT-07",
+          "nome": "Violência, assédio e discriminação: Resolução CSJT 360/2023",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LTRT-08",
+          "nome": "Assédio moral, sexual e discriminação: Resolução CNJ 351/2020",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        }
+      ]
+    },
+    {
+      "id": "DH",
+      "nome": "Noções de Direitos Humanos",
+      "peso": 1,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#8154ad",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "DH-01",
+          "nome": "Evolução histórica, fundamentos filosóficos, fontes, princípios e gerações",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-02",
+          "nome": "Interpretação dos tratados, colisão de direitos e controle de convencionalidade",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-03",
+          "nome": "Tratados de direitos humanos e Constituição de 1988",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-04",
+          "nome": "Declaração Universal dos Direitos Humanos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-05",
+          "nome": "PIDCP, PIDESC e protocolos facultativos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-06",
+          "nome": "Convenções contra a discriminação racial e contra a mulher; protocolo facultativo",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-07",
+          "nome": "Convenções sobre os direitos da criança e da pessoa com deficiência; protocolos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 7,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-08",
+          "nome": "Patrimônio mundial, Declaração de Estocolmo e diversidade biológica",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-09",
+          "nome": "Declaração da ONU sobre os direitos dos povos indígenas",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 9,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-10",
+          "nome": "Sistema interamericano: Declaração Americana, Convenção Americana e Protocolo de San Salvador",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 10,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-11",
+          "nome": "Comissão e Corte Interamericanas: composição, funcionamento, atribuições e decisões",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 11,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-12",
+          "nome": "Mecanismos de proteção nacionais e internacionais; grupos vulneráveis e minorias",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 12,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-13",
+          "nome": "Perspectiva de gênero no Judiciário: Resolução CNJ 492/2023",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 13,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-14",
+          "nome": "Equidade de raça, gênero e diversidade: Resolução CSJT 368/2023",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 14,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-15",
+          "nome": "Tribunal Penal Internacional, Estatuto de Roma e Decreto 4.388/2002",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 15,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-16",
+          "nome": "Carta da ONU, Estatuto da Corte Internacional de Justiça e Decreto 19.841/1945",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 16,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DH-17",
+          "nome": "Protocolos para atuação e julgamento na Justiça do Trabalho",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 17,
+          "incidencia_pct": null
+        }
+      ]
+    },
+    {
+      "id": "INF",
+      "nome": "Noções de Informática",
+      "peso": 1,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#345caa",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "INF-02",
+          "nome": "Internet, intranet, redes, navegadores Firefox, Chrome e Edge; mecanismos de busca",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-04",
+          "nome": "Organização e gerenciamento de arquivos, pastas e programas",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-07",
+          "nome": "Windows 10 e Windows 11",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-08",
+          "nome": "Microsoft Office 365: textos, planilhas, apresentações, e-mail e agenda",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-09",
+          "nome": "Google Workspace: Documentos, planilhas, apresentações e compartilhamento",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-10",
+          "nome": "Google Drive: criação, edição, compartilhamento e permissões",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-11",
+          "nome": "Google Agenda, Tarefas e Meet: eventos, participantes e videoconferência",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 7,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-12",
+          "nome": "Gmail: configurações, painel de visualização e marcadores",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        },
+        {
+          "id": "INF-13",
+          "nome": "Segurança: vírus, worms, antivírus, firewall, antispyware, senhas e autenticação em dois fatores",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 9,
+          "incidencia_pct": null
+        }
+      ]
+    },
+    {
+      "id": "CON",
+      "nome": "Direito Constitucional",
+      "peso": 2,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#247c83",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "CON-07",
+          "nome": "Aplicabilidade, interpretação, vigência e eficácia das normas constitucionais",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-08",
+          "nome": "Controle de constitucionalidade: sistemas difuso e concentrado; ADI, ADC e ADPF",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-01",
+          "nome": "Princípios fundamentais da República",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-03",
+          "nome": "Direitos e deveres individuais e coletivos",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-09",
+          "nome": "Direitos sociais e nacionalidade",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-04",
+          "nome": "Direitos políticos e partidos políticos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-10",
+          "nome": "Organização político-administrativa: União, Estados, Municípios, DF, Territórios e intervenção",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 7,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-05",
+          "nome": "Administração Pública: disposições gerais",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-06",
+          "nome": "Servidores públicos na Constituição",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 9,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-11",
+          "nome": "Organização dos Poderes; Executivo: Presidente, Vice-Presidente, atribuições, responsabilidades e Ministros de Estado",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 10,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-12",
+          "nome": "Legislativo: processo legislativo e fiscalização contábil, financeira e orçamentária",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 11,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-13",
+          "nome": "Judiciário: disposições gerais, STF, CNJ, STJ, TST, TRTs, juízes e CSJT",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 12,
+          "incidencia_pct": null
+        },
+        {
+          "id": "CON-14",
+          "nome": "Funções essenciais à Justiça: MP, Advocacia Pública, advocacia e Defensoria",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 13,
+          "incidencia_pct": null
+        }
+      ]
+    },
+    {
+      "id": "DAD",
+      "nome": "Direito Administrativo",
+      "peso": 2,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#8b5f24",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "DAD-01",
+          "nome": "Administração Pública, regime jurídico e princípios explícitos e implícitos",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-07",
+          "nome": "LINDB e sua aplicação na Administração Pública",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-08",
+          "nome": "Poderes e deveres administrativos; uso e abuso do poder; Lei 13.869/2019",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-09",
+          "nome": "Atos administrativos: elementos, atributos, classificação, efeitos e extinção",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-10",
+          "nome": "Processo administrativo federal: Lei 9.784/1999",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-11",
+          "nome": "Controle interno e externo da Administração: Judiciário, Legislativo e Tribunais de Contas",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-03",
+          "nome": "Licitações: Lei 14.133/2021, modalidades, contratação direta, procedimentos, recursos e sanções",
+          "horas_estimadas": 8.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-13",
+          "nome": "Contratos administrativos: formalização, execução, duração, prorrogação, revisão e extinção",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 9,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-02",
+          "nome": "Agentes públicos: cargos, empregos, funções, provimento, exercício e afastamentos",
+          "horas_estimadas": 8.0,
+          "prioridade": 2,
+          "semana_sugerida": 10,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-14",
+          "nome": "Direito de greve e regime constitucional dos servidores",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 11,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-15",
+          "nome": "Carreiras do Judiciário Federal: Lei 11.416/2006",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 12,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-16",
+          "nome": "Emprego público e disposições aplicáveis da CLT",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 13,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-17",
+          "nome": "Responsabilidade civil, administrativa e penal dos agentes públicos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 14,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DAD-18",
+          "nome": "Convênios administrativos",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 18
+        },
+        {
+          "id": "DAD-19",
+          "nome": "Parcerias com o terceiro setor — Lei 13.019/2014",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "DAD-20",
+          "nome": "Serviços públicos: conceito, classificação, princípios, delegação e direitos dos usuários",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 20
+        },
+        {
+          "id": "DAD-21",
+          "nome": "Concessão e permissão — Lei 8.987/1995; extinção e reversão dos bens",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 21
+        },
+        {
+          "id": "DAD-22",
+          "nome": "Parcerias Público-Privadas — Lei 11.079/2004",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 22
+        },
+        {
+          "id": "DAD-23",
+          "nome": "Responsabilidade extracontratual do Estado",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "DAD-24",
+          "nome": "Bens públicos e formas de utilização por terceiros",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 24
+        },
+        {
+          "id": "DAD-25",
+          "nome": "Lei de Acesso à Informação — Lei 12.527/2011",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 25
+        },
+        {
+          "id": "DAD-26",
+          "nome": "LGPD — Lei 13.709/2018, com alterações da Lei 13.853/2019",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 26
+        }
+      ]
+    },
+    {
+      "id": "LEG",
+      "nome": "Servidores Públicos — Lei 8.112/1990",
+      "peso": 2,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#8154ad",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "LEG-01",
+          "nome": "Disposições preliminares, provimento e vacância",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LEG-02",
+          "nome": "Remoção, redistribuição e substituição",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LEG-03",
+          "nome": "Vencimento, remuneração, vantagens, férias, licenças e direito de petição",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LEG-04",
+          "nome": "Deveres, proibições e acumulação",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LEG-05",
+          "nome": "Responsabilidades e penalidades",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "LEG-06",
+          "nome": "Regime e processo administrativo disciplinar",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        }
+      ]
+    },
+    {
+      "id": "DTR",
+      "nome": "Direito do Trabalho",
+      "peso": 2,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#247c83",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "DTR-01",
+          "nome": "Princípios, fontes e direitos constitucionais dos trabalhadores",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-02",
+          "nome": "Relações de trabalho e emprego; trabalho autônomo, eventual, temporário e avulso",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-03",
+          "nome": "Empregado, empregador e poderes do empregador",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-04",
+          "nome": "Contrato individual: classificação, alteração, jus variandi, suspensão e interrupção",
+          "horas_estimadas": 8.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-05",
+          "nome": "Rescisão: justas causas, despedida indireta, dispensa arbitrária, acordo mútuo, despedida coletiva, culpa recíproca e indenização; aviso prévio e prazo",
+          "horas_estimadas": 8.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-06",
+          "nome": "Jornada, intervalos, descanso semanal, trabalho noturno e extraordinário; compensação de horas",
+          "horas_estimadas": 8.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-07",
+          "nome": "Salário e remuneração: mínimo, proteção, composição, modalidades, pagamento e 13º",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 7,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-08",
+          "nome": "Férias, proteção ao menor e à mulher, estabilidade da gestante e licença-maternidade",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-09",
+          "nome": "Grupo econômico, sucessão de empregadores e responsabilidade solidária e subsidiária",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 9,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-10",
+          "nome": "Fundo de Garantia do Tempo de Serviço — FGTS",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 10,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-11",
+          "nome": "Prescrição e decadência",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 11,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-12",
+          "nome": "Segurança e medicina do trabalho: CIPA, atividades insalubres e perigosas",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 12,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-13",
+          "nome": "Direito coletivo: convenções e acordos coletivos",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 13,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-14",
+          "nome": "Comissões de Conciliação Prévia; renúncia e transação",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 14,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-15",
+          "nome": "Teletrabalho e Reforma Trabalhista — Lei 13.467/2017",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 15,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-16",
+          "nome": "Dano moral e material nas relações de trabalho",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 16,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-17",
+          "nome": "Precedentes obrigatórios, súmulas e OJs do TST, atos normativos e súmulas vinculantes do STF",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 17,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DTR-18",
+          "nome": "Trabalho intermitente: regramento, características e peculiaridades",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 18
+        },
+        {
+          "id": "DTR-19",
+          "nome": "Estabilidade e garantias provisórias de emprego; despedida e reintegração de empregado estável",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "DTR-20",
+          "nome": "Equiparação salarial, igualdade de salário e desvio de função",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 20
+        },
+        {
+          "id": "DTR-21",
+          "nome": "Arbitragem nas relações de trabalho",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 21
+        },
+        {
+          "id": "DTR-22",
+          "nome": "Liberdade sindical — Convenção 87 da OIT; organização sindical, categorias e categoria diferenciada",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 22
+        },
+        {
+          "id": "DTR-23",
+          "nome": "Direito de greve e serviços essenciais",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "DTR-24",
+          "nome": "Teses de Repercussão Geral do STF em matéria trabalhista",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 24
+        }
+      ]
+    },
+    {
+      "id": "DPT",
+      "nome": "Direito Processual do Trabalho",
+      "peso": 2,
+      "dificuldade": "media",
+      "base_teorica": "pdf",
+      "cor": "#8b5f24",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "DPT-01",
+          "nome": "Justiça do Trabalho: organização, jurisdição e competência das Varas, TRTs e TST",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 1,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-02",
+          "nome": "Serviços auxiliares: secretarias das Varas, distribuidores e oficiais de justiça avaliadores",
+          "horas_estimadas": 5.0,
+          "prioridade": 2,
+          "semana_sugerida": 2,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-03",
+          "nome": "Princípios gerais e aplicação subsidiária do CPC",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 3,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-04",
+          "nome": "Atos, termos, prazos, custas e emolumentos",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 4,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-05",
+          "nome": "Partes, procuradores, jus postulandi, substituição e representação; massa falida e recuperação judicial; assistência e honorários sucumbenciais e contratados",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 5,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-06",
+          "nome": "Audiências, notificação, arquivamento, revelia e confissão",
+          "horas_estimadas": 7.0,
+          "prioridade": 2,
+          "semana_sugerida": 6,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-07",
+          "nome": "Dissídios individuais, reclamação escrita e verbal e legitimidade",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 7,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-08",
+          "nome": "Procedimentos ordinário e sumaríssimo",
+          "horas_estimadas": 6.0,
+          "prioridade": 2,
+          "semana_sugerida": 8,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-09",
+          "nome": "Execução trabalhista: fundamentos e procedimentos gerais",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 9,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-10",
+          "nome": "Recursos no processo do trabalho",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 10,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-11",
+          "nome": "Processo Judicial Eletrônico: normas aplicáveis e Reforma Trabalhista — Lei 13.467/2017",
+          "horas_estimadas": 4.0,
+          "prioridade": 2,
+          "semana_sugerida": 11,
+          "incidencia_pct": null
+        },
+        {
+          "id": "DPT-12",
+          "nome": "Peritos judiciais: honorários periciais, responsabilidade e gratuidade de Justiça",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 12
+        },
+        {
+          "id": "DPT-13",
+          "nome": "Ministério Público do Trabalho: organização",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 13
+        },
+        {
+          "id": "DPT-14",
+          "nome": "Prescrição, decadência e prescrição intercorrente",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 14
+        },
+        {
+          "id": "DPT-15",
+          "nome": "Distribuição e valor da causa no processo do trabalho",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 15
+        },
+        {
+          "id": "DPT-16",
+          "nome": "Custas e emolumentos da Fazenda Pública e hipóteses de isenção",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 16
+        },
+        {
+          "id": "DPT-17",
+          "nome": "Litisconsórcio no processo do trabalho",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 17
+        },
+        {
+          "id": "DPT-18",
+          "nome": "Nulidades e exceções: hipóteses, prazo e forma de arguição",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 18
+        },
+        {
+          "id": "DPT-19",
+          "nome": "Provas no processo do trabalho",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "DPT-20",
+          "nome": "Procedimentos especiais: inquérito para falta grave, ação rescisória e mandado de segurança",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 20
+        },
+        {
+          "id": "DPT-21",
+          "nome": "Ação civil pública trabalhista",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 21
+        },
+        {
+          "id": "DPT-22",
+          "nome": "Sentença e coisa julgada; liquidação por cálculo, artigos e arbitramento",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 22
+        },
+        {
+          "id": "DPT-23",
+          "nome": "Dissídios coletivos: extensão, cumprimento e revisão da sentença normativa",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "DPT-24",
+          "nome": "Execução provisória, prestações sucessivas, Fazenda Pública e massa falida",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 24
+        },
+        {
+          "id": "DPT-25",
+          "nome": "Incidente de Desconsideração da Personalidade Jurídica",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 25
+        },
+        {
+          "id": "DPT-26",
+          "nome": "Citação, depósito, nomeação de bens, garantias, seguro-fiança e seguro-garantia",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 26
+        },
+        {
+          "id": "DPT-27",
+          "nome": "Mandado e penhora; bens penhoráveis e impenhoráveis; bem de família — Lei 8.009/1990",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 27
+        },
+        {
+          "id": "DPT-28",
+          "nome": "Embargos à execução, impugnação à sentença e embargos de terceiros",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 28
+        },
+        {
+          "id": "DPT-29",
+          "nome": "Praça, leilão, arrematação e custas na execução",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 29
+        },
+        {
+          "id": "DPT-30",
+          "nome": "Uniformização de jurisprudência, CPC, IAC e IRDR aplicáveis ao processo do trabalho",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 30
+        },
+        {
+          "id": "DPT-31",
+          "nome": "Súmulas e OJs, instruções normativas e atos do TST; súmulas vinculantes e teses do STF em processo do trabalho",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 31
+        },
+        {
+          "id": "DPT-32",
+          "nome": "Protocolos para atuação e julgamento na Justiça do Trabalho",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 32
+        }
+      ]
+    },
+    {
+      "id": "CIV",
+      "nome": "Direito Civil",
+      "peso": 2,
+      "dificuldade": "alta",
+      "base_teorica": "pdf",
+      "cor": "#4862a3",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "CIV-01",
+          "nome": "Pessoa natural: personalidade, capacidade e direitos da personalidade",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "CIV-02",
+          "nome": "Pessoas jurídicas",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "CIV-03",
+          "nome": "Domicílio civil",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "CIV-04",
+          "nome": "Bens: classificação, afetação e desafetação",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "CIV-05",
+          "nome": "Negócio jurídico: conceito, classificação e elementos essenciais",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "CIV-06",
+          "nome": "Elementos acidentais do negócio jurídico: condição, termo e encargo",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "CIV-07",
+          "nome": "Defeitos do negócio jurídico: erro, dolo, coação, estado de perigo, lesão e fraude contra credores",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "CIV-08",
+          "nome": "Invalidade do negócio jurídico",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "CIV-09",
+          "nome": "Prescrição e decadência",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "CIV-10",
+          "nome": "Prova no Direito Civil",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "CIV-11",
+          "nome": "Direito das obrigações",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 11
+        },
+        {
+          "id": "CIV-12",
+          "nome": "Contratos em geral",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 12
+        },
+        {
+          "id": "CIV-13",
+          "nome": "Contratos em espécie",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 13
+        },
+        {
+          "id": "CIV-14",
+          "nome": "Vícios redibitórios e evicção",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 14
+        },
+        {
+          "id": "CIV-15",
+          "nome": "Responsabilidade civil",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 15
+        },
+        {
+          "id": "CIV-16",
+          "nome": "Direito de empresa e nome empresarial",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 16
+        },
+        {
+          "id": "CIV-17",
+          "nome": "Direito das coisas e direitos reais: noções gerais",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 17
+        },
+        {
+          "id": "CIV-18",
+          "nome": "Posse: teorias, conceito, classificação, aquisição, efeitos, proteção e perda",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 18
+        },
+        {
+          "id": "CIV-19",
+          "nome": "Função social e socioambiental da posse: teorias, conceito, conteúdo e concretização",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "CIV-20",
+          "nome": "Propriedade: conceito, classificação, aquisição, proteção e perda",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 20
+        },
+        {
+          "id": "CIV-21",
+          "nome": "Função social da propriedade: conceito, conteúdo e concretização",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 21
+        },
+        {
+          "id": "CIV-22",
+          "nome": "Direitos de vizinhança",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 22
+        },
+        {
+          "id": "CIV-23",
+          "nome": "Condomínio geral e condomínio edilício",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "CIV-24",
+          "nome": "Propriedade resolúvel e propriedade fiduciária",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 24
+        },
+        {
+          "id": "CIV-25",
+          "nome": "Direitos reais sobre coisa alheia: superfície, servidões, uso, usufruto e habitação",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 25
+        },
+        {
+          "id": "CIV-26",
+          "nome": "Concessão de uso especial para moradia e direito de laje",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 26
+        },
+        {
+          "id": "CIV-27",
+          "nome": "Direito real à aquisição: promitente comprador, compromisso de compra e venda e adjudicação compulsória",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 27
+        },
+        {
+          "id": "CIV-28",
+          "nome": "Direitos reais em garantia: penhor e hipoteca",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 28
+        },
+        {
+          "id": "CIV-29",
+          "nome": "Família: esponsais; casamento heteroafetivo e homoafetivo; capacidade, impedimentos e causas suspensivas",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 29
+        },
+        {
+          "id": "CIV-30",
+          "nome": "Casamento: habilitação, celebração, eficácia, direitos e deveres",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 30
+        },
+        {
+          "id": "CIV-31",
+          "nome": "Invalidade do casamento, dissolução do vínculo, separação e divórcio",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 31
+        },
+        {
+          "id": "CIV-32",
+          "nome": "Proteção dos filhos, parentesco, filiação e poder familiar",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 32
+        },
+        {
+          "id": "CIV-33",
+          "nome": "Regimes de bens, pacto antenupcial, meação e sucessão do cônjuge",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 33
+        },
+        {
+          "id": "CIV-34",
+          "nome": "Usufruto e administração dos bens de filhos incapazes; bem de família",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 34
+        },
+        {
+          "id": "CIV-35",
+          "nome": "União estável heteroafetiva e homoafetiva: aspectos constitucionais, características, estado, impedimentos, direitos e deveres",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 35
+        },
+        {
+          "id": "CIV-36",
+          "nome": "União estável: regime de bens, efeitos patrimoniais, meação e sucessão do companheiro",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 36
+        },
+        {
+          "id": "CIV-37",
+          "nome": "Uniões estáveis concomitantes e concubinato",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 37
+        },
+        {
+          "id": "CIV-38",
+          "nome": "Sucessão: disposições gerais, herança e vocação hereditária",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 38
+        },
+        {
+          "id": "CIV-39",
+          "nome": "Aceitação, renúncia e exclusão da sucessão; herança jacente e vacante",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 39
+        },
+        {
+          "id": "CIV-40",
+          "nome": "Sucessão legítima e sucessão testamentária",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 40
+        },
+        {
+          "id": "CIV-41",
+          "nome": "Inventário, partilha, arrolamentos, alvarás judiciais e partilha de bens e direitos",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 41
+        }
+      ]
+    },
+    {
+      "id": "DPC",
+      "nome": "Direito Processual Civil",
+      "peso": 2,
+      "dificuldade": "alta",
+      "base_teorica": "pdf",
+      "cor": "#4862a3",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "DPC-01",
+          "nome": "Jurisdição e ação: conceito, natureza, características e condições da ação",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "DPC-02",
+          "nome": "Magistratura e juiz",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "DPC-03",
+          "nome": "Auxiliares da Justiça",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "DPC-04",
+          "nome": "Ministério Público, Defensoria Pública e advocacia",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 4
+        },
+        {
+          "id": "DPC-05",
+          "nome": "Partes e procuradores: capacidade processual e postulatória, deveres e sucessão",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 5
+        },
+        {
+          "id": "DPC-06",
+          "nome": "Litisconsórcio, assistência e intervenção de terceiros",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 6
+        },
+        {
+          "id": "DPC-07",
+          "nome": "Competência: valor, matéria, função e território; modificações e declaração de incompetência",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 7
+        },
+        {
+          "id": "DPC-08",
+          "nome": "Atos processuais: forma e prazos",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 8
+        },
+        {
+          "id": "DPC-09",
+          "nome": "Comunicação dos atos processuais",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 9
+        },
+        {
+          "id": "DPC-10",
+          "nome": "Nulidades e preclusão",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 10
+        },
+        {
+          "id": "DPC-11",
+          "nome": "Formação, suspensão e extinção do processo",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 11
+        },
+        {
+          "id": "DPC-12",
+          "nome": "Petição inicial: requisitos, pedido, indeferimento e valor da causa",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 12
+        },
+        {
+          "id": "DPC-13",
+          "nome": "Resposta do réu: contestação, exceções e reconvenção",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 13
+        },
+        {
+          "id": "DPC-14",
+          "nome": "Revelia",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 14
+        },
+        {
+          "id": "DPC-15",
+          "nome": "Tutela provisória",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 15
+        },
+        {
+          "id": "DPC-16",
+          "nome": "Julgamento conforme o estado do processo",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 16
+        },
+        {
+          "id": "DPC-17",
+          "nome": "Provas: ônus, depoimento pessoal, confissão, documentos e testemunhas",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 17
+        },
+        {
+          "id": "DPC-18",
+          "nome": "Audiências de conciliação e de instrução e julgamento",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 18
+        },
+        {
+          "id": "DPC-19",
+          "nome": "Sentença e coisa julgada",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 19
+        },
+        {
+          "id": "DPC-20",
+          "nome": "Liquidação e cumprimento da sentença; impugnação ao cumprimento",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 20
+        },
+        {
+          "id": "DPC-21",
+          "nome": "Ação rescisória",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 21
+        },
+        {
+          "id": "DPC-22",
+          "nome": "Recursos: disposições gerais",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 22
+        },
+        {
+          "id": "DPC-23",
+          "nome": "Recursos em espécie: apelação, agravos e embargos",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 23
+        },
+        {
+          "id": "DPC-24",
+          "nome": "Recursos aos tribunais superiores",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 24
+        },
+        {
+          "id": "DPC-25",
+          "nome": "Processo de execução: regras gerais e diversas espécies",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 25
+        },
+        {
+          "id": "DPC-26",
+          "nome": "Embargos à execução; suspensão e extinção da execução",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 26
+        },
+        {
+          "id": "DPC-27",
+          "nome": "Procedimentos especiais: consignação em pagamento, embargos de terceiro, ação monitória e ações possessórias",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 27
+        },
+        {
+          "id": "DPC-28",
+          "nome": "Mandado de segurança individual e coletivo",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 28
+        },
+        {
+          "id": "DPC-29",
+          "nome": "Ação civil pública — Lei 7.347/1985",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 29
+        },
+        {
+          "id": "DPC-30",
+          "nome": "Juizados Especiais Cíveis e Criminais — Lei 9.099/1995",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 30
+        },
+        {
+          "id": "DPC-31",
+          "nome": "Mediação — Lei 13.140/2015",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 31
+        }
+      ]
+    },
+    {
+      "id": "EC",
+      "nome": "Discursiva — Estudo de Caso",
+      "peso": 2,
+      "dificuldade": "alta",
+      "base_teorica": "pdf",
+      "cor": "#4862a3",
+      "carater": "",
+      "topicos": [
+        {
+          "id": "EC-01",
+          "nome": "Identificação do problema jurídico e dos pedidos no caso prático",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 1
+        },
+        {
+          "id": "EC-02",
+          "nome": "Fundamentação: legislação, jurisprudência e aplicação aos fatos",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 2
+        },
+        {
+          "id": "EC-03",
+          "nome": "Resposta jurídica objetiva, estrutura e adequação aos limites do edital",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 3
+        },
+        {
+          "id": "EC-04",
+          "nome": "Treino de questão prática sobre os conhecimentos específicos e revisão da escrita",
+          "horas_estimadas": 6,
+          "incidencia_pct": null,
+          "prioridade": 2,
+          "semana_sugerida": 4
+        }
+      ]
+    }
+  ],
+  "requisito": "Graduação em Direito",
+  "tipo": "edital_esquematizado",
+  "versao": 1,
+  "gerado_em": "2026-10-29",
+  "notaCorteVerificada": false,
+  "incidenciaVerificada": false,
+  "descricaoPreparacao": "Cargo 01 do edital 2026. Exige graduação em Direito; discursiva em formato de estudo de caso."
+}
