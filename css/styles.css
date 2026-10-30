@@ -5303,5 +5303,47 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .inicio-topicos-disciplina > summary { cursor: pointer; padding: 12px 8px; font-weight: 600; border-bottom: 1px solid var(--linha); }
 
 .hoje-integrada .hoje-frase .hoje-aspas { display: none; }
-.hoje-integrada .hoje-frase .frase-dia { font-size: .88rem; line-height: 1.55; }
+.hoje-integrada .hoje-frase .frase-dia { font-size: .88rem; line-height: 1.55; background: transparent; box-shadow: none; }
 .hoje-integrada .hoje-frase .frase-dia .autor { font-weight: 400; font-size: .74rem; color: var(--grafite); margin-top: 6px; }
+
+.hoje-refinada [hidden] { display: none !important; }
+
+/* Personalização do site: mantém a composição compacta e agrupa os cards vizinhos. */
+.inicio-layout-corpo { display: grid; gap: var(--hoje-gap); }
+.hoje-integrada .inicio-layout-corpo > * { margin: 0; min-width: 0; }
+.hoje-integrada .inicio-layout-sem-lateral { display: block; }
+.hoje-integrada .inicio-layout-sem-lateral .proximo-estudo { padding-right: 0; }
+.hoje-integrada .inicio-layout-resumos { grid-template-columns: repeat(var(--inicio-colunas),minmax(0,1fr)); }
+.hoje-integrada .inicio-layout-resumos .hoje-frase { grid-column: auto; }
+.hoje-integrada .inicio-layout-secundarios { grid-template-columns: repeat(var(--inicio-colunas),minmax(0,1fr)); }
+.hoje-integrada .hoje-painel-lateral > .hoje-prova:last-child { border-bottom: 0; padding-bottom: 0; }
+.hoje-integrada .hoje-painel-lateral > .hoje-metas:first-child .hoje-card-cab { margin-top: 0; }
+.inicio-layout-apoio { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: var(--hoje-gap); }
+.hoje-integrada .inicio-layout-apoio > .card { border: 1px solid var(--linha); border-radius: 14px; padding: 16px 20px; margin: 0; background: var(--papel-card); }
+.hoje-integrada .inicio-layout-corpo > .hoje-frase { border: 0; padding: 4px 8px; margin: 0; background: transparent; }
+.inicio-layout-ferramentas { display: flex; justify-content: flex-start; }
+.inicio-layout-ferramentas button { font-size: .76rem; min-height: 44px; }
+.inicio-layout-lista { list-style: none; padding: 0; margin: 18px 0 12px; border: 1px solid var(--linha); border-radius: 12px; overflow: hidden; }
+.inicio-layout-lista li { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--linha); }
+.inicio-layout-lista li:last-child { border-bottom: 0; }
+.inicio-layout-visibilidade { display: flex; align-items: center; flex: 1; min-width: 0; gap: 10px; min-height: 44px; cursor: pointer; font-size: .86rem; }
+.inicio-layout-visibilidade input { width: 18px; height: 18px; flex: 0 0 18px; accent-color: var(--caneta); }
+.inicio-layout-visibilidade small { display: block; margin-top: 2px; color: var(--grafite); font-size: .7rem; }
+.inicio-layout-setas { display: flex; flex-shrink: 0; gap: 2px; }
+.inicio-layout-setas button { width: 44px; height: 44px; padding: 0; border: 0; font-size: 1.2rem; }
+.inicio-layout-setas button:disabled { opacity: .3; }
+.inicio-layout-acoes { position: sticky; bottom: -24px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding-top: 12px; padding-bottom: 8px; background: var(--papel-card); }
+.inicio-layout-acoes > div { display: flex; gap: 8px; }
+.inicio-layout-acoes button { min-height: 44px; }
+.inicio-layout-erro { font-size: .8rem; color: var(--grafite); }
+.inicio-layout-vazio h2 { font-size: 1rem; }
+.inicio-layout-vazio p { font-size: .88rem; color: var(--grafite); margin-block: 8px 14px; }
+@media (max-width:760px) {
+  .hoje-integrada .inicio-layout-resumos { grid-template-columns: repeat(min(var(--inicio-colunas),2),minmax(0,1fr)); }
+  .hoje-integrada .inicio-layout-resumos > .hoje-frase { grid-column: 1 / -1; }
+  .hoje-integrada .inicio-layout-secundarios { grid-template-columns: minmax(0,1fr); }
+  .inicio-layout-lista li { padding-inline: 6px; gap: 4px; }
+  .inicio-layout-visibilidade { font-size: .8rem; gap: 7px; }
+  .inicio-layout-setas { gap: 0; }
+  .inicio-layout-acoes { bottom: -18px; }
+}

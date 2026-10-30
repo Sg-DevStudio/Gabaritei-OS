@@ -1000,6 +1000,24 @@
     return saida;
   }
 
+  // A tela Hoje segue a ordem do calendário, alternando as pendências sem
+  // alterar blocos, durações ou créditos. Uma escolha explícita pelo lápis abre
+  // a fila; a próxima matéria diferente continua tendo a vez.
+  function ordenarAgendaHoje(blocos, preferidoId, concluido) {
+    concluido = concluido || function (b) { return !!b.feito; };
+    const pendentes = (blocos || []).filter(function (b) { return !concluido(b); });
+    const feitos = (blocos || []).filter(concluido);
+    const preferido = pendentes.findIndex(function (b) { return b.id === preferidoId; });
+    if (preferido > 0) pendentes.unshift(pendentes.splice(preferido, 1)[0]);
+    const saida = [];
+    while (pendentes.length) {
+      const anterior = saida.length ? saida[saida.length - 1].disciplinaId : null;
+      const diferente = pendentes.findIndex(function (b) { return b.disciplinaId !== anterior; });
+      saida.push(pendentes.splice(diferente < 0 ? 0 : diferente, 1)[0]);
+    }
+    return saida.concat(feitos);
+  }
+
   // Retoma o tópico no próximo bloco gerado DA MESMA DISCIPLINA.
   // Encerrar uma sessão não conclui o tópico nem muda a vez das outras matérias.
   // Blocos manuais e revisões preservam a escolha explícita do aluno.
@@ -3056,7 +3074,7 @@
     agendarRevisoes, desempenhoTopico, desempenhoDisciplina, desempenhoGeral,
     revisaoReabreTopico, sugereRevisarTeoria, fatorEspacamentoRevisao,
     reagendarRevisoesAdaptativo, moduladorIncidencia, estadoAdaptacaoRevisao, prazoProva, prontidaoProva, streak, semaforo,
-    cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, urgenciaTopico, sugerirReestudo,
+    cronogramaAtivo, semanaCorrente, blocoFeito, filaHoje, ordenarAgendaHoje, urgenciaTopico, sugerirReestudo,
     cicloAtivo, blocoCicloAtual, blocosAtivosCiclo, sugerirCiclo, avancarCiclo,
     grupoCognitivoDisciplina, promoverVariedadeLargada, LARGADA_PLANO, ordenarSemRepetirVizinho, continuarTopicoEmCursoNaAgenda,
     alertaCobertura, adicionarTopicosAoCiclo,

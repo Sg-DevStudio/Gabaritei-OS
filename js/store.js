@@ -1349,6 +1349,10 @@
     function chaveLayout(value) { return value && Array.isArray(value.ordem) && Array.isArray(value.ocultos) ? [Math.max(0, Number(value.rev)||0), String(value.em||''), JSON.stringify(value)] : [-1,'','']; }
     const la=chaveLayout(layoutA), lb=chaveLayout(layoutB);
     if(lb[0]>la[0] || (lb[0]===la[0] && (lb[1]>la[1] || (lb[1]===la[1] && lb[2]>la[2])))) merged.config.inicioLayout=clonarJson(layoutB);
+    // Relógio independente: uma edição no Android não restaura o layout antigo do site.
+    const webA=merged.config.inicioLayoutWeb, webB=outro.config && outro.config.inicioLayoutWeb;
+    const wa=chaveLayout(webA), wb=chaveLayout(webB);
+    if(wb[0]>wa[0] || (wb[0]===wa[0] && (wb[1]>wa[1] || (wb[1]===wa[1] && wb[2]>wa[2])))) merged.config.inicioLayoutWeb=clonarJson(webB);
     // Flags de onboarding são "sticky": uma vez vistas, não devem regredir para
     // false por causa de uma base remota mais antiga que não tinha o campo.
     if (outro.config) {

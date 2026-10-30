@@ -2,12 +2,95 @@
 (function () {
   'use strict';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const labels = {
+    achievements: 'Conquistas', study: 'Planejamento do dia', exam: 'Próxima prova', goals: 'Metas semanais',
+    performance: 'Desempenho', syllabus: 'Progresso no edital', quote: 'Frase do dia',
+    week: 'Sua semana', subjects: 'Disciplinas do plano', reviews: 'Revisões'
+  };
+  const ids = Object.keys(labels);
+  const antigos = { conquistas: ['achievements'], estudos: ['study', 'exam', 'goals'], resumos: ['performance', 'syllabus', 'quote'], apoio: ['week', 'subjects', 'reviews'] };
+  function strings(value) { return Array.isArray(value) ? [...new Set(value.filter(v => typeof v === 'string' && v.length < 80))].slice(0, 40) : []; }
+  function expandir(value) { return strings(value).flatMap(id => antigos[id] || [id]); }
+  function ler(value) {
+    value = value || {};
+    return { ordem: [...new Set(expandir(value.ordem).filter(id => ids.includes(id)).concat(ids))], ocultos: expandir(value.ocultos).filter(id => ids.includes(id)) };
+  }
+  function preparar(previous, draft) {
+    previous = previous && typeof previous === 'object' ? previous : {};
+    const next = ler(draft);
+    const futuros = values => strings(values).filter(id => !ids.includes(id) && !antigos[id]);
+    return Object.assign({}, previous, {
+      versao: 2, ordem: next.ordem.concat(futuros(previous.ordem)), ocultos: next.ocultos.concat(futuros(previous.ocultos)),
+      rev: Math.max(0, Number(previous.rev) || 0) + 1, em: new Date().toISOString()
+    });
+  }
+  function editor(root, config, save, cancel) {
+    let draft = ler(config.inicioLayoutWeb);
+    function draw(focus) {
+      root.innerHTML = '<ol class="inicio-layout-lista">' + draft.ordem.map((id, i) =>
+        '<li data-layout-row="' + id + '"><label class="inicio-layout-visibilidade"><input type="checkbox" data-layout-show="' + id + '"' + (draft.ocultos.includes(id) ? '' : ' checked') + '><span>' + labels[id] + '<small>' + (draft.ocultos.includes(id) ? 'Oculto' : 'Visível') + '</small></span></label>' +
+        '<div class="inicio-layout-setas"><button type="button" class="botao-quieto" data-layout-move="' + id + '" data-step="-1" aria-label="Mover ' + labels[id] + ' para cima"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+        '<button type="button" class="botao-quieto" data-layout-move="' + id + '" data-step="1" aria-label="Mover ' + labels[id] + ' para baixo"' + (i === draft.ordem.length - 1 ? ' disabled' : '') + '>↓</button></div></li>'
+      ).join('') + '</ol><p class="inicio-layout-erro" role="status"></p><div class="inicio-layout-acoes"><button type="button" class="botao-quieto" data-layout-reset>Restaurar padrão</button><div><button type="button" class="botao-quieto" data-layout-cancel>Cancelar</button><button type="button" data-layout-save>Salvar layout</button></div></div>';
+      root.querySelectorAll('[data-layout-show]').forEach(input => input.onchange = () => {
+        draft.ocultos = draft.ocultos.filter(id => id !== input.dataset.layoutShow);
+        if (!input.checked) draft.ocultos.push(input.dataset.layoutShow);
+        input.nextElementSibling.querySelector('small').textContent = input.checked ? 'Visível' : 'Oculto';
+      });
+      root.querySelectorAll('[data-layout-move]').forEach(button => button.onclick = () => {
+        const i = draft.ordem.indexOf(button.dataset.layoutMove), j = i + Number(button.dataset.step);
+        if (j < 0 || j >= draft.ordem.length) return;
+        [draft.ordem[i], draft.ordem[j]] = [draft.ordem[j], draft.ordem[i]];
+        draw(button.dataset.layoutMove);
+      });
+      root.querySelector('[data-layout-reset]').onclick = () => { draft = ler(); draw(); root.querySelector('[role="status"]').textContent = 'Prévia restaurada. Salve para aplicar.'; root.querySelector('[data-layout-save]').focus(); };
+      root.querySelector('[data-layout-cancel]').onclick = cancel;
+      root.querySelector('[data-layout-save]').onclick = () => { const error = save(draft); if (error) root.querySelector('[role="status"]').textContent = error; };
+      if (focus) root.querySelector('[data-layout-show="' + focus + '"]').focus();
+    }
+    draw();
+  }
+  function compor(raiz, config, nodes, wrappers) {
+    const pref = ler(config.inicioLayoutWeb);
+    const visiveis = pref.ordem.filter(id => !pref.ocultos.includes(id) && nodes[id]);
+    const corpo = document.createElement('div'); corpo.className = 'inicio-layout-corpo';
+    const primeira = nodes.achievements || wrappers[0]; primeira.before(corpo);
+    Object.values(nodes).filter(Boolean).forEach(node => { node.remove(); node.hidden = false; });
+    wrappers.forEach(e => e.remove());
+    const grupo = (cls, items) => { const e = document.createElement('div'); e.className = cls; e.style.setProperty('--inicio-colunas', Math.min(items.length, 3)); items.forEach(id => e.append(nodes[id])); corpo.append(e); return e; };
+    const compactos = ['performance', 'syllabus', 'quote'];
+    for (let i = 0; i < visiveis.length;) {
+      const id = visiveis[i++];
+      if (id === 'study') {
+        const extras = [];
+        while (['exam', 'goals'].includes(visiveis[i])) extras.push(visiveis[i++]);
+        const panel = grupo('hoje-painel' + (extras.length ? '' : ' inicio-layout-sem-lateral'), ['study']);
+        if (extras.length) { const aside = document.createElement('aside'); aside.className = 'hoje-painel-lateral'; extras.forEach(key => aside.append(nodes[key])); panel.append(aside); }
+      } else if (compactos.includes(id)) {
+        const items = [id]; while (compactos.includes(visiveis[i]) && items.length < 3) items.push(visiveis[i++]);
+        if (items.length === 1 && id === 'quote') corpo.append(nodes.quote);
+        else grupo('hoje-resumos inicio-layout-resumos', items);
+      } else if (['week', 'subjects', 'reviews'].includes(id)) {
+        const items = [id]; while (['week', 'subjects', 'reviews'].includes(visiveis[i]) && items.length < 2) items.push(visiveis[i++]);
+        grupo('hoje-secundarios inicio-layout-secundarios', items);
+      } else if (['exam', 'goals'].includes(id)) {
+        const items = [id]; while (['exam', 'goals'].includes(visiveis[i])) items.push(visiveis[i++]);
+        grupo('inicio-layout-apoio', items);
+      } else corpo.append(nodes[id]);
+    }
+    if (!visiveis.length) corpo.innerHTML = '<div class="card inicio-layout-vazio"><h2>Sua tela, do seu jeito</h2><p>Todos os cards estão ocultos. Use a personalização para escolher o que ver.</p><a href="#planejamento">Abrir planejamento</a></div>';
+    const tools = document.createElement('div'); tools.className = 'inicio-layout-ferramentas';
+    tools.innerHTML = '<button type="button" class="botao-quieto" data-settings-home>Personalizar tela inicial</button>';
+    corpo.append(tools);
+  }
   function aplicar(raiz, state, D, api) {
     if (!state.plano) return;
     const card = (classe, html) => { const e = document.createElement('section'); e.className = 'card ' + classe; e.innerHTML = html; return e; };
     const dia = raiz.querySelector('.proximo-estudo') || card('proximo-estudo', '<h2>Planejamento do dia</h2><p class="sub">Nenhum estudo pendente agora.</p>');
     const fila = raiz.querySelector('.estudar-hoje-card');
-    const outra = fila && fila.querySelector('.fila-item:not(.fila-feita)');
+    const pendentes = fila ? Array.from(fila.querySelectorAll('.fila-item:not(.fila-feita)')) : [];
+    const atual = dia.querySelector('.fila-item');
+    const outra = pendentes.find(e => atual && e.dataset.filaDisc !== atual.dataset.filaDisc) || pendentes[0];
     const rodape = document.createElement('div'); rodape.className = 'hoje-ainda';
     rodape.innerHTML = '<div class="hoje-ainda-cab"><span>Ainda hoje</span><a href="#planejamento">Ver planejamento completo →</a></div>';
     if (outra) {
@@ -100,6 +183,12 @@
     if (antigo) antigo.remove();
     if(cab) cab.remove();
     raiz.classList.add('hoje-refinada');
+    compor(raiz, state.config, {
+      achievements: conquistas, study: dia, exam: lateral.querySelector('.hoje-prova'), goals: metas,
+      performance: resumo.children[0], syllabus: resumo.children[1], quote: fraseCard,
+      week: semana, subjects: disciplinas, reviews: secundarios.querySelector('.revisoes-hoje-card, .inicio-revisoes')
+    }, [painel, resumo, secundarios]);
+
   }
-  window.InicioLayout = {aplicar};
+  window.InicioLayout = {aplicar, ler, preparar, editor, labels};
 })();

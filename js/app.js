@@ -2208,20 +2208,14 @@
     // garante que a agenda do dia esteja preenchida a partir do cronograma —
     // só PREENCHE semanas vazias (soVazias) para não apagar o progresso já marcado
     if (state.plano) { if (sincronizarAgendaComCronograma(true) > 0) salvar(); }
-    const agendaHoje = doAtivo(state.agenda).filter(function (a) { return a.data === hoje; });
-    // Fila por urgência (80/20 dinâmico): hoje ataca primeiro o que mais rende —
-    // incidência × déficit de desempenho. Itens já feitos
-    // afundam. Cache local por id (não muta o estado, que seria persistido).
+    const agendaHoje = D.ordenarAgendaHoje(blocosDoDia(hoje), state.plano && state.plano.estudoInicioPreferido, blocoAgendaConcluido);
+    // A urgência destaca o tópico prioritário, sem desfazer a alternância da agenda.
     const urgCache = {};
     function urgDe(a) {
       if (!a || !a.topicoId) return 0;
       if (urgCache[a.id] == null) urgCache[a.id] = D.urgenciaTopico(state, a.topicoId, hoje);
       return urgCache[a.id];
     }
-    agendaHoje.sort(function (a, b) {
-      if (!!a.feito !== !!b.feito) return a.feito ? 1 : -1;
-      return urgDe(b) - urgDe(a);
-    });
     // Destaca o ÚNICO item mais urgente do dia (se o sinal for relevante).
     let topUrgenteId = null, topUrgenteScore = 0;
     agendaHoje.forEach(function (a) {
@@ -2374,7 +2368,7 @@
         const restante = Math.max(0, (b.metaMin || 0) - feito);
         const tituloC = (dC ? tagDisc(dC) + ' ' : '') + esc(tC ? tC.nome : (dC ? dC.nome : b.disciplinaId));
         const dataReg = 'data-disc="' + esc(b.disciplinaId) + '"' + (b.topicoId ? ' data-id="' + esc(b.topicoId) + '"' : '') + ' data-dur="' + restante + '"';
-        return '<div class="fila-item fila-checklist' + (item.atual ? ' fila-ciclo-atual' : '') + '">' +
+        return '<div class="fila-item fila-checklist' + (item.atual ? ' fila-ciclo-atual' : '') + '" data-fila-disc="' + esc(b.disciplinaId) + '">' +
           '<span class="fila-ciclo-marca" aria-hidden="true">' + (item.atual ? '▶' : '○') + '</span>' +
           '<div class="fila-corpo">' +
           '<div class="fila-info"><div class="fila-titulo">' + tituloC + '</div>' +
@@ -2398,7 +2392,7 @@
         // isso o Hoje mostrava "Registrar" num bloco já concluído e um novo registro
         // duplicava a sessão do dia.
         const feitoA = blocoAgendaConcluido(a);
-        return '<div class="fila-item fila-checklist' + (feitoA ? ' fila-feita' : '') + '">' +
+        return '<div class="fila-item fila-checklist' + (feitoA ? ' fila-feita' : '') + '" data-fila-disc="' + esc(a.disciplinaId) + '">' +
           checkEstudoHtml(feitoA, 'concluir-agenda', a.id, null, tituloATexto) +
           '<div class="fila-corpo">' +
           '<div class="fila-info"><div class="fila-titulo">' + tituloA + '</div></div>' +
@@ -2443,7 +2437,7 @@
       const check = item.categoria === 'revisao'
         ? checkEstudoHtml(false, 'concluir-revisao', item.revisao.id, null, tituloTopico)
         : checkEstudoHtml(!!item.feito, 'registrar', item.topicoId, item.categoria === 'reaberto' ? 'questoes' : item.tipoBloco, tituloTopico);
-      return '<div class="fila-item fila-checklist' + (item.feito ? ' fila-feita' : '') + '">' +
+      return '<div class="fila-item fila-checklist' + (item.feito ? ' fila-feita' : '') + '" data-fila-disc="' + esc(d ? d.id : '') + '">' +
         check +
         '<div class="fila-corpo">' +
         '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
@@ -5225,12 +5219,13 @@
     let html = '<section class="settings-center"><h1 class="sr-only">Configurações</h1>' +
       '<header class="settings-heading"><h2>Configurações</h2><button type="button" class="botao-secundario" data-settings-profile>Meu perfil</button></header>' +
       '<nav class="settings-index" aria-label="Seções de configurações">' +
-      [['appearance','Aparência'],['study','Estudos e revisão'],['account','Conta'],['backup','Backups'],['catalog','Catálogo e planos']].map(function (item) { return '<button type="button" class="botao-secundario" data-settings-target="' + item[0] + '" aria-controls="settings-' + item[0] + '">' + item[1] + '</button>'; }).join('') + '</nav>' +
+      [['appearance','Aparência'],['home','Tela inicial'],['study','Estudos e revisão'],['account','Conta'],['backup','Backups'],['catalog','Catálogo e planos']].map(function (item) { return '<button type="button" class="botao-secundario" data-settings-target="' + item[0] + '" aria-controls="settings-' + item[0] + '">' + item[1] + '</button>'; }).join('') + '</nav>' +
       '<div class="settings-groups"><details class="settings-group" id="settings-appearance" open><summary>Aparência e experiência</summary><div class="settings-group-body">' +
       '<p class="sub">Tema</p><div class="compact-actions">' +
       '<button type="button" class="botao-secundario" data-settings-theme="claro" aria-pressed="' + (tema === 'claro') + '">Claro</button>' +
       '<button type="button" class="botao-secundario" data-settings-theme="escuro" aria-pressed="' + (tema === 'escuro') + '">Escuro</button></div>' +
       '<button type="button" class="botao-quieto" data-abrir-android>Gabaritei no Android</button></div></details>' +
+      '<details class="settings-group" id="settings-home"><summary>Tela inicial</summary><div class="settings-group-body"><p class="sub">Escolha os cards que aparecem no site e a ordem de leitura. O app Android tem sua própria organização.</p><button type="button" class="botao-secundario" data-settings-home>Personalizar tela inicial</button></div></details>' +
       '<details class="settings-group" id="settings-study"><summary>Estudos e revisão</summary><div class="settings-group-body"><div class="settings-actions">' +
       '<a class="botao botao-secundario" href="#planejamento">Rotina e planejamento</a>' +
       '<button type="button" class="botao-secundario" data-settings-revisions>Intervalos de revisão</button>' +
@@ -12808,11 +12803,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.9.1/Gabaritei.apk';
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.9.2/Gabaritei.apk';
     const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v091" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v092" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
       '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.9.1 · em testes</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.9.1" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.9.2" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
@@ -12853,6 +12848,23 @@
     m.querySelector('#inicio-topico-fechar').onclick = fecharModal;
     m.querySelector('#inicio-topico-busca').oninput = desenhar;
     desenhar();
+  }
+
+  function abrirPersonalizacaoInicio() {
+    const dono = (usuarioAtual() || {}).uid;
+    const inicial = JSON.stringify(state.config.inicioLayoutWeb || null);
+    const m = abrirModal('<h3>Personalizar tela inicial</h3><p class="sub">Escolha o que ver e use as setas para mudar a ordem no site. Seu layout no Android continua independente.</p>' +
+      (modoDemo ? '<p class="aviso aviso-info">No modo exemplo, as alterações duram só nesta visita.</p>' : '') +
+      '<div class="inicio-layout-editor"></div>');
+    window.InicioLayout.editor(m.querySelector('.inicio-layout-editor'), state.config, function (draft) {
+      if (dono !== (usuarioAtual() || {}).uid) return 'Sua conta mudou. Reabra a personalização.';
+      if (inicial !== JSON.stringify(state.config.inicioLayoutWeb || null)) return 'O layout foi alterado em outra aba ou aparelho. Reabra para usar a versão atual.';
+      const anterior = state.config.inicioLayoutWeb;
+      state.config.inicioLayoutWeb = window.InicioLayout.preparar(anterior, draft);
+      if (!salvar()) { state.config.inicioLayoutWeb = anterior; return 'Não foi possível salvar. Libere espaço no navegador e tente novamente.'; }
+      fecharModal(); render(); toast(modoDemo ? 'Layout aplicado nesta visita de exemplo.' : 'Layout do site salvo.', 'sucesso');
+      return '';
+    }, fecharModal);
   }
 
   function organizarInicio(raiz) {
@@ -12930,6 +12942,7 @@
             const escolhida = D.disciplinaDoTopico(state, id);
             const destaque = primeira.querySelector('.disciplina-destaque');
             if (destaque && escolhida) destaque.textContent = escolhida.nome;
+            if (escolhida) primeira.dataset.filaDisc = escolhida.id;
             acoes.forEach(b => { b.dataset.id = id; if (escolhida && b.hasAttribute('data-disc')) b.dataset.disc = escolhida.id; });
           }
           if (atual && !agenda) aplicar(atual);
@@ -13473,7 +13486,7 @@
   });
   sincronizarAcessibilidadeMenu();
   window.addEventListener('resize', function () { if (!ehLarguraMobile()) document.body.classList.remove('sidebar-aberta'); sincronizarAcessibilidadeMenu(); reposicionarTopoInicio(document.querySelector('.inicio-moderno')); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharGaveta(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { fecharGaveta(); if (!e.defaultPrevented && document.querySelector('#modal-raiz .modal')) fecharModal(); } });
 
   const botaoTema = document.getElementById('botao-tema');
   if (botaoTema) botaoTema.addEventListener('click', alternarTema);
@@ -13485,7 +13498,7 @@
     else location.hash = '#ajustes';
   });
   document.addEventListener('click', function (event) {
-    const target = event.target.closest && event.target.closest('[data-settings-target], [data-settings-theme], [data-settings-profile], [data-settings-revisions]');
+    const target = event.target.closest && event.target.closest('[data-settings-target], [data-settings-theme], [data-settings-profile], [data-settings-revisions], [data-settings-home]');
     if (!target) return;
     if (target.hasAttribute('data-settings-target')) {
       const section = document.getElementById('settings-' + target.getAttribute('data-settings-target'));
@@ -13493,7 +13506,8 @@
     } else if (target.hasAttribute('data-settings-theme')) {
       const current = state.config && state.config.tema === 'escuro' ? 'escuro' : 'claro';
       if (current !== target.getAttribute('data-settings-theme')) alternarTema();
-    } else if (target.hasAttribute('data-settings-profile')) abrirPerfilUsuario();
+    } else if (target.hasAttribute('data-settings-home')) abrirPersonalizacaoInicio();
+    else if (target.hasAttribute('data-settings-profile')) abrirPerfilUsuario();
     else if (target.hasAttribute('data-settings-revisions')) { revisoesAba = 'estudados'; if (location.hash === '#revisoes') render(); else location.hash = '#revisoes'; }
   });
   const botaoPerfil = document.getElementById('botao-perfil');
