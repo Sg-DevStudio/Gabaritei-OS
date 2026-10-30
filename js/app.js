@@ -12805,11 +12805,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.6.0/Gabaritei.apk';
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.7.0/Gabaritei.apk';
     const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v060" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
-      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.6.0 · em testes</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.6.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v070" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.7.0 · em testes</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.7.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
