@@ -40,7 +40,7 @@ import org.json.JSONObject
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun StatisticsScreen(plan:Plan,activities:List<StudyActivity>,progress:List<Progress>,raw:String="{}",sessions:List<Session> = emptyList(),onOpen:(String)->Unit={}){
+@Composable fun StatisticsScreen(plan:Plan,activities:List<StudyActivity>,progress:List<Progress>,raw:String="{}",sessions:List<Session> = emptyList(),onOpen:(String)->Unit={},achievements:List<Achievement> = emptyList()){
     val context=androidx.compose.ui.platform.LocalContext.current
     val preferences=remember{context.getSharedPreferences("statistics_display",0)}
     val preferenceKey="metrics:${plan.owner.ifEmpty{"guest"}}"
@@ -65,19 +65,19 @@ import org.json.JSONObject
     val metrics=StatisticsModel.metrics(displayed)
     val selectedMetric=metrics.find{it.key==metric}?:metrics.firstOrNull()
     Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
-        Row(verticalAlignment=Alignment.CenterVertically){Text("Estatísticas",Modifier.weight(1f),style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold);TextButton(onClick={filters=true}){Text("Filtros")};TextButton(onClick={displayDialog=true}){Text("Exibir")}}
-        Row(horizontalArrangement=Arrangement.spacedBy(5.dp)){listOf(7 to "7 dias",30 to "30 dias",90 to "90 dias",0 to "Tudo").forEach{(n,t)->FilterChip(period==n,{period=n},label={Text(t,fontSize=11.sp)})}}
+        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
+            Box(Modifier.weight(1f)){Choice("Período",period.toString(),listOf("7" to "7 dias","30" to "30 dias","90" to "90 dias","0" to "Tudo")+if(period<0)listOf("-1" to "Personalizado")else emptyList()){period=it.toInt()}}
+            TextButton(onClick={filters=true}){Text("Filtros")};TextButton(onClick={displayDialog=true}){Text("Exibir")}
+        }
         Text("${from.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))} a ${until.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))}${if(includeFree)" · Inclui estudos livres"else" · Somente este plano"}",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         if(discipline.isNotEmpty()||topic.isNotEmpty()||kind.isNotEmpty())Row(verticalAlignment=Alignment.CenterVertically){Text(listOfNotNull(plan.disciplines.find{it.id==discipline}?.name,plan.topics.find{it.id==topic}?.name,kind.takeIf{it.isNotEmpty()}).joinToString(" · "),Modifier.weight(1f),style=MaterialTheme.typography.bodySmall);TextButton(onClick={discipline="";topic="";kind=""}){Text("Limpar")}}
-        if("constancy" in displayed)ConstancyCard(data,from,until,today,"time" in displayed)
+        if("constancy" in displayed)ConstancyCard(data,from,until,today,"time" in displayed,plan.name,achievements)
         PrimaryTabRow(view){listOf("Resumo","Evolução","Disciplinas").forEachIndexed{i,t->Tab(view==i,{view=i},text={Text(t,fontSize=12.sp)})}}
         when(view){
             0->{
                 if("accuracy" in displayed)AccuracyCard(total)
                 if("questions" in displayed&&"accuracy" !in displayed)MetricTile("Questões resolvidas",StatisticsModel.number(total.questions.toDouble()),Modifier.fillMaxWidth())
-                if("time" in displayed){val activeDays=data.filter{it.minutes>0||it.questions>0}.map{it.date}.distinct().size
-                    Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){MetricTile("Tempo estudado",StudyMetrics.time(total.minutes),Modifier.weight(1f));MetricTile("Média por dia estudado",StudyMetrics.time(if(activeDays==0)0.0 else total.minutes/activeDays),Modifier.weight(1f))}
-                }
+                if("time" in displayed)MetricTile("Tempo estudado",StudyMetrics.time(total.minutes),Modifier.fillMaxWidth())
                 if("progress" in displayed){val topics=plan.disciplines.filter{discipline.isEmpty()||it.id==discipline}.flatMap{it.topics}.filter{topic.isEmpty()||it.id==topic};val done=topics.count{it.id in completed}
                     Block{Text("Progresso no edital",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold);Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){Text(StatisticsModel.percent(if(topics.isEmpty())null else done*100.0/topics.size),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold);Text("$done de ${topics.size} tópicos",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};LinearProgressIndicator(progress={if(topics.isEmpty())0f else done.toFloat()/topics.size},modifier=Modifier.fillMaxWidth());Text("Acumulado; não depende do período.",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
                 }
@@ -89,12 +89,6 @@ import org.json.JSONObject
                 else{
                     val points=remember(data,from,until){StatisticsModel.series(data,from,until)}
                     Block{Text("Evolução no período",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold);Choice("Gráfico",selectedMetric.key,metrics.map{it.key to it.label}){metric=it};EvolutionChart(points,selectedMetric)}
-                    Block{Text("Por dia da semana",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
-                        val days=(1..7).map{day->StatisticsModel.total(data.filter{it.date.dayOfWeek.value==day})};val max=if(selectedMetric==StatsMetric.ACCURACY)100.0 else days.mapNotNull{it.value(selectedMetric)}.maxOrNull()?.coerceAtLeast(1.0)?:1.0
-                        days.forEachIndexed{i,t->val value=t.value(selectedMetric);Row(horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically){Text(listOf("Seg","Ter","Qua","Qui","Sex","Sáb","Dom")[i],Modifier.width(30.dp),style=MaterialTheme.typography.labelSmall);LinearProgressIndicator(progress={((value?:0.0)/max).toFloat()},modifier=Modifier.weight(1f),color=if(selectedMetric==StatsMetric.ACCURACY)successColor()else MaterialTheme.colorScheme.primary);Text(StatisticsModel.format(value,selectedMetric),style=MaterialTheme.typography.labelSmall)}
-                        }
-                        Text(if(selectedMetric==StatsMetric.ACCURACY)"Acertos sobre as questões registradas em cada dia da semana."else"Total acumulado de cada dia da semana no intervalo.",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
                 }
             }
             2->{

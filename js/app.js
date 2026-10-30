@@ -2316,7 +2316,7 @@
     // acima do mapa de constância (mantém a posição atual). Renderizamos as duas
     // variantes e o CSS mostra a adequada a cada tela.
     const provaCard = state.plano ? '<div class="card prova-card prova-card-solo">' + provaEstimadaConteudoHtml() + '</div>' : '';
-    const fraseHtml = '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<span class="autor">— ' + esc(frase.a) + '</span>' : '') + '</div>';
+    const fraseHtml = '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<a class="autor" href="' + esc(frase.s) + '" target="_blank" rel="noopener noreferrer">' + esc(frase.a) + (frase.tr ? ' · Tradução livre' : '') + '</a>' : '') + '</div>';
 
     // Coluna esquerda (saudação + frase do dia) ao lado do card de data provável.
     // No desktop a frase sobe para preencher o vão do meio; no mobile tudo empilha.
@@ -5219,22 +5219,26 @@
 
   // ---------------- TELA: Configurações (F2) ----------------
   function telaAjustes() {
-    // Esta aba foca no painel do edital. Nome do usuário fica no Perfil (topo);
-    // meta de questões da semana é editada na Hoje; o ritmo do cronograma é
-    // definido ao criar o plano (aba Planos), após escolher o edital.
     const u = usuarioAtual();
-    let html = '<h1 class="sr-only">Configurações</h1>';
-    if (usuarioAdmin()) {
-      html += editaisEsquematizadosHtml();
-    } else {
-      html += '<div class="card"><h3>Minha conta</h3>' +
-        '<p class="sub">Você está logado como <strong>' + esc(u && u.email ? u.email : 'usuário') + '</strong>.</p>' +
-        '<p class="sub">Seu perfil tem acesso ao catálogo global e pode gerar planos próprios. O painel administrativo fica restrito ao administrador.</p></div>';
-      html += planosBaseConfiguracaoHtml();
-    }
-
-    html += carreirasConfiguracaoHtml();
-
+    const catalogo = usuarioAdmin() ? editaisEsquematizadosHtml() : planosBaseConfiguracaoHtml();
+    const tema = state.config && state.config.tema === 'escuro' ? 'escuro' : 'claro';
+    let html = '<section class="settings-center"><h1 class="sr-only">Configurações</h1>' +
+      '<header class="settings-heading"><h2>Configurações</h2><button type="button" class="botao-secundario" data-settings-profile>Meu perfil</button></header>' +
+      '<nav class="settings-index" aria-label="Seções de configurações">' +
+      [['appearance','Aparência'],['study','Estudos e revisão'],['account','Conta'],['backup','Backups'],['catalog','Catálogo e planos']].map(function (item) { return '<button type="button" class="botao-secundario" data-settings-target="' + item[0] + '" aria-controls="settings-' + item[0] + '">' + item[1] + '</button>'; }).join('') + '</nav>' +
+      '<div class="settings-groups"><details class="settings-group" id="settings-appearance" open><summary>Aparência e experiência</summary><div class="settings-group-body">' +
+      '<p class="sub">Tema</p><div class="compact-actions">' +
+      '<button type="button" class="botao-secundario" data-settings-theme="claro" aria-pressed="' + (tema === 'claro') + '">Claro</button>' +
+      '<button type="button" class="botao-secundario" data-settings-theme="escuro" aria-pressed="' + (tema === 'escuro') + '">Escuro</button></div>' +
+      '<button type="button" class="botao-quieto" data-abrir-android>Gabaritei no Android</button></div></details>' +
+      '<details class="settings-group" id="settings-study"><summary>Estudos e revisão</summary><div class="settings-group-body"><div class="settings-actions">' +
+      '<a class="botao botao-secundario" href="#planejamento">Rotina e planejamento</a>' +
+      '<button type="button" class="botao-secundario" data-settings-revisions>Intervalos de revisão</button>' +
+      '<a class="botao botao-secundario" href="#timer">Cronômetro de estudo</a>' +
+      '<a class="botao botao-secundario" href="#stats">Estatísticas e desempenho</a>' +
+      '</div></div></details>' +
+      '<details class="settings-group" id="settings-account"><summary>Conta e sincronização</summary><div class="settings-group-body">';
+    if (u && u.email) html += '<p class="sub">' + esc(u.email) + '</p>';
     html += '<div class="ajustes-sync-grid">';
 
     const syncAtual = statusSincronizacao();
@@ -5245,7 +5249,7 @@
       : '<p style="font-size:0.78rem;color:var(--grafite)">Conta: <strong id="sync-conta">não conectada</strong></p>';
     html += '<div class="card"><h3>Sincronização entre aparelhos</h3>' +
       '<p style="font-size:0.88rem;color:var(--grafite)">Status: <strong id="sync-status">' + esc(syncTexto) + '</strong></p>' +
-      '<p style="font-size:0.78rem;color:var(--grafite)">Fonte: <span id="sync-endpoint">' + esc(syncFonte) + '</span></p>' +
+      '<details class="settings-diagnostics"><summary>Detalhes da conexão</summary><p class="sub"><span id="sync-endpoint">' + esc(syncFonte) + '</span></p></details>' +
       contaSync +
       '<div class="modal-acoes" style="justify-content:flex-start">' +
       '<button id="fb-login">Entrar com Google</button>' +
@@ -5254,7 +5258,7 @@
       '<button class="botao-quieto" id="fb-logout">Sair</button>' +
       '</div></div>';
 
-    html += '</div>'; // .ajustes-sync-grid
+    html += '</div></div></details><details class="settings-group" id="settings-backup"><summary>Backups e recuperação</summary><div class="settings-group-body">'; // .ajustes-sync-grid
 
     html += '<div class="card"><h3>Backup manual</h3>' +
       '<p class="sub">Baixe uma cópia completa em JSON. Ela funciona mesmo sem Firebase e pode restaurar seus planos e registros neste ou em outro aparelho.</p>' +
@@ -5288,10 +5292,11 @@
       html += '</div>';
     }
 
-    html += '<div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
+    html += '</div></details><details class="settings-group" id="settings-catalog"><summary>Catálogo e planos</summary><div class="settings-group-body">' + catalogo + carreirasConfiguracaoHtml() + '</div></details>';
+    html += '<details class="settings-group settings-danger" id="settings-advanced"><summary>Opções avançadas</summary><div class="settings-group-body"><div class="card card-quieto"><h3 style="color:var(--errado)">Zona de risco</h3>' +
       '<p class="sub">Apaga seus planos, sessões, revisões, simulados e agenda para recomeçar do zero. O catálogo de editais e suas configurações são mantidos.</p>' +
       '<button class="botao-perigo botao-mini" id="zr-limpar">Apagar meus dados de estudo</button></div>';
-    return html;
+    return html + '</div></details></div></section>';
   }
 
   // ---------------- Editais esquematizados (base para planos personalizados) ----------------
@@ -12805,11 +12810,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.7.0/Gabaritei.apk';
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.8.0/Gabaritei.apk';
     const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v070" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
-      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.7.0 · em testes</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.7.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v080" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.8.0 · em testes</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.8.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
@@ -13459,6 +13464,18 @@
     fecharModal();
     if (location.hash === '#ajustes') render();
     else location.hash = '#ajustes';
+  });
+  document.addEventListener('click', function (event) {
+    const target = event.target.closest && event.target.closest('[data-settings-target], [data-settings-theme], [data-settings-profile], [data-settings-revisions]');
+    if (!target) return;
+    if (target.hasAttribute('data-settings-target')) {
+      const section = document.getElementById('settings-' + target.getAttribute('data-settings-target'));
+      if (section) { section.open = true; section.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); const summary = section.querySelector('summary'); if (summary) summary.focus({ preventScroll: true }); }
+    } else if (target.hasAttribute('data-settings-theme')) {
+      const current = state.config && state.config.tema === 'escuro' ? 'escuro' : 'claro';
+      if (current !== target.getAttribute('data-settings-theme')) alternarTema();
+    } else if (target.hasAttribute('data-settings-profile')) abrirPerfilUsuario();
+    else if (target.hasAttribute('data-settings-revisions')) { revisoesAba = 'estudados'; if (location.hash === '#revisoes') render(); else location.hash = '#revisoes'; }
   });
   const botaoPerfil = document.getElementById('botao-perfil');
   if (botaoPerfil) botaoPerfil.addEventListener('click', abrirPerfilUsuario);

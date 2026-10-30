@@ -88,3 +88,37 @@ Desempenho passa a usar rosca de acertos/erros, percentual com uma casa decimal 
 Evolução: percentuais em escala fixa de 0 a 100%, com lacunas em intervalos sem questões; quantidade de questões/acertos/erros e tempo como séries alternativas. Até 12 intervalos consecutivos cobrem todo o período, sem descartar registros antigos. Consulta por toque ou botões anterior/próximo. Disciplinas recebem barras percentuais, amostra e expansão por tópico. Progresso no edital continua identificado como acumulado. Atalho de questões respeita o seletor de vários links.
 
 Validação concluída nesta rodada: 69 testes JVM aprovados (11 novos casos de estatística), lint sem erros e 40 avisos, três contratos com as regras reais do site aprovados; certificado de atualização compatível e APK sem depuração. Nenhuma migração de banco ou mudança no histórico. Fontes e espelho de compilação conferidos por hash. Não foi realizada nesta rodada a conferência visual/interativa no S25: a pergunta sobre disponibilidade do aparelho permaneceu sem resposta ao finalizar o pacote. Essa conferência continua pendente, incluindo claro/escuro, fonte ampliada e navegação dos gráficos/calendário. Não confundir testes de cálculo com validação visual no aparelho.
+
+
+## Experiência Android 0.8.0 — 30/10/2026
+
+Referência observada novamente no S25: início, menu secundário inferior, constância, calendário e configurações do Estudei. A captura durante carregamento foi descartada; foram usadas telas efetivamente carregadas. Componentes e identidade são próprios do Gabaritei. Capturas de referência, dados pessoais e massa sintética não integram o repositório.
+
+Navegação inferior: Hoje, Edital, Estudar, Planejar e Mais. Mais abre uma lista vertical a partir da parte inferior, com acesso a planos, questões, estatísticas, histórico, disciplinas, revisões e perfil. Estudar oferece iniciar, registrar ou estudo livre. O cartão Progresso no edital abre a nova tela completa, com busca, disciplinas recolhíveis, filtro por conclusão e ações por tópico. Itens arquivados na rotina continuam consultáveis; excluídos e órfãos não reaparecem.
+
+Início: frase curta em itálico, autor consultável e botão Outra frase; carrossel de conquistas com critérios em diálogo central; métricas com amostra separada da porcentagem. Constância é visual também no início. Estatísticas começam pela constância, com calendário e prévia de compartilhamento. Foi retirado o painel redundante de ritmo por dia da semana. Permanecem filtros, seleção de indicadores e gráficos de percentuais/questões/tempo opcionais.
+
+Compartilhamento: PNG gerado no aparelho, com sequência, dias ativos e somente conquistas desbloqueadas. Prévia antes do seletor Android; nenhum envio automático. FileProvider privado, autorização temporária de leitura somente para a imagem em cache. Banco e foto de perfil não são expostos pelo provider. Plano com nome longo tem altura limitada.
+
+Configurações: central com busca no Android, agrupando perfil/conquistas, aparência, estudos/revisão, avisos, plataformas, estatísticas e conta/dados. Os controles anteriores de foto, tema, tela cheia, timer, Gran, notificações, login, sincronização e recuperação continuam funcionando nas respectivas seções. No site, grupos recolhíveis e atalhos substituem o bloco contínuo; Claro/Escuro e Meu perfil usam os fluxos existentes. Isso organiza funções existentes, sem prometer paridade integral com todas as opções do Estudei. Limites de classificação de desempenho e primeiro dia da semana personalizados não foram adicionados nesta rodada.
+
+### Frases e autoria
+
+Seleção diária determinística, troca manual no Android e fonte acessível ao tocar no autor. O site usa a mesma seleção diária e fontes. Trechos curtos; traduções identificadas como Tradução livre.
+
+- Ricardo Reis (heterônimo de Fernando Pessoa): verso de *Para ser grande, sê inteiro*. Texto: https://pt.wikisource.org/wiki/Para_ser_grande,_s%C3%AA_inteiro . Referência institucional da obra: https://casafernandopessoa.pt/pt/cfp/poesia-em-lingua-gestual-portuguesa/ricardo-reis .
+- Richard Feynman: frase registrada em seu último quadro, reproduzida na revista do Caltech, *Engineering & Science*, 2002, número 2, página impressa 19 (PDF 21): https://calteches.library.caltech.edu/684/1/ES65.2.2002.pdf#page=21 . Conferência histórica: https://journal.sciencemuseum.ac.uk/article/stephen-hawkings-superspace-and-supergravity-blackboard-an-iconic-artefact-in-the-making/ .
+- Wisława Szymborska: conferência publicada pela própria autora em 1996: https://newrepublic.com/article/100368/i-dont-know . Conferência independente do trecho: https://culture.pl/en/article/21-inspiring-quotes-from-polands-nobel-prize-winners . A página do Nobel retornou 403 nesta consulta; não foi apresentada como lida integralmente.
+
+### Sinalização de prioridade e incidência
+
+🔥 significa **Prioridade do plano**, lida somente do campo explícito prioridade=1 do próprio tópico, por ID. Não usa horas, nomes parecidos, percentuais isolados ou ausência de dados como substitutos. A metodologia do TRF2 declara que incidencia_pct representa prioridade pedagógica estimada, NÃO frequência estatística de questões. Por isso, não há rótulo Mais cobrado nem percentuais de incidência inventados. Os demais planos sem prioridade diferenciada permanecem sem fogo. Para oferecer Mais cobrado, falta uma base histórica por tópico, banca/cargo, período, amostra e fonte; essa parte do pedido continua dependente dessa evidência.
+
+### Validação
+
+- Compilação QA/release, 83 testes JVM sem falhas, lint sem erros (42 avisos) e três contratos Kotlin → site aprovados. Sem migração de banco ou alteração das regras de cálculo/sincronização.
+- Site: 335 testes aprovados, sete ignorados; navegação dos grupos, perfil, temas, IDs de backup, atalho de revisões e largura móvel conferidos em Chrome isolado, 1365px e 390px, sem erro de página nem rolagem horizontal. Na repetição final, o service worker foi bloqueado no contexto de teste para isolar os controles da ativação do cache. Os conectores de navegador IAB/Chrome falharam ao anexar; usado Playwright local como alternativa, em contexto de demonstração.
+- No QA separado do S25: progresso da tela inicial abriu Seu edital, menu inferior e Mais funcionaram, constância com dados sintéticos de 275 questões/216 acertos/11 dias ativos em 30 dias, calendário, evolução, prévia com dois troféus e central de configurações conferidos. Também conferidos tema claro, modo imersivo nas configurações, troca de frase, ajuda da prioridade 🔥 e detalhe central de conquista. Nenhuma questão foi respondida nem compartilhamento enviado.
+- Três testes instrumentados físicos de exportação validaram PNG privado, troféus conquistados, título longo e bloqueio de acesso ao banco/foto pelo provider. A massa sintética de design existe somente no pacote QA, com guarda de pacote e conta local.
+
+Limites: fonte extrema/TalkBack e outros aparelhos ainda precisam de rodada dedicada. Login Google de produção continua aguardando a escolha da conta pelo titular; testes de emulador não substituem essa etapa. A auditoria externa de dependências das Functions tem alertas anteriores a este diff e não é declarada aprovada por esta rodada visual.

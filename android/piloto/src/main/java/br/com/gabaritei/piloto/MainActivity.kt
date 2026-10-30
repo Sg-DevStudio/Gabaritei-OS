@@ -127,6 +127,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var notifications by remember{mutableStateOf(TimerNotices.optedIn(context)&&TimerNotices.allowed(context))}
     var focusMinutes by rememberSaveable{mutableIntStateOf(preferences.getInt("focusMinutes",50))}
     var achievementDialog by remember{mutableStateOf(false)}
+    var achievementFromSettings by remember{mutableStateOf(false)}
     var creatingPlan by remember{mutableStateOf<Plan?>(null)}
     var freeStudy by remember{mutableStateOf(false)}
     var preferGranApp by rememberSaveable{mutableStateOf(preferences.getBoolean("prefer_gran_app",true))}
@@ -148,9 +149,11 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var confirmRemote by remember{mutableStateOf(false)}
     var confirmLocal by remember{mutableStateOf(false)}
     var tab by rememberSaveable { mutableIntStateOf(0) }
-    val scrollStates=(0..7).map{rememberLazyListState()}
+    val scrollStates=(0..8).map{rememberLazyListState()}
     val pageScroll=scrollStates[tab]
-    val drawer=rememberDrawerState(DrawerValue.Closed)
+    var moreMenu by remember{mutableStateOf(false)}
+    var studyActions by remember{mutableStateOf(false)}
+    var editalTopic by remember{mutableStateOf<Topic?>(null)}
     var picker by rememberSaveable { mutableStateOf(false) }
     var record by remember { mutableStateOf<Pair<Plan,Topic>?>(null) }
     var recordingTimer by remember { mutableStateOf<Timer?>(null) }
@@ -158,7 +161,8 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var chooseLink by remember { mutableStateOf<Topic?>(null) }
     var discard by remember { mutableStateOf<Timer?>(null) }
     val plan=plans.find { it.id==settings?.planId } ?: plans.firstOrNull()
-    val notebookLinks=remember(raw,plan,personal){plan?.let{NotebookLinks.index(raw,it,personal)}.orEmpty()}
+    val outline=remember(plan,raw){plan?.let{EditalOutline.read(it,raw)}}
+    val notebookLinks=remember(raw,outline,personal){outline?.let{NotebookLinks.index(raw,it,personal)}.orEmpty()}
     var personalNotebook by rememberSaveable(plan?.id){mutableStateOf(false)}
     var questionSearch by rememberSaveable(plan?.id){mutableStateOf("")}
     var historyDay by rememberSaveable{mutableStateOf<String?>(null)}
@@ -167,33 +171,22 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val agenda=remember(raw,plan?.id){runCatching{JSONObject(raw).optJSONArray("agenda")?.objects()?.filter{it.optString("planoId")==plan?.id&&it.optString("data")==LocalDate.now().toString()&&!it.optBoolean("feito")}.orEmpty()}.getOrDefault(emptyList())}
     val activeTopics=plan?.disciplines?.filter{!it.paused&&!it.archived}?.flatMap{it.topics}.orEmpty()
     val selected=activeTopics.find { it.id==settings?.topicId } ?: activeTopics.firstOrNull { t -> progress.none { it.planId==plan?.id && it.topicId==t.id && it.completed } } ?: plan?.topics?.firstOrNull() ?: plan?.let{Topic("","Nenhum tópico ativo",null,"")}
-    LaunchedEffect(account?.uid,plan?.id){chooseLink=null;record=null;recordingTimer=null;editLink=null;picker=false;discard=null;freeStudy=false}
+    LaunchedEffect(account?.uid,plan?.id){moreMenu=false;studyActions=false;editalTopic=null;chooseLink=null;record=null;recordingTimer=null;editLink=null;picker=false;discard=null;freeStudy=false}
     val nextSuggested=agenda.firstNotNullOfOrNull{a->activeTopics.find{it.id==a.optString("topicoId")&&it.id!=selected?.id}}?:activeTopics.firstOrNull{t->t.id!=selected?.id&&progress.none{it.planId==plan?.id&&it.topicId==t.id&&it.completed}}
     val current=sessions.filter { it.planId==plan?.id }
     val historyRecords=if(historyFree)sessions.filter{it.planId.isEmpty()} else current
     val activities=remember(plan,current,raw){if(plan==null)emptyList() else StudyMetrics.activities(plan,current,raw)}
     val achievements=remember(plan,plans,sessions,progress,raw){StudyMetrics.achievements(plan,plans,sessions,progress,raw)}
-    val completed=progress.count { it.planId==plan?.id&&it.completed&&plan?.topics?.any{t->t.id==it.topicId}==true }
+    val completed=remember(outline,progress){outline?.let{EditalOutline.completed(it,progress)}.orEmpty()}
     val snackbar=remember { SnackbarHostState() }
     LaunchedEffect(error){error?.let { snackbar.showSnackbar(it);vm.error.value=null }}
-    val destinations=listOf("Hoje","Planos","Caderno de questões","Estatísticas","Histórico","Planejamento","Disciplinas","Revisões")
-    BackHandler(drawer.isOpen||tab!=0){if(drawer.isOpen)scope.launch{drawer.close()}else tab=0}
-    ModalNavigationDrawer(drawerState=drawer,drawerContent={
-        ModalDrawerSheet(modifier=Modifier.widthIn(max=304.dp),drawerContainerColor=MaterialTheme.colorScheme.surface){
-            Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically){Image(painterResource(R.drawable.pilot_icon),null,Modifier.size(28.dp));Spacer(Modifier.width(10.dp));Text("Gabaritei OS",Modifier.weight(1f),fontWeight=FontWeight.Bold);IconButton(onClick={scope.launch{drawer.close()}}){Icon(Icons.Outlined.Close,"Fechar menu")}}
-            plan?.let{p->Text(p.name.replace(Regex(" \\(.*?\\)"),""),Modifier.padding(horizontal=20.dp,vertical=8.dp),fontSize=12.sp,lineHeight=17.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)}
-            HorizontalDivider()
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(8.dp)){
-                listOf(0,5,1,6,2,7,3,4).forEach{i->NavigationDrawerItem(label={Text(destinations[i],fontSize=14.sp)},selected=tab==i,onClick={tab=i;scope.launch{drawer.close()}},icon={when(i){0->Icon(Icons.Outlined.Home,null);1,5->Icon(Icons.Outlined.DateRange,null);3->Icon(painterResource(R.drawable.stats_outline),null);4,7->Icon(painterResource(R.drawable.history_outline),null);else->Icon(painterResource(R.drawable.book_outline),null)}},modifier=Modifier.padding(vertical=2.dp))}
-            }
-            HorizontalDivider();TextButton(onClick={scope.launch{drawer.close()};freeStudy=true},modifier=Modifier.padding(horizontal=12.dp)){Icon(Icons.Outlined.Add,null);Spacer(Modifier.width(8.dp));Text("Registrar estudo livre")}
-            TextButton(onClick={scope.launch{drawer.close()};accountDialog=true},modifier=Modifier.padding(horizontal=12.dp)){Icon(Icons.Outlined.AccountCircle,null);Spacer(Modifier.width(8.dp));Text("Perfil e preferências")}
-        }
-    }){
-    Scaffold(snackbarHost={SnackbarHost(snackbar)},topBar={
-        TopAppBar(colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.background),navigationIcon={IconButton(onClick={scope.launch{drawer.open()}}){Icon(Icons.Outlined.Menu,"Abrir menu")}},title={Text(if(tab==0)"Gabaritei OS" else destinations[tab],fontWeight=FontWeight.SemiBold,fontSize=18.sp,lineHeight=24.sp)},actions={IconButton(onClick={accountDialog=true}){ProfileAvatar(profilePhoto,Modifier.size(28.dp).semantics{contentDescription="Conta e sincronização"})}})
+    val destinations=listOf("Hoje","Planos","Caderno de questões","Estatísticas","Histórico","Planejamento","Disciplinas","Revisões","Edital")
+    BackHandler(moreMenu||studyActions||tab!=0){when{moreMenu->moreMenu=false;studyActions->studyActions=false;else->tab=0}}
+    Scaffold(snackbarHost={SnackbarHost(snackbar)},bottomBar={PrimaryNavigation(tab,moreMenu,onNavigate={tab=it},onStudy={studyActions=true},onMore={moreMenu=true})},topBar={
+        TopAppBar(colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.background),navigationIcon={IconButton(onClick={tab=0}){Image(painterResource(R.drawable.pilot_icon),"Página inicial",Modifier.size(26.dp))}},title={Text(if(tab==0)"Gabaritei OS" else destinations[tab],fontWeight=FontWeight.SemiBold,fontSize=18.sp,lineHeight=24.sp)},actions={IconButton(onClick={accountDialog=true}){ProfileAvatar(profilePhoto,Modifier.size(28.dp).semantics{contentDescription="Conta e sincronização"})}})
     }) { padding ->
         if(!ready||plans.isEmpty())Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){Text(error?:"Carregando planos…")}
+        else if(tab==8&&outline!=null)EditalScreen(outline,progress,pageScroll,Modifier.padding(padding),onTopic={editalTopic=it},onManage={tab=6})
         else if(plan!=null&&selected!=null) LazyColumn(Modifier.padding(padding).fillMaxSize(),state=pageScroll,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             if(tab!=1)item { Surface(onClick={tab=1},shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.secondaryContainer){Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
                 Icon(painterResource(R.drawable.book_outline),null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.primary)
@@ -201,7 +194,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             }} }
             when(tab) {
                 0 -> {
-                    item { Surface(shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.primaryContainer){Text("Um tópico por vez. Cada sessão conta.",Modifier.fillMaxWidth().padding(14.dp),color=MaterialTheme.colorScheme.onPrimaryContainer,style=MaterialTheme.typography.bodyMedium,fontWeight=FontWeight.SemiBold)} }
+                    item { MotivationCard(onOpen) }
                     timer?.let { t -> item { TimerCard(t,vm,onFinish=finish@{
                         val p=plans.firstOrNull { it.id==t.planId };val topic=p?.topics?.firstOrNull { it.id==t.topicId }
                         if(p==null||topic==null){vm.error.value="O plano ou tópico foi removido. O tempo permanece salvo no aparelho.";return@finish}
@@ -225,15 +218,15 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                         }
                         if(nextSuggested!=null){HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("AINDA HOJE",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(plan.discipline(nextSuggested).name,fontSize=12.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold);Text(nextSuggested.name,fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)};IconButton(onClick={vm.select(plan,nextSuggested)}){Icon(Icons.AutoMirrored.Outlined.ArrowForward,"Escolher próximo tópico",Modifier.size(18.dp))}}}
                     } }
-                    item { Block {
-                        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                            Column {Text("Desempenho",style=MaterialTheme.typography.labelMedium);Spacer(Modifier.height(6.dp));Text(if(activities.sumOf { it.questions }==0)"—" else "${StudyRules.percentage(activities.sumOf { it.correct },activities.sumOf { it.questions })}%",style=MaterialTheme.typography.headlineSmall);Text("${activities.sumOf { it.questions }} questões",style=MaterialTheme.typography.bodySmall)}
-                            Column {Text("Progresso no edital",style=MaterialTheme.typography.labelMedium);Spacer(Modifier.height(6.dp));Text("${StudyRules.percentage(completed,plan.topics.size)}%",style=MaterialTheme.typography.headlineSmall);Text("$completed de ${plan.topics.size} tópicos",style=MaterialTheme.typography.bodySmall)}
+                    item { val totals=StatisticsModel.total(activities);val content=outline?:plan
+                        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){
+                            DashboardMetric("Desempenho",StatisticsModel.percent(totals.accuracy),"${totals.questions} questões",totals.accuracy?.div(100)?.toFloat(),Modifier.weight(1f),onClick={tab=3})
+                            DashboardMetric("Progresso no edital",StatisticsModel.percent(if(content.topics.isEmpty())null else completed.size*100.0/content.topics.size),"${completed.size} de ${content.topics.size} tópicos",if(content.topics.isEmpty())0f else completed.size.toFloat()/content.topics.size,Modifier.weight(1f),onClick={tab=8})
                         }
-                    } }
-                    item { WeekSummary(activities,onDay={historyDay=it.toString();tab=4}) }
+                    }
+                    item { AchievementCarousel(achievements){achievementFromSettings=false;achievementDialog=true} }
+                    item { ConstancyCard(activities,LocalDate.now().minusDays(29),LocalDate.now(),LocalDate.now(),false,plan.name,achievements) }
                     item { WeeklyGoals(activities) }
-                    item { Row{TextButton(onClick={tab=5}){Text("Ver planejamento")};TextButton(onClick={freeStudy=true}){Text("Estudo livre")}} }
                     val due=runCatching{JSONObject(raw).array("revisoes").objects().count{it.optString("planoId")==plan.id&&it.isNull("dataConcluida")&&it.optString("dataAgendada")<=LocalDate.now().toString()}}.getOrDefault(0)
                     if(due>0)item{Block{Text("$due revisões pendentes",fontWeight=FontWeight.SemiBold);TextButton(onClick={tab=7}){Text("Revisar agora")}}}
                 }
@@ -269,7 +262,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     }
                 }
                 }
-                3 -> {item{StatisticsScreen(plan,activities,progress,raw,sessions,onOpen)}}
+                3 -> {item{StatisticsScreen(outline?:plan,activities,progress,raw,sessions,onOpen,achievements)}}
                 5 -> {item{PlanningScreen(plan,raw,vm,onChoose={vm.select(plan,it);picker=true},onStart={vm.start(plan,it);tab=0})}}
                 6 -> {item{DisciplineManager(plan,raw,vm)}}
                 7 -> {
@@ -293,9 +286,21 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             }
         }
     }
-    }
+    if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true})
+    if(studyActions&&plan!=null&&selected!=null)StudyActionsSheet(selected.name,onClose={studyActions=false},onStart={if(!plan.enrolled)creatingPlan=plan else{vm.start(plan,selected);tab=0}},onRecord={if(!plan.enrolled)creatingPlan=plan else{recordingTimer=null;record=plan to selected}},onFree={freeStudy=true},canStart=timer==null&&activeTopics.isNotEmpty())
+    editalTopic?.let{t->if(outline!=null)ModalBottomSheet(onDismissRequest={editalTopic=null},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){
+        Column(Modifier.padding(20.dp).padding(bottom=16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+            Text(outline.discipline(t).name,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(t.name,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
+            Text(if(t.id in completed)"Concluído no edital"else"Pendente no edital",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            val active=activeTopics.any{it.id==t.id}
+            Button(onClick={editalTopic=null;if(active&&plan!=null){vm.select(plan,t);tab=0}else tab=6},modifier=Modifier.fillMaxWidth()){Text(if(active)"Escolher para estudar"else"Organizar na rotina")}
+            val links=notebookLinks[t.id].orEmpty().distinctBy{it.url}
+            if(links.isNotEmpty())OutlinedButton(onClick={editalTopic=null;if(links.size==1)onOpen(links.single().url)else chooseLink=t},modifier=Modifier.fillMaxWidth()){Text("Resolver questões")}
+        }
+    }}
     if(freeStudy)FreeStudyDialog(vm){freeStudy=false}
-    if(accountDialog)AlertDialog(containerColor=MaterialTheme.colorScheme.surface,onDismissRequest={accountDialog=false},title={Text("Seu perfil")},text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(10.dp)){
+    if(accountDialog)SettingsCenter(profilePhoto,account?.name?:"Perfil local",fullscreen,onClose={accountDialog=false},onStatistics={accountDialog=false;tab=3;scope.launch{scrollStates[3].scrollToItem(0)}},onPlanning={accountDialog=false;tab=5},onRevisions={accountDialog=false;tab=7},onNotebook={accountDialog=false;tab=2},profile={
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
             ProfileAvatar(profilePhoto,Modifier.size(64.dp))
             Column{TextButton(enabled=!photoBusy,onClick={photoOwner=account?.uid.orEmpty();photoError=null;photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))}){Text(if(photoBusy)"Salvando foto…" else "Escolher foto")}
@@ -303,17 +308,22 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         }
         Text(if(account==null)"Foto salva neste aparelho." else "Foto compartilhada com o site nesta conta.",style=MaterialTheme.typography.bodySmall)
         photoError?.let{Text(it,color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)}
-        Button(onClick={accountDialog=false;achievementDialog=true},modifier=Modifier.fillMaxWidth()){Icon(Icons.Outlined.Star,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Conquistas · ${achievements.count{it.earned}}/${achievements.size}")}
+        Button(onClick={accountDialog=false;achievementFromSettings=true;achievementDialog=true},modifier=Modifier.fillMaxWidth()){Icon(Icons.Outlined.Star,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Conquistas · ${achievements.count{it.earned}}/${achievements.size}")}
+    },appearance={
         Text("Aparência",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
         Row(horizontalArrangement=Arrangement.spacedBy(5.dp)){listOf("system" to "Auto","light" to "Claro","dark" to "Escuro").forEach{(key,label)->FilterChip(selected=theme==key,onClick={onTheme(key)},label={Text(label,fontSize=11.sp,lineHeight=15.sp)})}}
         Row(verticalAlignment=Alignment.CenterVertically){Text("Tela cheia",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium);Switch(checked=fullscreen,onCheckedChange=onFullscreen)}
-        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Aviso do cronômetro",style=MaterialTheme.typography.bodyMedium);Text("Avisar ao atingir a meta do cronômetro",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(checked=notifications,onCheckedChange={enabled->if(enabled){if(Build.VERSION.SDK_INT>=33&&!TimerNotices.allowed(context))notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)else{TimerNotices.optIn(context,true);notifications=TimerNotices.allowed(context);vm.timer.value?.let{TimerNotices.schedule(context,it,vm.elapsed(it))}}}else{notifications=false;TimerNotices.optIn(context,false)}})}
-        if(notifications){TextButton(onClick={TimerNotices.show(context,true)}){Text("Testar alerta")};if(Build.VERSION.SDK_INT>=31&&!context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms())TextButton(onClick={context.startActivity(Intent(SystemSettings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:${context.packageName}")))}){Text("Permitir avisos precisos")}}
-        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Preferir app do Gran",style=MaterialTheme.typography.bodyMedium);Text("Abrir questões com os filtros do caderno",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(preferGranApp,{preferGranApp=it;preferences.edit().putBoolean("prefer_gran_app",it).apply()})}
-        OutlinedButton(onClick={reminderSettings=true},modifier=Modifier.fillMaxWidth()){Text("Lembretes de estudo")}
-        Text(if(DailyReminders.read(context).enabled)"Lembretes configurados neste aparelho."else"Lembretes diários desativados.",style=MaterialTheme.typography.bodySmall)
+    },study={
         Text("Meta do cronômetro",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
         Row(horizontalArrangement=Arrangement.spacedBy(5.dp)){(listOf(0,25,50)+focusMinutes).distinct().sorted().forEach{min->FilterChip(selected=focusMinutes==min,onClick={focusMinutes=min;preferences.edit().putInt("focusMinutes",min).apply()},label={Text(if(min==0)"Livre" else "${min}min",fontSize=11.sp,lineHeight=15.sp)})}}
+    },notifications={
+        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Aviso do cronômetro",style=MaterialTheme.typography.bodyMedium);Text("Avisar ao atingir a meta do cronômetro",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(checked=notifications,onCheckedChange={enabled->if(enabled){if(Build.VERSION.SDK_INT>=33&&!TimerNotices.allowed(context))notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)else{TimerNotices.optIn(context,true);notifications=TimerNotices.allowed(context);vm.timer.value?.let{TimerNotices.schedule(context,it,vm.elapsed(it))}}}else{notifications=false;TimerNotices.optIn(context,false)}})}
+        if(notifications){TextButton(onClick={TimerNotices.show(context,true)}){Text("Testar alerta")};if(Build.VERSION.SDK_INT>=31&&!context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms())TextButton(onClick={context.startActivity(Intent(SystemSettings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:${context.packageName}")))}){Text("Permitir avisos precisos")}}
+        OutlinedButton(onClick={reminderSettings=true},modifier=Modifier.fillMaxWidth()){Text("Lembretes de estudo")}
+        Text(if(DailyReminders.read(context).enabled)"Lembretes configurados neste aparelho."else"Lembretes diários desativados.",style=MaterialTheme.typography.bodySmall)
+    },integrations={
+        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Preferir app do Gran",style=MaterialTheme.typography.bodyMedium);Text("Abrir questões com os filtros do caderno",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(preferGranApp,{preferGranApp=it;preferences.edit().putBoolean("prefer_gran_app",it).apply()})}
+    },account={
         HorizontalDivider()
         if(account==null){
             Text("Entre com a mesma conta Google usada no site para compartilhar planos, estudos e links.")
@@ -333,9 +343,9 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             TextButton(onClick={exportOwner=account!!.uid;export.launch("gabaritei-backup-${LocalDate.now()}.json")}){Text("Exportar cópia de segurança")}
             TextButton(onClick={vm.signOut();accountDialog=false}){Text("Sair desta conta")}
         }
-    }},confirmButton={TextButton(onClick={accountDialog=false}){Text("Fechar")}})
+    })
     if(reminderSettings)ReminderSettingsDialog{reminderSettings=false}
-    if(achievementDialog)AchievementsDialog(achievements){achievementDialog=false;accountDialog=true}
+    if(achievementDialog)AchievementsDialog(achievements){achievementDialog=false;accountDialog=achievementFromSettings}
     creatingPlan?.let{p->CreatePlanDialog(p,onClose={creatingPlan=null},onCreate={routine,done->vm.createPlan(p,routine){message->if(message==null){creatingPlan=null;tab=0;focusMinutes=routine.blockMinutes}else done(message)}})}
     if(confirmImport)AlertDialog(onDismissRequest={confirmImport=false},title={Text("Trazer os estudos locais?")},text={Text("Os $guestCount registros locais serão incluídos na conta ${account?.email.orEmpty()}. A cópia local será mantida e repetir a importação não duplicará os mesmos registros.")},confirmButton={TextButton(onClick={confirmImport=false;vm.importGuest()}){Text("Trazer estudos")}},dismissButton={TextButton(onClick={confirmImport=false}){Text("Cancelar")}})
     if(confirmLocal)AlertDialog(onDismissRequest={confirmLocal=false},title={Text("Reaplicar alterações locais?")},text={Text("Os registros e links pendentes serão aplicados sobre o histórico atual. Exclusões de planos e tópicos feitas no site continuam protegidas.")},confirmButton={TextButton(onClick={confirmLocal=false;vm.synchronize(true)}){Text("Reaplicar")}},dismissButton={TextButton(onClick={confirmLocal=false}){Text("Cancelar")}})

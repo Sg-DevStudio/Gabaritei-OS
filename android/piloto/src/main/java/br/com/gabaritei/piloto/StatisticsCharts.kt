@@ -35,12 +35,13 @@ private val ShortDate=DateTimeFormatter.ofPattern("dd/MM")
 private val DayLabels=listOf("Seg","Ter","Qua","Qui","Sex","Sáb","Dom")
 @Composable internal fun successColor()=if(MaterialTheme.colorScheme.surface.luminance()<.4f)Color(0xFF55D6AE)else Color(0xFF087D62)
 
-@Composable internal fun ConstancyCard(rows:List<StudyActivity>,from:LocalDate,until:LocalDate,today:LocalDate,showTime:Boolean){
+@Composable internal fun ConstancyCard(rows:List<StudyActivity>,from:LocalDate,until:LocalDate,today:LocalDate,showTime:Boolean,planName:String="",achievements:List<Achievement> = emptyList()){
     val stats=remember(rows,from,until,today){StatisticsModel.constancy(rows,from,until,today)}
     var calendar by remember{mutableStateOf(false)}
+    var sharing by remember{mutableStateOf(false)}
     var selected by remember(until){mutableStateOf(until)}
     Block{
-        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Constância",fontWeight=FontWeight.SemiBold,style=MaterialTheme.typography.titleMedium);Text("Últimos 7 dias do intervalo",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};TextButton(onClick={selected=until;calendar=true}){Text("Calendário")}}
+        Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("Constância",fontWeight=FontWeight.SemiBold,style=MaterialTheme.typography.titleMedium);Text("Últimos 7 dias do intervalo",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};IconButton(onClick={selected=until;calendar=true}){Icon(Icons.Outlined.DateRange,"Ver calendário")};IconButton(onClick={sharing=true}){Icon(Icons.Outlined.Share,"Compartilhar constância")}}
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             (6 downTo 0).forEach{n->val day=until.minusDays(n.toLong());val enabled=day>=from&&day<=today;val studied=day in stats.active
                 Column(Modifier.weight(1f).clickable(enabled=enabled){selected=day;calendar=true}.semantics(mergeDescendants=true){contentDescription="${day.format(ShortDate)}: ${if(!enabled)"fora do intervalo"else if(studied)"estudou"else if(day==today)"hoje, sem registro"else"sem estudo registrado"}"}.padding(vertical=5.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)){
@@ -60,6 +61,7 @@ private val DayLabels=listOf("Seg","Ter","Qua","Qui","Sex","Sáb","Dom")
             Column(horizontalAlignment=Alignment.End){Text(StatisticsModel.percent(stats.percentage),fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.titleMedium);Text("${stats.active.size}/${stats.totalDays} dias ativos",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
         }
     }
+    if(sharing)ConstancyShareDialog(planName,from,until,stats,achievements,onClose={sharing=false})
     if(calendar)ConstancyCalendar(rows,from,until,today,stats.active,selected,showTime,onClose={calendar=false})
 }
 @Composable private fun ConstancyCalendar(rows:List<StudyActivity>,from:LocalDate,until:LocalDate,today:LocalDate,active:Set<LocalDate>,initial:LocalDate,showTime:Boolean,onClose:()->Unit){
