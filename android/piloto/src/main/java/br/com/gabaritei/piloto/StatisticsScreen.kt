@@ -140,9 +140,9 @@ import org.json.JSONObject
         Text("${achievements.count{it.earned}} de ${achievements.size} desbloqueadas",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         LazyColumn(Modifier.weight(1f,false),verticalArrangement=Arrangement.spacedBy(8.dp)){
             items(achievements.chunked(2)){pair->Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){pair.forEach{a->
-                Card(Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=CardDefaults.cardColors(containerColor=if(a.earned)MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface),border=androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)){
+                Card(Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=CardDefaults.cardColors(containerColor=androidx.compose.ui.graphics.Color.Transparent),border=androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)){
                     Column(Modifier.padding(10.dp).heightIn(min=100.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)){
-                        Text(a.icon,fontSize=26.sp,lineHeight=32.sp);Text(a.name,fontSize=11.sp,lineHeight=15.sp,fontWeight=FontWeight.SemiBold)
+                        AchievementIcon(a,26);Text(a.name,fontSize=11.sp,lineHeight=15.sp,fontWeight=FontWeight.SemiBold)
                         Text(a.description,fontSize=9.sp,lineHeight=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
                         if(a.earned)Text("Conquistado",fontSize=9.sp,lineHeight=12.sp,color=MaterialTheme.colorScheme.primary)
                     }
