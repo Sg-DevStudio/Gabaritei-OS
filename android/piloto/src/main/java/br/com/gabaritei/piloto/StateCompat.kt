@@ -93,16 +93,24 @@ object StateCompat {
                     "link" -> {
                         val id=p.getString("linkId");val ls=plan.array("links");val old=ls.objects().find{it.optString("id")==id}
                         val url=p.optString("url")
+                        if(old!=null&&old.optString("topicoChave")!="plano:${disc.getString("id")}:$topicId")throw SyncConflict("Este link pertence a outro tópico.")
+                        if(!force&&p.has("beforeName")&&old!=null&&old.optString("nome")!=p.optString("beforeName")&&old.optString("nome")!=p.optString("name"))throw SyncConflict("O nome deste link mudou em outro aparelho. Reabra a edição.")
+                        if(!force&&old?.optBoolean("oculto")==true&&url.isNotBlank())throw SyncConflict("Este link foi ocultado no site. Adicione outro link.")
                         if(!force && old!=null && old.optString("url")!=p.optString("beforeUrl")&&old.optString("url")!=url)throw SyncConflict("O link deste tópico também foi alterado no site. Escolha qual alteração manter.")
                         if(deleted(s,"link",planId,id)&&url.isNotBlank())throw SyncConflict("Este link foi excluído no site. Adicione outro link para evitar restaurar uma exclusão.")
                         val key="plano:${disc.getString("id")}:$topicId"
                         if(url.isBlank()){
-                            plan.put("links",JSONArray(ls.objects().filter{it.optString("id")!=id}))
+                            val remaining=ls.objects().filter{it.optString("id")!=id}
+                            val next=JSONArray(remaining)
+                            if(p.optBoolean("keepEmpty")&&remaining.none{it.optString("tipo")=="trilha"&&it.optString("topicoChave")==key})next.put(JSONObject().put("id","android-empty-$topicId").put("tipo","trilha").put("topicoChave",key).put("oculto",true).put("atualizadoEm",now))
+                            plan.put("links",next)
                             s.obj("config").obj("entidadesExcluidas").put("link:$planId:${encoded(id)}",true)
                         }else{
                             require(StudyRules.safeLink(url))
-                            ls.objects().filter{it.optString("topicoChave")==key}.forEach{it.put("principal",false).put("atualizadoEm",now)}
-                            val next=(old?:JSONObject()).put("id",id).put("tipo","trilha").put("topicoChave",key).put("url",url).put("nome","Questões de ${topic.optString("nome")}").put("principal",true).put("oculto",false).put("atualizadoEm",now)
+                            val primary=p.optBoolean("makePrimary",true)||old?.optBoolean("principal")==true||ls.objects().none{it.optString("topicoChave")==key&&!it.optBoolean("oculto")&&it.optString("id")!=id}
+                            if(primary)ls.objects().filter{it.optString("topicoChave")==key&&it.optString("id")!=id&&it.optBoolean("principal")}.forEach{it.put("principal",false).put("atualizadoEm",now)}
+                            val name=if(p.has("name"))p.optString("name").trim().take(120).ifBlank{NotebookLinks.platform(url)}else old?.optString("nome")?:"Questões de ${topic.optString("nome")}"
+                            val next=(old?:JSONObject()).put("id",id).put("tipo","trilha").put("topicoChave",key).put("url",url).put("nome",name).put("principal",primary).put("oculto",false).put("atualizadoEm",now)
                             if(old==null)ls.put(next)
                         }
                         plan.put("atualizadoEm",now)

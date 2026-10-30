@@ -11,8 +11,8 @@ android {
         applicationId 'br.com.gabaritei.os.piloto'
         minSdk 26
         targetSdk 35
-        versionCode 6
-        versionName '0.5.1-layout'
+        versionCode 7
+        versionName '0.6.0-caderno'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         manifestPlaceholders = [appLabel: "Gabaritei"]
     }

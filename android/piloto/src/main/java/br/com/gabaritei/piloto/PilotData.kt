@@ -70,6 +70,14 @@ data class Plan(val id: String, val name: String, val disciplines: List<Discipli
         snapshot(RemoteSnapshot(json=next,syncedAt=currentSnapshot()?.syncedAt?:0))
         if(clearTimerId!=null)clearTimer(clearTimerId)
     }
+    @Transaction open suspend fun notebook(values:List<PendingMutation>,planId:String,topicId:String,local:Boolean){
+        val current=currentSnapshot()
+        val next=StateCompat.apply(current?.json?:StateCompat.empty().toString(),values,local)
+        if(!local)values.forEach{enqueue(it)}
+        snapshot(RemoteSnapshot(json=next,syncedAt=current?.syncedAt?:0))
+        // Clear the legacy single URL only after its replacement is safely in the snapshot.
+        if(local)resetLink(planId,topicId)
+    }
     @Transaction open suspend fun acceptRemote(json: String, acknowledged: List<String>) {
         acknowledge(acknowledged)
         // Alterações novas feitas enquanto a rede estava ocupada continuam na fila.

@@ -24,3 +24,14 @@ if(process.argv[3]){
   assert.equal(planned.minutos,20);assert.equal(planned.qFeitas,10);
   console.log('Estudo livre preservado no site e separado dos totais do plano.');
 }
+
+if(process.argv[4]){
+  const notebook=JSON.parse(fs.readFileSync(process.argv[4],'utf8'));notebook.planoAtivoId='p';
+  const normalized=c.window.Store.normalizar(notebook);
+  const links=normalized.planos[0].links;
+  assert.equal(links.length,3);
+  assert.equal(links.filter(l=>l.topicoChave==='plano:d:t').length,3);
+  assert.equal(links.find(l=>l.id==='gran').principal,true);
+  assert.equal(links.find(l=>l.id==='notebook').url,'https://notebooklm.google.com/notebook/x');
+  console.log('Caderno com vários links e IDs preservado no contrato do site.');
+}

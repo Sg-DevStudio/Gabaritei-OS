@@ -51,9 +51,10 @@ jobs:
         env:
           GABARITEI_FIXTURE_OUT: /tmp/gabaritei-contract.json
           GABARITEI_EDITS_FIXTURE_OUT: /tmp/gabaritei-edits-contract.json
+          GABARITEI_NOTEBOOK_FIXTURE_OUT: /tmp/gabaritei-notebook-contract.json
         run: gradle -p android :piloto:assembleDebug :piloto:assembleRelease :piloto:testDebugUnitTest :piloto:lintDebug :piloto:assembleQaAndroidTest --console plain
       - name: Conferir contrato de dados com o site
-        run: node scripts/android-contract-check.cjs /tmp/gabaritei-contract.json /tmp/gabaritei-edits-contract.json
+        run: node scripts/android-contract-check.cjs /tmp/gabaritei-contract.json /tmp/gabaritei-edits-contract.json /tmp/gabaritei-notebook-contract.json
       - uses: actions/upload-artifact@v4
         with:
           name: Gabaritei-Piloto-verificacoes

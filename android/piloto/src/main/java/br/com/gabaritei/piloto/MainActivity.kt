@@ -155,8 +155,10 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var record by remember { mutableStateOf<Pair<Plan,Topic>?>(null) }
     var recordingTimer by remember { mutableStateOf<Timer?>(null) }
     var editLink by remember { mutableStateOf<Topic?>(null) }
+    var chooseLink by remember { mutableStateOf<Topic?>(null) }
     var discard by remember { mutableStateOf<Timer?>(null) }
     val plan=plans.find { it.id==settings?.planId } ?: plans.firstOrNull()
+    val notebookLinks=remember(raw,plan,personal){plan?.let{NotebookLinks.index(raw,it,personal)}.orEmpty()}
     var personalNotebook by rememberSaveable(plan?.id){mutableStateOf(false)}
     var questionSearch by rememberSaveable(plan?.id){mutableStateOf("")}
     var historyDay by rememberSaveable{mutableStateOf<String?>(null)}
@@ -165,7 +167,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val agenda=remember(raw,plan?.id){runCatching{JSONObject(raw).optJSONArray("agenda")?.objects()?.filter{it.optString("planoId")==plan?.id&&it.optString("data")==LocalDate.now().toString()&&!it.optBoolean("feito")}.orEmpty()}.getOrDefault(emptyList())}
     val activeTopics=plan?.disciplines?.filter{!it.paused&&!it.archived}?.flatMap{it.topics}.orEmpty()
     val selected=activeTopics.find { it.id==settings?.topicId } ?: activeTopics.firstOrNull { t -> progress.none { it.planId==plan?.id && it.topicId==t.id && it.completed } } ?: plan?.topics?.firstOrNull() ?: plan?.let{Topic("","Nenhum tópico ativo",null,"")}
-    LaunchedEffect(account?.uid){record=null;recordingTimer=null;editLink=null;picker=false;discard=null;freeStudy=false}
+    LaunchedEffect(account?.uid,plan?.id){chooseLink=null;record=null;recordingTimer=null;editLink=null;picker=false;discard=null;freeStudy=false}
     val nextSuggested=agenda.firstNotNullOfOrNull{a->activeTopics.find{it.id==a.optString("topicoId")&&it.id!=selected?.id}}?:activeTopics.firstOrNull{t->t.id!=selected?.id&&progress.none{it.planId==plan?.id&&it.topicId==t.id&&it.completed}}
     val current=sessions.filter { it.planId==plan?.id }
     val historyRecords=if(historyFree)sessions.filter{it.planId.isEmpty()} else current
@@ -238,7 +240,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                 1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);tab=6},onOpen=onOpen)}
                 2 -> {
                     item{Row(verticalAlignment=Alignment.CenterVertically){Text("Caderno de questões",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold);TextButton(onClick={howTo=true}){Text("Como usar?")}}}
-                    val hasLinks=plan.topics.any{it.link!=null}||personal.any{it.planId==plan.id}
+                    val hasLinks=notebookLinks.values.any{it.isNotEmpty()}
                     if(!hasLinks&&!personalNotebook)item{Block{
                         Text("Caderno ainda não disponível",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
                         Text("Este concurso ainda não tem links organizados. Você pode montar seu caderno com links de outras plataformas.",style=MaterialTheme.typography.bodySmall)
@@ -253,14 +255,15 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                         Block {
                             ExpandableTitle(d.name,expanded){expanded=!expanded}
                             if(expanded||questionSearch.isNotBlank())d.topics.filter{searchKey(d.name).contains(searchKey(questionSearch))||searchKey(it.name).contains(searchKey(questionSearch))}.forEach { t ->
-                                val link=personal.firstOrNull { it.planId==plan?.id&&it.topicId==t.id }?.url ?: t.link
+                                val options=notebookLinks[t.id].orEmpty().distinctBy{it.url}
                                 HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
-                                Text(t.name,style=MaterialTheme.typography.bodyMedium)
-                                if(t.note.isNotBlank()&&link==t.link)Text(t.note,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                                Row(verticalAlignment=Alignment.CenterVertically) {
-                                    if(link!=null){if(Uri.parse(link).host=="questoes.grancursosonline.com.br")FilledTonalIconButton(onClick={onOpen(link)}){Image(painterResource(R.drawable.gran_logo),contentDescription=if(t.noQuestions&&link==t.link)"Consultar no Gran" else "Resolver no Gran",modifier=Modifier.size(28.dp))} else FilledTonalButton(onClick={onOpen(link)}){Text("Abrir questões ↗")}}
-                                    IconButton(onClick={if(!plan.enrolled)creatingPlan=plan else editLink=t}){Icon(Icons.Outlined.Edit,"Editar link de ${t.name}")}
-                                }
+                                NotebookTopicRow(t,if(options.size==1&&options.single().id=="reference")t.note else "",onOpen={
+                                    when(options.size){
+                                        0->if(plan.enrolled)editLink=t else creatingPlan=plan
+                                        1->onOpen(options.single().url)
+                                        else->chooseLink=t
+                                    }
+                                },onEdit={if(plan.enrolled)editLink=t else creatingPlan=plan})
                             }
                         }
                     }
@@ -337,10 +340,11 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     if(confirmImport)AlertDialog(onDismissRequest={confirmImport=false},title={Text("Trazer os estudos locais?")},text={Text("Os $guestCount registros locais serão incluídos na conta ${account?.email.orEmpty()}. A cópia local será mantida e repetir a importação não duplicará os mesmos registros.")},confirmButton={TextButton(onClick={confirmImport=false;vm.importGuest()}){Text("Trazer estudos")}},dismissButton={TextButton(onClick={confirmImport=false}){Text("Cancelar")}})
     if(confirmLocal)AlertDialog(onDismissRequest={confirmLocal=false},title={Text("Reaplicar alterações locais?")},text={Text("Os registros e links pendentes serão aplicados sobre o histórico atual. Exclusões de planos e tópicos feitas no site continuam protegidas.")},confirmButton={TextButton(onClick={confirmLocal=false;vm.synchronize(true)}){Text("Reaplicar")}},dismissButton={TextButton(onClick={confirmLocal=false}){Text("Cancelar")}})
     if(confirmRemote)AlertDialog(onDismissRequest={confirmRemote=false},title={Text("Manter os dados do site?")},text={Text("As alterações pendentes serão guardadas em uma cópia local de recuperação e deixarão de ser enviadas. O app baixará o histórico do site.")},confirmButton={TextButton(onClick={confirmRemote=false;vm.keepRemote()}){Text("Manter versão do site")}},dismissButton={TextButton(onClick={confirmRemote=false}){Text("Cancelar")}})
-    if(howTo)AlertDialog(onDismissRequest={howTo=false},title={Text("Como usar?")},text={Text("Escolha a disciplina e abra as questões do tópico. No lápis, você pode trocar o link ou adicionar outra plataforma.")},confirmButton={TextButton(onClick={howTo=false}){Text("Fechar")}})
+    if(howTo)AlertDialog(onDismissRequest={howTo=false},title={Text("Como usar?")},text={Text("Toque no subtópico para resolver. Se houver mais de um link, escolha a plataforma. Pressione o subtópico para editar ou adicionar links.")},confirmButton={TextButton(onClick={howTo=false}){Text("Fechar")}})
     if(picker&&plan!=null) TopicPicker(plan,progress.filter{it.planId==plan.id},selected?.id,onClose={picker=false},onSelect={vm.select(plan,it);picker=false})
     record?.let { (p,t) -> RecordDialog(p,t,recordingTimer,vm,recordCategory,onClose={record=null;recordingTimer=null;recordCategory=""}) }
-    editLink?.let { t -> if(plan!=null) LinkDialog(personal.firstOrNull{it.planId==plan?.id&&it.topicId==t.id}?.url?:t.link.orEmpty(),onClose={editLink=null},onSave={vm.setLink(plan,t,it){editLink=null}}) }
+    chooseLink?.let{t->if(plan!=null)NotebookChooser(t,notebookLinks[t.id].orEmpty().distinctBy{it.url},onClose={chooseLink=null},onOpen={chooseLink=null;onOpen(it)})}
+    editLink?.let{t->if(plan!=null)NotebookLinksDialog(t,notebookLinks[t.id].orEmpty(),onClose={editLink=null},onSave={old,url,name,remove,done->vm.saveNotebookLink(plan,t,old,url,name,remove,done)})}
     discard?.let { t -> AlertDialog(onDismissRequest={discard=null},title={Text("Descartar cronômetro?")},text={Text("Este tempo não será registrado no histórico.")},confirmButton={TextButton(onClick={vm.discard(t);discard=null}){Text("Descartar")}},dismissButton={TextButton(onClick={discard=null}){Text("Continuar estudando")}}) }
 }
 @Composable private fun TimerCard(t:Timer,vm:PilotViewModel,onFinish:()->Unit,onDiscard:()->Unit) {
@@ -416,16 +420,6 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         validationMessage=null;saving=true;vm.save(plan,topic,input,completed,timer,id,category,day,failed={saving=false;validationMessage="Não foi possível salvar. Tente novamente."}){onClose()}
     }){Text(if(saving)"Salvando…" else "Salvar registro")}},dismissButton={TextButton(enabled=!saving,onClick=onClose){Text("Cancelar")}})
 }
-@Composable private fun LinkDialog(initial:String,onClose:()->Unit,onSave:(String)->Unit) {
-    var value by rememberSaveable{mutableStateOf(initial)}
-    var invalid by remember{mutableStateOf(false)}
-    AlertDialog(onDismissRequest=onClose,title={Text("Editar link de questões")},text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
-        Text("Cole um link do Gran, NotebookLM ou de outra plataforma. Deixe vazio para restaurar o link original.")
-        OutlinedTextField(value,{value=it},label={Text("Link HTTPS")},modifier=Modifier.fillMaxWidth(),maxLines=4,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Uri))
-        if(invalid)Text("Use um endereço HTTPS válido, sem usuário ou senha no link.",color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)
-    }},confirmButton={TextButton(onClick={invalid=value.isNotBlank()&&!StudyRules.safeLink(value.trim());if(!invalid)onSave(value)}){Text("Salvar link")}},dismissButton={TextButton(onClick=onClose){Text("Cancelar")}})
-}
-
 internal fun searchKey(value:String)=java.text.Normalizer.normalize(value,java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}"),"").lowercase(Locale.ROOT)
 @Composable private fun WeekSummary(sessions:List<StudyActivity>,onDay:(LocalDate)->Unit){
     val today=LocalDate.now();val monday=today.minusDays((today.dayOfWeek.value-1).toLong())

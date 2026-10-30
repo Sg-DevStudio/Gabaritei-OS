@@ -38,6 +38,29 @@ class PersistenceTest {
         } finally { db.close();context.deleteDatabase(name) }
     }
 
+    @Test fun multipleNotebookLinksSurviveReopeningAndReplaceLegacyAtomically()=runBlocking{
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val name="notebook-persistence-test.db";context.deleteDatabase(name)
+        var db=Room.databaseBuilder(context,PilotDatabase::class.java,name).build()
+        try{
+            val topic=Topic("t","Crase",null,"");val plan=Plan("p","Concurso",listOf(Discipline("d","Português",listOf(topic))))
+            val entry=org.json.JSONObject().put("id","p").put("plano",org.json.JSONObject()).put("disciplinas",org.json.JSONArray().put(org.json.JSONObject().put("id","d").put("topicos",org.json.JSONArray().put(org.json.JSONObject().put("id","t").put("nome","Crase"))))).put("links",org.json.JSONArray())
+            db.dao().snapshot(RemoteSnapshot(json=StateCompat.empty().put("planos",org.json.JSONArray().put(entry)).toString(),syncedAt=0))
+            db.dao().link(PersonalLink("p","t","https://old.example"))
+            val ops=listOf("https://old.example","https://notebooklm.google.com/notebook/x").mapIndexed{i,url->PendingMutation("op-$i","link",org.json.JSONObject().put("planId","p").put("topicId","t").put("linkId","link-$i").put("url",url).put("beforeUrl","").put("makePrimary",false).toString(),"",1000L+i)}
+            db.dao().notebook(ops,"p","t",true)
+            db.close();db=Room.databaseBuilder(context,PilotDatabase::class.java,name).build()
+            assertTrue(db.dao().links().first().isEmpty());assertTrue(db.dao().pendingNow().isEmpty())
+            assertEquals(listOf("https://old.example","https://notebooklm.google.com/notebook/x"),NotebookLinks.available(db.dao().currentSnapshot()!!.json,plan,topic).map{it.url})
+            // A failed batch must not consume a legacy link or partially save the first operation.
+            db.dao().link(PersonalLink("p","t","https://recovery.example"))
+            val before=db.dao().currentSnapshot()!!.json
+            try{db.dao().notebook(listOf(ops[0].copy(id="new",payload=org.json.JSONObject(ops[0].payload).put("linkId","new").toString()),ops[1].copy(payload=org.json.JSONObject(ops[1].payload).put("topicId","missing").toString())),"p","t",true);fail("Expected conflict")}catch(_:SyncConflict){}
+            assertEquals(before,db.dao().currentSnapshot()!!.json)
+            assertEquals("https://recovery.example",db.dao().links().first().single().url)
+        }finally{db.close();context.deleteDatabase(name)}
+    }
+
     @Test fun explicitCategorySurvivesLocalRecord()=runBlocking {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val db=Room.inMemoryDatabaseBuilder(context,PilotDatabase::class.java).build()

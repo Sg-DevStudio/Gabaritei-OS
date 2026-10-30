@@ -68,3 +68,12 @@ Verificação: 50 testes JVM aprovados; sete testes físicos no pacote QA aprova
 ## Ajuste visual 0.5.1 — 29/10/2026
 
 Frase de destaque movida para o início de Hoje, antes do planejamento, em faixa compacta. Removida a contagem entre parênteses dos cabeçalhos de disciplina no caderno. Mantida a contagem nos detalhes do concurso. Sem mudanças em estudo, cálculos ou sincronização.
+
+
+## Caderno Android 0.6.0 — 30/10/2026
+
+Toque no subtópico abre diretamente seu único endereço; vários endereços distintos abrem um seletor central com o nome da plataforma. Pressionar o subtópico abre o gerenciamento de links, com inclusão, edição e remoção. Sem ícones de Gran/lápis em cada linha. A ajuda curta explica os dois gestos; ações de toque e toque longo recebem rótulos de acessibilidade.
+
+Todos os links pessoais do tópico são lidos, preservando IDs e a separação entre contas. A primeira personalização guarda a referência anterior junto com a nova plataforma, seguindo o contrato do site. URLs repetidas aparecem uma vez no seletor, sem apagar os registros originais. Exclusões e conflitos continuam protegidos. O armazenamento local usa o snapshot existente, sem migração de esquema ou limpeza de dados; a conversão do link legado é transacional. Ao remover o último link, um marcador oculto evita restaurar a referência automaticamente. HTTPS capitalizado pelo teclado é normalizado sem alterar os filtros.
+
+Conferências: 58 testes JVM aprovados, lint sem erros (39 avisos), catálogo offline e três contratos de compatibilidade com as regras reais do site aprovados. Teste instrumentado no S25 confirmou vários links após reabrir o banco e recuperação integral após falha transacional. No app QA separado: toque simples abriu o Gran; toque longo abriu a edição; adicionar NotebookLM preservou o Gran; seletor central exibiu as duas opções; selecionar Gran abriu seu app. Capturas conferidas em modo escuro. Dados de QA, capturas e backups ficam fora do Git. Não houve login nem edição na conta principal durante esses testes.

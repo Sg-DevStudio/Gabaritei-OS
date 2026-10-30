@@ -204,19 +204,23 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             d.settings(Settings(planId=p.id,topicId=topic.id));if(plan.owner==account.value?.uid.orEmpty())success()
         }catch(e:Exception){error.value=e.message?:"Não foi possível salvar. Tente novamente.";failed()}}
     }
-    fun setLink(plan:Plan,topic:Topic,url:String,success:()->Unit){
-        if(url.isNotBlank()&&!StudyRules.safeLink(url.trim())){error.value="Use um link HTTPS válido.";return}
-        viewModelScope.launch{try{
-            val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d)
-            if(plan.owner.isEmpty()){if(url.isBlank())d.resetLink(p.id,topic.id) else d.link(PersonalLink(p.id,topic.id,url.trim()))}
-            else{
-                val raw=JSONObject(d.currentSnapshot()!!.json);val entry=raw.array("planos").objects().first{it.getString("id")==p.id};val key="plano:${p.discipline(topic).id}:${topic.id}"
-                val old=entry.array("links").objects().filter{it.optString("topicoChave")==key&&!it.optBoolean("oculto")}.sortedByDescending{it.optBoolean("principal")}.firstOrNull()
-                val payload=JSONObject().put("planId",p.id).put("topicId",topic.id).put("linkId",old?.optString("id")?:"android-link-${UUID.randomUUID()}").put("beforeUrl",old?.optString("url").orEmpty()).put("url",url.trim())
-                d.mutate(mutation(d,"link",payload))
-            }
-            if(plan.owner==account.value?.uid.orEmpty())success()
-        }catch(e:Exception){error.value=e.message?:"Não foi possível salvar o link."}}
+    fun saveNotebookLink(plan:Plan,topic:Topic,old:QuestionLink?,url:String,name:String,remove:Boolean=false,onDone:(String?)->Unit)=viewModelScope.launch{
+        try{
+            check(plan.owner==account.value?.uid.orEmpty()){"A conta mudou. Reabra o plano."}
+            val value=NotebookLinks.cleanUrl(url)
+            require(remove||StudyRules.safeLink(value)){"Use um link HTTPS válido."}
+            val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensureLocalEditable(plan,d)
+            val raw=d.currentSnapshot()?.json?:StateCompat.empty().toString()
+            val entries=NotebookLinks.entries(raw,p,topic,if(p.owner.isEmpty())d.links().first()else emptyList())
+            require(remove||entries.none{it.id!=old?.id&&it.url==value}){"Este link já está neste tópico."}
+            val payloads=mutableListOf<JSONObject>()
+            // On first customization, materialize the other defaults just as the website does.
+            if(NotebookLinks.rows(raw,p,topic).isEmpty())entries.filter{it.id!=old?.id}.forEach{entry->payloads+=JSONObject().put("planId",p.id).put("topicId",topic.id).put("linkId","android-link-${UUID.randomUUID()}").put("beforeUrl","").put("url",entry.url).put("name",entry.label).put("makePrimary",false)}
+            payloads+=JSONObject().put("planId",p.id).put("topicId",topic.id).put("linkId",old?.takeIf{it.persisted}?.id?:"android-link-${UUID.randomUUID()}").put("beforeUrl",if(old?.persisted==true)old.url else "").put("url",if(remove)""else value).put("name",name).put("makePrimary",false).put("keepEmpty",true).also{if(old?.persisted==true)it.put("beforeName",old.name)}
+            val ops=payloads.mapIndexed{i,payload->mutation(d,"link",payload).let{it.copy(createdAt=it.createdAt+i)}}
+            d.notebook(ops,p.id,topic.id,p.owner.isEmpty())
+            if(plan.owner==account.value?.uid.orEmpty())onDone(null)
+        }catch(e:Exception){onDone(e.message?:"Não foi possível salvar o link.")}
     }
     fun edit(plan:Plan,payload:JSONObject,onDone:(String?)->Unit={})=viewModelScope.launch{
         try{
