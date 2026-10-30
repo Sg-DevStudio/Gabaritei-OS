@@ -199,6 +199,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             }} }
             when(tab) {
                 0 -> {
+                    item { Surface(shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.primaryContainer){Text("Um tópico por vez. Cada sessão conta.",Modifier.fillMaxWidth().padding(14.dp),color=MaterialTheme.colorScheme.onPrimaryContainer,style=MaterialTheme.typography.bodyMedium,fontWeight=FontWeight.SemiBold)} }
                     timer?.let { t -> item { TimerCard(t,vm,onFinish=finish@{
                         val p=plans.firstOrNull { it.id==t.planId };val topic=p?.topics?.firstOrNull { it.id==t.topicId }
                         if(p==null||topic==null){vm.error.value="O plano ou tópico foi removido. O tempo permanece salvo no aparelho.";return@finish}
@@ -233,7 +234,6 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     item { Row{TextButton(onClick={tab=5}){Text("Ver planejamento")};TextButton(onClick={freeStudy=true}){Text("Estudo livre")}} }
                     val due=runCatching{JSONObject(raw).array("revisoes").objects().count{it.optString("planoId")==plan.id&&it.isNull("dataConcluida")&&it.optString("dataAgendada")<=LocalDate.now().toString()}}.getOrDefault(0)
                     if(due>0)item{Block{Text("$due revisões pendentes",fontWeight=FontWeight.SemiBold);TextButton(onClick={tab=7}){Text("Revisar agora")}}}
-                    item { Block {Text("Um tópico por vez. Cada sessão conta.",style=MaterialTheme.typography.bodyMedium);Text(if(account==null)"Entre com Google para compartilhar o histórico com o site." else "Seus estudos são salvos no aparelho e sincronizados com sua conta.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)} }
                 }
                 1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);tab=6},onOpen=onOpen)}
                 2 -> {
@@ -251,7 +251,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     items(filtered,key={it.id}) { d ->
                         var expanded by rememberSaveable(plan.id,d.id){mutableStateOf(false)}
                         Block {
-                            ExpandableTitle("${d.name} (${d.topics.size})",expanded){expanded=!expanded}
+                            ExpandableTitle(d.name,expanded){expanded=!expanded}
                             if(expanded||questionSearch.isNotBlank())d.topics.filter{searchKey(d.name).contains(searchKey(questionSearch))||searchKey(it.name).contains(searchKey(questionSearch))}.forEach { t ->
                                 val link=personal.firstOrNull { it.planId==plan?.id&&it.topicId==t.id }?.url ?: t.link
                                 HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)

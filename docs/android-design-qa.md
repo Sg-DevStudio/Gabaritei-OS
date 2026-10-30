@@ -63,3 +63,8 @@ Lembretes opcionais: dias, horário aproximado, prévia com emoji, canal separad
 Gran Questões 5.2.37: registrados `/aluno/filtro/concursos` e `/simulados/`; URLs dos cadernos usam `/questoes`. A adaptação nativa mantém toda a query, usa o pacote do Gran e deixa a URL web original como alternativa. Interpretação de Textos e Regência/Crase foram abertos e conferidos sem responder questões, inclusive com o Gran já aberto. Fonte Android: https://developer.android.com/training/app-links/about . O comportamento depende da versão do aplicativo Gran; o site conserva os links web.
 
 Verificação: 50 testes JVM aprovados; sete testes físicos no pacote QA aprovados, incluindo cache offline/corrompido, entrega de notificação, supressão após estudo e durante cronômetro, persistência e sincronização com Firebase Emulator. Site: 335 testes aprovados, sete ignorados. Lint sem erros (39 avisos). A cópia QA recebeu nome distinto e backup prévio (zero sessões), sem alterar o banco do app principal. Não incluir capturas pessoais no Git.
+
+
+## Ajuste visual 0.5.1 — 29/10/2026
+
+Frase de destaque movida para o início de Hoje, antes do planejamento, em faixa compacta. Removida a contagem entre parênteses dos cabeçalhos de disciplina no caderno. Mantida a contagem nos detalhes do concurso. Sem mudanças em estudo, cálculos ou sincronização.
