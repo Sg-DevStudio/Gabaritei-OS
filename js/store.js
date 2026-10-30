@@ -1344,6 +1344,11 @@
     function chaveFoto(foto) { return foto && typeof foto.imagem === 'string' ? [Math.max(0, Number(foto.rev) || 0), String(foto.em || ''), foto.imagem] : [-1, '', '']; }
     const ca=chaveFoto(fotoA), cb=chaveFoto(fotoB);
     if(cb[0]>ca[0] || (cb[0]===ca[0] && (cb[1]>ca[1] || (cb[1]===ca[1] && cb[2]>ca[2])))) merged.config.fotoPerfil=clonarJson(fotoB);
+    // O site preserva a personalização do Android ao sincronizar outras preferências.
+    const layoutA=merged.config.inicioLayout, layoutB=outro.config && outro.config.inicioLayout;
+    function chaveLayout(value) { return value && Array.isArray(value.ordem) && Array.isArray(value.ocultos) ? [Math.max(0, Number(value.rev)||0), String(value.em||''), JSON.stringify(value)] : [-1,'','']; }
+    const la=chaveLayout(layoutA), lb=chaveLayout(layoutB);
+    if(lb[0]>la[0] || (lb[0]===la[0] && (lb[1]>la[1] || (lb[1]===la[1] && lb[2]>la[2])))) merged.config.inicioLayout=clonarJson(layoutB);
     // Flags de onboarding são "sticky": uma vez vistas, não devem regredir para
     // false por causa de uma base remota mais antiga que não tinha o campo.
     if (outro.config) {

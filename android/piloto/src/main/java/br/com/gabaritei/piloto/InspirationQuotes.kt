@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 data class InspirationQuote(val text:String,val author:String,val source:String,val translated:Boolean=false)
 
-/** Short excerpts with attribution; translated excerpts are labelled in the interface. */
+/** Short excerpts with attribution and source links. */
 object InspirationQuotes {
     val entries=listOf(
         InspirationQuote("Põe quanto és no mínimo que fazes.","Ricardo Reis · Fernando Pessoa","https://pt.wikisource.org/wiki/Para_ser_grande,_s%C3%AA_inteiro"),

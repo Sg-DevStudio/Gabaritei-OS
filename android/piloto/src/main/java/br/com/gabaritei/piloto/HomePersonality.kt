@@ -7,9 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Refresh
 import java.time.LocalDate
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,19 +16,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable internal fun MotivationCard(onOpen:(String)->Unit){
-    val day=LocalDate.now()
-    var offset by rememberSaveable(day.toString()){mutableStateOf(0)}
-    val quote=InspirationQuotes.forDay(day,offset)
+    val day by produceState(LocalDate.now()){while(true){value=LocalDate.now();kotlinx.coroutines.delay(60_000)}}
+    val quote=InspirationQuotes.forDay(day)
     Surface(shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.primaryContainer){
         Row(Modifier.fillMaxWidth().padding(start=14.dp,end=4.dp,top=10.dp,bottom=10.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){
             Text("“",fontSize=36.sp,lineHeight=40.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary.copy(alpha=.45f))
             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
                 Text(quote.text,style=MaterialTheme.typography.bodyMedium,fontStyle=FontStyle.Italic,color=MaterialTheme.colorScheme.onPrimaryContainer)
                 TextButton(onClick={onOpen(quote.source)},contentPadding=PaddingValues(0.dp),modifier=Modifier.align(Alignment.End)){
-                    Text(quote.author+if(quote.translated)" · Tradução livre"else"",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha=.8f))
+                    Text(quote.author,style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha=.8f))
                 }
             }
-            IconButton(onClick={offset=(offset+1)%InspirationQuotes.entries.size}){Icon(Icons.Outlined.Refresh,"Outra frase",Modifier.size(18.dp),tint=MaterialTheme.colorScheme.primary)}
         }
     }
 }

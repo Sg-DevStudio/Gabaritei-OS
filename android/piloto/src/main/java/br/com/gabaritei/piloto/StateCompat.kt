@@ -39,6 +39,8 @@ object StateCompat {
                     p.optJSONArray("agenda")?.objects()?.forEach{block->if(!removed(s,block.optString("id"))&&!deleted(s,"agenda",id,block.optString("id")))s.array("agenda").put(block)}
                 }
                 if(s.isNull("planoAtivoId"))s.put("planoAtivoId",id)
+            } else if(m.kind=="home-layout"){
+                HomeLayouts.apply(s,p,now,force)
             } else if(m.kind=="profile-photo"){
                 val image=p.getString("image");require(image.isEmpty()||ProfilePhoto.safe(image)){"Foto inválida."}
                 val config=s.obj("config");val previous=config.optJSONObject("fotoPerfil")

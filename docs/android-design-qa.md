@@ -122,3 +122,20 @@ Seleção diária determinística, troca manual no Android e fonte acessível ao
 - Três testes instrumentados físicos de exportação validaram PNG privado, troféus conquistados, título longo e bloqueio de acesso ao banco/foto pelo provider. A massa sintética de design existe somente no pacote QA, com guarda de pacote e conta local.
 
 Limites: fonte extrema/TalkBack e outros aparelhos ainda precisam de rodada dedicada. Login Google de produção continua aguardando a escolha da conta pelo titular; testes de emulador não substituem essa etapa. A auditoria externa de dependências das Functions tem alertas anteriores a este diff e não é declarada aprovada por esta rodada visual.
+
+
+## Personalização Android 0.9.0 e polida do site — 30/10/2026
+
+Apenas o Android oferece reorganização da inicial, conforme a correção de escopo do usuário. Configurações → Tela inicial permite ocultar cartões, mover por setas e restaurar o padrão. Temporizador ativo e contexto do plano permanecem acessíveis. Preferência por conta no campo config.inicioLayout, com ordem, ocultos, rev e em. Não migra banco nem altera estudos. Atualizações concorrentes incompatíveis geram conflito recuperável; campos futuros são preservados. O site preserva a preferência Android ao mesclar o estado, sem oferecer um editor de layout.
+
+Frase estável durante o dia, com mudança automática por data; retirados o rótulo Tradução livre da exibição e a troca manual no app. Autoria e fonte continuam acessíveis. A coleção atual circula por três trechos verificados, sem promessa de frase inédita indefinidamente. Espaço entre título, disciplina e assunto em Ainda hoje ampliado nas duas versões.
+
+Lápis do site abre disciplinas e assuntos do plano inteiro. Trocar de disciplina atualiza também o vínculo da agenda, mantém o bloco escolhido como próximo enquanto estiver pendente e encaminha timer/registro ao assunto correto. Blocos parcialmente estudados continuam protegidos. O seletor nativo já oferecia o plano inteiro.
+
+Polida web: cartões e botões consistentes, sete dias do calendário visíveis no desktop, logos completos, conquistas legíveis, constância com datas no início das estatísticas e também no celular. Percentuais independentes por disciplina usam barras de 0 a 100%, mantendo ausência de amostra diferente de acerto zero. Busca não redesenha a lista durante o clique de saída do campo e preserva foco/cursor nas atualizações.
+
+Validação: 88 testes JVM, lint sem erros (42 avisos), três contratos Kotlin → site e 338 testes web aprovados (sete ignorados). Conferência web em Chrome isolado, 320/390/768/1024/1440px, claro e escuro, sete rotas, pesquisa/detalhes/caderno, seleção de outra disciplina, calendário, filtros, metas, conquistas, ajuda e configurações. Sem erros de página/console ou transbordamento horizontal. Browser plugin específico indisponível; usado Playwright local. Evidências e massas de teste ficam fora do Git.
+
+Teste físico de sincronização com Auth/Firestore Emulator no S25 confirmou mudança de layout, restauração do padrão entre dois clientes da mesma conta, preservação das sessões e bloqueio de leitura por outra conta. Login Google de produção continua aguardando o titular. A auditoria de dependências das Functions mantém alertas anteriores, separados desta rodada de UI.
+
+No QA físico do S25: esconder frase, mover metas, salvar, reabrir o app e restaurar padrão conferidos. O seletor de assuntos mostrou outras disciplinas do plano. Atualização release 0.9.0 com certificado compatível, sem depuração, instalada sobre o app existente. Massa QA arquivada em backup privado e pacote de teste removido.

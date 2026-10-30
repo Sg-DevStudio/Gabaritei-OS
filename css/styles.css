@@ -40,8 +40,8 @@
 
   --raio: 12px;
   --raio-s: 8px;
-  --sombra: 0 18px 44px rgba(23, 24, 28, 0.08), 0 1px 2px rgba(23, 24, 28, 0.04);
-  --sombra-suave: 0 10px 28px rgba(23, 24, 28, 0.06);
+  --sombra: 0 4px 16px rgba(23, 24, 28, 0.04);
+  --sombra-suave: 0 2px 8px rgba(23, 24, 28, 0.035);
   --sidebar-larg: 240px;
   --abas-alt: 68px;
   --topbar-alt: 52px;
@@ -723,9 +723,9 @@ html[data-tema="escuro"] .login-preview-grid span.ativo {
    Componentes
    ============================================================ */
 .card {
-  background: var(--vidro);
-  border: 1px solid rgba(197, 204, 219, 0.76);
-  border-radius: var(--raio);
+  background: var(--papel-card);
+  border: 1px solid var(--linha);
+  border-radius: 16px;
   padding: 1.1rem 1.2rem;
   box-shadow: var(--sombra);
   margin-bottom: 1rem;
@@ -854,11 +854,11 @@ button, .botao {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  box-shadow: 0 8px 18px rgba(36, 84, 214, 0.18);
+  box-shadow: none;
   transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, filter 0.16s ease;
 }
 
-button:hover, .botao:hover { filter: brightness(1.05); transform: translateY(-1px); box-shadow: 0 10px 22px rgba(36, 84, 214, 0.26); }
+button:hover, .botao:hover { filter: brightness(1.04); transform: none; box-shadow: none; }
 button:active, .botao:active { transform: translateY(0); }
 button:disabled { background: var(--grafite-claro); color: var(--grafite); cursor: not-allowed; box-shadow: none; }
 
@@ -880,7 +880,7 @@ button:disabled { background: var(--grafite-claro); color: var(--grafite); curso
 .botao-quieto:hover { background: var(--papel); filter: none; }
 
 .botao-perigo { background: linear-gradient(180deg, #D55346, #B83A2E); }
-.botao-mini { min-height: 32px; padding: 0.25rem 0.78rem; font-size: 0.82rem; border-radius: 999px; }
+.botao-mini { min-height: 34px; padding: 0.3rem 0.78rem; font-size: 0.82rem; border-radius: 10px; }
 
 /* Botão flutuante (tema claro/escuro) */
 .botao-flutuante {
@@ -2670,7 +2670,7 @@ td.num, th.num { text-align: right; }
 
 .agenda-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
   /* Cada dia tem a altura do próprio conteúdo (mín. 170px): sem isso o grid
      estica TODAS as colunas até a altura do dia mais cheio, deixando um vão
@@ -2678,6 +2678,7 @@ td.num, th.num { text-align: right; }
   align-items: start;
 }
 .agenda-dia {
+  min-width: 0;
   background: var(--vidro);
   border: 1px solid var(--linha);
   border-radius: var(--raio-s);
@@ -2698,6 +2699,7 @@ td.num, th.num { text-align: right; }
 .agenda-dia-cab .num { font-size: 0.9rem; color: var(--tinta); }
 
 .agenda-bloco {
+  min-width: 0;
   display: flex;
   align-items: flex-start;
   gap: 0.35rem;
@@ -3439,7 +3441,7 @@ canvas.grafico {
     line-height: 1.25;
   }
   .stats-constancia-faixa {
-    display: none;
+    display: block;
   }
   .stats-horas-disc-card {
     display: none;
@@ -3712,7 +3714,7 @@ canvas.grafico {
 .cm-rotulo { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--grafite); }
 .cm-valor { font-family: var(--fonte-mono); font-size: 0.86rem; font-weight: 600; }
 .catalogo-sub { font-size: 0.8rem; color: var(--grafite); }
-.catalogo-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.15rem; }
+.catalogo-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: auto; padding-top: 0.4rem; }
 .carreira-metodologia {
   margin: 0.65rem 0 0.8rem;
   padding: 0.75rem 0.85rem;
@@ -4558,12 +4560,12 @@ canvas.grafico {
 .ferramentas-intro { max-width: 720px; margin-bottom: 24px; }
 .ferramentas-intro h1 { margin: 10px 0; }
 .ferramentas-intro .sub { font-size: 1rem; line-height: 1.65; }
-.ferramentas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 20px; align-items: stretch; }
+.ferramentas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 20px; align-items: stretch; }
 .ferramenta-card { padding: 0; overflow: hidden; margin: 0; }
-.ferramenta-capa { height: 160px; flex: 0 0 160px; position: relative; display: flex; align-items: center; justify-content: center; padding: 16px 24px 42px; background: #F7F8FA; overflow: hidden; border-bottom: 1px solid var(--linha); }
+.ferramenta-capa { height: 132px; flex: 0 0 132px; position: relative; display: flex; align-items: center; justify-content: center; padding: 16px 24px 42px; background: #F7F8FA; overflow: hidden; border-bottom: 1px solid var(--linha); }
 .ferramenta-capa img { width: 100%; max-width: 240px; height: 96px; object-fit: contain; display: block; }
 .ferramenta-categoria { position: absolute; bottom: 12px; left: 16px; background: #fff; color: #15171D; border-radius: 20px; padding: 5px 11px; font-size: .75rem; font-weight: 600; box-shadow: 0 2px 10px #0002; }
-.ferramenta-corpo { display: flex; flex-direction: column; flex: 1; padding: 20px; font-size: .9rem; line-height: 1.6; }
+.ferramenta-corpo { display: flex; flex-direction: column; flex: 1; padding: 18px; font-size: .9rem; line-height: 1.55; }
 .ferramenta-corpo h2 { font-size: 1.22rem; margin: 0 0 3px; }
 .ferramenta-foco { color: var(--caneta); font-weight: 600; margin: 0 0 12px; }
 .ferramenta-corpo details { border-top: 1px solid var(--linha); margin-top: 16px; padding-top: 14px; }
@@ -5241,3 +5243,61 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 
 .frase-dia a.autor { color: inherit; text-decoration: none; }
 .frase-dia a.autor:hover { color: var(--caneta); }
+
+/* Consistência visual entre as telas e áreas de toque preservadas no celular. */
+#conteudo { padding-bottom: 96px; }
+#topbar { box-shadow: none; }
+.catalogo-card, .planejamento-card, .settings-group { border-color: var(--linha); }
+.catalogo-card-info h3 { line-height: 1.4; }
+.plano-acoes-card { gap: 8px; }
+.agenda-dia-cab { flex-wrap: wrap; gap: 2px 6px; }
+.agenda-add { min-width: 0; width: 100%; }
+.hoje-integrada .proximo-estudo .fila-titulo { font-size: .82rem; line-height: 1.5; }
+.hoje-integrada .proximo-estudo .disciplina-destaque { font-size: .93rem; }
+.hoje-integrada .proximo-estudo .fila-acoes button { font-size: .79rem; }
+.hoje-integrada .hoje-frase .frase-dia { font-size: .9rem; line-height: 1.65; }
+.hoje-integrada .hoje-conquistas-topo .medalha:not(.ganha) { opacity: 1; filter: none; }
+.hoje-integrada .hoje-conquistas-topo .medalha:not(.ganha) .medalha-icone { opacity: .65; filter: grayscale(1); }
+.hoje-integrada .hoje-conquistas-topo .medalha-titulo { font-size: .72rem; line-height: 1.35; }
+.hoje-integrada .hoje-conquistas-topo .medalha small { color: var(--grafite); font-size: .68rem; }
+.stats-constancia-faixa { border-radius: 16px; }
+.stats-constancia-faixa .constancia-faixa-topo { align-items: start; gap: 12px; }
+.stats-constancia-faixa .constancia-trilho { display: grid; grid-template-columns: repeat(15,minmax(0,1fr)); gap: 6px; border: 0; background: none; }
+.stats-constancia-faixa .constancia-dia { display: grid; place-content: center; gap: 1px; min-width: 0; min-height: 42px; border: 0; border-radius: 8px; line-height: 1.1; font-size: .95rem; }
+.stats-constancia-faixa .constancia-dia small { font-size: .65rem; font-weight: 500; }
+.stats-constancia-faixa .constancia-pendente { background: var(--caneta-suave); color: var(--caneta-forte); outline: 1px solid var(--caneta); outline-offset: -1px; }
+.stats-constancia-faixa .constancia-feito { background: var(--correto-suave); color: var(--correto); }
+.stats-kpis .stats-kpi-percentage .card-kpi-valor { color: var(--caneta-forte); }
+.stats-linha-graficos > .card { min-width: 0; }
+.ferramenta-card { box-shadow: none; }
+.ferramenta-card:hover { transform: none; }
+.ferramenta-acoes { gap: 8px; }
+.ferramenta-guia { text-decoration: none; }
+@media (max-width: 760px) {
+  #conteudo { padding-bottom: calc(var(--abas-alt) + env(safe-area-inset-bottom) + 88px); }
+  .compact-actions > button, .compact-actions > a, .catalogo-acoes > button, .catalogo-acoes > a, .rev-seg button { min-height: 44px; }
+  .hoje-integrada .proximo-estudo .fila-acoes button { min-height: 44px; }
+  .stats-kpis .stats-kpi-full { grid-column: auto; }
+  .stats-kpis .card-kpi { min-height: 112px; }
+  .stats-kpis .card-kpi-rotulo { font-size: .67rem; line-height: 1.4; letter-spacing: .045em; }
+  .stats-constancia-faixa .constancia-faixa-topo { flex-wrap: wrap; }
+  .stats-constancia-faixa .constancia-trilho { grid-template-columns: repeat(10,minmax(0,1fr)); gap: 4px; }
+  .stats-constancia-faixa .constancia-dia { min-height: 36px; border-radius: 6px; }
+  .stats-constancia-faixa .constancia-periodo { font-size: .75rem; }
+  .hoje-integrada .hoje-conquistas-topo .medalha-titulo { font-size: .68rem; }
+  .hoje-integrada .hoje-conquistas-topo .medalha small { font-size: .63rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
+
+/* Logos completos e datas legíveis também nos dias de folga. */
+.catalogo-foto img[src*=".svg"], .plano-atual-foto img { object-fit: contain; padding: 6px; background: #fff; }
+.stats-constancia-faixa .constancia-folga { color: var(--grafite); background: var(--papel-elevado); }
+.stats-constancia-faixa .constancia-folga::before { display: none; }
+
+.hoje-ainda-cab { margin-bottom: 10px; }
+.hoje-integrada .hoje-ainda .disciplina-destaque { display: block; margin: 5px 0 7px; line-height: 1.45; }
+.hoje-integrada .hoje-ainda .fila-titulo { line-height: 1.6; }
+.inicio-topicos-disciplina { margin-bottom: 10px; }
+.inicio-topicos-disciplina > summary { cursor: pointer; padding: 12px 8px; font-weight: 600; border-bottom: 1px solid var(--linha); }

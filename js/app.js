@@ -2023,15 +2023,16 @@
     const fim = dias.length ? dias[dias.length - 1].data : hoje;
     return '<div class="constancia-faixa">' +
       '<div class="constancia-faixa-topo"><div><div class="card-kpi-rotulo">⚡ Constância nos estudos</div>' +
-      '<p>Você está há <strong>' + st.atual + (st.atual === 1 ? ' dia' : ' dias') + '</strong> sem falhar! Seu recorde é de <strong>' + st.recorde + (st.recorde === 1 ? ' dia' : ' dias') + '</strong>.</p></div>' +
-      '<div class="constancia-periodo"><button class="botao-mini botao-quieto" type="button" disabled>‹</button><span>' + D.formatarDataBR(inicio).slice(0, 5) + ' ~ ' + D.formatarDataBR(fim).slice(0, 5) + '</span><button class="botao-mini botao-quieto" type="button" disabled>›</button></div></div>' +
+      '<p><strong>' + st.atual + (st.atual === 1 ? ' dia seguido' : ' dias seguidos') + '</strong> de estudo. Maior sequência: <strong>' + st.recorde + (st.recorde === 1 ? ' dia' : ' dias') + '</strong>.</p></div>' +
+      '<div class="constancia-periodo">' + D.formatarDataBR(inicio).slice(0, 5) + ' a ' + D.formatarDataBR(fim).slice(0, 5) + '</div></div>' +
       '<div class="constancia-trilho">' + dias.map(function (d) {
         const fez = d.minutos > 0 || d.questoes > 0;
         const folga = !fez && diaFolgaRotina(d.data);
-        const classe = fez ? 'feito' : (folga ? 'folga' : 'falha');
-        const simbolo = fez ? '✓' : (folga ? '•' : '×');
-        const titulo = D.formatarDataBR(d.data) + ' — ' + (folga ? 'folga planejada' : D.formatarMin(d.minutos) + (d.questoes ? ' · ' + d.questoes + ' questões' : ''));
-        return '<span class="constancia-dia constancia-' + classe + '" aria-label="' + esc(titulo) + '">' + simbolo + '</span>';
+        const pendente = !fez && d.data === hoje;
+        const classe = fez ? 'feito' : (pendente ? 'pendente' : (folga ? 'folga' : 'falha'));
+        const simbolo = fez ? '✓' : (pendente ? '·' : (folga ? '•' : '×'));
+        const titulo = D.formatarDataBR(d.data) + ' — ' + (pendente ? 'sem registro até agora' : folga ? 'folga planejada' : D.formatarMin(d.minutos) + (d.questoes ? ' · ' + d.questoes + ' questões' : ''));
+        return '<span class="constancia-dia constancia-' + classe + '" title="' + esc(titulo) + '" aria-label="' + esc(titulo) + '"><span aria-hidden="true">' + simbolo + '</span><small aria-hidden="true">' + Number(d.data.slice(-2)) + '</small></span>';
       }).join('') + '</div></div>';
   }
 
@@ -2316,7 +2317,7 @@
     // acima do mapa de constância (mantém a posição atual). Renderizamos as duas
     // variantes e o CSS mostra a adequada a cada tela.
     const provaCard = state.plano ? '<div class="card prova-card prova-card-solo">' + provaEstimadaConteudoHtml() + '</div>' : '';
-    const fraseHtml = '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<a class="autor" href="' + esc(frase.s) + '" target="_blank" rel="noopener noreferrer">' + esc(frase.a) + (frase.tr ? ' · Tradução livre' : '') + '</a>' : '') + '</div>';
+    const fraseHtml = '<div class="frase-dia">“' + esc(frase.t) + '”' + (frase.a ? '<a class="autor" href="' + esc(frase.s) + '" target="_blank" rel="noopener noreferrer">' + esc(frase.a) + '</a>' : '') + '</div>';
 
     // Coluna esquerda (saudação + frase do dia) ao lado do card de data provável.
     // No desktop a frase sobe para preencher o vão do meio; no mobile tudo empilha.
@@ -4892,18 +4893,17 @@
     const totalMin = totais.minutos, totalQ = totais.qFeitas, totalC = totais.qCertas;
 
     const statsMobile = window.matchMedia && window.matchMedia('(max-width: 560px)').matches;
-    let html = '<h1 class="sr-only">Desempenho</h1><div class="linha-cards stats-kpis">' +
-      '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Tempo total</div><div class="card-kpi-valor">' + D.formatarMin(totalMin) + '</div>' +
-      '<div class="card-kpi-extra">' + D.formatarMin(meta.minutos) + ' nesta semana</div></div>' +
-      '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + totalQ + '</div>' +
-      '<div class="card-kpi-extra">' + (totalQ > 0 ? Math.round((totalC / totalQ) * 100) + '% de acerto' : '—') + '</div></div>' +
-      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">Desempenho ponderado × meta</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
-      '<div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
-      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">⚡ Constância</div><div class="card-kpi-valor">' + st.atual + ' ' + (st.atual === 1 ? 'dia' : 'dias') + '</div>' +
-      '<div class="card-kpi-extra">recorde: ' + st.recorde + ' · edital: ' + prog.pct + '%</div></div>' +
-      '</div>';
-
-    html += '<div class="card stats-constancia-faixa">' + constanciaFaixaHtml(30) + '</div>';
+    let html = '<h1 class="sr-only">Desempenho</h1>' +
+      '<div class="card stats-constancia-faixa">' + constanciaFaixaHtml(30) + '</div>' +
+      '<div class="linha-cards stats-kpis">' +
+      '<div class="card card-kpi stats-kpi-inline stats-kpi-percentage"><div class="card-kpi-rotulo">Desempenho ponderado</div><div class="card-kpi-valor">' + semaforoHtml(geral, metaPct) + '</div>' +
+      '<div class="card-kpi-extra">Meta de corte: ' + metaPct + '%</div></div>' +
+      '<div class="card card-kpi stats-kpi-inline"><div class="card-kpi-rotulo">Questões resolvidas</div><div class="card-kpi-valor">' + totalQ + '</div>' +
+      '<div class="card-kpi-extra">' + (totalQ > 0 ? Math.round((totalC / totalQ) * 100) + '% de acerto' : 'Sem questões registradas') + '</div></div>' +
+      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">Progresso no edital</div><div class="card-kpi-valor">' + prog.pct + '%</div>' +
+      '<div class="card-kpi-extra">' + prog.concluidos + ' de ' + prog.total + ' tópicos</div></div>' +
+      '<div class="card card-kpi stats-kpi-full"><div class="card-kpi-rotulo">Tempo de estudo</div><div class="card-kpi-valor">' + D.formatarMin(totalMin) + '</div>' +
+      '<div class="card-kpi-extra">' + D.formatarMin(meta.minutos) + ' nesta semana</div></div></div>';
 
     const horasDisc = dadosHorasPorDisciplina();
     const topicosDesempenho = dadosTopicosDesempenho(statsTopicosFiltro);
@@ -4921,7 +4921,7 @@
     const hDisc = statsMobile ? 340 : 380;
     const hTop = statsMobile ? 360 : Math.max(280, Math.min(640, topicosDesempenho.length * 38 + 86));
 
-    // Desktop: pizza + evolução semanal lado a lado. Mobile: só a pizza (a
+    // Desktop: percentuais por disciplina + evolução semanal. Mobile: só as barras (a
     // "Evolução semanal" sai no celular — pedido do usuário) e o gráfico de
     // tópicos vira o de pontos por período (ver topicosDesempenhoMobileHtml).
     if (statsMobile) {
@@ -6353,22 +6353,20 @@
     });
     const busca = raiz.querySelector('#cat-busca');
     if (busca) {
-      const aplicarBusca = function () { catalogoFiltro.busca = busca.value; render(); };
-      busca.addEventListener('change', aplicarBusca);
-      busca.addEventListener('keydown', function (e) { if (e.key === 'Enter') aplicarBusca(); });
-      let buscaPendente = null;
-      busca.addEventListener('input', function () {
+      let buscaPendente;
+      const aplicarBusca = function () {
+        if (!busca.isConnected) return;
         clearTimeout(buscaPendente);
-        const valor = busca.value;
-        buscaPendente = setTimeout(function () {
-          catalogoFiltro.busca = valor;
-          render();
-          const novoCampo = document.querySelector('#cat-busca');
-          if (novoCampo) {
-            novoCampo.focus();
-            novoCampo.setSelectionRange(novoCampo.value.length, novoCampo.value.length);
-          }
-        }, 180);
+        catalogoFiltro.busca = busca.value;
+        render();
+      };
+      busca.addEventListener('input', function () {
+        catalogoFiltro.busca = busca.value;
+        clearTimeout(buscaPendente);
+        buscaPendente = setTimeout(aplicarBusca, 180);
+      });
+      busca.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); aplicarBusca(); }
       });
     }
     raiz.querySelectorAll('[data-cat-filtro]').forEach(function (sel) {
@@ -12431,7 +12429,7 @@
       return '<a class="' + classe + '" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(texto) + '<span class="sr-only"> (abre em nova aba)</span></a>';
     }
     return '<h1 class="sr-only">Ferramentas</h1>' +
-      '<div class="ferramentas-filtros" role="group" aria-label="Filtrar ferramentas por categoria">' + categorias.map(function (c) { return '<button type="button" data-ferramenta-categoria="' + esc(c) + '" aria-pressed="' + (c === categoriaFerramentas) + '">' + esc(c) + '</button>'; }).join('') + '</div><p class="sub ferramentas-contagem" role="status">' + ferramentas.length + ' ferramentas · ' + esc(categoriaFerramentas) + '</p>' +
+      '<div class="ferramentas-filtros" role="group" aria-label="Filtrar ferramentas por categoria">' + categorias.map(function (c) { return '<button type="button" data-ferramenta-categoria="' + esc(c) + '" aria-pressed="' + (c === categoriaFerramentas) + '">' + esc(c) + '</button>'; }).join('') + '</div><p class="sub ferramentas-contagem" role="status">' + ferramentas.length + (ferramentas.length === 1 ? ' ferramenta · ' : ' ferramentas · ') + esc(categoriaFerramentas) + '</p>' +
       '<div class="ferramentas-grid">' + ferramentas.map(function (f, i) {
         return '<article class="card ferramenta-card" aria-labelledby="ferramenta-' + i + '">' +
           '<div class="ferramenta-capa ferramenta-marca-' + esc(f.marca) + '">' + (f.imagem ? '<img src="' + esc(f.imagem) + '" alt="Logo de ' + esc(f.nomeAtual || f.nome) + '" width="240" height="96" loading="lazy" decoding="async">' : '<span class="ferramenta-nome-marca">' + esc(f.nome) + '</span>') +
@@ -12810,11 +12808,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.8.0/Gabaritei.apk';
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.9.0/Gabaritei.apk';
     const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v080" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
-      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.8.0 · em testes</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.8.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v090" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.9.0 · em testes</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.9.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
@@ -12841,13 +12839,16 @@
   }
 
   function escolherTopicoInicio(disc, atual, escolher) {
-    const tops = (disc.topicos || []).filter(t => !t.orfao && !t.removidoDoEdital);
-    const m = abrirModal('<div class="assuntos-modal-cab"><h3>O que estudar em ' + esc(disc.nome) + '?</h3><button class="modal-x" id="inicio-topico-fechar" aria-label="Fechar">×</button></div><input type="search" id="inicio-topico-busca" placeholder="Buscar tópico…" aria-label="Buscar tópico do edital"><div class="inicio-topicos-lista"></div>');
+    const disciplinas = state.disciplinas.filter(d => d.planejamentoStatus !== 'paused' && !d.androidArquivada);
+    const m = abrirModal('<div class="assuntos-modal-cab"><h3>O que estudar?</h3><button class="modal-x" id="inicio-topico-fechar" aria-label="Fechar">×</button></div><input type="search" id="inicio-topico-busca" placeholder="Buscar disciplina ou assunto…" aria-label="Buscar disciplina ou assunto do planejamento"><div class="inicio-topicos-lista"></div>');
     function desenhar() {
       const q = normalizarBusca(m.querySelector('#inicio-topico-busca').value);
-      const lista = tops.filter(t => normalizarBusca(t.nome).includes(q));
-      m.querySelector('.inicio-topicos-lista').innerHTML = lista.map(t => '<button type="button" class="inicio-topico-opcao' + (t.id === atual ? ' selecionado' : '') + '" data-inicio-topico="' + esc(t.id) + '"><span>' + esc(t.nome) + '</span><small>' + (t.id === atual ? 'Selecionado' : t.status === 'dominado' ? 'Concluído' : 'Estudar') + '</small></button>').join('') || '<p class="sub">Nenhum tópico encontrado.</p>';
-      m.querySelectorAll('[data-inicio-topico]').forEach(b => b.onclick = () => { fecharModal(); escolher(b.dataset.inicioTopico); });
+      m.querySelector('.inicio-topicos-lista').innerHTML = disciplinas.map(d => {
+        const tops = (d.topicos || []).filter(t => !t.orfao && !t.removidoDoEdital && !t.androidArquivado && (normalizarBusca(d.nome).includes(q) || normalizarBusca(t.nome).includes(q)));
+        if (!tops.length) return '';
+        return '<details class="inicio-topicos-disciplina"' + (q || tops.some(t => t.id === atual) || d.id === disc.id ? ' open' : '') + '><summary>' + esc(d.nome) + '</summary>' + tops.map(t => '<button type="button" class="inicio-topico-opcao' + (t.id === atual ? ' selecionado' : '') + '" data-inicio-topico="' + esc(t.id) + '" data-inicio-disc="' + esc(d.id) + '"><span>' + esc(t.nome) + '</span><small>' + (t.id === atual ? 'Selecionado' : t.status === 'dominado' ? 'Concluído' : 'Estudar') + '</small></button>').join('') + '</details>';
+      }).join('') || '<p class="sub">Nenhum assunto encontrado.</p>';
+      m.querySelectorAll('[data-inicio-topico]').forEach(b => b.onclick = () => { const d = disciplinas.find(d => d.id === b.dataset.inicioDisc); fecharModal(); escolher(b.dataset.inicioTopico, d); });
     }
     m.querySelector('#inicio-topico-fechar').onclick = fecharModal;
     m.querySelector('#inicio-topico-busca').oninput = desenhar;
@@ -12882,7 +12883,11 @@
       raiz.querySelectorAll('.estado-vazio').forEach(function (e) { const card = e.closest('.card'); if (card) card.remove(); });
     } else if (estudos || revisoes) {
       // Revisões vencidas continuam com prioridade sobre o conteúdo novo.
-      const primeira = (revisoes && revisoes.querySelector('.fila-item:not(.fila-feita)')) ||
+      const preferido = state.plano && state.plano.estudoInicioPreferido;
+      const primeira = (preferido && estudos && Array.from(estudos.querySelectorAll('.fila-item:not(.fila-feita)')).find(item => {
+        const button = item.querySelector('[data-acao="timer-agenda"]');
+        return button && button.dataset.id === preferido;
+      })) || (revisoes && revisoes.querySelector('.fila-item:not(.fila-feita)')) ||
         (estudos && estudos.querySelector('.fila-item:not(.fila-feita)'));
       if (primeira) {
         const destaque = document.createElement('section'); destaque.className = 'card proximo-estudo';
@@ -12913,7 +12918,8 @@
           const preferidas = state.plano.topicosInicio || {};
           let atual = agenda ? agenda.topicoId : (preferidas[disc.id] || (acoes[0] && acoes[0].dataset.id));
           function aplicar(id) {
-            const t = disc.topicos.find(t => t.id === id && !t.removidoDoEdital && !t.orfao);
+            const t = D.topicoPorId(state, id);
+            if (t && (t.removidoDoEdital || t.orfao)) return;
             if (!t) return;
             atual = id;
             titulo.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ''; });
@@ -12921,14 +12927,17 @@
             let nome = titulo.querySelector('.inicio-topico-nome');
             if (!nome) { nome = document.createElement('span'); nome.className = 'inicio-topico-nome'; titulo.append(nome); }
             nome.textContent = t.nome;
-            acoes.forEach(b => b.dataset.id = id);
+            const escolhida = D.disciplinaDoTopico(state, id);
+            const destaque = primeira.querySelector('.disciplina-destaque');
+            if (destaque && escolhida) destaque.textContent = escolhida.nome;
+            acoes.forEach(b => { b.dataset.id = id; if (escolhida && b.hasAttribute('data-disc')) b.dataset.disc = escolhida.id; });
           }
           if (atual && !agenda) aplicar(atual);
           const editar = document.createElement('button'); editar.type = 'button'; editar.className = 'inicio-trocar-topico'; editar.title = 'Escolher tópico'; editar.setAttribute('aria-label', 'Escolher tópico de ' + disc.nome);
           editar.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L20 8l-4-4L4 16Zm10-10 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
           editar.disabled = !!(agenda && blocoParcial(agenda));
-          editar.onclick = () => escolherTopicoInicio(disc, atual, id => {
-            if (agenda) { agenda.topicoId = id; salvar(); render(); }
+          editar.onclick = () => escolherTopicoInicio(disc, atual, (id, escolhida) => {
+            if (agenda) { agenda.topicoId = id; agenda.disciplinaId = escolhida.id; agenda.atualizadoEm = new Date().toISOString(); state.plano.estudoInicioPreferido = agenda.id; salvar(); render(); }
             else { state.plano.topicosInicio = Object.assign({}, state.plano.topicosInicio, { [disc.id]: id }); aplicar(id); salvar(); }
           });
           titulo.prepend(editar);
@@ -13000,6 +13009,9 @@
     ultimaDataRender = D.hojeISO();
     aplicarTema();
     const conteudo = document.getElementById('conteudo');
+    // Atualizações da sessão também podem redesenhar o catálogo durante a digitação.
+    const buscaAntes = document.activeElement && document.activeElement.id === 'cat-busca' ? document.activeElement : null;
+    const selecaoBusca = buscaAntes ? [buscaAntes.selectionStart, buscaAntes.selectionEnd] : null;
     conteudo.classList.remove('inicio-moderno');
     if (!usuarioLogado() && !modoDemo) {
       document.body.classList.add('login-gate');
@@ -13044,6 +13056,13 @@
       atualizarContextoPlano();
       if (rota === 'hoje') organizarInicio(conteudo);
       tela.ligar(conteudo);
+      if (!mudouRota && rota === 'planos' && buscaAntes && !document.querySelector('#modal-raiz .modal')) {
+        const buscaAtual = conteudo.querySelector('#cat-busca');
+        if (buscaAtual) {
+          buscaAtual.focus({ preventScroll: true });
+          if (selecaoBusca[0] !== null && selecaoBusca[1] !== null) buscaAtual.setSelectionRange(selecaoBusca[0], selecaoBusca[1]);
+        }
+      }
     } catch (err) {
       console.error('Falha ao renderizar a tela "' + rota + '":', err);
       conteudo.innerHTML = '<h1>Ops…</h1><div class="card"><p>Não consegui abrir esta tela por causa de um dado inesperado. ' +

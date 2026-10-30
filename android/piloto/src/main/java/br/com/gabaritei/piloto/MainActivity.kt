@@ -194,14 +194,20 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             }} }
             when(tab) {
                 0 -> {
-                    item { MotivationCard(onOpen) }
                     timer?.let { t -> item { TimerCard(t,vm,onFinish=finish@{
                         val p=plans.firstOrNull { it.id==t.planId };val topic=p?.topics?.firstOrNull { it.id==t.topicId }
                         if(p==null||topic==null){vm.error.value="O plano ou tópico foi removido. O tempo permanece salvo no aparelho.";return@finish}
                         vm.pause(t);recordingTimer=t.copy(seconds=vm.elapsed(t),startedElapsed=null);record=p to topic
                     },onDiscard={discard=t}) } }
 
-                    item { if(activeTopics.isEmpty())Block{Text("Suas disciplinas estão pausadas ou arquivadas.");TextButton(onClick={tab=6}){Text("Organizar disciplinas")}}else Block {
+                    val layout=HomeLayouts.read(raw)
+                    if(layout.visible.isEmpty())item{Block{Text("Os cartões da inicial estão ocultos.");TextButton(onClick={accountDialog=true}){Text("Personalizar tela inicial")}}}
+                    layout.visible.forEach{id->when(id){
+                        "quote" -> {
+                    item(key="home-quote") { MotivationCard(onOpen) }
+                        }
+                        "study" -> {
+                    item(key="home-study") { if(activeTopics.isEmpty())Block{Text("Suas disciplinas estão pausadas ou arquivadas.");TextButton(onClick={tab=6}){Text("Organizar disciplinas")}}else Block {
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("PLANEJAMENTO DO DIA",fontSize=10.sp,lineHeight=14.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM",Locale("pt","BR"))),fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.primary)}
                         Surface(shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.primaryContainer){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
                             Text("PRÓXIMO ESTUDO · ${agenda.firstOrNull{it.optString("topicoId")==selected.id}?.optInt("duracaoMin")?:focusMinutes.takeIf{it>0}?:50} MIN",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onPrimaryContainer)
@@ -216,19 +222,31 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                             OutlinedButton(enabled=activeTopics.isNotEmpty(),onClick={if(!plan.enrolled)creatingPlan=plan else {recordingTimer=null;record=plan to selected}},shape=RoundedCornerShape(10.dp)){Text("Registrar",fontSize=12.sp,lineHeight=17.sp)}
                             IconButton(onClick={tab=2}){Icon(painterResource(R.drawable.book_outline),"Abrir caderno de questões",tint=MaterialTheme.colorScheme.primary)}
                         }
-                        if(nextSuggested!=null){HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("AINDA HOJE",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(plan.discipline(nextSuggested).name,fontSize=12.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold);Text(nextSuggested.name,fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)};IconButton(onClick={vm.select(plan,nextSuggested)}){Icon(Icons.AutoMirrored.Outlined.ArrowForward,"Escolher próximo tópico",Modifier.size(18.dp))}}}
+                        if(nextSuggested!=null){HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(5.dp)){Text("AINDA HOJE",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(plan.discipline(nextSuggested).name,fontSize=12.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold);Text(nextSuggested.name,fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)};IconButton(onClick={vm.select(plan,nextSuggested)}){Icon(Icons.AutoMirrored.Outlined.ArrowForward,"Escolher próximo tópico",Modifier.size(18.dp))}}}
                     } }
-                    item { val totals=StatisticsModel.total(activities);val content=outline?:plan
+                        }
+                        "metrics" -> {
+                    item(key="home-metrics") { val totals=StatisticsModel.total(activities);val content=outline?:plan
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){
                             DashboardMetric("Desempenho",StatisticsModel.percent(totals.accuracy),"${totals.questions} questões",totals.accuracy?.div(100)?.toFloat(),Modifier.weight(1f),onClick={tab=3})
                             DashboardMetric("Progresso no edital",StatisticsModel.percent(if(content.topics.isEmpty())null else completed.size*100.0/content.topics.size),"${completed.size} de ${content.topics.size} tópicos",if(content.topics.isEmpty())0f else completed.size.toFloat()/content.topics.size,Modifier.weight(1f),onClick={tab=8})
                         }
                     }
-                    item { AchievementCarousel(achievements){achievementFromSettings=false;achievementDialog=true} }
-                    item { ConstancyCard(activities,LocalDate.now().minusDays(29),LocalDate.now(),LocalDate.now(),false,plan.name,achievements) }
-                    item { WeeklyGoals(activities) }
+                        }
+                        "achievements" -> {
+                    item(key="home-achievements") { AchievementCarousel(achievements){achievementFromSettings=false;achievementDialog=true} }
+                        }
+                        "constancy" -> {
+                    item(key="home-constancy") { ConstancyCard(activities,LocalDate.now().minusDays(29),LocalDate.now(),LocalDate.now(),false,plan.name,achievements) }
+                        }
+                        "goals" -> {
+                    item(key="home-goals") { WeeklyGoals(activities) }
+                        }
+                        "reviews" -> {
                     val due=runCatching{JSONObject(raw).array("revisoes").objects().count{it.optString("planoId")==plan.id&&it.isNull("dataConcluida")&&it.optString("dataAgendada")<=LocalDate.now().toString()}}.getOrDefault(0)
                     if(due>0)item{Block{Text("$due revisões pendentes",fontWeight=FontWeight.SemiBold);TextButton(onClick={tab=7}){Text("Revisar agora")}}}
+                        }
+                    }}
                 }
                 1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);tab=6},onOpen=onOpen)}
                 2 -> {
@@ -300,7 +318,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         }
     }}
     if(freeStudy)FreeStudyDialog(vm){freeStudy=false}
-    if(accountDialog)SettingsCenter(profilePhoto,account?.name?:"Perfil local",fullscreen,onClose={accountDialog=false},onStatistics={accountDialog=false;tab=3;scope.launch{scrollStates[3].scrollToItem(0)}},onPlanning={accountDialog=false;tab=5},onRevisions={accountDialog=false;tab=7},onNotebook={accountDialog=false;tab=2},profile={
+    if(accountDialog)SettingsCenter(profilePhoto,account?.name?:"Perfil local",fullscreen,onClose={accountDialog=false},onStatistics={accountDialog=false;tab=3;scope.launch{scrollStates[3].scrollToItem(0)}},onPlanning={accountDialog=false;tab=5},onRevisions={accountDialog=false;tab=7},onNotebook={accountDialog=false;tab=2},home={if(ready)HomeLayoutEditor(raw,account?.uid.orEmpty()){value,done->vm.setHomeLayout(value,account?.uid.orEmpty(),done)}else Text("Carregando preferências…")},profile={
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
             ProfileAvatar(profilePhoto,Modifier.size(64.dp))
             Column{TextButton(enabled=!photoBusy,onClick={photoOwner=account?.uid.orEmpty();photoError=null;photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))}){Text(if(photoBusy)"Salvando foto…" else "Escolher foto")}

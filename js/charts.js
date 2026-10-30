@@ -142,40 +142,44 @@
     return true;
   }
 
-  // Pizza de desempenho por disciplina, com as MESMAS cores das disciplinas no
-  // plano (campo d.cor). Cada fatia é o % de acerto acumulado da disciplina.
+  // Percentuais independentes usam a mesma escala; não são fatias de um total.
   function desempenhoPorDisciplina(canvas, dados) {
     if (!disponivel()) return false;
     destruir(canvas.id);
     const P = paleta();
-    // só entram na pizza as disciplinas que já têm questões registradas
-    const comDados = dados.filter(function (d) { return d.pct !== null; });
-    const base = comDados.length ? comDados : dados;
-    const cores = base.map(function (d, i) { return d.cor || PALETA_DISC[i % PALETA_DISC.length]; });
+    const labelsPlugin = {
+      id: 'percentuaisDisciplina',
+      afterDatasetsDraw: function(chart) {
+        const ctx = chart.ctx;
+        ctx.save(); ctx.fillStyle = P.texto; ctx.font = '500 11px ' + FONTE_UI; ctx.textBaseline = 'middle';
+        chart.getDatasetMeta(0).data.forEach(function(bar, i) {
+          const pct = dados[i].pct;
+          const x = pct === null ? chart.chartArea.left + 6 : Math.min(bar.x + 7, chart.width - 31);
+          ctx.fillText(pct === null ? '—' : pct + '%', x, chart.scales.y.getPixelForValue(i));
+        });
+        ctx.restore();
+      }
+    };
     instancias[canvas.id] = new Chart(canvas, {
-      type: 'pie',
+      type: 'bar', plugins: [labelsPlugin],
       data: {
-        labels: base.map(function (d) { return d.sigla; }),
-        datasets: [{
-          label: '% de acerto acumulado',
-          data: base.map(function (d) { return d.pct === null ? 0 : d.pct; }),
-          backgroundColor: cores,
-          borderColor: P.card,
-          borderWidth: 2
-        }]
+        labels: dados.map(function (d) { return d.sigla; }),
+        datasets: [{ label: '% de acerto', data: dados.map(function (d) { return d.pct; }),
+          backgroundColor: dados.map(function (d, i) { return d.cor || PALETA_DISC[i % PALETA_DISC.length]; }),
+          borderRadius: 4, maxBarThickness: 18 }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 34 } },
+        scales: {
+          x: { min: 0, max: 100, ticks: { color: P.sub, stepSize: 25, callback: function(v) { return v + '%'; } }, grid: { color: P.grade }, border: { display: false } },
+          y: { ticks: { color: P.texto, font: { family: FONTE_UI, size: 12 } }, grid: { display: false }, border: { display: false } }
+        },
         plugins: Object.assign(basePlugins(P), {
-          legend: { position: 'right', labels: { color: P.texto, font: { family: FONTE_UI, size: 12 }, boxWidth: 12 } },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                const d = base[ctx.dataIndex];
-                return d.sigla + ': ' + (d.pct === null ? 'sem questões' : d.pct + '% de acerto');
-              }
-            }
-          }
+          legend: { display: false },
+          tooltip: { callbacks: { label: function(ctx) {
+            const d = dados[ctx.dataIndex];
+            return d.sigla + ': ' + (d.pct === null ? 'sem questões' : d.pct + '% de acerto');
+          } } }
         })
       }
     });

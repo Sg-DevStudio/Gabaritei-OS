@@ -61,6 +61,17 @@ class SyncEmulatorTest {
             assertEquals(photo,ProfilePhoto.value(edited));assertEquals("Direito atualizado",JSONObject(edited).array("planos").getJSONObject(0).array("disciplinas").getJSONObject(0).getString("nome"))
             a.dao().mutate(PendingMutation("remove-photo","profile-photo",JSONObject().put("image","").put("before",photo).toString(),"principal-emulator",System.currentTimeMillis()));clientA.synchronize(uid,a.dao());clientB.synchronize(uid,b.dao())
             assertEquals("",ProfilePhoto.value(b.dao().currentSnapshot()!!.json))
+            // O layout acompanha a conta, sem substituir estudos ou outras preferências.
+            val home=HomeArrangement(HomeLayouts.defaults.order.reversed(),setOf("quote","achievements"))
+            val beforeHome=a.dao().currentSnapshot()!!.json
+            a.dao().mutate(PendingMutation("home","home-layout",HomeLayouts.payload(beforeHome,home).toString(),"principal-emulator",System.currentTimeMillis()))
+            clientA.synchronize(uid,a.dao());clientB.synchronize(uid,b.dao())
+            assertEquals(home,HomeLayouts.read(b.dao().currentSnapshot()!!.json))
+            val beforeReset=b.dao().currentSnapshot()!!.json
+            b.dao().mutate(PendingMutation("reset-home","home-layout",HomeLayouts.payload(beforeReset,HomeLayouts.defaults).toString(),"principal-emulator",System.currentTimeMillis()))
+            clientB.synchronize(uid,b.dao());clientA.synchronize(uid,a.dao())
+            assertEquals(HomeLayouts.defaults,HomeLayouts.read(a.dao().currentSnapshot()!!.json))
+            assertEquals(2,JSONObject(a.dao().currentSnapshot()!!.json).array("sessoes").length())
             // Uma conta nova não pode ler o histórico da anterior.
             auth.signOut();auth.createUserWithEmailAndPassword("other-$id@example.test","OnlyLocalTest123!").await()
             try{ref.get(Source.SERVER).await();fail("Outra conta conseguiu ler o histórico.")}catch(e:FirebaseFirestoreException){assertEquals(FirebaseFirestoreException.Code.PERMISSION_DENIED,e.code)}

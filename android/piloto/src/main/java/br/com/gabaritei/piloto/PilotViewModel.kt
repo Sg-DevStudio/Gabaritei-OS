@@ -258,5 +258,14 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             onDone(null)
         }catch(e:Exception){onDone(e.message?:"Não foi possível salvar a foto.")}
     }
+    fun setHomeLayout(value:HomeArrangement,owner:String,onDone:(String?)->Unit)=viewModelScope.launch{
+        try{
+            check(owner==account.value?.uid.orEmpty()){"A conta mudou. Abra as configurações novamente."}
+            val d=dao(owner.takeIf{it.isNotEmpty()});val raw=d.currentSnapshot()?.json?:StateCompat.empty().toString()
+            val op=mutation(d,"home-layout",HomeLayouts.payload(raw,value))
+            if(owner.isBlank())d.localPlan(op)else d.mutate(op)
+            onDone(null)
+        }catch(e:Exception){onDone(e.message?:"Não foi possível salvar o layout.")}
+    }
     override fun onCleared(){cloud.close();connectivity.unregisterNetworkCallback(network);super.onCleared()}
 }
