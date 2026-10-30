@@ -5301,3 +5301,7 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .hoje-integrada .hoje-ainda .fila-titulo { line-height: 1.6; }
 .inicio-topicos-disciplina { margin-bottom: 10px; }
 .inicio-topicos-disciplina > summary { cursor: pointer; padding: 12px 8px; font-weight: 600; border-bottom: 1px solid var(--linha); }
+
+.hoje-integrada .hoje-frase .hoje-aspas { display: none; }
+.hoje-integrada .hoje-frase .frase-dia { font-size: .88rem; line-height: 1.55; }
+.hoje-integrada .hoje-frase .frase-dia .autor { font-weight: 400; font-size: .74rem; color: var(--grafite); margin-top: 6px; }

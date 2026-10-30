@@ -139,3 +139,5 @@ Validação: 88 testes JVM, lint sem erros (42 avisos), três contratos Kotlin �
 Teste físico de sincronização com Auth/Firestore Emulator no S25 confirmou mudança de layout, restauração do padrão entre dois clientes da mesma conta, preservação das sessões e bloqueio de leitura por outra conta. Login Google de produção continua aguardando o titular. A auditoria de dependências das Functions mantém alertas anteriores, separados desta rodada de UI.
 
 No QA físico do S25: esconder frase, mover metas, salvar, reabrir o app e restaurar padrão conferidos. O seletor de assuntos mostrou outras disciplinas do plano. Atualização release 0.9.0 com certificado compatível, sem depuração, instalada sobre o app existente. Massa QA arquivada em backup privado e pacote de teste removido.
+
+Acabamento 0.9.1: frase compacta e transparente, sem superfície colorida, borda ou aspas grandes; autoria secundária. Conferido visualmente no QA do S25. O site reduz também a decoração e o peso do autor. Sem alteração no contrato de preferências ou nos cálculos.

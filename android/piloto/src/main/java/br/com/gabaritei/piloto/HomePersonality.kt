@@ -1,6 +1,7 @@
 package br.com.gabaritei.piloto
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -18,16 +19,9 @@ import androidx.compose.ui.unit.sp
 @Composable internal fun MotivationCard(onOpen:(String)->Unit){
     val day by produceState(LocalDate.now()){while(true){value=LocalDate.now();kotlinx.coroutines.delay(60_000)}}
     val quote=InspirationQuotes.forDay(day)
-    Surface(shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.primaryContainer){
-        Row(Modifier.fillMaxWidth().padding(start=14.dp,end=4.dp,top=10.dp,bottom=10.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-            Text("“",fontSize=36.sp,lineHeight=40.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary.copy(alpha=.45f))
-            Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
-                Text(quote.text,style=MaterialTheme.typography.bodyMedium,fontStyle=FontStyle.Italic,color=MaterialTheme.colorScheme.onPrimaryContainer)
-                TextButton(onClick={onOpen(quote.source)},contentPadding=PaddingValues(0.dp),modifier=Modifier.align(Alignment.End)){
-                    Text(quote.author,style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha=.8f))
-                }
-            }
-        }
+    Column(Modifier.fillMaxWidth().clickable(onClickLabel="Consultar fonte da frase"){onOpen(quote.source)}.padding(horizontal=4.dp,vertical=6.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){
+        Text(quote.text,style=MaterialTheme.typography.bodyMedium,fontStyle=FontStyle.Italic,fontWeight=FontWeight.Medium,color=MaterialTheme.colorScheme.primary)
+        Text(quote.author,Modifier.align(Alignment.End),style=MaterialTheme.typography.labelSmall,fontWeight=FontWeight.Normal,color=MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 @Composable internal fun AchievementCarousel(achievements:List<Achievement>,onAll:()->Unit){
