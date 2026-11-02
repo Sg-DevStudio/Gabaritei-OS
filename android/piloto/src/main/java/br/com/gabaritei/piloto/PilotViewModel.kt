@@ -49,7 +49,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             refreshCatalog()
             var bound:String?=null;var initialized=false
             account.collectLatest { a ->
-                if(initialized&&bound!=a?.uid){val previous=dao(bound);previous.currentTimer()?.let{previous.timer(it.copy(seconds=elapsed(it),startedElapsed=null))};TimerNotices.cancel(application)}
+                if(initialized&&bound!=a?.uid){val previous=dao(bound);previous.currentTimer()?.let{previous.timer(it.copy(seconds=elapsed(it),startedElapsed=null))};StudyTimerService.stop(application)}
                 bound=a?.uid;initialized=true
                 application.getSharedPreferences("study_reminders",0).edit().putString("owner",a?.uid.orEmpty()).apply()
                 ready.value=false;rawSnapshot.value=StateCompat.empty().toString();plans.value=emptyList();sessions.value=emptyList();progress.value=emptyList();links.value=emptyList();timer.value=null;settings.value=null;pendingCount.value=0
@@ -57,7 +57,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
                 coroutineScope {
                     launch{d.settings().collect{settings.value=it}}
                     launch{d.timer().collect{t->
-                        if(t!=null&&t.startedElapsed!=null&&t.boot!=boot())d.timer(t.copy(startedElapsed=null,boot=boot())) else {timer.value=t;if(t==null)TimerNotices.cancel(application) else TimerNotices.schedule(application,t,elapsed(t))}
+                        if(t!=null&&t.startedElapsed!=null&&t.boot!=boot())d.timer(t.copy(startedElapsed=null,boot=boot())) else {timer.value=t;if(t==null)StudyTimerService.stop(application) else { val title=plans.value.find{it.id==t.planId}?.topics?.find{it.id==t.topicId}?.name?:"Toque para abrir seu estudo";StudyTimerService.connect(application,t,a?.uid.orEmpty(),title) }}
                     }}
                     if(a==null){
                         launch{combine(d.snapshot(),catalog){snap,bases->snap to bases}.collectLatest{(snap,bases)->val raw=snap?.json?:StateCompat.empty().toString();val projected=withContext(Dispatchers.Default){StateCompat.plans(raw,bases)};rawSnapshot.value=raw;plans.value=projected;ready.value=true}}
@@ -97,7 +97,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     fun signOut()=viewModelScope.launch {
         val uid=account.value?.uid;val d=dao(uid)
         timer.value?.let{d.timer(it.copy(seconds=elapsed(it),startedElapsed=null))}
-        TimerNotices.cancel(getApplication());if(account.value?.uid==uid)cloud.signOut()
+        StudyTimerService.stop(getApplication());if(account.value?.uid==uid)cloud.signOut()
     }
     fun synchronize(force:Boolean=false){val uid=account.value?.uid?:return;viewModelScope.launch{cloud.synchronize(uid,dao(uid),force)}}
     fun keepRemote(){val uid=account.value?.uid?:return;viewModelScope.launch{val d=dao(uid);d.archivePending();cloud.synchronize(uid,d)}}
@@ -186,9 +186,10 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             if(!d.startTimer(Timer(sessionId=UUID.randomUUID().toString(),planId=p.id,topicId=topic.id,seconds=0,startedElapsed=SystemClock.elapsedRealtime(),boot=boot(),goalSeconds=getApplication<Application>().getSharedPreferences("native_display",0).getInt("focusMinutes",50)*60L)))error.value="Conclua ou descarte o cronômetro atual antes de iniciar outro."
         }catch(e:Exception){error.value=e.message?:"Não foi possível iniciar o estudo."}
     }
-    fun elapsed(t:Timer)=StudyRules.elapsed(t.seconds,if(t.boot==boot())t.startedElapsed else null,SystemClock.elapsedRealtime())
-    fun pause(t:Timer)=viewModelScope.launch{val d=dao();if(d.currentTimer()?.sessionId==t.sessionId)d.timer(t.copy(seconds=elapsed(t),startedElapsed=null))}
-    fun resume(t:Timer)=viewModelScope.launch{val d=dao();if(d.currentTimer()?.sessionId==t.sessionId)d.timer(t.copy(startedElapsed=SystemClock.elapsedRealtime(),boot=boot()))}
+    fun elapsed(t:Timer)=TimerClock.elapsed(t,SystemClock.elapsedRealtime(),boot())
+    fun pause(t:Timer)=viewModelScope.launch{dao().changeTimer(t.sessionId,SystemClock.elapsedRealtime(),boot(),false)}
+    fun resume(t:Timer)=viewModelScope.launch{dao().changeTimer(t.sessionId,SystemClock.elapsedRealtime(),boot(),true)}
+    fun refreshTimerNotice(){val t=timer.value?:return;val title=plans.value.find{it.id==t.planId}?.topics?.find{it.id==t.topicId}?.name?:"Estudo em andamento";StudyTimerService.connect(getApplication(),t,account.value?.uid.orEmpty(),title)}
     fun discard(t:Timer)=viewModelScope.launch{dao().clearTimer(t.sessionId)}
     fun save(plan:Plan,topic:Topic,input:StudyInput,completed:Boolean,timer:Timer?,id:String,category:String="",date:LocalDate=LocalDate.now(),failed:()->Unit={},success:()->Unit){
         val validation=StudyRules.error(input)?:if(date.isAfter(LocalDate.now()))"A data não pode estar no futuro." else null;if(validation!=null){error.value=validation;failed();return}

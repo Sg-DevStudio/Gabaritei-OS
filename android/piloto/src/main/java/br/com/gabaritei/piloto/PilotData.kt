@@ -42,6 +42,12 @@ data class Plan(val id: String, val name: String, val disciplines: List<Discipli
     @Query("DELETE FROM PersonalLink WHERE planId=:plan AND topicId=:topic") abstract suspend fun resetLink(plan: String, topic: String)
     @Query("DELETE FROM Timer WHERE id=1 AND sessionId=:sessionId") abstract suspend fun clearTimer(sessionId: String)
     @Insert(onConflict = OnConflictStrategy.IGNORE) abstract suspend fun insert(value: Session): Long
+    @Transaction open suspend fun changeTimer(sessionId:String,now:Long,boot:Int,running:Boolean):Timer? {
+        val current=currentTimer()?.takeIf{it.sessionId==sessionId}?:return null
+        val next=if(running)TimerClock.running(current,now,boot)else TimerClock.paused(current,now,boot)
+        if(next!=current)timer(next)
+        return next
+    }
     @Transaction open suspend fun startTimer(value: Timer): Boolean {
         if (currentTimer() != null) return false
         timer(value)
