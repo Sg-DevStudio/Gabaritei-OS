@@ -4964,6 +4964,26 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .caderno-banca-fixa { color:var(--grafite); font-size:.8rem; white-space:nowrap; }
 .caderno-banca-fixa strong { color:var(--caneta-forte); }
 
+/* Caderno externo por disciplina: ações compactas nos temas claro e escuro. */
+.tec-card { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.tec-card-info { min-width:0; }
+.tec-card h2 { font-size:1rem; margin:0 0 5px; }
+.tec-card .sub { margin:0; overflow-wrap:anywhere; }
+.tec-ajuda { font-size:.8rem; line-height:1.55; color:var(--grafite); margin:8px 0 12px; }
+.tec-card .tec-ajuda { margin-bottom:0; }
+.tec-acoes { display:inline-flex; align-items:center; flex-wrap:wrap; gap:6px; }
+.tec-bloco-acoes { display:inline-flex; flex-wrap:wrap; max-width:100%; }
+.tec-card > .tec-acoes { flex-shrink:0; max-width:55%; justify-content:flex-end; }
+.tec-atalho { white-space:nowrap; text-decoration:none; }
+.tec-origem { display:inline-block; font-size:.68rem; font-weight:600; color:var(--caneta-forte); background:var(--caneta-suave); border-radius:5px; padding:2px 5px; }
+.tec-agenda-acoes { margin:12px 0; }
+@media (max-width:760px) {
+  .tec-card { flex-direction:column; align-items:stretch; gap:12px; }
+  .tec-card > .tec-acoes { max-width:none; justify-content:flex-start; }
+  .tec-acoes > *, .tec-atalho { min-height:44px; }
+}
+@media print { .tec-card, .tec-acoes, .tec-atalho { display:none !important; } }
+
 .gran-logo { display:none; }
 @media(max-width:760px) {
  .caderno .trilha-link .gran-link { display:inline-flex; align-items:center; justify-content:center; min-width:64px; min-height:44px; padding:7px; background:#fff; border:1px solid var(--linha); }

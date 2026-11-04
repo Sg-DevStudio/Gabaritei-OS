@@ -83,6 +83,20 @@ em [`CLAUDE.md`](CLAUDE.md).
    plano, histórico e timer deste aparelho. Sem internet, o app pede conexão antes
    de sair para não descartar uma alteração ainda não enviada.
 
+## Cadernos pessoais do TEC
+
+Em **Hoje**, use **Vincular TEC** no bloco, ou abra uma disciplina e procure
+**Questões no TEC**. Cole o link HTTPS de um caderno ou filtro da sua conta.
+O vínculo fica separado por plano e disciplina e pode ser editado ou removido.
+**Resolver no TEC** abre o site em outra aba; o login é feito diretamente lá.
+
+Depois da prática, **Registrar resultado** permite informar o tópico, as questões,
+os acertos e o tempo real. O registro entra no histórico, nas metas e nos ajustes
+de revisão que já existem no Gabaritei, identificado como **TEC**. Abrir um link
+não registra estudo. Não há coleta de questões, login ou importação automática
+de resultados do TEC. Os links usam a persistência e a sincronização do plano;
+no modo exemplo, as alterações duram somente durante a visita.
+
 ## Regras de negócio e técnicas de estudo (`js/domain.js`)
 
 Toda a lógica é **pura e testável** (sem DOM), em `window.Dominio`.

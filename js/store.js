@@ -1202,6 +1202,17 @@
       const chave = l.id || l.url || JSON.stringify(l);
       if (entidadeExcluida(lapides, 'link', preferido.id, idLink(l))) return;
       if (!chavesLink[chave]) { preferido.links.push(clonarJson(l)); chavesLink[chave] = true; }
+      else if (l.tipo === 'tec-questoes') {
+        // Uma preferência editada em outra aba não restaura um caderno antigo
+        // nem um vínculo removido. O relógio pertence ao vínculo, não ao perfil.
+        const i = preferido.links.findIndex(atual => atual && atual.id === l.id && atual.tipo === 'tec-questoes');
+        const atual = preferido.links[i];
+        if (atual) {
+          const revA = Number(atual.revVinculo) || 0, revB = Number(l.revVinculo) || 0;
+          if (revB > revA || (revB === revA && String(l.atualizadoEm || '') > String(atual.atualizadoEm || '')) ||
+              (revB === revA && l.atualizadoEm === atual.atualizadoEm && l.oculto && !atual.oculto)) preferido.links[i] = clonarJson(l);
+        }
+      }
     });
     return filtrarEstruturaPlano(preferido, lapides);
   }

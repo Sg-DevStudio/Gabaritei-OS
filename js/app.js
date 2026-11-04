@@ -1703,9 +1703,38 @@
     }
   }
 
+  function acoesTecHtml(disciplinaId, topicoId, blocoId, data) {
+    const acoes = window.TecQuestoes ? window.TecQuestoes.renderAcoes(state, {
+      disciplinaId: disciplinaId, topicoId: topicoId, blocoId: blocoId, data: data
+    }) : '';
+    return acoes ? '<span class="tec-bloco-acoes">' + acoes + '</span>' : '';
+  }
+
+  function ligarTec(raiz) {
+    if (!window.TecQuestoes) return;
+    const estadoTela = state, planoTela = state.planoAtivoId;
+    window.TecQuestoes.ligar(raiz, estadoTela, {
+      abrirModal: abrirModal, fecharModal: fecharModal, salvar: salvar, render: render, toast: toast,
+      contextoValido: function (origem) { return origem === state && state.planoAtivoId === planoTela; },
+      registrar: function (opcoes) {
+        const disc = D.disciplinaPorId(state, opcoes.disciplinaId);
+        if (!disc) return;
+        const topico = opcoes.topicoId && disc.topicos.find(t => t.id === opcoes.topicoId && !t.orfao && !t.removidoDoEdital);
+        const bloco = opcoes.blocoId && state.agenda.find(a => a.id === opcoes.blocoId && a.planoId === state.planoAtivoId);
+        if (opcoes.blocoId && !bloco) { toast('Este bloco não está mais disponível. Reabra a agenda.', 'erro'); return; }
+        abrirRegistro({ disciplinaId: disc.id, topicoId: topico ? topico.id : null,
+          blocoId: bloco ? bloco.id : null, data: bloco ? bloco.data : (opcoes.data || D.hojeISO()),
+          plataformaQuestoes: 'tec' });
+      }
+    });
+  }
+
   // ---------------- registro de sessão (F1, ≤3 toques) ----------------
   function abrirRegistro(opcoes) {
     opcoes = opcoes || {};
+    const registroTec = opcoes.plataformaQuestoes === 'tec';
+    if (registroTec) opcoes.tipo = 'questoes';
+    const estadoRegistro = state, planoRegistro = state.planoAtivoId;
     if (state.disciplinas.length === 0) {
       toast('Importe um plano antes de registrar sessões.', 'erro');
       location.hash = '#ajustes';
@@ -1720,7 +1749,8 @@
     }).join('');
 
     const m = abrirModal(
-      '<h3>Registrar sessão</h3>' +
+      '<h3>' + (registroTec ? 'Registrar resultado do TEC' : 'Registrar sessão') + '</h3>' +
+      (registroTec ? '<p class="tec-ajuda">Informe o resultado da sua prática no TEC. Questões, acertos e tempo entram nas metas e no desempenho deste plano.</p>' : '') +
       '<form id="form-registro">' +
       '<label for="reg-disc">Disciplina</label><select id="reg-disc">' + optsDisc + '</select>' +
       '<label for="reg-topico">Tópico</label><select id="reg-topico"></select>' +
@@ -1730,11 +1760,11 @@
       '<option value="questoes"' + (opcoes.tipo === 'questoes' ? ' selected' : '') + '>Questões</option>' +
       '<option value="revisao"' + (opcoes.tipo === 'revisao' ? ' selected' : '') + '>Revisão</option>' +
       '</select></div>' +
-      '<div><label for="reg-dur">Duração (min)</label><input id="reg-dur" type="number" min="1" max="720" value="' + (opcoes.duracaoMin || 30) + '"></div>' +
+      '<div><label for="reg-dur">Duração (min)</label><input id="reg-dur" type="number" min="1" max="720" step="1" required value="' + (opcoes.duracaoMin || (registroTec ? '' : 30)) + '"></div>' +
       '</div>' +
       '<div class="grade-2">' +
-      '<div><label for="reg-feitas">Questões feitas</label><input id="reg-feitas" type="number" min="0" max="999" value="0"></div>' +
-      '<div><label for="reg-certas">Acertos</label><input id="reg-certas" type="number" min="0" max="999" value="0"></div>' +
+      '<div><label for="reg-feitas">Questões feitas</label><input id="reg-feitas" type="number" min="' + (registroTec ? 1 : 0) + '" max="999" step="1" required value="' + (registroTec ? '' : '0') + '"></div>' +
+      '<div><label for="reg-certas">Acertos</label><input id="reg-certas" type="number" min="0" max="999" step="1" required value="' + (registroTec ? '' : '0') + '"></div>' +
       '</div>' +
       '<div class="msg-erro oculto" id="reg-erro"></div>' +
       '<label for="reg-obs">Observação (opcional)</label><textarea id="reg-obs" placeholder="Ex.: travei em prazos de recurso"></textarea>' +
@@ -1743,7 +1773,7 @@
       (D.sugestoesRevisaoAtivas(state) ? 'agenda as revisões e ' : '') + 'recalcula o plano, tirando-o da fila de teoria)</label>' +
       '<div class="modal-acoes">' +
       '<button type="button" class="botao-quieto" id="reg-cancelar">Cancelar</button>' +
-      '<button type="submit">Registrar sessão</button>' +
+      '<button type="submit">' + (registroTec ? 'Registrar resultado' : 'Registrar sessão') + '</button>' +
       '</div></form>'
     );
 
@@ -1758,11 +1788,20 @@
     }
     preencherTopicos();
     selDisc.addEventListener('change', preencherTopicos);
+    if (registroTec) m.querySelector('#reg-tipo').disabled = true;
     m.querySelector('#reg-cancelar').addEventListener('click', fecharModal);
 
     m.querySelector('#form-registro').addEventListener('submit', function (e) {
       e.preventDefault();
       const erroEl = m.querySelector('#reg-erro');
+      if (registroTec && (state !== estadoRegistro || state.planoAtivoId !== planoRegistro)) {
+        erroEl.textContent = 'O plano ou a conta mudou. Feche e reabra este registro.'; erroEl.classList.remove('oculto'); return;
+      }
+      if (registroTec) {
+        const erroTec = window.TecQuestoes.validarResultado({ duracaoMin: m.querySelector('#reg-dur').value,
+          qFeitas: m.querySelector('#reg-feitas').value, qCertas: m.querySelector('#reg-certas').value });
+        if (erroTec) { erroEl.textContent = erroTec; erroEl.classList.remove('oculto'); return; }
+      }
       const dur = parseInt(m.querySelector('#reg-dur').value, 10);
       const feitas = parseInt(m.querySelector('#reg-feitas').value, 10) || 0;
       const certas = parseInt(m.querySelector('#reg-certas').value, 10) || 0;
@@ -1780,7 +1819,8 @@
         obs: m.querySelector('#reg-obs').value.trim(),
         teoriaOk: m.querySelector('#reg-teoria-ok').checked,
         data: dataReg,
-        blocoId: opcoes.blocoId || null
+        blocoId: opcoes.blocoId || null,
+        plataformaQuestoes: registroTec ? 'tec' : ''
       };
 
       // caminho infeliz F1: registro duplicado no mesmo dia/tópico/tipo → confirmar.
@@ -1791,7 +1831,7 @@
       });
       if (duplicada && !opcoes.confirmouDuplicada && !opcoes.blocoId) {
         const quando = dataReg === D.hojeISO() ? 'hoje' : 'em ' + D.formatarDataBR(dataReg);
-        erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico ' + quando + '. Clique em "Registrar sessão" de novo para confirmar como sessão adicional.';
+        erroEl.innerHTML = 'Você já registrou <strong>' + esc(dados.tipo) + '</strong> deste tópico ' + quando + '. Clique em "' + (registroTec ? 'Registrar resultado' : 'Registrar sessão') + '" de novo para confirmar como sessão adicional.';
         erroEl.classList.remove('oculto');
         opcoes.confirmouDuplicada = true;
         return;
@@ -1816,6 +1856,7 @@
       obs: dados.obs || '',
       origemRegistroRapido: dados.origemRegistroRapido || ''
     };
+    if (dados.plataformaQuestoes === 'tec') sessao.plataformaQuestoes = 'tec';
     state.sessoes.push(sessao);
 
     let marcouTeoria = false;
@@ -2379,6 +2420,7 @@
           '<div class="fila-acoes">' +
           '<button class="botao-mini botao-quieto" data-acao="ciclo-timer" ' + dataReg + '>Timer</button>' +
           '<button class="botao-mini" data-acao="ciclo-registrar" ' + dataReg + '>Estudar</button>' +
+          acoesTecHtml(b.disciplinaId, b.topicoId || null) +
           '</div></div></div></div>';
       }
       if (item.categoria === 'agenda') {
@@ -2403,7 +2445,8 @@
             (blocoParcial(a) ? '<span class="etiqueta etiqueta-parcial" title="Você já estudou parte deste bloco.">faltam ' + D.formatarMin(blocoRestanteMin(a)) + '</span>' : '') +
             '<div class="fila-acoes">' +
             '<button class="botao-mini botao-quieto" data-acao="timer-agenda" data-id="' + esc(a.id) + '">Timer</button>' +
-            '<button class="botao-mini" data-acao="concluir-agenda" data-id="' + esc(a.id) + '">Registrar</button></div>') +
+            '<button class="botao-mini" data-acao="concluir-agenda" data-id="' + esc(a.id) + '">Registrar</button>' +
+            acoesTecHtml(a.disciplinaId, a.topicoId, a.id, a.data) + '</div>') +
           '</div></div></div>';
       }
       const t = D.topicoPorId(state, item.topicoId);
@@ -2443,7 +2486,7 @@
         '<div class="fila-info"><div class="fila-titulo">' + (d ? tagDisc(d) + ' ' : '') + esc(tituloTopico) + '</div>' +
         '<div class="fila-sub">' + sub + '</div></div>' +
         '<div class="fila-rodape">' + etiqueta + avisoTeoria +
-        '<div class="fila-acoes">' + acoes + '</div></div>' +
+        '<div class="fila-acoes">' + acoes + (item.categoria !== 'revisao' && !item.feito && d ? acoesTecHtml(d.id, item.topicoId) : '') + '</div></div>' +
         '</div></div>';
     }
 
@@ -5033,6 +5076,7 @@
       '<div class="card card-kpi detalhe-card-questoes"><div class="card-kpi-rotulo">Questões</div><div class="card-kpi-valor">' + m.feitas + '</div><div class="card-kpi-extra">meta de corte: ' + metaPct + '%</div></div>' +
       '</div>';
 
+    if (window.TecQuestoes) html += window.TecQuestoes.renderCard(state, disc.id);
     html += '<div class="card"><div class="card-cab-acao"><div class="card-kpi-rotulo">Histórico de registros</div>' +
       '<button class="botao-mini" id="det-add">+ Adicionar estudo</button></div>';
     if (m.sessoes.length === 0) {
@@ -5043,7 +5087,7 @@
         m.sessoes.map(function (s, i) {
           const t = D.topicoPorId(state, s.topicoId);
           const pct = s.qFeitas > 0 ? Math.round((s.qCertas / s.qFeitas) * 100) : null;
-          return '<tr' + (i >= HIST_LIMITE ? ' class="hist-linha-extra"' : '') + '><td class="num">' + D.formatarDataBR(s.data) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span></td>' +
+          return '<tr' + (i >= HIST_LIMITE ? ' class="hist-linha-extra"' : '') + '><td class="num">' + D.formatarDataBR(s.data) + '</td><td><span class="etiqueta etiqueta-bloco">' + esc(String(s.tipo || '').toUpperCase()) + '</span>' + (s.plataformaQuestoes === 'tec' ? ' <span class="tec-origem">TEC</span>' : '') + '</td>' +
             '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td><td class="num painel-acertos">' + (s.qCertas || 0) + '</td>' +
             '<td class="num painel-erros">' + Math.max(0, (s.qFeitas || 0) - (s.qCertas || 0)) + '</td>' +
             '<td class="num">' + (pct === null ? '0' : pct) + '</td><td>' + esc(t ? t.nome : s.topicoId) + '</td></tr>';
@@ -5174,7 +5218,7 @@
       html += '<tr><td class="num" style="white-space:nowrap">' + D.formatarDataBR(s.data) + '</td>' +
         '<td>' + (d ? tagDisc(d) + ' ' : '') + esc(t ? t.nome : s.topicoId) + (s.obs ? '<div style="font-size:0.75rem;color:var(--grafite)">' + esc(s.obs) + '</div>' : '') + '</td>' +
         (doSite ? '<td style="font-size:0.8rem">' + esc(nomePlanoDaSessao(s)) + '</td>' : '') +
-        '<td>' + esc(s.tipo) + '</td>' +
+        '<td>' + esc(s.tipo) + (s.plataformaQuestoes === 'tec' ? ' <span class="tec-origem">TEC</span>' : '') + '</td>' +
         '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td>' +
         '<td class="num">' + (s.qFeitas > 0 ? s.qCertas + '/' + s.qFeitas : '—') + '</td>' +
         '<td><button class="botao-mini botao-quieto" data-excluir="' + esc(s.id) + '" title="Excluir sessão">✕</button></td></tr>';
@@ -8078,6 +8122,7 @@
       cabecalhoTopicoEditavel('agde-topico', 'Tópico (opcional)', 'agde-editar-topico') +
       '<select id="agde-topico"></select>' +
       '<label for="agde-obs">Anotação</label><input id="agde-obs" type="text" value="' + esc(a.obs || '') + '">' +
+      '<div class="tec-agenda-acoes">' + acoesTecHtml(a.disciplinaId, a.topicoId, a.id, a.data) + '</div>' +
       (blocoParcial(a)
         ? '<p class="sub agde-progresso">⏱️ Já estudado: <strong>' + D.formatarMin(blocoFeitoMin(a)) + '</strong> · faltam <strong>' + D.formatarMin(blocoRestanteMin(a)) + '</strong> de ' + D.formatarMin(a.duracaoMin || 0) + '.</p>'
         : '') +
@@ -8128,8 +8173,22 @@
     // sendo perguntado apenas no "Salvar", para não interromper quem vai estudar.
     function gravarEdicaoPendente() {
       aplicarCampos(lerCampos());
-      salvar();
+      return salvar();
     }
+    const tecAgenda = m.querySelector('.tec-agenda-acoes');
+    function atualizarTecAgenda() {
+      if (!tecAgenda) return;
+      const v = lerCampos();
+      tecAgenda.innerHTML = acoesTecHtml(v.disciplinaId, v.topicoId, a.id, v.data);
+      ligarTec(tecAgenda);
+    }
+    if (tecAgenda) tecAgenda.addEventListener('click', function (e) {
+      if (e.target.closest('a,[data-tec-acao]') && !gravarEdicaoPendente()) {
+        e.preventDefault(); e.stopImmediatePropagation();
+      }
+    }, true);
+    [selDisc, selTop, m.querySelector('#agde-data')].forEach(function (el) { el.addEventListener('change', atualizarTecAgenda); });
+    atualizarTecAgenda();
     const btnReg = m.querySelector('#agde-registrar');
     if (btnReg) btnReg.addEventListener('click', function () {
       gravarEdicaoPendente();
@@ -12944,6 +13003,11 @@
             if (destaque && escolhida) destaque.textContent = escolhida.nome;
             if (escolhida) primeira.dataset.filaDisc = escolhida.id;
             acoes.forEach(b => { b.dataset.id = id; if (escolhida && b.hasAttribute('data-disc')) b.dataset.disc = escolhida.id; });
+            const tecAcoes = primeira.querySelector('.tec-bloco-acoes');
+            if (tecAcoes && escolhida) {
+              tecAcoes.innerHTML = window.TecQuestoes.renderAcoes(state, { disciplinaId: escolhida.id, topicoId: id });
+              ligarTec(tecAcoes);
+            }
           }
           if (atual && !agenda) aplicar(atual);
           const editar = document.createElement('button'); editar.type = 'button'; editar.className = 'inicio-trocar-topico'; editar.title = 'Escolher tópico'; editar.setAttribute('aria-label', 'Escolher tópico de ' + disc.nome);
@@ -13069,6 +13133,7 @@
       atualizarContextoPlano();
       if (rota === 'hoje') organizarInicio(conteudo);
       tela.ligar(conteudo);
+      ligarTec(conteudo);
       if (!mudouRota && rota === 'planos' && buscaAntes && !document.querySelector('#modal-raiz .modal')) {
         const buscaAtual = conteudo.querySelector('#cat-busca');
         if (buscaAtual) {
