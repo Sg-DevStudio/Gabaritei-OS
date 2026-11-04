@@ -50,5 +50,5 @@ test('caderno preserva o link pessoal quando uma nova referência usa outros ids
  disciplinas:[{id:'POR',nome:'Português',topicos:[{id:'POR-01',nome:'Crase'}]}],
  links:[{id:'pessoal',tipo:'trilha',topicoChave:'plano:PT:PT-antigo',nome:'Meu caderno',url:'https://www.tecconcursos.com.br/s/meu'}]};
  const html=t.render(state);assert(html.includes('https://www.tecconcursos.com.br/s/meu'));
- assert(html.includes('logo-tec-concursos.png'));assert(html.includes('title="Resolver no TEC'));
+ assert(html.includes('logo-tec-concursos.png'));assert(html.includes('title="Resolva as questões desse assunto no TEC Concursos'));
 });

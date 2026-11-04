@@ -5376,3 +5376,19 @@ a[class*="botao"], .caderno a { text-decoration:none; }
   .inicio-layout-setas { gap: 0; }
   .inicio-layout-acoes { bottom: -18px; }
 }
+
+/* Plataformas de questões: logos lado a lado, sem repetir rótulos na leitura. */
+.caderno .caderno-acessos { display:flex; flex:0 0 auto; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:6px; max-width:44%; }
+.caderno .trilha-link { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; margin:0; }
+.caderno .trilha-link .banco-logo-link { display:inline-flex; width:56px; min-width:56px; height:44px; min-height:44px; padding:6px; background:#fff; border:1px solid var(--linha); }
+.caderno .trilha-link .banco-logo-link:hover { border-color:var(--caneta); background:#f3f7ff; }
+.caderno .trilha-link .gran-logo { width:44px; height:24px; }
+.qconcursos-logo { display:block; width:28px; height:28px; object-fit:contain; }
+.caderno .banco-pendente { width:56px; min-width:56px; height:44px; padding:6px; opacity:.45; cursor:help; }
+.caderno-banca-fixa { white-space:normal; }
+.caderno .caderno-adicionar { flex-basis:100%; }
+@media(max-width:480px) {
+ .caderno .trilha-topico { flex-wrap:wrap; gap:8px; }
+ .caderno .caderno-tema { flex:1 1 100%; }
+ .caderno .caderno-acessos { flex:1 1 100%; max-width:100%; justify-content:flex-start; }
+}

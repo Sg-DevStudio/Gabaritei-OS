@@ -83,6 +83,19 @@ em [`CLAUDE.md`](CLAUDE.md).
    plano, histórico e timer deste aparelho. Sem internet, o app pede conexão antes
    de sair para não descartar uma alteração ainda não enviada.
 
+## Atalhos de questões por assunto
+
+Os cadernos por subtópico têm atalhos com as logos do Gran e do Qconcursos.
+O tooltip identifica a plataforma e a categoria: o Qconcursos usa o assunto
+público, sem recorte de banca ou ano. Categorias relacionadas podem cobrir
+apenas parte de um subtópico composto; confira o nome no tooltip. Onde ainda
+não há correspondência verificada, a logo do Qconcursos fica indisponível.
+Os links pessoais e o histórico do aluno são preservados. A geração automática
+de filtros do TEC permanece pendente; seus cadernos pessoais continuam válidos.
+Metadados e URLs oficiais: `data/caderno-qconcursos.js`, verificados em 04/11/2026.
+O ícone do Qconcursos foi obtido do próprio site, via
+`https://odin.qconcursos.com/packs/assets/qc-afe3db90abed2de7f6ed.svg`.
+
 ## Cadernos pessoais do TEC
 
 Em **Hoje**, use **Vincular TEC** no bloco, ou abra uma disciplina e procure
