@@ -85,14 +85,18 @@ em [`CLAUDE.md`](CLAUDE.md).
 
 ## Atalhos de questões por assunto
 
-Os cadernos por subtópico têm atalhos com as logos do Gran e do Qconcursos.
-O tooltip identifica a plataforma e a categoria: o Qconcursos usa o assunto
+Os cadernos por subtópico têm atalhos com as logos do Gran, Qconcursos e TEC.
+O tooltip identifica a plataforma e a categoria: TEC e Qconcursos usam o assunto
 público, sem recorte de banca ou ano. Categorias relacionadas podem cobrir
 apenas parte de um subtópico composto; confira o nome no tooltip. Onde ainda
-não há correspondência verificada, a logo do Qconcursos fica indisponível.
-Os links pessoais e o histórico do aluno são preservados. A geração automática
-de filtros do TEC permanece pendente; seus cadernos pessoais continuam válidos.
-Metadados e URLs oficiais: `data/caderno-qconcursos.js`, verificados em 04/11/2026.
+não há correspondência verificada, a logo da plataforma fica indisponível.
+Os links pessoais e o histórico do aluno são preservados. Os filtros do TEC
+usam o endereço oficial `/questoes/filtrar`, com assuntos previamente conferidos.
+Assuntos compostos podem reunir mais de uma categoria no mesmo filtro.
+Abrir um filtro não exige criar caderno e não importa resultados de questões.
+Metadados e URLs oficiais: `data/caderno-qconcursos.js` e `data/caderno-tec.js`,
+verificados em 04/11/2026. Cadernos pessoais continuam separados desses padrões;
+seus endereços não são publicados no catálogo compartilhado.
 O ícone do Qconcursos foi obtido do próprio site, via
 `https://odin.qconcursos.com/packs/assets/qc-afe3db90abed2de7f6ed.svg`.
 

@@ -76,7 +76,8 @@
       if (ds && (ds.topicos || []).some(x => x.id === t.id && normal(x.nome) === normal(t.nome))) alternativas.push('plano:' + d.id + ':' + t.id);
       const matches = vinculos.filter(([,v]) => normal(v.nome) === normal(t.nome || t.titulo));
       const q = matches.length === 1 && window.CadernoQconcursos && (window.CadernoQconcursos.cadernos[caderno] || {})[matches[0][0]];
-      return { chave, alternativas: Array.from(new Set(alternativas)), nome: t.nome || t.titulo || t.id, vinculos: matches.length === 1 ? matches[0][1] : null, qconcursos: q && normal(q.nome) === normal(t.nome || t.titulo) ? q : null };
+      const tec = matches.length === 1 && window.CadernoTEC && (window.CadernoTEC.cadernos[caderno] || {})[matches[0][0]];
+      return { chave, alternativas: Array.from(new Set(alternativas)), nome: t.nome || t.titulo || t.id, vinculos: matches.length === 1 ? matches[0][1] : null, qconcursos: q && normal(q.nome) === normal(t.nome || t.titulo) ? q : null, tec: tec && normal(tec.nome) === normal(t.nome || t.titulo) ? tec : null };
     }) }));
   }
   function padrao(t, state) {
@@ -96,6 +97,16 @@
     }) : [padrao(t,state)].filter(Boolean);
     const categoria = t.qconcursos && window.CadernoQconcursos && window.CadernoQconcursos.categorias[t.qconcursos.categoria];
     if (categoria && urlSegura(categoria.url)) gran.push({id:'qconcursos-' + t.chave,nome:categoria.nome,url:categoria.url,provedorOriginal:'qconcursos',aviso:'Categoria: ' + categoria.nome + '. ' + (t.qconcursos.cobertura === 'assunto' ? '' : 'Recorte relacionado: confira as partes do subtópico contempladas. ') + 'Todas as bancas e anos.'});
+    const assuntosTEC = t.tec && window.CadernoTEC && t.tec.assuntos.map(id => window.CadernoTEC.assuntos[id]);
+    if (assuntosTEC && assuntosTEC.length && assuntosTEC.every(Boolean)) {
+      // Tipos e IDs lidos nos links oficiais. A seleção composta foi conferida
+      // no próprio filtro; nenhum ID do Gran/Qconcursos é reaproveitado aqui.
+      const url = new URL('https://www.tecconcursos.com.br/questoes/filtrar');
+      url.searchParams.set('formato','OBJETIVA');
+      t.tec.assuntos.forEach((id,i) => { url.searchParams.set('f['+i+'].tipo','ASSUNTO'); url.searchParams.set('f['+i+'].id',id); });
+      const nomes = assuntosTEC.map(a => a.nome).join('; ');
+      gran.push({id:'tec-' + t.chave,nome:nomes,url:url.href,provedorOriginal:'tec',aviso:'Assuntos: ' + nomes + '. ' + (t.tec.cobertura === 'assunto' ? '' : 'Recorte relacionado: confira o conteúdo contemplado. ') + 'Questões objetivas, todas as bancas e anos.'});
+    }
     return gran;
   }
   function links(state, t) {
@@ -109,16 +120,18 @@
       if (chaves.length === 1) pessoais = (state.links || []).filter(l => l.tipo === 'trilha' && l.topicoChave === chaves[0]);
     }
     const base = defaults(state,t);
-    // Um atalho novo do Qconcursos também chega a cadernos que já têm links
-    // pessoais. Edição/remoção explícita desse provedor impede sua restauração.
-    const tocouQ = pessoais.some(l => l.provedorOriginal === 'qconcursos' || provedor(l) === 'qconcursos');
-    const lista = pessoais.length ? pessoais.map(l => Object.assign({},l,{pessoal:true,semResultadosNoRecorte:false})).concat(tocouQ ? [] : base.filter(l => provedor(l) === 'qconcursos')) : base;
+    // Novas plataformas chegam também a quem tem links pessoais. A edição
+    // ou remoção explícita de um provedor impede a restauração do seu padrão.
+    const tocados = new Set(pessoais.map(l => l.provedorOriginal || provedor(l)));
+    const novos = base.filter(l => ['qconcursos','tec'].includes(provedor(l)) && !tocados.has(provedor(l)));
+    const lista = pessoais.length ? pessoais.map(l => Object.assign({},l,{pessoal:true,semResultadosNoRecorte:false})).concat(novos) : base;
     return lista.filter(l => !l.oculto).sort((a, b) => Number(!!b.principal) - Number(!!a.principal));
   }
   function renderAcessos(t, ls) {
     const html = ls.map(l => '<div class="trilha-link">' + (urlSegura(l.url) ? '<a class="' + classeLink(l) + '" href="' + esc(urlSegura(l.url)) + '" target="_blank" rel="noopener noreferrer" title="' + esc(dicaLink(l)) + '" aria-label="' + esc(dicaLink(l) + ': ' + t.nome) + '">' + conteudoLink(l) + '</a>' : '<span>Link inválido</span>') + '<button class="botao-mini botao-quieto" data-trilha-editar="' + esc(t.chave) + '" data-link="' + esc(l.id) + '">Editar link</button></div>').join('');
     const pendente = t.vinculos && !t.qconcursos && !ls.some(l => provedor(l) === 'qconcursos');
-    return html + (pendente ? '<span class="banco-logo-link banco-pendente" role="img" title="Qconcursos: filtro deste subtópico ainda não verificado" aria-label="Qconcursos: filtro deste subtópico ainda não verificado"><img class="qconcursos-logo" src="assets/ferramentas/logo-qconcursos.svg" alt="" aria-hidden="true"></span>' : '');
+    const pendenteTEC = window.CadernoTEC && t.vinculos && !t.tec && !ls.some(l => provedor(l) === 'tec');
+    return html + (pendente ? '<span class="banco-logo-link banco-pendente" role="img" title="Qconcursos: filtro deste subtópico ainda não verificado" aria-label="Qconcursos: filtro deste subtópico ainda não verificado"><img class="qconcursos-logo" src="assets/ferramentas/logo-qconcursos.svg" alt="" aria-hidden="true"></span>' : '') + (pendenteTEC ? '<span class="banco-logo-link banco-pendente" role="img" title="TEC Concursos: filtro deste subtópico ainda não verificado" aria-label="TEC Concursos: filtro deste subtópico ainda não verificado"><img class="tec-logo" src="assets/ferramentas/logo-tec-concursos.png" alt="" aria-hidden="true"></span>' : '');
   }
   function render(state) {
     if (!state.plano) return '<h1>Caderno de questões</h1><div class="card"><p>Escolha um plano para organizar seus cadernos.</p><a href="#planos">Escolher plano</a></div>';
@@ -128,10 +141,10 @@
     const total = gs.reduce((n,g) => n + g.topicos.length, 0);
     return '<div class="caderno' + (edicaoPlano && edicaoPlano === chaveCaderno(state) ? ' editando' : '') + '"><header class="caderno-capa">' + (state.plano.foto ? '<img class="caderno-logo" src="' + esc(state.plano.foto) + '" alt="Imagem do órgão do plano" onerror="this.hidden=true">' : '') + '<h1>Caderno de questões por subtópico</h1><p>' + esc(state.plano.concurso) + '</p><p>' + gs.length + ' disciplinas · ' + total + ' subtópicos' + (ehTrf2(state) ? ' · Gran: anos 2017–2026' : ehTJSP(state) ? ' · referência do plano: edital 2026' : '') + '</p></header>' +
       '<div class="caderno-layout"><aside class="caderno-indice"><h2>Disciplinas</h2>' + gs.map((g,i) => '<button type="button" data-caderno-ir="' + i + '">' + esc(g.nome) + '<small>' + g.topicos.length + '</small></button>').join('') + '</aside><div class="caderno-corpo">' +
-      '<section class="card caderno-intro"><strong>Como usar</strong><p>Abra as questões de cada subtópico. Em <b>Editar caderno</b>, adicione links do NotebookLM ou de outras plataformas.</p><p>Passe o mouse nas logos para identificar a plataforma e o recorte. No celular, toque na logo para abrir. O Qconcursos filtra o assunto; banca e período podem ser ajustados lá.</p>' +
+      '<section class="card caderno-intro"><strong>Como usar</strong><p>Abra as questões de cada subtópico. Em <b>Editar caderno</b>, adicione links do NotebookLM ou de outras plataformas.</p><p>Passe o mouse nas logos para identificar a plataforma e o recorte. No celular, toque na logo para abrir. TEC e Qconcursos abrem por assunto; banca, período e outros critérios podem ser ajustados na plataforma.</p>' +
       (state.cadernoConsulta ? '<p>Para salvar seus links, inicie este plano.</p>' : '') + '</section>' +
       '<div class="card caderno-controles"><input id="trilha-busca" type="search" aria-label="Buscar disciplina ou subtópico" placeholder="Buscar disciplina ou subtópico…">' +
-      (ehTrf2(state) || ehTJSP(state) || ehTRT4(state) || ehTRT4Analista(state) ? '<span class="caderno-banca-fixa">Gran: <strong>' + rotuloBancas(state) + '</strong> · Qconcursos: por assunto</span>' : '') +
+      (ehTrf2(state) || ehTJSP(state) || ehTRT4(state) || ehTRT4Analista(state) ? '<span class="caderno-banca-fixa">Gran: <strong>' + rotuloBancas(state) + '</strong> · TEC e Qconcursos: por assunto</span>' : '') +
       '<button type="button" id="caderno-editar" class="botao-mini botao-secundario" aria-pressed="' + (edicaoPlano === chaveCaderno(state) && !!edicaoPlano) + '">' + (edicaoPlano === chaveCaderno(state) && edicaoPlano ? 'Concluir edição' : 'Editar caderno') + '</button><button type="button" id="caderno-imprimir" class="botao-mini botao-quieto">Imprimir / PDF</button></div>' +
       '<div id="trilha-grupos">' + gs.map((g,i) => '<details class="card trilha-grupo" id="caderno-disc-' + i + '"' + ((disciplinasAbertas.get(chaveCaderno(state)) || new Set()).has(i) ? ' open' : '') + '><summary class="caderno-sec-head"><div><small>' + String(i+1).padStart(2,'0') + ' / ' + gs.length + (g.tipo ? ' · ' + esc(g.tipo) : '') + '</small><h2>' + esc(g.nome) + ' <span class="caderno-contagem">(' + g.topicos.length + ' subtópicos)</span></h2></div></summary><p class="sub">Escolha o subtópico e resolva quantas questões quiser.</p>' + g.topicos.map(t => {
         const ls = links(state,t);
