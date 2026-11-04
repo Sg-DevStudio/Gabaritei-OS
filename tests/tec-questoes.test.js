@@ -103,5 +103,8 @@ test('HTML escapa os nomes e abre o TEC sem acesso ao contexto da aba original',
   assert.ok(!html.includes('<img src=x'));
   assert.ok(html.includes('&lt;img'));
   assert.ok(html.includes('target="_blank" rel="noopener noreferrer"'));
+  assert.ok(html.includes('logo-tec-concursos.png'));
+  assert.ok(html.includes('aria-label="Resolver no TEC:'));
+  assert.ok(!html.includes('>Resolver no TEC'));
   assert.equal(T.renderAcoes(state, { disciplinaId: 'NAO-EXISTE' }), '');
 });

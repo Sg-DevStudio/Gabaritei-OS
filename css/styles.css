@@ -4977,6 +4977,11 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .tec-atalho { white-space:nowrap; text-decoration:none; }
 .tec-origem { display:inline-block; font-size:.68rem; font-weight:600; color:var(--caneta-forte); background:var(--caneta-suave); border-radius:5px; padding:2px 5px; }
 .tec-agenda-acoes { margin:12px 0; }
+.atualizacao-resumo { margin:16px 0; font-size:.85rem; line-height:1.65; }
+.atualizacao-lista { margin:8px 0; border:1px solid var(--linha); border-radius:8px; padding:10px 12px; }
+.atualizacao-lista summary { cursor:pointer; font-size:.85rem; font-weight:600; }
+.atualizacao-lista ul { margin:10px 0 0; padding-left:18px; font-size:.8rem; line-height:1.6; }
+.caderno-logo { width:56px; height:56px; object-fit:contain; padding:5px; background:#fff; border-radius:10px; margin-bottom:10px; }
 @media (max-width:760px) {
   .tec-card { flex-direction:column; align-items:stretch; gap:12px; }
   .tec-card > .tec-acoes { max-width:none; justify-content:flex-start; }
@@ -4984,7 +4989,11 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 }
 @media print { .tec-card, .tec-acoes, .tec-atalho { display:none !important; } }
 
-.gran-logo { display:none; }
+.banco-logo-link, .caderno .trilha-link .banco-logo-link { display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box; width:64px; min-width:64px; min-height:44px; padding:6px; border:1px solid var(--linha); border-radius:8px; background:#fff; vertical-align:middle; text-decoration:none; }
+.banco-logo-link:hover { border-color:var(--caneta); }
+.gran-logo { display:block; width:48px; height:26px; object-fit:contain; }
+.gran-texto { display:none; }
+.tec-logo { display:block; width:32px; height:32px; object-fit:contain; border-radius:5px; }
 @media(max-width:760px) {
  .caderno .trilha-link .gran-link { display:inline-flex; align-items:center; justify-content:center; min-width:64px; min-height:44px; padding:7px; background:#fff; border:1px solid var(--linha); }
  .gran-link .gran-texto { display:none; }

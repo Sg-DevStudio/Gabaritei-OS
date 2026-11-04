@@ -52,7 +52,7 @@
     const item = vinculo(state, opcoes.disciplinaId), attrs = atributos(state, opcoes);
     if (!item) return '<button type="button" class="botao-mini botao-secundario tec-atalho" data-tec-acao="editar"' + attrs + '>Vincular TEC</button>';
     return '<span class="tec-acoes">' +
-      '<a class="botao botao-mini botao-secundario tec-atalho" href="' + esc(urlSegura(item.url)) + '" target="_blank" rel="noopener noreferrer" title="' + esc(item.nome) + '">Resolver no TEC ↗</a>' +
+      '<a class="botao botao-mini botao-secundario tec-atalho banco-logo-link" href="' + esc(urlSegura(item.url)) + '" target="_blank" rel="noopener noreferrer" title="Resolver no TEC — ' + esc(item.nome) + '" aria-label="Resolver no TEC: ' + esc(item.nome) + '"><img class="tec-logo" src="assets/ferramentas/logo-tec-concursos.png" alt="" aria-hidden="true"></a>' +
       '<button type="button" class="botao-mini botao-quieto" data-tec-acao="registrar"' + attrs + '>Registrar resultado</button>' +
       (opcoes.editar ? '<button type="button" class="botao-mini botao-quieto" data-tec-acao="editar"' + attrs + '>Editar vínculo</button>' : '') + '</span>';
   }

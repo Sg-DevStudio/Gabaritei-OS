@@ -22,3 +22,4 @@ a spec funcional ampla e o roadmap, no `ROADMAP.md`.
 |---|------|--------|
 | 001 | [Análise de erro por tipo nos simulados](001-analise-erro-por-tipo.md) | implementado |
 | 002 | [Cadernos pessoais do TEC](002-cadernos-tec.md) | implementado |
+| 003 | [Atualizar referências e preservar o histórico](003-atualizacao-referencias.md) | implementado |

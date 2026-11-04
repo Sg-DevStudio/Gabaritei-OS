@@ -35,3 +35,28 @@ test('TJSP abre a base do caderno 2026 e preserva o plano ativo de outro concurs
  assert.equal(c.state.plano.concurso,'TRF2');
  assert.equal(c.state.disciplinas.length,0);
 });
+
+test('caderno encontra plano pelo edital de origem quando o título publicado mudou', () => {
+ const app=fs.readFileSync(path.join(__dirname,'../js/app.js'),'utf8');
+ const fonte=app.slice(app.indexOf('  function estadoCaderno() {'),app.indexOf('  function rotaAtual()'));
+ const entrada={id:'aluno',plano:{concurso:'TJSP 2025',origemEditalId:'edt-mqifhb2v-yh9ym'},disciplinas:[],links:[{id:'meu-link'}]};
+ const referencia={id:'edt-mqifhb2v-yh9ym',titulo:'TJSP - Escrevente Técnico Judiciário (Edital 2026)',disciplinas:[]};
+ const c=vm.createContext({window:{},cadernoPlanoId:'edital:'+referencia.id,state:{planos:[entrada],planoAtivoId:'outro'},editalPorId:()=>referencia});
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../data/caderno-tjsp.js'),'utf8'),c);
+ vm.runInContext(fonte+'; resultado=estadoCaderno();',c);
+ assert.equal(c.resultado.planoAtivoId,'aluno');assert.equal(c.resultado.links,entrada.links);
+ assert.equal(entrada.plano.concurso,'TJSP 2025');assert.equal(c.resultado.cadernoConsulta,undefined);
+ assert.equal(c.resultado.cadernoPlanoAtivo,false);assert.equal(c.resultado.disciplinas.length,12);
+});
+
+test('uma nova referência TRF2 não recebe à força o programa da edição 2024', () => {
+ const app=fs.readFileSync(path.join(__dirname,'../js/app.js'),'utf8');
+ const fonte=app.slice(app.indexOf('  function estadoCaderno() {'),app.indexOf('  function rotaAtual()'));
+ const disciplinas=[{id:'NOVO',nome:'Disciplina do edital futuro',topicos:[]}];
+ const entrada={id:'aluno',plano:{concurso:'TRF2 Técnico Administrativo 2028',origemEditalId:'trf2-edital-2028'},disciplinas,links:[]};
+ const referencia={id:'trf2-edital-2028',titulo:entrada.plano.concurso,disciplinas};
+ const c=vm.createContext({window:{},cadernoPlanoId:'aluno',state:{planos:[entrada],planoAtivoId:'aluno'},editalPorId:()=>referencia});
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../data/catalogo-editais.js'),'utf8'),c);
+ vm.runInContext(fonte+'; resultado=estadoCaderno();',c);
+ assert.equal(c.resultado.disciplinas,disciplinas);assert.equal(c.resultado.disciplinas.length,1);
+});

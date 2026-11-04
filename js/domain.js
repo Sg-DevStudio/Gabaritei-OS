@@ -1524,6 +1524,8 @@
         foto: json.plano.foto || json.plano.fotoUrl || json.plano.imagem || '',
         origemEditalId: json.plano.origemEditalId || null,
         origemEditalVersao: json.plano.origemEditalVersao || '',
+        mapaEdital: json.plano.mapaEdital || null,
+        atualizacoesEdital: json.plano.atualizacoesEdital || [],
         cota: json.plano.cota || null,
         meta: json.plano.meta,
         radar: json.plano.radar || null,
@@ -2842,7 +2844,7 @@
       const usados = {};
       const out = tEdital.map(function (te) {
         const tp = te && te.id ? porId[te.id] : null;
-        const novo = Object.assign({}, te);
+        const novo = Object.assign({}, tp || {}, te);
         delete novo.removidoDoEdital;
         if (tp) {
           usados[te.id] = true;
@@ -2867,10 +2869,13 @@
     const usadas = {};
     const merged = discEdital.map(function (de) {
       const dp = de && de.id ? porId[de.id] : null;
-      const novo = Object.assign({}, de);
+      const novo = Object.assign({}, dp || {}, de);
       delete novo.removidoDoEdital;
       if (dp) {
         usadas[de.id] = true;
+        ['cor', 'base_teorica', 'pausa', 'pausada', 'pausaAte', 'desativada'].forEach(function (k) {
+          if (dp[k] !== undefined) novo[k] = dp[k];
+        });
         novo.topicos = mergeTopicos(dp.topicos, de.topicos);
       } else {
         resumo.disciplinasNovas++;

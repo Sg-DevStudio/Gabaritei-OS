@@ -99,6 +99,21 @@ no modo exemplo, as alterações duram somente durante a visita.
 
 ## Regras de negócio e técnicas de estudo (`js/domain.js`)
 
+### Atualizações de editais já iniciados
+
+Em **Hoje** ou **Planejamento**, **Ver mudanças** compara a nova versão da
+referência com o plano do aluno. A prévia separa assuntos novos, ajustados e
+retirados; o aluno aplica a atualização no mesmo plano, sem apagar o histórico.
+**Planejamento → Atualizar referência** também permite escolher o edital novo
+quando a preparação começou com o anterior. A rotina e as metas pessoais são
+preservadas; o aluno recalcula o planejamento para encaixar os novos assuntos.
+
+Imagens ausentes são recuperadas automaticamente quando a origem é identificada.
+O histórico de atualizações fica no card do plano. Cadernos usam o ID da referência
+para localizar planos renomeados e conservam os links pessoais quando IDs são
+mapeados entre edições. As logos do TEC e Gran abrem seus respectivos links;
+a descrição da ação aparece ao passar o mouse e permanece acessível a leitores de tela.
+
 Toda a lógica é **pura e testável** (sem DOM), em `window.Dominio`.
 
 | RN | Regra |

@@ -43,3 +43,12 @@ test('links removidos não reaparecem pelo fallback e nomes são escapados', () 
   state.links = [{ id: 'x', tipo: 'trilha', topicoChave: 'plano:p:c', nome: '<script>teste</script>', url: 'https://example.org' }];
   assert.ok(t.render(state).includes('&lt;script&gt;teste&lt;/script&gt;'));
 });
+
+test('caderno preserva o link pessoal quando uma nova referência usa outros ids',()=>{
+ const t=carregar();
+ const state={plano:{concurso:'TRF2 Técnico Administrativo',mapaEdital:{disciplinas:{POR:'PT'},topicos:{'POR:POR-01':'PT-antigo'}}},
+ disciplinas:[{id:'POR',nome:'Português',topicos:[{id:'POR-01',nome:'Crase'}]}],
+ links:[{id:'pessoal',tipo:'trilha',topicoChave:'plano:PT:PT-antigo',nome:'Meu caderno',url:'https://www.tecconcursos.com.br/s/meu'}]};
+ const html=t.render(state);assert(html.includes('https://www.tecconcursos.com.br/s/meu'));
+ assert(html.includes('logo-tec-concursos.png'));assert(html.includes('title="Resolver no TEC'));
+});

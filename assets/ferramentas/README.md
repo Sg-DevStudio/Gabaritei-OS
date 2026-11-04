@@ -11,5 +11,6 @@ Logos usados apenas para identificar os serviços em uma seleção independente 
 | logo-scielo.svg | [Logo do portal SciELO](https://www.scielo.org/static/scieloorg/images/logo-scielo-portal-no-label.svg); card e link identificam a coleção Livros |
 | logo-gutenberg.jpg | [Logo do site Project Gutenberg](https://www.gutenberg.org/gutenberg/pg-logo-new.jpg) |
 | logo-zlibrary.png | [Imagem do endereço indicado pelo usuário](https://zlibrary.pt/wp-content/uploads/logo-zlibrary.png); isso não valida o domínio como endereço oficial do serviço |
+| logo-tec-concursos.png | Ícone publicado pelo TEC na [página oficial do aplicativo na Google Play](https://play.google.com/store/apps/details?id=com.tecconcursos), consultado em 04/11/2026, preservado sem alteração |
 
 As marcas pertencem aos respectivos titulares. Não se usam os logos como identidade do Gabaritei OS. As capas preservam as proporções, as cores e o desenho dos arquivos.
