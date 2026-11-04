@@ -78,18 +78,22 @@
   }
   function analisar(entry, edital) {
     const base = preparar(entry, edital), anteriores = entry.disciplinas || [];
-    const incluidos = [], retirados = [], alterados = [], disciplinasNovas = [];
+    const incluidos = [], retirados = [], alterados = [], disciplinasNovas = [], disciplinasAjustadas = [];
     const novosIds = new Set(); let mantidos = 0;
     base.disciplinas.forEach(d => {
       const antiga = anteriores.find(x => x.id === d.id);
       if (!antiga) disciplinasNovas.push(d.nome);
+      else {
+        const campos = ['nome', 'peso', 'carater'].filter(k => String(antiga[k] == null ? '' : antiga[k]) !== String(d[k] == null ? '' : d[k]));
+        if (campos.length) disciplinasAjustadas.push({ nome: d.nome, campos: campos.map(k => ({ campo: k, antes: antiga[k] == null ? '' : antiga[k], depois: d[k] == null ? '' : d[k] })) });
+      }
       d.topicos.forEach(t => {
         novosIds.add(t.id);
         const velho = antiga && (antiga.topicos || []).find(x => x.id === t.id);
         if (!velho || velho.removidoDoEdital) incluidos.push({ id: t.id, nome: t.nome, disciplina: d.nome });
         else {
           mantidos++;
-          if (['nome', 'horas_estimadas', 'incidencia_pct', 'prioridade'].some(k => String(velho[k] == null ? '' : velho[k]) !== String(t[k] == null ? '' : t[k])))
+          if (['nome', 'horas_estimadas', 'incidencia_pct', 'prioridade', 'semana_sugerida', 'descricao', 'observacoes'].some(k => String(velho[k] == null ? '' : velho[k]) !== String(t[k] == null ? '' : t[k])))
             alterados.push({ id: t.id, antes: velho.nome, depois: t.nome, disciplina: d.nome });
         }
       });
@@ -104,8 +108,8 @@
     const jp = edital.janelaProva || {}, atual = pl.radar && pl.radar.janela_prova || [];
     if (jp.inicio && jp.inicio !== atual[0]) metadados.push({ campo: 'Data de referência', antes: atual.join(' a '), depois: jp.inicio + (jp.fim && jp.fim !== jp.inicio ? ' a ' + jp.fim : '') });
     return { editalId: edital.id, versao: versao(edital), disciplinas: base.disciplinas, mapa: base.mapa,
-      incluidos, retirados, alterados, disciplinasNovas, mantidos, metadados,
-      mudou: !!(incluidos.length || retirados.length || alterados.length || metadados.length) };
+      incluidos, retirados, alterados, disciplinasNovas, disciplinasAjustadas, mantidos, metadados,
+      mudou: !!(incluidos.length || retirados.length || alterados.length || disciplinasAjustadas.length || metadados.length) };
   }
   function pendente(entry, catalogo) {
     const e = origem(entry, catalogo);
@@ -137,7 +141,7 @@
     if (futuro) pl.radar = Object.assign({}, pl.radar, { janela_prova: [jp.inicio, jp.fim || jp.inicio] });
     const log = { em: new Date().toISOString(), origemAnteriorId: anteriorId, versaoAnterior: anteriorVersao,
       origemId: edital.id, versao: r.versao, incluidos: r.incluidos, retirados: r.retirados,
-      alterados: r.alterados, metadados: r.metadados };
+      alterados: r.alterados, disciplinasAjustadas: r.disciplinasAjustadas, metadados: r.metadados };
     pl.atualizacoesEdital = (pl.atualizacoesEdital || []).concat([log]);
     return r;
   }

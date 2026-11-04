@@ -6036,6 +6036,7 @@
       m.querySelector('#atualizacao-previa').innerHTML = '<p class="atualizacao-resumo"><strong>' + r.incluidos.length + ' novos</strong> · ' + r.alterados.length + ' ajustados · ' + r.retirados.length + ' fora da referência · ' + r.mantidos + ' aproveitados</p>' +
         lista('Tópicos novos', r.incluidos, t => t.disciplina + ': ' + t.nome) +
         lista('Tópicos ajustados', r.alterados, t => t.disciplina + ': ' + t.antes + (t.antes !== t.depois ? ' → ' + t.depois : ' — estimativas ou prioridade atualizadas')) +
+        lista('Pesos e dados das disciplinas', r.disciplinasAjustadas, d => d.nome + ': ' + d.campos.map(c => c.campo + ' ' + (c.antes || 'não informado') + ' → ' + (c.depois || 'não informado')).join('; ')) +
         lista('Mantidos apenas para o histórico', r.retirados, t => t.disciplina + ': ' + t.nome) +
         lista('Dados da referência', r.metadados, t => t.campo === 'Imagem' ? 'Imagem do órgão atualizada' : t.campo + ': ' + (t.antes || 'não informado') + ' → ' + t.depois) +
         '<p class="tec-ajuda">Assuntos novos começam pendentes. Os retirados continuam no histórico. Para encaixar novos tópicos no calendário ou ciclo, recalcule o planejamento depois de aplicar.</p>' +

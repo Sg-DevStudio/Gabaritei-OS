@@ -65,6 +65,13 @@ test('incidência não aferida no catálogo não bloqueia atualização nem vira
  const {entry,edital}=exemplo();edital.disciplinas[0].topicos[0].incidencia_pct=null;
  A.aplicar(entry,edital,D);assert.equal(entry.disciplinas[0].topicos[0].incidencia_pct,null);
 });
+test('uma atualização apenas de peso da disciplina também é oferecida na prévia',()=>{
+ const {entry,edital}=exemplo();
+ edital.titulo=entry.plano.concurso;edital.banca='';edital.foto='';
+ edital.disciplinas=JSON.parse(JSON.stringify(entry.disciplinas));edital.disciplinas[0].peso=3;
+ const r=A.analisar(entry,edital);assert.equal(r.alterados.length,0);assert.equal(r.disciplinasAjustadas.length,1);assert.equal(r.mudou,true);
+ assert.equal(A.pendente(entry,[edital]),edital);A.aplicar(entry,edital,D);assert.equal(entry.disciplinas[0].peso,3);
+});
 test('assunto histórico que volta à referência fica ativo sem perder progresso',()=>{
  const {entry,edital}=exemplo();entry.disciplinas[0].topicos[0].orfao=true;entry.disciplinas[0].topicos[0].removidoDoEdital=true;
  A.aplicar(entry,edital,D);const t=entry.disciplinas[0].topicos.find(t=>t.id==='ADM-01');
