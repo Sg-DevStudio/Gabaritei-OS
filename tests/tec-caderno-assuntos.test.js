@@ -4,6 +4,25 @@ function carregar(){const c=vm.createContext({window:{},URL});for(const f of ['d
 const w=carregar(),b=w.CATALOGO_EDITAIS_BASE.find(e=>e.id==='carreira-trf2-tjaa-2024');
 const estado=()=>({plano:{concurso:b.titulo,origemEditalId:b.id},disciplinas:[{id:'p',nome:'Português',topicos:[{id:'r',nome:'Regência verbal e nominal e emprego da crase'}]}],links:[]});
 const tecUrls=h=>[...h.matchAll(/href="(https:[^"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'))).filter(u=>u.hostname==='www.tecconcursos.com.br');
+test('domicílio, responsabilidade civil e resposta do réu usam as categorias pertinentes',()=>{
+ const m=w.CadernoTEC.cadernos.TrilhaVinculosTRT4Analista;
+ assert.deepEqual(Array.from(m['CIV-03'].assuntos),['2009']);
+ assert.deepEqual(Array.from(m['CIV-15'].assuntos),['3364']);
+ assert.deepEqual(Array.from(m['DPC-13'].assuntos),['4413','4408']);
+ assert(!m['DPC-13'].assuntos.includes('4412'));
+ assert(m['DPC-26'].assuntos.includes('5821'));
+});
+test('subtópicos compostos mantêm as duas partes do filtro TEC',()=>{
+ const t=w.CadernoTEC.cadernos.TrilhaVinculosTJSP;
+ assert(t['POR-06'].assuntos.includes('330'));
+ assert(t['POR-07'].assuntos.includes('5651'));
+ assert(t['POR-08'].assuntos.includes('5652'));
+ assert(t['MAT-02'].assuntos.includes('1026'));
+ assert(!t['MAT-02'].assuntos.includes('5330'));
+ for(const c of ['TrilhaVinculosTRT4','TrilhaVinculosTRT4Analista'])assert(w.CadernoTEC.cadernos[c]['CON-09'].assuntos.includes('383'));
+ const trf=w.CadernoTEC.cadernos.TrilhaVinculosTRF2;
+ for(const [id,assunto]of [['PEN-06','3580'],['PEN-07','3582'],['PEN-08','1959']])assert.deepEqual(Array.from(trf[id].assuntos),[assunto]);
+});
 test('metadados TEC mantêm origem do tópico e somente endereços oficiais públicos',()=>{
  let total=0;
  for(const [nome,mapa]of Object.entries(w.CadernoTEC.cadernos))for(const [id,t]of Object.entries(mapa)){

@@ -50,7 +50,7 @@
   function renderAcoes(state, opcoes) {
     if (!disciplina(state, opcoes.disciplinaId) || !state.planoAtivoId) return '';
     const item = vinculo(state, opcoes.disciplinaId), attrs = atributos(state, opcoes);
-    if (!item) return '<button type="button" class="botao-mini botao-secundario tec-atalho" data-tec-acao="editar"' + attrs + '>Vincular TEC</button>';
+    if (!item) return '';
     return '<span class="tec-acoes">' +
       '<a class="botao botao-mini botao-secundario tec-atalho banco-logo-link" href="' + esc(urlSegura(item.url)) + '" target="_blank" rel="noopener noreferrer" title="Resolver no TEC — ' + esc(item.nome) + '" aria-label="Resolver no TEC: ' + esc(item.nome) + '"><img class="tec-logo" src="assets/ferramentas/logo-tec-concursos.png" alt="" aria-hidden="true"></a>' +
       '<button type="button" class="botao-mini botao-quieto" data-tec-acao="registrar"' + attrs + '>Registrar resultado</button>' +
@@ -59,6 +59,7 @@
   function renderCard(state, id) {
     if (!disciplina(state, id) || !state.planoAtivoId) return '';
     const item = vinculo(state, id);
+    if (!item) return '';
     return '<section class="card tec-card"><div class="tec-card-info"><h2>Questões no TEC</h2><p class="sub">' +
       (item ? esc(item.nome) : 'Vincule o caderno ou filtro que você usa nesta disciplina.') +
       '</p><p class="tec-ajuda">Resolva no TEC e registre aqui questões, acertos e tempo. O resultado é informado por você.</p></div>' +

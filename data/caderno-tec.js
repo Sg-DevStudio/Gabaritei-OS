@@ -1,5 +1,5 @@
 // Metadados de navegação conferidos no catálogo oficial do TEC em 04/11/2026.
-// Não contém questões, gabaritos, comentários, credenciais ou cadernos pessoais.
+// Correspondências revisadas em 05/11/2026; não contém questões ou dados pessoais.
 window.CadernoTEC = {
   "verificadoEm": "2026-11-04",
   "escopo": "Filtros públicos de questões objetivas por assunto. Sem recorte automático de banca, ano ou escolaridade.",
@@ -552,6 +552,11 @@ window.CadernoTEC = {
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=1958",
       "grupo": "penal"
     },
+    "1959": {
+      "nome": "Dos Crimes contra a Administração da Justiça (arts. 338 a 359 do CP)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=1959",
+      "grupo": "penal"
+    },
     "1974": {
       "nome": "Planejamento Estratégico",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=1974",
@@ -570,6 +575,11 @@ window.CadernoTEC = {
     "2008": {
       "nome": "Dos Direitos da Personalidade (arts. 11 a 21)",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=2008",
+      "grupo": "civil"
+    },
+    "2009": {
+      "nome": "Domicílio das Pessoas Naturais e Jurídicas (arts. 70 a 78)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=2009",
       "grupo": "civil"
     },
     "2011": {
@@ -757,6 +767,11 @@ window.CadernoTEC = {
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3197",
       "grupo": "dpt"
     },
+    "3251": {
+      "nome": "Gestão por Competências",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3251",
+      "grupo": "Administração Geral e Pública"
+    },
     "3256": {
       "nome": "Diagramas Lógicos, Proposições Categóricas, Negação de Quantificadores",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3256",
@@ -785,6 +800,11 @@ window.CadernoTEC = {
     "3332": {
       "nome": "Da Compra e Venda (arts. 481 a 532)",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3332",
+      "grupo": "civil"
+    },
+    "3364": {
+      "nome": "Da Responsabilidade Civil (arts. 927 a 954)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3364",
       "grupo": "civil"
     },
     "3372": {
@@ -832,6 +852,11 @@ window.CadernoTEC = {
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3411",
       "grupo": "civil"
     },
+    "3416": {
+      "nome": "Do Direito do Promitente Comprador (arts. 1.417 e 1.418)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3416",
+      "grupo": "civil"
+    },
     "3424": {
       "nome": "Do Casamento (arts. 1.511 a 1.582)",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3424",
@@ -866,6 +891,16 @@ window.CadernoTEC = {
       "nome": "Da Evicção (arts. 447 a 457)",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3536",
       "grupo": "civil"
+    },
+    "3580": {
+      "nome": "Dos Crimes Praticados por Funcionário Público contra a Administração em Geral (arts. 312 a 327 do CP)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3580",
+      "grupo": "penal"
+    },
+    "3582": {
+      "nome": "Dos Crimes Praticados por Particular contra a Administração em Geral (art. 328 a 337-A do CP)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=3582",
+      "grupo": "penal"
     },
     "3607": {
       "nome": "Lei nº 7.716/1989 - Crimes de Preconceito de Raça ou Cor",
@@ -977,6 +1012,11 @@ window.CadernoTEC = {
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=4400",
       "grupo": "cpc"
     },
+    "4408": {
+      "nome": "Da Reconvenção (art. 343)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=4408",
+      "grupo": "cpc"
+    },
     "4409": {
       "nome": "Da Revelia (arts. 344 a 346)",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=4409",
@@ -990,6 +1030,11 @@ window.CadernoTEC = {
     "4412": {
       "nome": "Da Audiência de Instrução e Julgamento (arts. 358 a 368)",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=4412",
+      "grupo": "cpc"
+    },
+    "4413": {
+      "nome": "Da Contestação (arts. 335 a 342)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=4413",
       "grupo": "cpc"
     },
     "4414": {
@@ -1182,6 +1227,16 @@ window.CadernoTEC = {
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=5650",
       "grupo": "portugues"
     },
+    "5651": {
+      "nome": "Advérbio",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=5651",
+      "grupo": "portugues"
+    },
+    "5652": {
+      "nome": "Conjunção",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=5652",
+      "grupo": "portugues"
+    },
     "5654": {
       "nome": "Pronomes",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=5654",
@@ -1260,6 +1315,11 @@ window.CadernoTEC = {
     "5818": {
       "nome": "Dos Procedimentos Especiais (arts. 539 a 770)",
       "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=5818",
+      "grupo": "cpc"
+    },
+    "5821": {
+      "nome": "Dos Embargos à Execução (arts. 914 a 920)",
+      "url": "https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=5821",
       "grupo": "cpc"
     },
     "5822": {
@@ -1958,21 +2018,21 @@ window.CadernoTEC = {
       "PEN-06": {
         "nome": "Crimes praticados por funcionário público contra a administração em geral",
         "assuntos": [
-          "1958"
+          "3580"
         ],
         "cobertura": "relacionado"
       },
       "PEN-07": {
         "nome": "Crimes praticados por particular contra a administração em geral",
         "assuntos": [
-          "1958"
+          "3582"
         ],
         "cobertura": "relacionado"
       },
       "PEN-08": {
         "nome": "Crimes contra a administração da justiça",
         "assuntos": [
-          "1958"
+          "1959"
         ],
         "cobertura": "relacionado"
       },
@@ -2247,7 +2307,8 @@ window.CadernoTEC = {
         "nome": "Gestão de projetos e gestão por competências",
         "assuntos": [
           "2184",
-          "2183"
+          "2183",
+          "3251"
         ],
         "cobertura": "relacionado"
       },
@@ -2406,21 +2467,24 @@ window.CadernoTEC = {
       "POR-06": {
         "nome": "Pronome e colocacao pronominal",
         "assuntos": [
-          "5654"
+          "5654",
+          "330"
         ],
         "cobertura": "relacionado"
       },
       "POR-07": {
         "nome": "Verbo e adverbio",
         "assuntos": [
-          "5641"
+          "5641",
+          "5651"
         ],
         "cobertura": "relacionado"
       },
       "POR-08": {
         "nome": "Preposicao e conjuncao",
         "assuntos": [
-          "5650"
+          "5650",
+          "5652"
         ],
         "cobertura": "relacionado"
       },
@@ -2469,21 +2533,21 @@ window.CadernoTEC = {
       "DPE-03": {
         "nome": "Crimes de funcionário público: arts. 312 a 317 e 319 a 327 do CP",
         "assuntos": [
-          "1958"
+          "3580"
         ],
         "cobertura": "relacionado"
       },
       "DPE-04": {
         "nome": "Crimes de particular contra a Administração: arts. 328 a 333 do CP",
         "assuntos": [
-          "1958"
+          "3582"
         ],
         "cobertura": "relacionado"
       },
       "DPE-05": {
         "nome": "Crimes contra a Administração da Justiça: arts. 339 a 347 do CP",
         "assuntos": [
-          "1958"
+          "1959"
         ],
         "cobertura": "relacionado"
       },
@@ -2751,7 +2815,8 @@ window.CadernoTEC = {
         "nome": "Razao, proporcao, porcentagem e regra de tres",
         "assuntos": [
           "5329",
-          "7848"
+          "7848",
+          "1026"
         ],
         "cobertura": "relacionado"
       },
@@ -3235,7 +3300,8 @@ window.CadernoTEC = {
       "CON-09": {
         "nome": "Direitos sociais e nacionalidade",
         "assuntos": [
-          "373"
+          "373",
+          "383"
         ],
         "cobertura": "relacionado"
       },
@@ -4072,7 +4138,8 @@ window.CadernoTEC = {
       "CON-09": {
         "nome": "Direitos sociais e nacionalidade",
         "assuntos": [
-          "373"
+          "373",
+          "383"
         ],
         "cobertura": "relacionado"
       },
@@ -4660,7 +4727,7 @@ window.CadernoTEC = {
       "CIV-03": {
         "nome": "Domicílio civil",
         "assuntos": [
-          "2020"
+          "2009"
         ],
         "cobertura": "relacionado"
       },
@@ -4738,7 +4805,7 @@ window.CadernoTEC = {
       "CIV-15": {
         "nome": "Responsabilidade civil",
         "assuntos": [
-          "2055"
+          "3364"
         ],
         "cobertura": "relacionado"
       },
@@ -4818,7 +4885,8 @@ window.CadernoTEC = {
       "CIV-27": {
         "nome": "Direito real à aquisição: promitente comprador, compromisso de compra e venda e adjudicação compulsória",
         "assuntos": [
-          "3332"
+          "3332",
+          "3416"
         ],
         "cobertura": "relacionado"
       },
@@ -4909,7 +4977,8 @@ window.CadernoTEC = {
       "DPC-01": {
         "nome": "Jurisdição e ação: conceito, natureza, características e condições da ação",
         "assuntos": [
-          "5801"
+          "5801",
+          "5802"
         ],
         "cobertura": "relacionado"
       },
@@ -4993,7 +5062,8 @@ window.CadernoTEC = {
       "DPC-13": {
         "nome": "Resposta do réu: contestação, exceções e reconvenção",
         "assuntos": [
-          "4409"
+          "4413",
+          "4408"
         ],
         "cobertura": "relacionado"
       },
@@ -5084,7 +5154,8 @@ window.CadernoTEC = {
       "DPC-26": {
         "nome": "Embargos à execução; suspensão e extinção da execução",
         "assuntos": [
-          "5822"
+          "5822",
+          "5821"
         ],
         "cobertura": "relacionado"
       },
@@ -5124,5 +5195,6 @@ window.CadernoTEC = {
         "cobertura": "relacionado"
       }
     }
-  }
+  },
+  "revisaoCorrespondenciasEm": "2026-11-05"
 };

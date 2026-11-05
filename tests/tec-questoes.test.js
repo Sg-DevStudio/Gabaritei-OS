@@ -18,6 +18,16 @@ function preparar() {
   state.planoAtivoId = 'plano-a'; S.hidratar(state);
   return { S, state };
 }
+test('disciplina sem vínculo não oferece vinculação nem card vazio e conserva dados antigos', () => {
+  const { state } = preparar();
+  const antes = JSON.stringify(state);
+  assert.equal(T.renderAcoes(state, { disciplinaId: 'ADM' }), '');
+  assert.equal(T.renderCard(state, 'ADM'), '');
+  assert.equal(JSON.stringify(state), antes);
+  T.definirVinculo(state, 'ADM', 'https://www.tecconcursos.com.br/s/a', 'Pessoal');
+  assert(T.renderAcoes(state, { disciplinaId: 'ADM' }).includes('Registrar resultado'));
+  assert(T.renderCard(state, 'ADM').includes('Editar vínculo'));
+});
 test('vínculo aceita somente HTTPS do TEC, sem credenciais, portas ou domínio parecido', () => {
   for (const url of ['javascript:alert(1)', 'https://tecconcursos.com.br.evil.test/caderno',
     'https://evil.test/?tecconcursos.com.br', 'http://www.tecconcursos.com.br/caderno',
