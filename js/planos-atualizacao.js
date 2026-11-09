@@ -6,7 +6,7 @@
   const unica = (lista, teste) => { const ls = lista.filter(teste); return ls.length === 1 ? ls[0] : null; };
   const versao = e => {
     if (e.atualizadoEm) return String(e.atualizadoEm);
-    const texto = JSON.stringify([e.titulo, e.banca, e.disciplinas]);
+    const texto = JSON.stringify([e.titulo, e.banca, e.orgao, e.cargo, e.estado, foto(e), e.janelaProva, e.disciplinas]);
     let hash = 2166136261;
     for (let i = 0; i < texto.length; i++) hash = Math.imul(hash ^ texto.charCodeAt(i), 16777619);
     return 'conteudo:' + texto.length + ':' + (hash >>> 0).toString(16);
@@ -155,7 +155,8 @@
       const e = origem(entry, catalogo);
       if (!e || e.arquivado || !(e.disciplinas || []).length) return entry;
       const atual = entry.plano.origemEditalVersao || '', nova = versao(e);
-      if (Number.isFinite(Date.parse(atual)) && Number.isFinite(Date.parse(nova)) && Date.parse(nova) < Date.parse(atual)) return entry;
+      // An undated offline fallback cannot supersede an already dated publication.
+      if (Number.isFinite(Date.parse(atual)) && (!Number.isFinite(Date.parse(nova)) || Date.parse(nova) < Date.parse(atual))) return entry;
       const candidato = clone(entry);
       let mudou = repararMetadados({ planos: [candidato] }, [e]);
       try {

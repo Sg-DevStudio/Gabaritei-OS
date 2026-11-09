@@ -104,6 +104,7 @@ test('automação respeita exclusões, planos manuais, combinados, rascunhos e c
  const state={planos:[entry,removido,{id:'manual',plano:{concurso:'Meu plano'},disciplinas:[]},{id:'combo',plano:{combinado:true,origemEditalId:edital.id},disciplinas:[]},{id:'draft',plano:{rascunho:true,origemEditalId:edital.id},disciplinas:[]}],config:{planosExcluidos:{apagado:true},entidadesExcluidas:{'top:aluno:ADM-03':'2026-11-01'}}};
  A.sincronizar(state,[edital],D);assert(!state.planos[0].disciplinas[0].topicos.some(t=>t.id==='ADM-03'));assert.equal(state.planos[1],removido);assert.equal(state.planos[2].plano.origemEditalId,undefined);assert.equal(state.planos[3].disciplinas.length,0);assert.equal(state.planos[4].disciplinas.length,0);
  const before=JSON.stringify(state);assert.equal(A.sincronizar(state,[Object.assign({},edital,{atualizadoEm:'2025-01-01'})],D).mudou,false);assert.equal(JSON.stringify(state),before);
+ const offline=Object.assign({},edital);delete offline.atualizadoEm;assert.equal(A.sincronizar(state,[offline],D).mudou,false);assert.equal(JSON.stringify(state),before);
 });
 test('falha em uma referência não altera sua cópia nem impede outros planos',()=>{
  const {entry,edital}=exemplo();const good=JSON.parse(JSON.stringify(entry));good.id='outro';good.plano.origemEditalId='valido';
