@@ -500,12 +500,16 @@
     return e === 'autenticando' || e === 'carregando';
   }
 
+  function carregandoNuvemInicial() {
+    const atual = statusSincronizacao();
+    return !modoDemo && usuarioLogado() && !syncInicialFeito && !window.Store.temDados(state) && atual && ['carregando', 'sincronizando'].includes(atual.estado);
+  }
+
   function telaCarregandoAuth() {
     return '<section class="login-shell auth-splash">' +
       '<div class="auth-splash-card">' +
-      '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
-      '<div class="auth-splash-spinner" role="status" aria-label="Carregando"></div>' +
-      '<p class="auth-splash-texto">Verificando sua sessão…</p>' +
+      '<div class="marca-carregamento" role="status" aria-label="Carregando Gabaritei OS"><span class="marca-astro" aria-hidden="true"><span class="marca-bolha"></span><i></i><i></i><i></i></span><span class="marca-palavra">Gabaritei OS</span></div>' +
+      '<p class="auth-splash-texto">Preparando seus estudos…</p>' +
       '</div>' +
       '</section>';
   }
@@ -12759,36 +12763,9 @@
   // Aviso global de sincronização travada: sem ele, o aluno só descobria nos
   // Ajustes que o estudo registrado ficou preso neste aparelho (e os outros
   // abriam "sem nada salvo"). Aparece apenas em erro real com sessão ativa.
-  function atualizarAvisoSyncPendente(atual) {
-    let aviso = document.getElementById('sync-aviso-pendente');
-    const mostrar = !!(atual && atual.usuario && atual.estado === 'erro' && !modoDemo);
-    if (!mostrar) { if (aviso) aviso.remove(); return; }
-    if (aviso) return;
-    aviso = document.createElement('button');
-    aviso.id = 'sync-aviso-pendente';
-    aviso.type = 'button';
-    aviso.className = 'sync-aviso-pendente';
-    aviso.textContent = '⚠️ Alterações deste aparelho ainda não foram para a nuvem — toque para sincronizar agora';
-    aviso.addEventListener('click', function () {
-      if (!window.FirebaseSync || !window.FirebaseSync.ativo()) return;
-      aviso.disabled = true;
-      aviso.textContent = 'Sincronizando…';
-      window.FirebaseSync.sincronizarAgora({ silencioso: false }).finally(function () {
-        firebaseStatus = window.FirebaseSync.status();
-        atualizarSyncUi();
-        const seguiu = document.getElementById('sync-aviso-pendente');
-        if (seguiu) {
-          seguiu.disabled = false;
-          seguiu.textContent = '⚠️ Ainda não consegui sincronizar — verifique a internet e toque para tentar de novo';
-        }
-      });
-    });
-    document.body.appendChild(aviso);
-  }
-
   function atualizarSyncUi() {
     const atual = statusSincronizacao();
-    atualizarAvisoSyncPendente(atual);
+    if (window.GabariteiAtividade) window.GabariteiAtividade.sincronizar(modoDemo ? null : atual);
     const el = document.getElementById('sync-status');
     if (el && atual) el.textContent = atual.texto;
     const ep = document.getElementById('sync-endpoint');
@@ -12835,11 +12812,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.11.0/Gabaritei.apk';
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.12.0/Gabaritei.apk';
     const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v0110" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
-      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.11.0 · em testes</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.11.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v0120" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.12.0 · em testes</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.12.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
@@ -13079,6 +13056,12 @@
         console.error('Falha ao renderizar login:', err);
         conteudo.innerHTML = '<section class="login-shell"><div class="login-card"><h1>Entrar</h1><p>Não consegui abrir a tela de login.</p></div></section>';
       }
+      atualizarSyncUi();
+      return;
+    }
+    if (carregandoNuvemInicial()) {
+      document.body.classList.add('login-gate');
+      conteudo.innerHTML = telaCarregandoAuth();
       atualizarSyncUi();
       return;
     }
@@ -13576,10 +13559,23 @@
   window.Timer.aoErroPersistencia(function () {
     toast('O timer continua contando, mas não conseguiu salvar a recuperação neste aparelho. Registre o estudo antes de fechar a página.', 'erro');
   });
+  const formulariosEditados = new WeakSet();
+  function marcarEdicaoPendente(e) {
+    const form = e.target.closest && e.target.closest('form');
+    if (form) formulariosEditados.add(form);
+  }
+  document.addEventListener('input', marcarEdicaoPendente, true);
+  document.addEventListener('change', marcarEdicaoPendente, true);
   window.GabariteiAtualizacaoSegura = function () {
     // A demonstração vive em memória: recarregar aqui apagaria o plano que a
     // pessoa está experimentando. A atualização pode esperar a saída do demo.
-    return !modoDemo && !window.Timer.estado() && !document.querySelector('[role="dialog"], form');
+    if (modoDemo || window.Timer.estado() || document.querySelector('[role="dialog"], #modal-raiz .modal')) return false;
+    const foco = document.activeElement;
+    if (foco && foco.matches('input, textarea, select, [contenteditable="true"]')) return false;
+    if (Array.from(document.querySelectorAll('form')).some(f => formulariosEditados.has(f))) return false;
+    const atual = statusSincronizacao();
+    if (atual && atual.usuario && ['pendente', 'enviando', 'sincronizando', 'carregando', 'erro'].includes(atual.estado)) return false;
+    return !(window.FirebaseSync && window.FirebaseSync.temEnvioPendente && window.FirebaseSync.temEnvioPendente());
   };
 
   // Ao sair do app (segundo plano) com o cronômetro rodando, o contador
@@ -13686,6 +13682,7 @@
         } else if (novoStatus && novoStatus.estado === 'deslogado' && navigator.onLine !== false) {
           modoOfflineLocal = false;
         }
+        if (usuarioAntes !== usuarioDepois) syncInicialFeito = false;
         if (novoStatus && novoStatus.estado === 'sincronizado') syncInicialFeito = true;
         firebaseStatus = novoStatus;
         atualizarSyncUi();
@@ -13696,7 +13693,7 @@
         if (novoStatus && novoStatus.usuario) {
           carregarCatalogoGlobalFirebase();
         }
-        if (usuarioAntes !== usuarioDepois || !usuarioLogado()) render();
+        if (usuarioAntes !== usuarioDepois || !usuarioLogado() || document.body.classList.contains('login-gate')) render();
       }
     }));
   }

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.SystemClock
 import android.provider.Settings as AndroidSettings
 import androidx.lifecycle.AndroidViewModel
@@ -38,7 +39,13 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     val catalogBusy=MutableStateFlow(false)
     private val catalogLock=Mutex()
     private val connectivity=application.getSystemService(ConnectivityManager::class.java)
-    private val network=object:ConnectivityManager.NetworkCallback(){override fun onAvailable(network:Network){synchronize();refreshCatalog()}}
+    private fun hasInternet()=connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)==true
+    val online=MutableStateFlow(hasInternet())
+    private val network=object:ConnectivityManager.NetworkCallback(){
+        override fun onAvailable(network:Network){online.value=hasInternet();synchronize();refreshCatalog()}
+        override fun onCapabilitiesChanged(network:Network,caps:NetworkCapabilities){online.value=caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)}
+        override fun onLost(network:Network){online.value=hasInternet()}
+    }
     private fun boot()=AndroidSettings.Global.getInt(getApplication<Application>().contentResolver,AndroidSettings.Global.BOOT_COUNT,-1)
     private fun dao(uid:String?=account.value?.uid)=PilotDatabase.get(getApplication(),uid).dao()
     init {

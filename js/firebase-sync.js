@@ -963,6 +963,7 @@ function agendarEnvio(state) {
     if (!reconciliadoOk) { reconciliarComRemoto(true); return; }
     gravarRemoto(opcoes && opcoes.obterEstado ? opcoes.obterEstado() : state).catch(function () {});
   }, 650);
+  definirStatus('pendente', 'Salvo neste aparelho · sincronização agendada');
 }
 
 // Antecipa, em melhor esforço, o último envio agendado antes de a aba ser
@@ -1015,6 +1016,7 @@ async function logout(opcoesLogout) {
 
 function status() { return statusAtual; }
 function ativo() { return !!usuario; }
+function temEnvioPendente() { return !!(envioPendente || estadoPendenteGravacao || enviando || reconciliando); }
 
 async function carregarCatalogoGlobal() {
   const snap = await getDoc(refCatalogo);
@@ -1097,7 +1099,7 @@ async function gerarFlashcardsIA(payload) {
 }
 
 window.FirebaseSync = {
-  iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo,
+  iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
   carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush,
   desativarPushAtual, pushConfigurado,

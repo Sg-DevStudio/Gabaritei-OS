@@ -273,13 +273,8 @@ test('PWA usa cache em erro 503, mas não mascara respostas 404', async () => {
   status = 404; assert.equal((await buscar()).status, 404);
 });
 
-test('atualização do PWA exige clique, espera um estado seguro e recarrega apenas uma vez', () => {
-  let controller, aviso, reloads = 0, seguro = false;
-  const ctx = { navigator: { serviceWorker: { controller: {}, addEventListener(_k, fn) { controller = fn; }, register: async () => {} } },
-    window: { addEventListener(_k, fn) { fn(); }, location: { reload() { reloads++; } }, GabariteiAtualizacaoSegura: () => seguro },
-    document: { createElement() { return {}; }, body: { append(b) { aviso = b; } } } };
-  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  vm.runInNewContext(html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>')), ctx);
-  controller(); assert.equal(reloads, 0); aviso.onclick(); assert.equal(reloads, 0);
-  seguro = true; aviso.onclick(); aviso.onclick(); assert.equal(reloads, 1);
+test('atualização do PWA é automática e preserva uma edição em andamento', () => {
+  const h=require('./helpers/load-app-status').loadAppStatus();h.events.controllerchange();h.advance(3000);assert.equal(h.reloads(),0);
+  h.setSafe(true);h.events.focus();h.setSafe(false);h.advance(700);assert.equal(h.reloads(),0);
+  h.setSafe(true);h.events.focus();h.advance(700);assert.equal(h.reloads(),1);
 });

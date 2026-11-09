@@ -1,4 +1,6 @@
-# Gabaritei — Android nativo 0.11.0
+# Gabaritei — Android nativo 0.12.0
+
+O carregamento inicial usa a marca animada: o círculo salta e pousa ao lado do nome. A tela aparece enquanto os dados estão sendo preparados, sem tempo mínimo artificial. A sincronização durante o uso tem um indicador compacto abaixo do topo, inclusive na tela do cronômetro. Ele diferencia trabalho em andamento, dados pendentes, falta de conexão e confirmação breve de conclusão. O indicador respeita a conta atual e não anuncia conclusão enquanto houver alterações na fila.
 
 Nesta versão, o fim da meta usa um canal próprio com som e volume de alarme; a notificação de acompanhamento continua silenciosa. O Android mantém o controle final sobre permissões, som do canal e Não Perturbe. Perfil → Notificações oferece teste e acesso ao som do fim do tempo no sistema.
 
