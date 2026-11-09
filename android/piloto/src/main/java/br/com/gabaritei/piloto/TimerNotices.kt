@@ -12,13 +12,18 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.*
 
 object TimerNotices {
-    const val CHANNEL="native_study_v1"
+    // Separate the audible goal from the silent ongoing stopwatch notification.
+    const val CHANNEL="native_timer_goal_v2"
     const val ACTIVE_CHANNEL="native_timer_running_v1"
     const val ACTIVE_ID=905
     private fun prefs(c:Context)=c.getSharedPreferences("native_display",Context.MODE_PRIVATE)
     fun createChannel(c:Context){
         c.getSystemService(NotificationManager::class.java).apply{
-            createNotificationChannel(NotificationChannel(CHANNEL,"Avisos de estudo",NotificationManager.IMPORTANCE_DEFAULT).apply{description="Término da meta de tempo do cronômetro"})
+            createNotificationChannel(NotificationChannel(CHANNEL,"Alarme de fim do tempo",NotificationManager.IMPORTANCE_HIGH).apply{
+                description="Som ao atingir a meta de tempo do cronômetro (volume de alarme)"
+                setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM),android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
+                enableVibration(true)
+            })
             createNotificationChannel(NotificationChannel(ACTIVE_CHANNEL,"Cronômetro em andamento",NotificationManager.IMPORTANCE_LOW).apply{description="Tempo de estudo e controles de pausa e retomada";setSound(null,null)})
         }
     }
@@ -42,7 +47,7 @@ object TimerNotices {
         if(!alertAllowed(c)||!optedIn(c))return
         createChannel(c)
         val n=NotificationCompat.Builder(c,CHANNEL).setSmallIcon(R.drawable.book_outline).setContentTitle(if(test)"Avisos ativados" else "Meta de tempo concluída 🎯")
-            .setContentText(if(test)"O Gabaritei já pode enviar seus avisos de estudo." else "Seu tempo planejado terminou. Toque para continuar ou concluir o estudo.").setContentIntent(open(c,sessionId)).setAutoCancel(true).build()
+            .setContentText(if(test)"Teste do som de fim do tempo. Confira o volume de alarme do celular." else "Seu tempo planejado terminou. Toque para continuar ou concluir o estudo.").setCategory(NotificationCompat.CATEGORY_ALARM).setContentIntent(open(c,sessionId)).setAutoCancel(true).build()
         try{c.getSystemService(NotificationManager::class.java).notify(if(test)904 else 903,n)}catch(_:SecurityException){}
     }
     @Synchronized fun reached(c:Context,t:Timer){

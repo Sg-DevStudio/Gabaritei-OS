@@ -21,6 +21,15 @@ class NotebookLinksTest {
         assertEquals(topic.link,NotebookLinks.available(raw,plan,topic).single().url)
         assertEquals("https://example.com/legacy",NotebookLinks.available(raw,plan,topic,listOf(PersonalLink("p","t","https://example.com/legacy"))).single().url)
     }
+    @Test fun updatedPlatformDefaultsReachExistingPlansWithoutTouchingHistory(){
+        val defaults=listOf(QuestionLink("gran",topic.link!!),QuestionLink("tec","https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=1026"),QuestionLink("qconcursos","https://www.qconcursos.com/questoes-de-concursos/disciplinas/letras-portugues/crase/questoes"))
+        val base=plan.copy(id="source",enrolled=false,disciplines=listOf(plan.disciplines.single().copy(topics=listOf(topic.copy(questionLinks=defaults)))))
+        val raw=state().also{it.array("planos").getJSONObject(0).obj("plano").put("origemEditalId","source")}.toString()
+        val enrolled=StateCompat.plans(raw,listOf(base)).first{it.id=="p"}
+        assertEquals(listOf("Gran Questões","TEC Concursos","Qconcursos"),NotebookLinks.available(raw,enrolled,enrolled.topics.single()).map{it.platform})
+        val personal=StateCompat.apply(raw,listOf(op("mine","https://tecconcursos.com.br/s/my-personal")))
+        assertEquals(listOf("https://tecconcursos.com.br/s/my-personal"),NotebookLinks.available(personal,enrolled,enrolled.topics.single()).map{it.url})
+    }
     @Test fun allPlatformsAreKeptButRepeatedUrlsNeedOnlyOneChoice(){
         val s=StateCompat.apply(state().toString(),listOf(op("gran",topic.link!!),op("notebook","https://notebooklm.google.com/notebook/x"),op("duplicate",topic.link!!)).mapIndexed{i,op->op.copy(createdAt=1000L+i)})
         assertEquals(3,NotebookLinks.entries(s,plan,topic).size)

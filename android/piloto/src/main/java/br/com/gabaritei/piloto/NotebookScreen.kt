@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
     AlertDialog(onDismissRequest=onClose,title={Text("Onde deseja resolver?")},text={Column(Modifier.heightIn(max=380.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)){
         Text(topic.name,style=MaterialTheme.typography.bodyMedium)
         links.forEach{link->OutlinedButton(onClick={onOpen(link.url)},Modifier.fillMaxWidth()){
-            Column(Modifier.weight(1f)){Text(link.label);if(link.label!=link.platform)Text(link.platform,style=MaterialTheme.typography.bodySmall)}
+            Column(Modifier.weight(1f)){Text(link.label);if(link.label!=link.platform)Text(link.platform,style=MaterialTheme.typography.bodySmall);if(link.note.isNotBlank())Text(link.note,style=MaterialTheme.typography.bodySmall)}
             Text("↗",Modifier.padding(start=12.dp))
         }}
     }},confirmButton={TextButton(onClick=onClose){Text("Cancelar")}})

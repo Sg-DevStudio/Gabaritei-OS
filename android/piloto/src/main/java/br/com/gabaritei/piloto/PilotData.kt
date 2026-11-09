@@ -5,7 +5,7 @@ import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
 
-data class Topic(val id: String, val name: String, val link: String?, val note: String, val noQuestions: Boolean = false)
+data class Topic(val id: String, val name: String, val link: String?, val note: String, val noQuestions: Boolean = false, val questionLinks:List<QuestionLink> = emptyList())
 data class Discipline(val id: String, val name: String, val topics: List<Topic>, val color:String="#3B82F6", val paused:Boolean=false, val archived:Boolean=false)
 data class Plan(val id: String, val name: String, val disciplines: List<Discipline>, val originId: String = id, val enrolled: Boolean = false, val owner: String = "", val logoAsset:String = "", val details:String = "{}") {
     val topics get() = disciplines.flatMap { it.topics }

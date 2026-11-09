@@ -13,6 +13,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28],manifest=Config.NONE)
 class TimerNoticesTest {
+    @Test fun goalHasAlarmSoundAndOngoingChannelStaysSilent(){val c=RuntimeEnvironment.getApplication();TimerNotices.createChannel(c);val manager=c.getSystemService(android.app.NotificationManager::class.java);val goal=manager.getNotificationChannel(TimerNotices.CHANNEL);assertEquals(android.app.NotificationManager.IMPORTANCE_HIGH,goal.importance);assertEquals(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM),goal.sound);assertEquals(android.media.AudioAttributes.USAGE_ALARM,goal.audioAttributes.usage);assertNull(manager.getNotificationChannel(TimerNotices.ACTIVE_CHANNEL).sound)}
     @Test fun pausedAndFreeTimersDoNotScheduleNotices(){val c=RuntimeEnvironment.getApplication();TimerNotices.optIn(c,true)
         val alarm=Shadows.shadowOf(c.getSystemService(AlarmManager::class.java));val t=Timer(sessionId="t",planId="p",topicId="q",seconds=0,startedElapsed=null,boot=1,goalSeconds=60)
         TimerNotices.schedule(c,t,0);assertNull(alarm.nextScheduledAlarm)

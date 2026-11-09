@@ -9,8 +9,9 @@ test('catálogo nativo mantém identidade, edital completo e links utilizáveis 
   for(const t of ts){
    assert(t.id&&t.name);
    if(!t.link){assert(t.note);continue;}
-   const u=new URL(t.link);assert.equal(u.protocol,'https:');assert.equal(u.hostname,'questoes.grancursosonline.com.br');assert(u.searchParams.get('assunto'));
-   if(plan.id.includes('trt4'))assert.equal(u.searchParams.get('banca'),'92');
+   const u=new URL(t.link);assert.equal(u.protocol,'https:');assert(t.links.some(l=>l.url===t.link));
+   for(const link of t.links){const url=new URL(link.url);assert.equal(url.protocol,'https:');assert(['questoes.grancursosonline.com.br','www.tecconcursos.com.br','www.qconcursos.com'].includes(url.hostname));}
+   if(u.hostname==='questoes.grancursosonline.com.br'&&u.pathname==='/questoes'){assert(u.searchParams.get('assunto'));if(plan.id.includes('trt4'))assert.equal(u.searchParams.get('banca'),'92');}
    if(t.noQuestions)assert(t.note.includes('Sem questões'));
   }
  }

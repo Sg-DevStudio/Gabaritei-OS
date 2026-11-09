@@ -156,7 +156,7 @@ object StateCompat {
                 Discipline(d.getString("id"),d.optString("nome"),d.array("topicos").objects().filter{!it.optBoolean("removidoDoEdital")&&!it.optBoolean("orfao")&&!it.optBoolean("androidArquivado")&&!deleted(s,"top",p.getString("id"),it.optString("id"))}.map{t->
                     val ref=source?.topics?.firstOrNull{it.id==t.optString("id")||it.name==t.optString("nome")}
                     val personal=p.array("links").objects().any{it.optString("tipo")=="trilha"&&it.optString("topicoChave")=="plano:${d.optString("id")}:${t.optString("id")}"}
-                    Topic(t.getString("id"),t.optString("nome"),if(personal)null else ref?.link,if(personal)"Links pessoais deste tópico" else ref?.note?:"Adicione um link de questões para este tópico.",ref?.noQuestions?:false)
+                    Topic(t.getString("id"),t.optString("nome"),if(personal)null else ref?.link,if(personal)"Links pessoais deste tópico" else ref?.note?:"Adicione um link de questões para este tópico.",ref?.noQuestions?:false,if(personal)emptyList()else ref?.questionLinks.orEmpty())
                 },d.optString("cor","#3B82F6"),d.optString("planejamentoStatus")=="paused",d.optBoolean("androidArquivada"))
             },origin,true,logoAsset=source?.logoAsset.orEmpty(),details=(JSONObject(source?.details?:"{}").also{details->meta.keys().forEach{key->details.put(key,meta.get(key))};details.put("titulo",meta.optString("concurso")).put("id",p.getString("id")).put("disciplinas",p.array("disciplinas"))}).toString())
         }

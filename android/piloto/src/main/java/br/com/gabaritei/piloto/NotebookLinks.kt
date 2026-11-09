@@ -4,7 +4,7 @@ import java.net.URI
 import org.json.JSONObject
 
 /** Display only: persisted links retain their individual IDs in the shared web state. */
-data class QuestionLink(val id:String,val url:String,val name:String="",val persisted:Boolean=false) {
+data class QuestionLink(val id:String,val url:String,val name:String="",val persisted:Boolean=false,val note:String="") {
     val platform:String get()=NotebookLinks.platform(url)
     val label:String get()=name.takeUnless{it.isBlank()||it.startsWith("Questões de ")||it.startsWith("Resolver:")}?:platform
 }
@@ -22,7 +22,8 @@ object NotebookLinks {
                 scoped.filter{!it.optBoolean("oculto")&&!deleted.optBoolean("link:${plan.id}:${StateCompat.encoded(it.optString("id"))}")&&StudyRules.safeLink(it.optString("url").trim())}.sortedByDescending{it.optBoolean("principal")}.map{QuestionLink(it.getString("id"),it.getString("url").trim(),it.optString("nome"),true)}
             }else{
                 val old=legacy.find{it.planId==plan.id&&it.topicId==topic.id}?.url
-                (old?:topic.link)?.trim()?.takeIf{StudyRules.safeLink(it)}?.let{listOf(QuestionLink(if(old==null)"reference"else"legacy",it))}.orEmpty()
+                if(old==null&&topic.questionLinks.isNotEmpty())topic.questionLinks.filter{StudyRules.safeLink(it.url)}
+                else (old?:topic.link)?.trim()?.takeIf{StudyRules.safeLink(it)}?.let{listOf(QuestionLink(if(old==null)"reference"else"legacy",it))}.orEmpty()
             }
             topic.id to entries
         }}.toMap()

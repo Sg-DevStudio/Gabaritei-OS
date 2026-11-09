@@ -1,4 +1,10 @@
-# Gabaritei — Android nativo 0.5
+# Gabaritei — Android nativo 0.11.0
+
+Nesta versão, o fim da meta usa um canal próprio com som e volume de alarme; a notificação de acompanhamento continua silenciosa. O Android mantém o controle final sobre permissões, som do canal e Não Perturbe. Perfil → Notificações oferece teste e acesso ao som do fim do tempo no sistema.
+
+Os lembretes usam dois horários locais, inicialmente 12h e 18h em todos os dias. A atualização mantém uma desativação explícita anterior. É possível mudar os dois horários, dias e a condição de já ter estudado. Cada horário tem controle de duplicidade próprio; um lembrete não é enviado durante um cronômetro em andamento. Reinício, troca de fuso, ajuste do relógio e atualização do app reagendam o próximo horário.
+
+O catálogo offline inclui os mesmos atalhos Gran, TEC e Qconcursos do site nos quatro cadernos. Filtros relacionados ou amplos continuam identificados. Links pessoais e exclusões têm precedência sobre os padrões; a atualização não altera sessões nem progresso.
 
 Kotlin, Jetpack Compose e Room; pacote `br.com.gabaritei.os.piloto`, separado do beta TWA. O piloto oferece modo local e entrada Google no mesmo projeto Firebase do site. A integração usa o contrato existente, sem substituir o estado remoto por um modelo Kotlin reduzido.
 
@@ -19,7 +25,7 @@ node scripts/android-pilot-catalog.cjs
 gradle -p android :piloto:assembleDebug :piloto:testDebugUnitTest :piloto:lintDebug :piloto:assembleQaAndroidTest
 ```
 
-Nome exibido: **Gabaritei**. O identificador técnico do pacote permanece igual para preservar a atualização e os dados. APK de entrega: `Gabaritei-0.5.0.apk` (origem: `android/piloto/build/outputs/apk/release/piloto-release.apk`). Atualizar com `adb install -r`; não desinstalar nem limpar dados. O login Google requer que a impressão SHA do certificado que assinou o APK esteja registrada no Firebase. O CI verifica código e publica relatórios, não um APK com chave debug diferente.
+Nome exibido: **Gabaritei**. O identificador técnico do pacote permanece igual para preservar a atualização e os dados. APK de entrega: `Gabaritei.apk` (origem: `android/piloto/build/outputs/apk/release/piloto-release.apk`). Atualizar com `adb install -r`; não desinstalar nem limpar dados. O login Google requer que a impressão SHA do certificado que assinou o APK esteja registrada no Firebase. O CI verifica código e publica relatórios, não um APK com chave debug diferente.
 
 No Windows, executar o build em cópia com caminho ASCII se a JVM não localizar classes sob `App_Gestão_Estudos`. Conferir os hashes dos fontes entre cópia e projeto. Esquemas Room versionados; migrações destrutivas são proibidas.
 

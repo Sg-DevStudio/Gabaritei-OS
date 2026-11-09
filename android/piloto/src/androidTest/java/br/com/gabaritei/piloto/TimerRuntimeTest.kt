@@ -65,6 +65,10 @@ class TimerRuntimeTest {
             val first=notice(903)!!;TimerNotices.reached(c,t);assertEquals(first.postTime,notice(903)!!.postTime)
             assertNotNull(dao.currentTimer());assertNull(dao.sessions().first().find{it.id==t.sessionId})
             assertNotNull(first.notification.contentIntent)
+            val channel=c.getSystemService(NotificationManager::class.java).getNotificationChannel(first.notification.channelId)
+            assertEquals(android.media.AudioAttributes.USAGE_ALARM,channel.audioAttributes.usage)
+            assertNotNull(channel.sound);assertEquals(NotificationManager.IMPORTANCE_HIGH,channel.importance)
+            assertNull(first.notification.getLargeIcon())
         }finally{cleanup()}
     }
     @Test fun prepareVisualTimer()=runBlocking<Unit>{

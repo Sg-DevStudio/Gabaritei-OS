@@ -19,7 +19,7 @@ object Catalog {
         if(id in legacy||base.optBoolean("excluidoDoCatalogo"))return@runCatching null
         val source=JSONObject(base.toString());val ds=source.array("disciplinas").objects().map{d->Discipline(d.getString("id"),d.optString("nome"),d.array("topicos").objects().filter{!it.optBoolean("removidoDoEdital")&&!it.optBoolean("orfao")}.map{t->
             val ref=if(native)p.array("disciplines").objects().flatMap{it.array("topics").objects()}.find{it.optString("id")==t.optString("id")}else null
-            Topic(t.getString("id"),t.optString("nome"),ref?.optString("link")?.takeIf{StudyRules.safeLink(it)},ref?.optString("note").orEmpty(),ref?.optBoolean("noQuestions")?:false)
+            Topic(t.getString("id"),t.optString("nome"),ref?.optString("link")?.takeIf{StudyRules.safeLink(it)},ref?.optString("note").orEmpty(),ref?.optBoolean("noQuestions")?:false,ref?.array("links")?.objects()?.filter{StudyRules.safeLink(it.optString("url"))}?.map{QuestionLink(it.getString("id"),it.getString("url"),it.optString("name"),note=it.optString("note"))}.orEmpty())
         },d.optString("cor","#3B82F6"))}
         Plan(id,source.optString("titulo","Plano de estudos"),ds,logoAsset=if(native)p.optString("logoAsset")else "",details=source.toString())
     }.getOrNull()}
@@ -31,7 +31,7 @@ object Catalog {
             if(old==null||personal||meta.optString("atualizadoEm")>=oldMeta!!.optString("atualizadoEm")){
                 val topics=old?.topics.orEmpty().associateBy{it.id}
                 result[incoming.id]=incoming.copy(logoAsset=old?.logoAsset.orEmpty(),disciplines=incoming.disciplines.map{d->d.copy(topics=d.topics.map{t->
-                    val ref=topics[t.id]?.takeIf{it.name==t.name};if(ref==null)t else t.copy(link=ref.link,note=ref.note,noQuestions=ref.noQuestions)
+                    val ref=topics[t.id]?.takeIf{it.name==t.name};if(ref==null)t else t.copy(link=ref.link,note=ref.note,noQuestions=ref.noQuestions,questionLinks=ref.questionLinks)
                 })})
             }
         }
