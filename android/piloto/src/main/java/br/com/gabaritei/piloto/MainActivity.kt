@@ -120,6 +120,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val error by vm.error.collectAsStateWithLifecycle()
     val account by vm.account.collectAsStateWithLifecycle()
     val sync by vm.syncStatus.collectAsStateWithLifecycle()
+    val firstSyncPending by vm.firstSyncPending.collectAsStateWithLifecycle()
     val online by vm.online.collectAsStateWithLifecycle()
     val pending by vm.pendingCount.collectAsStateWithLifecycle()
     val guestCount by vm.guestRecords.collectAsStateWithLifecycle()
@@ -226,7 +227,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                 StudySyncFeedback(sync,pending,catalogBusy,account!=null,online){accountDialog=true}
             }
         }) { padding ->
-            if(!ready||plans.isEmpty())Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(error!=null)Text(error!!)else StudyLoading()}
+            if(!ready||(firstSyncPending&&online&&!sync.failed)||plans.isEmpty())Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(error!=null)Text(error!!)else StudyLoading()}
             else if(tab==8&&outline!=null)EditalScreen(outline,progress,pageScroll,Modifier.padding(padding),onTopic={editalTopic=it},onManage={tab=6})
             else if(plan!=null&&selected!=null) LazyColumn(Modifier.padding(padding).fillMaxSize(),state=pageScroll,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 if(tab!=1)item { Surface(onClick={tab=1},shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.secondaryContainer){Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){

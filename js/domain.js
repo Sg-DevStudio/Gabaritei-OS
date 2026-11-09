@@ -3071,7 +3071,20 @@
     return ordem.map(function (id) { return mapa[id]; });
   }
 
+  function atualizarQuestoesSessao(state, id, dados, esperada, agora) {
+    const sessao = (state.sessoes || []).find(s => s.id === id);
+    if (!sessao || (state.config && state.config.removidos || []).includes(id)) return { ok: false, erro: 'Esta sessão foi removida. Reabra o histórico.' };
+    const assinatura = s => JSON.stringify(['id','planoId','topicoId','data','duracaoMin','qFeitas','qCertas','obs','atualizadoEm'].map(k => s[k]));
+    if (esperada && assinatura(esperada) !== assinatura(sessao)) return { ok: false, erro: 'Esta sessão mudou em outro lugar. Feche e reabra a edição para conferir os dados atuais.' };
+    const feitas = Number(dados.qFeitas), certas = Number(dados.qCertas);
+    if (dados.qFeitas === '' || dados.qCertas === '' || !Number.isInteger(feitas) || !Number.isInteger(certas) || feitas < 0 || feitas > 999 || certas < 0 || certas > feitas) return { ok: false, erro: 'Informe quantidades inteiras entre 0 e 999. Os acertos não podem superar as questões feitas.' };
+    sessao.qFeitas = feitas; sessao.qCertas = certas; sessao.obs = String(dados.obs || '').trim();
+    sessao.atualizadoEm = agora || new Date().toISOString();
+    return { ok: true, sessao };
+  }
+
   window.Dominio = {
+    atualizarQuestoesSessao,
     sugestoesRevisaoAtivas, revisoesVisiveis,
     CURVA_REVISAO_PADRAO_DIAS, intervalosRevisaoConfig, validarEsquemaRevisao,
     hojeISO, addDias, diffDias, formatarDataBR, formatarMesBR, segundaDaSemana, formatarMin,

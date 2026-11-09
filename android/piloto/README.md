@@ -1,4 +1,6 @@
-# Gabaritei — Android nativo 0.12.0
+# Gabaritei — Android nativo 0.13.0
+
+A abertura agora aguarda a primeira sincronização da conta e a aplicação do histórico recebido, mesmo quando o cache local carrega antes. Em falta de conexão, falha ou demora excessiva, o app libera os dados locais. As sincronizações seguintes permanecem no indicador compacto.
 
 O carregamento inicial usa a marca animada: o círculo salta e pousa ao lado do nome. A tela aparece enquanto os dados estão sendo preparados, sem tempo mínimo artificial. A sincronização durante o uso tem um indicador compacto abaixo do topo, inclusive na tela do cronômetro. Ele diferencia trabalho em andamento, dados pendentes, falta de conexão e confirmação breve de conclusão. O indicador respeita a conta atual e não anuncia conclusão enquanto houver alterações na fila.
 

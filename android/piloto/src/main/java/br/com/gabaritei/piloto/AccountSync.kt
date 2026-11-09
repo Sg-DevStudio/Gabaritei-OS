@@ -37,6 +37,7 @@ class AccountSync(private val context:Context, firebaseApp:FirebaseApp?=null) {
             .setApplicationId(context.getString(R.string.firebase_app_id)).setApiKey(context.getString(R.string.firebase_api_key)).setProjectId(context.getString(R.string.firebase_project_id)).build())
         val app=firebaseApp?:FirebaseApp.getInstance()
         auth=FirebaseAuth.getInstance(app);cloud=FirebaseFirestore.getInstance(app)
+        account.value=auth.currentUser?.let{Account(it.uid,it.email.orEmpty(),it.displayName.orEmpty())}
         authListener=FirebaseAuth.AuthStateListener{a->account.value=a.currentUser?.let{Account(it.uid,it.email.orEmpty(),it.displayName.orEmpty())}}
         auth.addAuthStateListener(authListener)
     }

@@ -3195,6 +3195,7 @@ html[data-tema="escuro"] .mes-evento .mes-evento-hora { color: var(--tinta); }
 .gp-prazo-proj strong { font-weight: 800; }
 
 .grade-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+.grade-2[hidden] { display:none; }
 @media (max-width: 480px) { .grade-2 { grid-template-columns: 1fr; } }
 .grade-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 1rem; }
 @media (max-width: 560px) { .grade-3 { grid-template-columns: 1fr; } }

@@ -22,6 +22,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     private val cloud=AccountSync(application)
     val account=cloud.account
     val syncStatus=cloud.status
+    val firstSyncPending=MutableStateFlow(cloud.account.value!=null)
     val pendingCount=MutableStateFlow(0)
     val guestRecords=MutableStateFlow(0)
     val plans=MutableStateFlow<List<Plan>>(emptyList())
@@ -44,7 +45,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     private val network=object:ConnectivityManager.NetworkCallback(){
         override fun onAvailable(network:Network){online.value=hasInternet();synchronize();refreshCatalog()}
         override fun onCapabilitiesChanged(network:Network,caps:NetworkCapabilities){online.value=caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)}
-        override fun onLost(network:Network){online.value=hasInternet()}
+        override fun onLost(network:Network){online.value=hasInternet();if(!online.value)firstSyncPending.value=false}
     }
     private fun boot()=AndroidSettings.Global.getInt(getApplication<Application>().contentResolver,AndroidSettings.Global.BOOT_COUNT,-1)
     private fun dao(uid:String?=account.value?.uid)=PilotDatabase.get(getApplication(),uid).dao()
@@ -58,6 +59,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             account.collectLatest { a ->
                 if(initialized&&bound!=a?.uid){val previous=dao(bound);previous.currentTimer()?.let{previous.timer(it.copy(seconds=elapsed(it),startedElapsed=null))};StudyTimerService.stop(application)}
                 bound=a?.uid;initialized=true
+                firstSyncPending.value=a!=null&&online.value
                 application.getSharedPreferences("study_reminders",0).edit().putString("owner",a?.uid.orEmpty()).apply()
                 ready.value=false;rawSnapshot.value=StateCompat.empty().toString();plans.value=emptyList();sessions.value=emptyList();progress.value=emptyList();links.value=emptyList();timer.value=null;settings.value=null;pendingCount.value=0
                 val d=dao(a?.uid)
@@ -79,7 +81,19 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
                         }}
                         cloud.observe(a.uid){synchronize()}
                         launch{d.pending().debounce(800).collect{pendingCount.value=it.size;if(it.isNotEmpty())cloud.synchronize(a.uid,d)}}
-                        launch{cloud.synchronize(a.uid,d)}
+                        launch{
+                            try {
+                                withTimeout(15000){cloud.synchronize(a.uid,d)}
+                                if(!cloud.status.value.failed){
+                                    val applied=d.currentSnapshot()?.json
+                                    if(applied!=null)withTimeoutOrNull(2000){rawSnapshot.first{it==applied}}
+                                }
+                            } catch(_:TimeoutCancellationException){
+                                if(account.value?.uid==a.uid)cloud.status.value=SyncStatus("A nuvem está demorando. Seus dados continuam disponíveis neste aparelho.",failed=true)
+                            } finally {
+                                if(account.value?.uid==a.uid)firstSyncPending.value=false
+                            }
+                        }
                     }
                     awaitCancellation()
                 }

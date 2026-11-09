@@ -1346,16 +1346,11 @@
       }
       return '<span class="check-estudo check-estudo-feito" title="Estudo registrado" aria-label="Estudo registrado">✓</span>';
     }
-    // A bolinha de blocos/agenda faz registro RÁPIDO (1 toque): assume o tempo
-    // planejado, 0 questões e NÃO conclui a teoria — isso fica para "Registrar"
-    // (detalhes). Revisão mantém o fluxo de concluir com bolha.
-    const rapido = acao === 'registrar' || acao === 'concluir-agenda';
-    const attr = rapido
-      ? 'data-check-rapido="' + esc(acao) + '"'
-      : 'data-acao="' + esc(acao) + '"';
+    // Every new record asks for time and question results before saving.
+    const attr = 'data-acao="' + esc(acao) + '"';
     return '<button type="button" class="check-estudo" ' + attr + ' data-id="' + esc(id) + '"' +
       (tipo ? ' data-tipo="' + esc(tipo) + '"' : '') +
-      ' title="' + (rapido ? 'Marcar como estudado (registro rápido)' : 'Registrar estudo') + '" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
+      ' title="Registrar estudo" aria-label="Registrar estudo: ' + esc(titulo || '') + '"></button>';
   }
 
   function registroRapidoParaDesfazer(kind, id, tipo) {
@@ -1388,34 +1383,6 @@
   }
 
   // Registro rápido pela bolinha: cria a sessão com padrões e dá o "check verde".
-  function registrarRapidoFila(el, kind, id, tipo) {
-    if (!el || el.disabled) return;
-    el.classList.add('check-estudo-feito', 'check-pop');
-    el.textContent = '✓';
-    el.disabled = true;
-    if (kind === 'concluir-agenda') {
-      const b = state.agenda.find(function (a) { return a.id === id; });
-      if (!b) { render(); return; }
-      const disc = D.disciplinaPorId(state, b.disciplinaId);
-      const topId = b.topicoId || (disc && disc.topicos[0] ? disc.topicos[0].id : null);
-      const t = b.obs === 'questoes' ? 'questoes' : b.obs === 'revisao' ? 'revisao' : 'teoria';
-      // Marca o bloco como concluído: registra só o tempo que ainda FALTAVA (não
-      // duplica o que já foi cronometrado em sessões parciais) e fecha o bloco.
-      // Sempre cria a sessão (mesmo sem tópico resolvido, topId null) para que as
-      // horas do dia/semana somem — antes, um bloco sem tópico era riscado mas
-      // não contava nas horas.
-      const restante = blocoRestanteMin(b) || (b.duracaoMin || 30);
-      const sessao = concluirRegistro({ topicoId: topId, tipo: t, duracaoMin: restante, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', data: b.data, blocoId: b.id, semRender: true });
-      if (sessao) b.registroRapidoId = sessao.id;
-      b.feitoMin = b.duracaoMin || 0;
-      b.feito = true;
-      salvar();
-    } else { // registrar (bloco da semana / reaberto)
-      concluirRegistro({ topicoId: id, tipo: tipo || 'teoria', duracaoMin: 30, qFeitas: 0, qCertas: 0, teoriaOk: false, origemRegistroRapido: 'fila', semRender: true });
-    }
-    setTimeout(render, 420); // deixa a animação do check rodar antes de redesenhar
-  }
-
   function desfazerRegistroRapidoFila(kind, id, tipo) {
     const sessao = registroRapidoParaDesfazer(kind, id, tipo);
     if (!sessao) {
@@ -1752,6 +1719,7 @@
     const registroTec = opcoes.plataformaQuestoes === 'tec';
     if (registroTec) opcoes.tipo = 'questoes';
     const estadoRegistro = state, planoRegistro = state.planoAtivoId;
+    const donoRegistro = (usuarioAtual() || {}).uid || 'local';
     if (state.disciplinas.length === 0) {
       toast('Importe um plano antes de registrar sessões.', 'erro');
       location.hash = '#ajustes';
@@ -1779,7 +1747,8 @@
       '</select></div>' +
       '<div><label for="reg-dur">Duração (min)</label><input id="reg-dur" type="number" min="1" max="720" step="1" required value="' + (opcoes.duracaoMin || (registroTec ? '' : 30)) + '"></div>' +
       '</div>' +
-      '<div class="grade-2">' +
+      (!registroTec ? '<label for="reg-questoes-realizadas">Você resolveu questões nesta sessão?</label><select id="reg-questoes-realizadas" required><option value="">Selecione</option><option value="sim"' + (opcoes.tipo === 'questoes' ? ' selected' : '') + '>Sim</option><option value="nao">Não</option></select>' : '') +
+      '<div class="grade-2" id="reg-campos-questoes">' +
       '<div><label for="reg-feitas">Questões feitas</label><input id="reg-feitas" type="number" min="' + (registroTec ? 1 : 0) + '" max="999" step="1" required value="' + (registroTec ? '' : '0') + '"></div>' +
       '<div><label for="reg-certas">Acertos</label><input id="reg-certas" type="number" min="0" max="999" step="1" required value="' + (registroTec ? '' : '0') + '"></div>' +
       '</div>' +
@@ -1805,12 +1774,25 @@
     }
     preencherTopicos();
     selDisc.addEventListener('change', preencherTopicos);
+    const escolhaQuestoes = m.querySelector('#reg-questoes-realizadas');
+    function atualizarCamposQuestoes() {
+      const sim = registroTec || escolhaQuestoes.value === 'sim';
+      m.querySelector('#reg-campos-questoes').hidden = !sim;
+      ['#reg-feitas', '#reg-certas'].forEach(id => { m.querySelector(id).disabled = !sim; });
+      m.querySelector('#reg-feitas').min = sim ? '1' : '0';
+    }
+    if (escolhaQuestoes) escolhaQuestoes.addEventListener('change', atualizarCamposQuestoes);
+    atualizarCamposQuestoes();
     if (registroTec) m.querySelector('#reg-tipo').disabled = true;
     m.querySelector('#reg-cancelar').addEventListener('click', fecharModal);
 
     m.querySelector('#form-registro').addEventListener('submit', function (e) {
       e.preventDefault();
       const erroEl = m.querySelector('#reg-erro');
+      if (state.planoAtivoId !== planoRegistro || ((usuarioAtual() || {}).uid || 'local') !== donoRegistro) {
+        erroEl.textContent = 'O plano ou a conta mudou. Feche e reabra este registro.'; erroEl.classList.remove('oculto'); return;
+      }
+      if (escolhaQuestoes && !escolhaQuestoes.value) { erroEl.textContent = 'Informe se você resolveu questões nesta sessão.'; erroEl.classList.remove('oculto'); return; }
       if (registroTec && (state !== estadoRegistro || state.planoAtivoId !== planoRegistro)) {
         erroEl.textContent = 'O plano ou a conta mudou. Feche e reabra este registro.'; erroEl.classList.remove('oculto'); return;
       }
@@ -1820,10 +1802,12 @@
         if (erroTec) { erroEl.textContent = erroTec; erroEl.classList.remove('oculto'); return; }
       }
       const dur = parseInt(m.querySelector('#reg-dur').value, 10);
-      const feitas = parseInt(m.querySelector('#reg-feitas').value, 10) || 0;
-      const certas = parseInt(m.querySelector('#reg-certas').value, 10) || 0;
+      const comQuestoes = registroTec || escolhaQuestoes.value === 'sim';
+      const feitas = comQuestoes ? Number(m.querySelector('#reg-feitas').value) : 0;
+      const certas = comQuestoes ? Number(m.querySelector('#reg-certas').value) : 0;
 
       if (!dur || dur < 1) { erroEl.textContent = 'Informe a duração em minutos (mínimo 1).'; erroEl.classList.remove('oculto'); return; }
+      if (!Number.isInteger(feitas) || !Number.isInteger(certas) || feitas < (comQuestoes ? 1 : 0) || feitas > 999 || certas < 0) { erroEl.textContent = 'Informe a quantidade de questões e acertos.'; erroEl.classList.remove('oculto'); return; }
       if (certas > feitas) { erroEl.textContent = 'Acertos (' + certas + ') não podem superar as questões feitas (' + feitas + ').'; erroEl.classList.remove('oculto'); return; }
 
       // A sessão é registrada na DATA do bloco (quando veio da agenda/calendário),
@@ -2735,11 +2719,6 @@
       };
       linha.addEventListener('click', abrir);
       linha.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
-    });
-    raiz.querySelectorAll('[data-check-rapido]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        registrarRapidoFila(el, el.getAttribute('data-check-rapido'), el.getAttribute('data-id'), el.getAttribute('data-tipo'));
-      });
     });
     raiz.querySelectorAll('[data-check-desfazer]').forEach(function (el) {
       el.addEventListener('click', function () {
@@ -5238,7 +5217,7 @@
         '<td>' + esc(s.tipo) + (s.plataformaQuestoes === 'tec' ? ' <span class="tec-origem">TEC</span>' : '') + '</td>' +
         '<td class="num">' + D.formatarMin(s.duracaoMin || 0) + '</td>' +
         '<td class="num">' + (s.qFeitas > 0 ? s.qCertas + '/' + s.qFeitas : '—') + '</td>' +
-        '<td><button class="botao-mini botao-quieto" data-excluir="' + esc(s.id) + '" title="Excluir sessão">✕</button></td></tr>';
+        '<td><div class="compact-actions"><button class="botao-mini botao-secundario" data-editar-sessao="' + esc(s.id) + '">Editar</button><button class="botao-mini botao-quieto" data-excluir="' + esc(s.id) + '" title="Excluir sessão">✕</button></div></td></tr>';
     });
     html += '</tbody></table>';
     if (ordenadas.length > historicoLimite) {
@@ -5248,7 +5227,44 @@
     return html;
   }
 
+  function abrirEditarSessao(id) {
+    const sessao = state.sessoes.find(s => s.id === id);
+    if (!sessao) { toast('Esta sessão não está mais no histórico.', 'erro'); return; }
+    const esperada = clonarJson(sessao), dono = (usuarioAtual() || {}).uid || 'local';
+    const entrada = state.planos.find(p => p.id === sessao.planoId);
+    const disc = entrada && entrada.disciplinas.find(d => d.topicos.some(t => t.id === sessao.topicoId));
+    const topico = disc && disc.topicos.find(t => t.id === sessao.topicoId);
+    const m = abrirModal('<h3>Editar questões da sessão</h3><p class="sub"><strong>' + esc(disc ? disc.nome : 'Sessão de estudo') + '</strong><br>' + esc(topico ? topico.nome : sessao.topicoId || 'Estudo livre') + '<br>' + esc(D.formatarDataBR(sessao.data)) + ' · ' + esc(D.formatarMin(sessao.duracaoMin || 0)) + '</p>' +
+      '<p class="sub">O tempo registrado e os créditos do planejamento serão mantidos.</p>' +
+      '<form id="form-editar-sessao"><label for="hist-questoes">Você resolveu questões nesta sessão?</label><select id="hist-questoes"><option value="nao"' + (!(sessao.qFeitas > 0) ? ' selected' : '') + '>Não</option><option value="sim"' + (sessao.qFeitas > 0 ? ' selected' : '') + '>Sim</option></select>' +
+      '<div class="grade-2" id="hist-campos-questoes"><div><label for="hist-feitas">Questões feitas</label><input id="hist-feitas" type="number" min="1" max="999" step="1" required value="' + Number(sessao.qFeitas || 0) + '"></div><div><label for="hist-certas">Acertos</label><input id="hist-certas" type="number" min="0" max="999" step="1" required value="' + Number(sessao.qCertas || 0) + '"></div></div>' +
+      '<label for="hist-obs">Observação (opcional)</label><textarea id="hist-obs">' + esc(sessao.obs || '') + '</textarea><p id="hist-erro" class="msg-erro oculto" role="alert"></p>' +
+      '<div class="modal-acoes"><button type="button" class="botao-quieto" id="hist-cancelar">Cancelar</button><button type="submit">Salvar alterações</button></div></form>');
+    function atualizarCampos() {
+      const sim = m.querySelector('#hist-questoes').value === 'sim';
+      m.querySelector('#hist-campos-questoes').hidden = !sim;
+      ['#hist-feitas', '#hist-certas'].forEach(id => { m.querySelector(id).disabled = !sim; });
+    }
+    m.querySelector('#hist-questoes').addEventListener('change', atualizarCampos); atualizarCampos();
+    m.querySelector('#hist-cancelar').addEventListener('click', fecharModal);
+    m.querySelector('#form-editar-sessao').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const erro = m.querySelector('#hist-erro');
+      function falhar(texto) { erro.textContent = texto; erro.classList.remove('oculto'); }
+      if (((usuarioAtual() || {}).uid || 'local') !== dono) { falhar('A conta mudou. Feche e reabra esta sessão.'); return; }
+      const sim = m.querySelector('#hist-questoes').value === 'sim';
+      const feitas = sim ? m.querySelector('#hist-feitas').value : 0;
+      if (sim && Number(feitas) < 1) { falhar('Informe quantas questões você resolveu.'); return; }
+      const anterior = clonarJson(state);
+      const r = D.atualizarQuestoesSessao(state, id, { qFeitas: feitas, qCertas: sim ? m.querySelector('#hist-certas').value : 0, obs: m.querySelector('#hist-obs').value }, esperada);
+      if (!r.ok) { falhar(r.erro); return; }
+      if (!salvar()) { state = anterior; window.Store.hidratar(state); falhar('Não foi possível salvar. Os dados anteriores foram mantidos. Tente novamente.'); return; }
+      fecharModal(); render(); toast('Sessão atualizada. Questões e desempenho recalculados.', 'sucesso');
+    });
+  }
+
   function ligarHistorico(raiz) {
+    raiz.querySelectorAll('[data-editar-sessao]').forEach(b => b.addEventListener('click', () => abrirEditarSessao(b.getAttribute('data-editar-sessao'))));
     raiz.querySelectorAll('[data-hist-escopo]').forEach(function (b) {
       b.addEventListener('click', function () {
         historicoEscopo = b.getAttribute('data-hist-escopo');
@@ -12594,6 +12610,7 @@
       '<p style="font-size:0.85rem;color:var(--grafite);margin-top:0.75rem">Conta: <strong>' + esc(email || 'não conectada') + '</strong>' +
       (state.plano ? '<br>Plano ativo: <strong>' + esc(state.plano.concurso) + '</strong>' : '') + '</p>' +
       '<div class="modal-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem">' +
+      '<a class="botao botao-quieto" href="#historico" id="pf-historico">Histórico de estudos</a>' +
       '<a class="botao botao-quieto" href="#ajustes" id="pf-config">Abrir configurações</a>' +
       (email ? '<button type="button" class="botao-quieto" id="pf-sair">Sair da conta</button>' : '') +
       '<button type="button" id="pf-salvar-nome">Salvar</button></div>' +
@@ -12812,11 +12829,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.12.0/Gabaritei.apk';
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.13.0/Gabaritei.apk';
     const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v0120" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
-      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.12.0 · em testes</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.12.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v0130" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.13.0 · em testes</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.13.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
