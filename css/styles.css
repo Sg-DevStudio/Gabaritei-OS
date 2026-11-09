@@ -4845,11 +4845,12 @@ body:not(.login-gate) #conteudo { padding-top: calc(var(--topbar-alt) + 24px); }
 .detalhe-caderno p { margin:6px 0 0; }
 .detalhe-caderno button { flex-shrink:0; }
 .caderno { max-width:1440px; margin:0 auto; }
-.caderno-capa { background:#112e54; color:#fff; border-radius:15px; padding:28px 30px; margin-bottom:22px; }
+.caderno-capa { display:flex; align-items:center; gap:20px; background:#112e54; color:#fff; border-radius:15px; padding:28px 30px; margin-bottom:22px; }
+.caderno-capa-texto { min-width:0; }
 .caderno-capa nav { display:flex; gap:18px; margin-bottom:20px; }
 .caderno-capa nav a { color:#dce9fb; font-size:.8rem; }
 .caderno-capa > span { color:#a7cfff; font-size:.67rem; letter-spacing:.12em; font-weight:600; }
-.caderno-capa h1 { font-size:clamp(1.6rem,2.8vw,2.5rem); margin:8px 0 10px; color:#fff; line-height:1.2; }
+.caderno-capa h1 { font-size:clamp(1.6rem,2.8vw,2.5rem); margin:0 0 10px; color:#fff; line-height:1.2; }
 .caderno-capa p { color:#dce9fb; font-size:.88rem; margin:4px 0; }
 .caderno-layout { display:grid; grid-template-columns:225px minmax(0,1fr); gap:20px; align-items:start; }
 .caderno-indice { position:sticky; top:calc(var(--topbar-alt) + 24px); padding:17px 13px; background:var(--papel-card); border:1px solid var(--linha); border-radius:15px; max-height:calc(100vh - var(--topbar-alt) - 48px); overflow:auto; }
@@ -4981,7 +4982,12 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .atualizacao-lista { margin:8px 0; border:1px solid var(--linha); border-radius:8px; padding:10px 12px; }
 .atualizacao-lista summary { cursor:pointer; font-size:.85rem; font-weight:600; }
 .atualizacao-lista ul { margin:10px 0 0; padding-left:18px; font-size:.8rem; line-height:1.6; }
-.caderno-logo { width:56px; height:56px; object-fit:contain; padding:5px; background:#fff; border-radius:10px; margin-bottom:10px; }
+.caderno-logo { flex:none; width:64px; height:64px; object-fit:contain; padding:5px; background:#fff; border-radius:10px; }
+@media (max-width:600px) {
+  .caderno-capa { gap:14px; }
+  .caderno-logo { width:48px; height:48px; }
+  .caderno-capa h1 { font-size:clamp(1.1rem,4.5vw,1.6rem); margin-bottom:8px; }
+}
 @media (max-width:760px) {
   .tec-card { flex-direction:column; align-items:stretch; gap:12px; }
   .tec-card > .tec-acoes { max-width:none; justify-content:flex-start; }

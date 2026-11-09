@@ -1,4 +1,4 @@
-/* Atualização explícita de referências. IDs locais e histórico de estudo não são recriados. */
+/* Atualização de referências. IDs locais e histórico de estudo não são recriados. */
 (function () {
   'use strict';
   const clone = v => JSON.parse(JSON.stringify(v));
@@ -58,7 +58,7 @@
       const dp = (idMapeado && antigas.find(d => d.id === idMapeado)) ||
         (mesmaOrigem && antigas.find(d => d.id === de.id)) ||
         unica(antigas, d => !discsVistas.has(d.id) && normal(d.nome) === normal(de.nome));
-      const idDisc = dp ? dp.id : livre(de.id);
+      const idDisc = dp ? dp.id : idMapeado || livre(de.id);
       if (dp) discsVistas.add(dp.id);
       mapaDiscs.set(de.id, idDisc);
       const topicos = (de.topicos || []).map(te => {
@@ -67,7 +67,7 @@
         const tp = (idTopMap && anteriores.find(t => t.id === idTopMap)) ||
           (mesmaOrigem && anteriores.find(t => t.id === te.id)) ||
           unica(anteriores, t => !topsVistos.has(t.id) && normal(t.nome) === normal(te.nome));
-        const id = tp ? tp.id : livre(te.id);
+        const id = tp ? tp.id : idTopMap || livre(te.id);
         if (tp) topsVistos.add(tp.id);
         mapaTops.set(de.id + ':' + te.id, id);
         return Object.assign({}, clone(te), { id, status: 'pendente', reaberto: false, orfao: false });
@@ -145,5 +145,41 @@
     pl.atualizacoesEdital = (pl.atualizacoesEdital || []).concat([log]);
     return r;
   }
-  window.PlanosAtualizacao = { origem, foto, repararMetadados, analisar, pendente, aplicar, versao };
+  // Only update the bound source. Never guess a different exam or recreate a plan.
+  // Work on copies so a failed local save can restore the exact previous objects.
+  function sincronizar(state, catalogo, D) {
+    const atualizados = [], erros = [], excluidos = state.config && state.config.planosExcluidos || {};
+    const lapides = state.config && state.config.entidadesExcluidas || {};
+    const planos = (state.planos || []).map(entry => {
+      if (!entry || !entry.plano || entry.plano.rascunho || entry.plano.combinado || Object.prototype.hasOwnProperty.call(excluidos, entry.id)) return entry;
+      const e = origem(entry, catalogo);
+      if (!e || e.arquivado || !(e.disciplinas || []).length) return entry;
+      const atual = entry.plano.origemEditalVersao || '', nova = versao(e);
+      if (Number.isFinite(Date.parse(atual)) && Number.isFinite(Date.parse(nova)) && Date.parse(nova) < Date.parse(atual)) return entry;
+      const candidato = clone(entry);
+      let mudou = repararMetadados({ planos: [candidato] }, [e]);
+      try {
+        if (atual !== nova) {
+          const r = aplicar(candidato, e, D);
+          // An equal syllabus only needs its version recorded, not a fake change log.
+          if (!r.mudou) {
+            if (entry.plano.atualizacoesEdital) candidato.plano.atualizacoesEdital = clone(entry.plano.atualizacoesEdital);
+            else delete candidato.plano.atualizacoesEdital;
+          }
+          const apagado = (tipo, id) => !!lapides[tipo + ':' + entry.id + ':' + encodeURIComponent(id)];
+          candidato.disciplinas = candidato.disciplinas.filter(d => !apagado('disc', d.id)).map(d => Object.assign(d, { topicos: d.topicos.filter(t => !apagado('top', t.id)) }));
+          mudou = true;
+          if (r.mudou) atualizados.push({ planoId: entry.id, resumo: r });
+        }
+      } catch (erro) {
+        erros.push({ planoId: entry.id, mensagem: erro.message });
+        return entry;
+      }
+      return mudou ? candidato : entry;
+    });
+    const mudou = planos.some((p, i) => p !== state.planos[i]);
+    if (mudou) state.planos = planos;
+    return { mudou, atualizados, erros };
+  }
+  window.PlanosAtualizacao = { origem, foto, repararMetadados, analisar, pendente, aplicar, versao, sincronizar };
 })();

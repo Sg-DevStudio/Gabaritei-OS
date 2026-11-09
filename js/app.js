@@ -82,6 +82,7 @@
   // evita a "piscada" dos editais-exemplo sem foto enquanto o global ainda carrega.
   let catalogoGlobalCarregado = false;
   let catalogoGlobalPromise = null;
+  let cancelarCatalogoAoVivo = null;
   let catalogoPublicacaoErro = '';
   let catalogoPublicacaoOkEm = '';
   let onboardingNomeAberto = false;
@@ -369,6 +370,14 @@
       catalogoGlobalEditais = normalizarCatalogoGlobal(lista || []);
       catalogoGlobalCarregado = true;
       render();
+      if (!cancelarCatalogoAoVivo && window.FirebaseSync.observarCatalogoGlobal) {
+        cancelarCatalogoAoVivo = window.FirebaseSync.observarCatalogoGlobal(function (lista) {
+          const novos = normalizarCatalogoGlobal(lista || []);
+          if (JSON.stringify(novos) === JSON.stringify(catalogoGlobalEditais)) return;
+          catalogoGlobalEditais = novos;
+          render();
+        }, function (erro) { console.warn('Não consegui acompanhar atualizações do catálogo.', erro); });
+      }
       return catalogoGlobalEditais;
     }).catch(function (e) {
       console.warn('Não consegui carregar catálogo global.', e);
@@ -446,8 +455,6 @@
     opcoes = opcoes || {};
     if (modoDemo) return true; // modo exemplo: nada é gravado nem sincronizado
     const resultado = window.Store.salvar(state, opcoes);
-    if (window.Sync && opcoes.sincronizar !== false) window.Sync.agendarEnvio(state);
-    if (window.FirebaseSync && opcoes.sincronizar !== false) window.FirebaseSync.agendarEnvio(state);
     if (resultado && resultado.ok === false) {
       const agora = Date.now();
       if (agora - falhaPersistenciaAvisadaEm > 10000) {
@@ -456,6 +463,8 @@
       }
       return false;
     }
+    if (window.Sync && opcoes.sincronizar !== false) window.Sync.agendarEnvio(state);
+    if (window.FirebaseSync && opcoes.sincronizar !== false) window.FirebaseSync.agendarEnvio(state);
     return true;
   }
 
@@ -5942,114 +5951,19 @@
     });
   }
 
-  // ---- Atualização de plano quando o edital de origem muda (pré-edital → real) ----
-  function editalDaOrigemDoPlano(planoEntry) {
-    if (window.PlanosAtualizacao) return window.PlanosAtualizacao.origem(planoEntry, editaisDoCatalogo());
-    const pl = planoEntry && planoEntry.plano;
-    if (!pl || !pl.origemEditalId) return null;
-    return editaisDoCatalogo().find(function (e) { return e.id === pl.origemEditalId; }) || null;
-  }
-
-  // Retorna o edital de origem se houver versão mais nova que a do plano; senão null.
-  function atualizacaoEditalPendente(planoEntry) {
-    if (window.PlanosAtualizacao) return window.PlanosAtualizacao.pendente(planoEntry, editaisDoCatalogo());
-    const ed = editalDaOrigemDoPlano(planoEntry);
-    if (!ed || !ed.atualizadoEm) return null;
-    const versaoPlano = (planoEntry.plano && planoEntry.plano.origemEditalVersao) || '';
-    return ed.atualizadoEm !== versaoPlano ? ed : null;
-  }
-
-  function planoAtivoEntry() {
-    return (state.planos || []).find(function (p) { return p.id === state.planoAtivoId; }) || null;
-  }
-
-  function atualizarPlanoAtivoDoEdital(editalEscolhido) {
-    const planoEntry = planoAtivoEntry();
-    if (!planoEntry) return;
-    const ed = editalEscolhido || atualizacaoEditalPendente(planoEntry);
-    if (!ed) { toast('Este plano já está na versão atual do edital.', 'sucesso'); return; }
-    if (window.PlanosAtualizacao) {
-      const antes = clonarJson(planoEntry);
-      let res;
-      try { res = window.PlanosAtualizacao.aplicar(planoEntry, ed, D); }
-      catch (erro) { toast(erro.message || 'Não foi possível atualizar esta referência.', 'erro'); return; }
+  // Synchronize every linked plan before drawing the active one.
+  function sincronizarPlanosDoCatalogo() {
+    if (modoDemo || !catalogoGlobalCarregado || !window.PlanosAtualizacao || document.querySelector('#modal-raiz .modal')) return;
+    const preparo = { planos: state.planos, config: state.config };
+    const resultado = window.PlanosAtualizacao.sincronizar(preparo, editaisDoCatalogo(), D);
+    if (resultado.mudou) {
+      const anterior = state;
+      state = clonarJson(state);
+      state.planos = preparo.planos;
       window.Store.hidratar(state);
-      if (!salvar()) {
-        const i = state.planos.findIndex(p => p.id === antes.id);
-        if (i >= 0) state.planos[i] = antes;
-        window.Store.hidratar(state); toast('Não foi possível salvar a atualização. Tente novamente.', 'erro'); return;
-      }
-      fecharModal(); render();
-      toast('Referência atualizada: ' + res.incluidos.length + ' tópicos novos. Histórico e rotina preservados.', 'sucesso');
-      return;
+      if (!salvar()) state = anterior;
     }
-    const res = D.mesclarEditalNoPlano(planoEntry.disciplinas, clonarJson(ed.disciplinas));
-    planoEntry.disciplinas = res.disciplinas;
-    const pl = planoEntry.plano; pl.meta = pl.meta || {};
-    pl.meta.corte_pct = ed.notaCorte || pl.meta.corte_pct || 70;
-    pl.meta.cortes = {
-      ampla: ed.cortes && ed.cortes.ampla != null ? ed.cortes.ampla : (ed.notaCorte || pl.meta.corte_pct),
-      negros: ed.cortes && ed.cortes.negros != null ? ed.cortes.negros : null,
-      pcd: ed.cortes && ed.cortes.pcd != null ? ed.cortes.pcd : null
-    };
-    if (ed.foto) pl.foto = ed.foto;
-    const jp = ed.janelaProva || {};
-    if (jp.inicio) {
-      const prev = pl.radar || {};
-      pl.radar = { janela_prova: [jp.inicio, jp.fim || jp.inicio], confianca: prev.confianca || 'manual', reavaliar_em: prev.reavaliar_em || null };
-    }
-    pl.origemEditalVersao = ed.atualizadoEm;
-    window.Store.hidratar(state);
-    salvar();
-    render();
-    const r = res.resumo; const partes = [];
-    if (r.topicosNovos) partes.push(r.topicosNovos + ' tópico(s) novo(s)');
-    if (r.topicosRemovidos) partes.push(r.topicosRemovidos + ' removido(s)');
-    if (r.disciplinasNovas) partes.push(r.disciplinasNovas + ' disciplina(s) nova(s)');
-    toast('Plano atualizado pelo edital (' + (partes.length ? partes.join(', ') : 'metadados atualizados') + '). Recalcule o plano para encaixar os novos tópicos.', 'sucesso');
-  }
-
-  function avisoAtualizacaoPlanoHtml() {
-    const ed = atualizacaoEditalPendente(planoAtivoEntry());
-    return ed ? '<div class="plano-edital-atualizado"><span>Há uma nova versão da referência deste plano. Confira o que mudou e mantenha seu histórico.</span><button type="button" class="botao-mini" data-atualizacao-plano>Ver mudanças</button></div>' : '';
-  }
-
-  function abrirAtualizacaoReferencia(editalEscolhido) {
-    const entrada = planoAtivoEntry();
-    if (!entrada || !window.PlanosAtualizacao) return;
-    const catalogo = editaisDoCatalogo().filter(e => !e.arquivado && (e.disciplinas || []).length);
-    const origem = editalEscolhido || atualizacaoEditalPendente(entrada) || editalDaOrigemDoPlano(entrada);
-    const estadoInicial = state, planoId = entrada.id;
-    const m = abrirModal('<h3>Atualizar referência do plano</h3><p class="sub">O histórico, os links pessoais e a rotina continuam neste mesmo plano.</p>' +
-      '<label for="atualizacao-edital">Edital ou plano de referência</label><select id="atualizacao-edital"><option value="">Escolha uma referência</option>' +
-      catalogo.map(e => '<option value="' + esc(e.id) + '"' + (origem && e.id === origem.id ? ' selected' : '') + '>' + esc(e.titulo) + '</option>').join('') +
-      '</select><div id="atualizacao-previa" aria-live="polite"></div><p id="atualizacao-erro" class="msg-erro oculto" role="alert"></p>' +
-      '<div class="modal-acoes"><button type="button" id="atualizacao-cancelar" class="botao-quieto">Cancelar</button><button type="button" id="atualizacao-aplicar" disabled>Aplicar atualização</button></div>');
-    const sel = m.querySelector('#atualizacao-edital'), botao = m.querySelector('#atualizacao-aplicar');
-    let assinatura = '', referencia = null;
-    function pintar() {
-      referencia = catalogo.find(e => e.id === sel.value);
-      if (!referencia) { m.querySelector('#atualizacao-previa').innerHTML = ''; botao.disabled = true; return; }
-      const r = window.PlanosAtualizacao.analisar(entrada, referencia);
-      assinatura = JSON.stringify([entrada, referencia]);
-      const lista = (titulo, items, texto) => items.length ? '<details class="atualizacao-lista"><summary>' + esc(titulo) + ' (' + items.length + ')</summary><ul>' + items.map(t => '<li>' + esc(texto(t)) + '</li>').join('') + '</ul></details>' : '';
-      m.querySelector('#atualizacao-previa').innerHTML = '<p class="atualizacao-resumo"><strong>' + r.incluidos.length + ' novos</strong> · ' + r.alterados.length + ' ajustados · ' + r.retirados.length + ' fora da referência · ' + r.mantidos + ' aproveitados</p>' +
-        lista('Tópicos novos', r.incluidos, t => t.disciplina + ': ' + t.nome) +
-        lista('Tópicos ajustados', r.alterados, t => t.disciplina + ': ' + t.antes + (t.antes !== t.depois ? ' → ' + t.depois : ' — estimativas ou prioridade atualizadas')) +
-        lista('Pesos e dados das disciplinas', r.disciplinasAjustadas, d => d.nome + ': ' + d.campos.map(c => c.campo + ' ' + (c.antes || 'não informado') + ' → ' + (c.depois || 'não informado')).join('; ')) +
-        lista('Mantidos apenas para o histórico', r.retirados, t => t.disciplina + ': ' + t.nome) +
-        lista('Dados da referência', r.metadados, t => t.campo === 'Imagem' ? 'Imagem do órgão atualizada' : t.campo + ': ' + (t.antes || 'não informado') + ' → ' + t.depois) +
-        '<p class="tec-ajuda">Assuntos novos começam pendentes. Os retirados continuam no histórico. Para encaixar novos tópicos no calendário ou ciclo, recalcule o planejamento depois de aplicar.</p>' +
-        (!r.mudou ? '<p class="sub">O conteúdo já corresponde a esta referência.</p>' : '');
-      botao.disabled = !r.mudou && entrada.plano.origemEditalId === referencia.id;
-    }
-    pintar(); sel.onchange = pintar; m.querySelector('#atualizacao-cancelar').onclick = fecharModal;
-    botao.onclick = function () {
-      if (state !== estadoInicial || state.planoAtivoId !== planoId || assinatura !== JSON.stringify([entrada, referencia])) {
-        const erro = m.querySelector('#atualizacao-erro'); erro.textContent = 'O plano foi alterado enquanto esta prévia estava aberta. Feche e confira a versão atual.'; erro.classList.remove('oculto'); return;
-      }
-      atualizarPlanoAtivoDoEdital(referencia);
-    };
+    resultado.erros.forEach(e => console.warn('Atualização automática do plano não aplicada:', e.planoId, e.mensagem));
   }
 
   function ligarEditaisEsquematizados(raiz) {
@@ -8997,18 +8911,15 @@
         '<div class="compact-actions"><button class="botao-mini" id="pl-em-branco">Plano manual</button></div></div>';
     }
     const progresso = D.progressoEdital(state);
-    const avisoAtualizacao = avisoAtualizacaoPlanoHtml();
     return '<div class="card planejamento-card plano-atual-card">' +
       '<div class="plano-atual-head">' + fotoPlanoAtivoHtml() + '<div><div class="card-kpi-rotulo">Plano atual</div>' +
       '<h3>' + esc(state.plano.concurso) + '</h3>' +
       '<p class="sub">' + esc(state.plano.banca || 'plano manual') + ' · ' + state.disciplinas.length + ' disciplinas · ' + progresso.total + ' tópicos</p></div>' +
       '<div class="plano-progresso num">' + progresso.pct + '%</div></div>' +
       '<div class="barra" style="margin:0.5rem 0 0.7rem"><span style="width:' + progresso.pct + '%"></span></div>' +
-      avisoAtualizacao +
       '<div class="compact-actions plano-acoes-card">' +
       '<a class="botao botao-mini botao-secundario" href="#caderno-' + encodeURIComponent(state.planoAtivoId) + '">Caderno de questões</a>' +
       '<button class="botao-mini" id="pl-acao-editar">Editar plano</button>' +
-      (!state.plano.combinado ? '<button type="button" class="botao-mini botao-secundario" id="pl-atualizar-referencia">Atualizar referência</button>' : '') +
       '<button class="botao-mini botao-secundario" id="pl-acao-edital">Edital</button>' +
       '<button type="button" class="botao-mini botao-secundario" id="pl-acao-revisoes" aria-pressed="' + D.sugestoesRevisaoAtivas(state) + '" title="Controla sugestões automáticas deste plano. O histórico e os blocos manuais são preservados.">' +
       (D.sugestoesRevisaoAtivas(state) ? 'Desativar sugestões de revisão' : 'Ativar sugestões de revisão') + '</button>' +
@@ -11586,8 +11497,6 @@
     if (aprofDesativar) aprofDesativar.addEventListener('click', function () {
       if (state.plano) { delete state.plano.modoAprofundamento; salvar(); render(); toast('Modo aprofundamento desativado', 'sucesso'); }
     });
-    const atualizarRef = raiz.querySelector('#pl-atualizar-referencia');
-    if (atualizarRef) atualizarRef.addEventListener('click', function () { abrirAtualizacaoReferencia(); });
     // navegação do calendário (semana/mês)
     const ant = raiz.querySelector('#pl-ant');
     if (ant) ant.addEventListener('click', function () {
@@ -13174,10 +13083,7 @@
       return;
     }
     document.body.classList.remove('login-gate');
-    if (!modoDemo && window.PlanosAtualizacao && window.PlanosAtualizacao.repararMetadados(state, editaisDoCatalogo())) {
-      window.Store.hidratar(state);
-      salvar();
-    }
+    sincronizarPlanosDoCatalogo();
     if (!modoDemo) processarPausasVencidas();
     if (!modoDemo && !pulaRecalcSemanal) verificarRecalculoSemanal(); // Regra 6 — a cada nova semana, plano recalculado pelo progresso real
     const rota = rotaAtual();
@@ -13190,14 +13096,10 @@
     // (deixar a tela em branco sem feedback). Mostra o erro e segue navegável.
     try {
       conteudo.innerHTML = tela.render();
-      if (rota === 'hoje' && state.plano) conteudo.insertAdjacentHTML('afterbegin', avisoAtualizacaoPlanoHtml());
       atualizarContextoPlano();
       if (rota === 'hoje') organizarInicio(conteudo);
       tela.ligar(conteudo);
       ligarTec(conteudo);
-      conteudo.querySelectorAll('[data-atualizacao-plano]').forEach(function (b) {
-        b.addEventListener('click', function () { abrirAtualizacaoReferencia(); });
-      });
       if (!mudouRota && rota === 'planos' && buscaAntes && !document.querySelector('#modal-raiz .modal')) {
         const buscaAtual = conteudo.querySelector('#cat-busca');
         if (buscaAtual) {

@@ -84,8 +84,36 @@ test('novo edital conserva sessões, revisões, simulados e agenda após salvar 
  state.simulados=[{id:'sim',planoId:entry.id,data:D.hojeISO(),acertos:[{disciplinaId:'ADM',certas:18,total:20}]}];
  state.agenda=[{id:'a',planoId:entry.id,disciplinaId:'ADM',topicoId:'ADM-02',data:D.hojeISO(),duracaoMin:30,feito:true,feitoMin:30,gerado:false}];
  S.salvar(state);const antes=JSON.stringify([state.sessoes,state.revisoes,state.simulados,state.agenda]);
- A.aplicar(state.planos[0],edital,D);S.hidratar(state);
+ A.sincronizar(state,[edital],D);S.hidratar(state);
  assert.equal(JSON.stringify([state.sessoes,state.revisoes,state.simulados,state.agenda]),antes);
  S.salvar(state);const salvo=S.carregar();
  assert.equal(salvo.sessoes[0].qCertas,18);assert.equal(salvo.revisoes[0].topicoId,'ADM-02');assert.equal(salvo.simulados.length,1);assert.equal(salvo.agenda[0].feitoMin,30);
+});
+test('atualização automática alcança planos inativos uma vez, sem recriar estudo nem rotina',()=>{
+ const {entry,edital}=exemplo(),outro=JSON.parse(JSON.stringify(entry));outro.id='inativo';
+ const state={planos:[entry,outro],planoAtivoId:entry.id,config:{},sessoes:[{id:'s',topicoId:'ADM-02'}],revisoes:[{id:'r'}],agenda:[{id:'a',feito:true}],simulados:[{id:'sim'}]};
+ const history=JSON.stringify([state.sessoes,state.revisoes,state.agenda,state.simulados]);
+ const r=A.sincronizar(state,[edital],D);assert.equal(r.atualizados.length,2);assert.equal(r.erros.length,0);
+ for(const p of state.planos){assert.equal(p.plano.origemEditalVersao,edital.atualizadoEm);assert.equal(p.disciplinas[0].topicos.find(t=>t.id==='ADM-01').status,'dominado');assert.equal(p.links[0].id,'pessoal');assert.equal(p.plano.rotina.seg,2);assert.equal(p.plano.meta.corte_pct,85);assert.equal(p.plano.atualizacoesEdital.length,1);}
+ assert.equal(JSON.stringify([state.sessoes,state.revisoes,state.agenda,state.simulados]),history);
+ state.planos[0].disciplinas[0].topicos[0].nome='Minha personalização após atualizar';
+ assert.equal(A.sincronizar(state,[edital],D).mudou,false);assert.equal(state.planos[0].disciplinas[0].topicos[0].nome,'Minha personalização após atualizar');
+});
+test('automação respeita exclusões, planos manuais, combinados, rascunhos e catálogo antigo',()=>{
+ const {entry,edital}=exemplo();const removido=JSON.parse(JSON.stringify(entry));removido.id='apagado';
+ const state={planos:[entry,removido,{id:'manual',plano:{concurso:'Meu plano'},disciplinas:[]},{id:'combo',plano:{combinado:true,origemEditalId:edital.id},disciplinas:[]},{id:'draft',plano:{rascunho:true,origemEditalId:edital.id},disciplinas:[]}],config:{planosExcluidos:{apagado:true},entidadesExcluidas:{'top:aluno:ADM-03':'2026-11-01'}}};
+ A.sincronizar(state,[edital],D);assert(!state.planos[0].disciplinas[0].topicos.some(t=>t.id==='ADM-03'));assert.equal(state.planos[1],removido);assert.equal(state.planos[2].plano.origemEditalId,undefined);assert.equal(state.planos[3].disciplinas.length,0);assert.equal(state.planos[4].disciplinas.length,0);
+ const before=JSON.stringify(state);assert.equal(A.sincronizar(state,[Object.assign({},edital,{atualizadoEm:'2025-01-01'})],D).mudou,false);assert.equal(JSON.stringify(state),before);
+});
+test('falha em uma referência não altera sua cópia nem impede outros planos',()=>{
+ const {entry,edital}=exemplo();const good=JSON.parse(JSON.stringify(entry));good.id='outro';good.plano.origemEditalId='valido';
+ const state={planos:[entry,good],config:{}};const before=JSON.stringify(entry);
+ const invalid=JSON.parse(JSON.stringify(edital));delete invalid.disciplinas[0].topicos[0].nome;
+ const r=A.sincronizar(state,[invalid,Object.assign({},edital,{id:'valido'})],D);
+ assert.equal(r.erros.length,1);assert.equal(state.planos[0],entry);assert.equal(JSON.stringify(entry),before);assert.equal(state.planos[1].plano.origemEditalVersao,edital.atualizadoEm);
+});
+test('uma exclusão com ids locais mapeados não renasce ao atualizar',()=>{
+ const {entry,edital}=exemplo();entry.plano.mapaEdital={origemId:edital.id,disciplinas:{ADM:'ADM'},topicos:{'ADM:ADM-03':'meu-id-local'}};
+ const state={planos:[entry],config:{entidadesExcluidas:{'top:aluno:meu-id-local':'2026-11-01'}}};A.sincronizar(state,[edital],D);
+ assert(!state.planos[0].disciplinas[0].topicos.some(t=>t.nome==='Contratações'));
 });

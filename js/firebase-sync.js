@@ -1023,6 +1023,13 @@ async function carregarCatalogoGlobal() {
   return Array.isArray(dados.editais) ? dados.editais : [];
 }
 
+function observarCatalogoGlobal(receber, falhar) {
+  return onSnapshot(refCatalogo, snap => {
+    const dados = snap.exists() ? snap.data() : {};
+    receber(Array.isArray(dados.editais) ? dados.editais : []);
+  }, falhar);
+}
+
 async function publicarCatalogoGlobal(editais) {
   if (!usuario || String(usuario.email || '').toLowerCase() !== 'casar70@gmail.com') {
     throw new Error('Apenas o administrador pode publicar o catálogo global.');
@@ -1091,7 +1098,7 @@ async function gerarFlashcardsIA(payload) {
 
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo,
-  carregarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
+  carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
   carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush,
   desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
