@@ -16,6 +16,7 @@
   function mount(root,ctx){
     const uid=ctx.usuario()&&ctx.usuario().uid||'',s=sessao(uid);s.root=root;
     const form=root.querySelector('#qia-form'),status=root.querySelector('.qia-status');
+    if(!uid){status.hidden=false;status.textContent='Entre com Google para gerar e salvar questões na sua conta.';form.querySelectorAll('input,textarea,select,button').forEach(el=>el.disabled=true);root.querySelector('#qia-lista').textContent='Seus cadernos ficam disponíveis depois do login.';return;}
     const ativo=()=>atual===s&&s.root===root&&root.isConnected&&ctx.usuario()&&ctx.usuario().uid===uid;
     const api=()=>{const p=window.FirebaseSync;if(!p||!p.gerarQuestoesIA)throw Error('A conexão com sua conta ainda está carregando. Tente novamente.');return p;};
     function aviso(text,erro){s.mensagem=text||'';s.erro=!!erro;if(!ativo()){if(s.refresh)s.refresh();return;}status.hidden=!text;status.textContent=text||'';status.dataset.erro=erro?'true':'false';}
