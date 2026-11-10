@@ -160,6 +160,12 @@ service cloud.firestore {
         (isStateMetadataId(docId) || isStateChunkId(docId));
     }
 
+    // Configuração pessoal provisionada pelo administrador, fora do estado e dos backups.
+    match /users/{userId}/privateSettings/ai {
+      allow get: if isOwner(userId);
+      allow list, write: if false;
+    }
+
     // Cadernos autorais: privados, independentes do estado legado dos estudos.
     match /users/{userId}/questionSets/{setId} {
       allow read: if isOwner(userId);

@@ -68,6 +68,7 @@ const pedidosCollection = collection(db, 'pedidosEdital');
 
 let opcoes = null;
 let usuario = null;
+let configuracaoIAPessoal = null;
 let refEstado = null;
 let cancelarSnapshot = null;
 let envioPendente = null;
@@ -575,6 +576,7 @@ function iniciar(novasOpcoes) {
     estadoPendenteGravacao = null;
     snapshotPendenteDuranteEnvio = false;
     usuario = user;
+    configuracaoIAPessoal = null;
     reconciliadoOk = false; // nova sessão/usuário: exige nova leitura da nuvem
     numeroChunksAtuais = 0;
     tentativasReconciliacao = 0;
@@ -1105,15 +1107,24 @@ function usuarioQuestoesIA(){
   if(!usuario)throw new Error('Entre na sua conta para usar questões com IA.');
   return usuario;
 }
+async function obterConfiguracaoIAPessoal(user){
+  if(configuracaoIAPessoal&&configuracaoIAPessoal.uid===user.uid)return configuracaoIAPessoal;
+  const snapshot=await getDoc(doc(db,'users',user.uid,'privateSettings','ai'));
+  if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+  const value=snapshot.exists()?snapshot.data():null;
+  if(!value||value.freeOnly!==true||typeof value.apiKey!=='string')throw new Error('A IA gratuita está disponível apenas no perfil pessoal configurado.');
+  configuracaoIAPessoal={uid:user.uid,apiKey:value.apiKey,model:value.model,freeOnly:true};
+  return configuracaoIAPessoal;
+}
 async function gerarQuestoesIA(config,parts,onStatus){
   const user=usuarioQuestoesIA();
   if(parts.length!==1||!parts[0]||(!parts[0].text&&!parts[0].inlineData))throw new Error('Envie um material antes de gerar.');
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const provider=await import('./questoes-ia-provider.js?v=20261110-questoes3');
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261110-questoes4'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
-    const response=await provider.gerar(window.QuestoesIA.configurar(config),parts,controller.signal,onStatus);
+    const response=await provider.gerar(window.QuestoesIA.configurar(config),parts,controller.signal,onStatus,credential);
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     return response;
   })();

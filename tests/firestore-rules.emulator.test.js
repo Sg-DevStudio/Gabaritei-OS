@@ -10,6 +10,8 @@ const {
 } = require('@firebase/rules-unit-testing');
 const {
   doc,
+  collection,
+  getDocs,
   getDoc,
   setDoc,
   Timestamp
@@ -17,6 +19,18 @@ const {
 
 const ativo = !!process.env.FIRESTORE_EMULATOR_HOST;
 let ambiente;
+
+test('configuração IA pessoal só pode ser lida pelo dono e não aceita escrita cliente', { skip: !ativo }, async () => {
+  await ambiente.withSecurityRulesDisabled(async context=>setDoc(doc(context.firestore(),'users/aluno/privateSettings/ai'),{apiKey:'synthetic-test-only',freeOnly:true}));
+  const owner=ambiente.authenticatedContext('aluno').firestore();
+  const other=ambiente.authenticatedContext('outro').firestore();
+  const anon=ambiente.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(owner,'users/aluno/privateSettings/ai')));
+  await assertFails(getDoc(doc(other,'users/aluno/privateSettings/ai')));
+  await assertFails(getDoc(doc(anon,'users/aluno/privateSettings/ai')));
+  await assertFails(setDoc(doc(owner,'users/aluno/privateSettings/ai'),{apiKey:'changed'}));
+  await assertFails(getDocs(collection(owner,'users/aluno/privateSettings')));
+});
 
 test('cadernos IA são privados e aceitam apenas documentos limitados', { skip: !ativo }, async () => {
   const owner=ambiente.authenticatedContext('aluno').firestore();
