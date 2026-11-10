@@ -262,15 +262,17 @@ test('timer com armazenamento cheio continua contando, pausa e finaliza sem exce
   assert.equal(T.finalizar().estudoMin, 1); assert.equal(avisos, 1);
 });
 
-test('PWA usa cache em erro 503, mas não mascara respostas 404', async () => {
-  const handlers = {}; let status = 503;
-  const ctx = { URL, Response, self: { location: { origin: 'https://teste.local' }, addEventListener: (k, fn) => { handlers[k] = fn; } },
+test('PWA abre a cópia instalada sem rede e preserva erros de arquivos não salvos', async () => {
+  const handlers = {}; let status = 503, salvo = true, acessos = 0;
+  const ctx = { URL, Response, self: { location: new URL('https://teste.local/sw.js'), addEventListener: (k, fn) => { handlers[k] = fn; } },
     importScripts() { throw Error('opcional'); }, console: { warn() {} },
-    fetch: async () => new Response('', { status }), caches: { match: async () => new Response('cache') } };
+    fetch: async () => { acessos++; return new Response('', { status }); },
+    caches: { open: async () => ({ match: async () => salvo ? new Response('cache') : undefined, put: async () => {} }) } };
   vm.runInNewContext(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), ctx);
-  async function buscar() { let resposta; handlers.fetch({ request: { method: 'GET', url: 'https://teste.local/index.html' }, respondWith(p) { resposta = p; } }); return resposta; }
-  assert.equal(await (await buscar()).text(), 'cache');
-  status = 404; assert.equal((await buscar()).status, 404);
+  async function buscar() { let resposta; handlers.fetch({ request: { method: 'GET', mode: 'navigate', url: 'https://teste.local/index.html' }, respondWith(p) { resposta = p; } }); return resposta; }
+  assert.equal(await (await buscar()).text(), 'cache'); assert.equal(acessos, 0);
+  salvo = false; status = 404; assert.equal((await buscar()).status, 404);
+  status = 503; assert.equal((await buscar()).status, 503);
 });
 
 test('atualização do PWA é automática e preserva uma edição em andamento', () => {

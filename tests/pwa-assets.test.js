@@ -56,7 +56,8 @@ test('service worker mantém disponíveis offline o plano de exemplo e os ícone
 test('ativar a PWA remove só versões próprias e o cache legado conhecido', async () => {
   const handlers = {}, deleted = [];
   const context = {
-    self: { addEventListener: (type, fn) => { handlers[type] = fn; }, clients: { claim: async () => {} } },
+    URL,
+    self: { location: new URL('https://teste.local/sw.js'), addEventListener: (type, fn) => { handlers[type] = fn; }, clients: { claim: async () => {} } },
     importScripts() { throw new Error('Messaging opcional indisponível'); },
     console: { warn() {} },
     caches: {

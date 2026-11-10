@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v258-android';
+const CACHE = CACHE_PREFIXO + 'v259-desempenho';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -56,45 +56,45 @@ try {
   console.warn('Firebase Messaging indisponível no service worker.', e);
 }
 const ESTATICOS = [
-  './data/caderno-tec.js?v=20261110-android1',
-  './data/caderno-qconcursos.js?v=20261110-android1',
+  './data/caderno-tec.js?v=20261110-desempenho1',
+  './data/caderno-qconcursos.js?v=20261110-desempenho1',
   './assets/ferramentas/logo-qconcursos.svg',
   './assets/carreiras/logo-ufrj.png',
   './assets/ferramentas/logo-tec-concursos.png',
   './assets/carreiras/logo-tjsp.jpg',
-  './js/planos-atualizacao.js?v=20261110-android1',
-  './js/tec-questoes.js?v=20261110-android1',
-  './data/caderno-trt4-analista.js?v=20261110-android1',
+  './js/planos-atualizacao.js?v=20261110-desempenho1',
+  './js/tec-questoes.js?v=20261110-desempenho1',
+  './data/caderno-trt4-analista.js?v=20261110-desempenho1',
   './assets/carreiras/logo-trt4.jpg',
-  './data/edital-tjsp-2026.js?v=20261110-android1',
-  './data/edital-trt4-2026.js?v=20261110-android1',
-  './data/edital-trt4-analista-2026.js?v=20261110-android1',
-  './data/caderno-trt4.js?v=20261110-android1',
-  './data/caderno-tjsp.js?v=20261110-android1',
+  './data/edital-tjsp-2026.js?v=20261110-desempenho1',
+  './data/edital-trt4-2026.js?v=20261110-desempenho1',
+  './data/edital-trt4-analista-2026.js?v=20261110-desempenho1',
+  './data/caderno-trt4.js?v=20261110-desempenho1',
+  './data/caderno-tjsp.js?v=20261110-desempenho1',
   './assets/ferramentas/logo-gran-questoes.webp',
-  './js/ajuda.js?v=20261110-android1',
-  './js/trilha.js?v=20261110-android1',
+  './js/ajuda.js?v=20261110-desempenho1',
+  './js/trilha.js?v=20261110-desempenho1',
   './js/demo.js',
   './data/trilha-trf2.js',
-  './data/trilha-vinculos-trf2.js?v=20261110-android1',
-  './assets/android/qr-download.png?v=android-native-v0140',
-  './js/android-bridge.js?v=20261110-android1',
+  './data/trilha-vinculos-trf2.js?v=20261110-desempenho1',
+  './assets/android/qr-download.png?v=android-native-v0141',
+  './js/android-bridge.js?v=20261110-desempenho1',
   './',
   './index.html',
   './manifest.json',
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
-  './js/frases.js?v=20261110-android1',
-  './css/styles.css?v=20261110-android1',
-  './js/domain.js?v=20261110-android1',
-  './js/store.js?v=20261110-android1',
+  './js/frases.js?v=20261110-desempenho1',
+  './css/styles.css?v=20261110-desempenho1',
+  './js/domain.js?v=20261110-desempenho1',
+  './js/store.js?v=20261110-desempenho1',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261110-android1',
-  './js/timer.js?v=20261110-android1',
-  './js/charts.js?v=20261110-android1',
-  './data/catalogo-editais.js?v=20261110-android1',
-  './data/carreiras.js?v=20261110-android1',
+  './js/firebase-sync.js?v=20261110-desempenho1',
+  './js/timer.js?v=20261110-desempenho1',
+  './js/charts.js?v=20261110-desempenho1',
+  './data/catalogo-editais.js?v=20261110-desempenho1',
+  './data/carreiras.js?v=20261110-desempenho1',
   './assets/carreiras/capa-inss-tecnico.png',
   './assets/carreiras/capa-ifrj-assistente.svg',
   './assets/carreiras/capa-trf2-tjaa.svg',
@@ -102,17 +102,17 @@ const ESTATICOS = [
   './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
   './data/exemplo-trf3.json?v=20261028-demo-imagem',
   './assets/carreiras/logo-trf3.png',
-  './data/ferramentas.js?v=20261110-android1',
+  './data/ferramentas.js?v=20261110-desempenho1',
   './assets/ferramentas/logo-anki.png',
   './assets/ferramentas/logo-notebooklm.svg',
   './assets/ferramentas/logo-notion.svg',
   './assets/ferramentas/logo-scielo.svg',
   './assets/ferramentas/logo-trello.svg',
   './assets/ferramentas/logo-zlibrary.png',
-  './js/inicio-layout.js?v=20261110-android1',
-  './js/profile-photo.js?v=20261110-android1',
-  './js/app-status.js?v=20261110-android1',
-  './js/app.js?v=20261110-android1',
+  './js/inicio-layout.js?v=20261110-desempenho1',
+  './js/profile-photo.js?v=20261110-desempenho1',
+  './js/app-status.js?v=20261110-desempenho1',
+  './js/app.js?v=20261110-desempenho1',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'
@@ -134,27 +134,30 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-/* Estratégia: rede primeiro com fallback para cache (estáticos sempre frescos online, app abre offline) */
+// Each installed version has a complete static cache. Checking the network for
+// every script delayed startup on slow connections, even with an offline copy.
+// New releases still install in the background and reload only in a safe state.
+const URLS_ESTATICOS = new Set(ESTATICOS.map((path) => new URL(path, self.location.href).href));
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  if (url.pathname.endsWith('/api/sync')) {
-    e.respondWith(fetch(e.request));
-    return;
-  }
-  e.respondWith(
-    fetch(e.request)
-      .then(async (resp) => {
-        if (resp.status >= 500 && url.origin === self.location.origin) {
-          const salvo = await caches.match(e.request);
-          if (salvo) return salvo;
-        }
-        const copia = resp.clone();
-        if (resp.ok && e.request.url.startsWith(self.location.origin)) {
-          caches.open(CACHE).then((c) => c.put(e.request, copia));
-        }
-        return resp;
-      })
-      .catch(async () => (await caches.match(e.request)) || Response.error())
-  );
+  if (url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
+  const inicio = e.request.mode === 'navigate' &&
+    [new URL('./', self.location.href).pathname, new URL('./index.html', self.location.href).pathname].includes(url.pathname);
+  const semConsulta = url.origin + url.pathname;
+  const chave = inicio ? new URL('./index.html', self.location.href).href :
+    URLS_ESTATICOS.has(url.href) ? e.request : URLS_ESTATICOS.has(semConsulta) ? semConsulta : null;
+  if (!chave) return;
+  e.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    const salvo = await cache.match(chave);
+    if (salvo) return salvo;
+    try {
+      const resposta = await fetch(e.request);
+      if (resposta.ok) { try { await cache.put(chave, resposta.clone()); } catch (_) {} }
+      return resposta;
+    } catch (_) {
+      return Response.error();
+    }
+  })());
 });

@@ -197,6 +197,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val agenda=remember(raw,plan?.id){runCatching{JSONObject(raw).optJSONArray("agenda")?.objects()?.filter{it.optString("planoId")==plan?.id&&it.optString("data")==LocalDate.now().toString()&&!it.optBoolean("feito")}.orEmpty()}.getOrDefault(emptyList())}
     val activeTopics=plan?.disciplines?.filter{!it.paused&&!it.archived}?.flatMap{it.topics}.orEmpty()
     val selected=activeTopics.find { it.id==settings?.topicId } ?: activeTopics.firstOrNull { t -> progress.none { it.planId==plan?.id && it.topicId==t.id && it.completed } } ?: plan?.topics?.firstOrNull() ?: plan?.let{Topic("","Nenhum tópico ativo",null,"")}
+    val studyGoalMinutes=StudyGoals.minutes(raw,plan?.id.orEmpty(),selected?.id.orEmpty(),focusMinutes)
     LaunchedEffect(account?.uid,plan?.id){moreMenu=false;studyActions=false;editalTopic=null;chooseLink=null;record=null;recordingTimer=null;editLink=null;picker=false;discard=null;freeStudy=false}
     val nextSuggested=agenda.firstNotNullOfOrNull{a->activeTopics.find{it.id==a.optString("topicoId")&&it.id!=selected?.id}}?:activeTopics.firstOrNull{t->t.id!=selected?.id&&progress.none{it.planId==plan?.id&&it.topicId==t.id&&it.completed}}
     val current=sessions.filter { it.planId==plan?.id }
@@ -245,7 +246,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                         item(key="home-study") { if(activeTopics.isEmpty())Block{Text("Suas disciplinas estão pausadas ou arquivadas.");TextButton(onClick={tab=6}){Text("Organizar disciplinas")}}else Block {
                             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("PLANEJAMENTO DO DIA",fontSize=10.sp,lineHeight=14.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM",Locale("pt","BR"))),fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.primary)}
                             Surface(shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.primaryContainer){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
-                                Text("PRÓXIMO ESTUDO · ${agenda.firstOrNull{it.optString("topicoId")==selected.id}?.optInt("duracaoMin")?:focusMinutes.takeIf{it>0}?:50} MIN",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text(if(studyGoalMinutes>0)"PRÓXIMO ESTUDO · $studyGoalMinutes MIN"else"PRÓXIMO ESTUDO · SEM META DE TEMPO",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onPrimaryContainer)
                                 Text(plan.discipline(selected).name,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
                                 Row(verticalAlignment=Alignment.CenterVertically) {
                                     Text(selected.name,Modifier.weight(1f),fontSize=13.sp,lineHeight=19.sp)
@@ -316,7 +317,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     }
                     }
                     3 -> {item{StatisticsScreen(outline?:plan,activities,progress,raw,sessions,onOpen,achievements)}}
-                    5 -> {item{PlanningScreen(plan,raw,vm,onChoose={vm.select(plan,it);picker=true},onStart={vm.start(plan,it);tab=0})}}
+                    5 -> {item{PlanningScreen(plan,raw,vm,onChoose={vm.select(plan,it);picker=true},onStart={topic,blockId->vm.start(plan,topic,blockId);tab=0})}}
                     6 -> {item{DisciplineManager(plan,raw,vm)}}
                     7 -> {
                         val removed=runCatching{JSONObject(raw).obj("config").array("removidos").let{a->(0 until a.length()).map{a.optString(it)}}}.getOrDefault(emptyList())

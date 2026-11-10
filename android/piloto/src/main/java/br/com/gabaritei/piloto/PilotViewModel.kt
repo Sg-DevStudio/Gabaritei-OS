@@ -202,9 +202,9 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun preview(plan:Plan)=viewModelScope.launch{if(plan.owner==account.value?.uid.orEmpty())dao(plan.owner.takeIf{it.isNotEmpty()}).settings(Settings(planId=plan.id,topicId=plan.topics.firstOrNull()?.id.orEmpty()))}
     fun select(plan:Plan)=select(plan,plan.topics.firstOrNull{t->progress.value.none{it.planId==plan.id&&it.topicId==t.id&&it.completed}}?:plan.topics.firstOrNull()?:Topic("","",null,""))
-    fun start(plan:Plan,topic:Topic)=viewModelScope.launch {
+    fun start(plan:Plan,topic:Topic,blockId:String?=null)=viewModelScope.launch {
         try{val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d);d.settings(Settings(planId=p.id,topicId=topic.id))
-            if(!d.startTimer(Timer(sessionId=UUID.randomUUID().toString(),planId=p.id,topicId=topic.id,seconds=0,startedElapsed=SystemClock.elapsedRealtime(),boot=boot(),goalSeconds=getApplication<Application>().getSharedPreferences("native_display",0).getInt("focusMinutes",50)*60L)))error.value="Conclua ou descarte o cronômetro atual antes de iniciar outro."
+            if(!d.startTimer(Timer(sessionId=UUID.randomUUID().toString(),planId=p.id,topicId=topic.id,seconds=0,startedElapsed=SystemClock.elapsedRealtime(),boot=boot(),goalSeconds=StudyGoals.minutes(d.currentSnapshot()?.json?:"{}",p.id,topic.id,getApplication<Application>().getSharedPreferences("native_display",0).getInt("focusMinutes",50),blockId=blockId)*60L)))error.value="Conclua ou descarte o cronômetro atual antes de iniciar outro."
         }catch(e:Exception){error.value=e.message?:"Não foi possível iniciar o estudo."}
     }
     fun elapsed(t:Timer)=TimerClock.elapsed(t,SystemClock.elapsedRealtime(),boot())
