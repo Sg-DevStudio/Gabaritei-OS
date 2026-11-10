@@ -1105,14 +1105,20 @@ function usuarioQuestoesIA(){
   if(!usuario)throw new Error('Entre na sua conta para usar questões com IA.');
   return usuario;
 }
-async function gerarQuestoesIA(config,parts){
+async function gerarQuestoesIA(config,parts,onStatus){
   const user=usuarioQuestoesIA();
   if(parts.length!==1||!parts[0]||(!parts[0].text&&!parts[0].inlineData))throw new Error('Envie um material antes de gerar.');
-  const provider=await import('./questoes-ia-provider.js?v=20261110-questoes1');
-  if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
-  const response=await provider.gerar(window.QuestoesIA.configurar(config),parts);
-  if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
-  return response;
+  const controller=new AbortController();let timeout;
+  const tarefa=(async()=>{
+    const provider=await import('./questoes-ia-provider.js?v=20261110-questoes2');
+    if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
+    if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+    const response=await provider.gerar(window.QuestoesIA.configurar(config),parts,controller.signal,onStatus);
+    if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+    return response;
+  })();
+  try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
+  finally{clearTimeout(timeout);}
 }
 async function listarCadernosIA(){
   const user=usuarioQuestoesIA();
