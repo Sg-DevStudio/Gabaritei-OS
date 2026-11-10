@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -45,15 +47,21 @@ object SyncFeedbackRules {
     }
     visible?.let{status->
         val color=if(status.attention)MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-        Box(Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=4.dp),contentAlignment=Alignment.CenterEnd){
-            Surface(onClick=onOpen,shape=RoundedCornerShape(50),color=color.copy(alpha=.08f),contentColor=color){
-                Row(Modifier.padding(horizontal=12.dp,vertical=6.dp).semantics{liveRegion=LiveRegionMode.Polite},verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                    if(status.busy)StudySyncOrbit(20)else Text(if(status.attention)"!"else"✓",fontSize=13.sp)
-                    Text(status.text,fontSize=11.sp,lineHeight=16.sp)
+        IconButton(onClick=onOpen,modifier=Modifier.semantics{liveRegion=LiveRegionMode.Polite;contentDescription=status.text}){
+            Surface(shape=CircleShape,color=color.copy(alpha=.08f),contentColor=color){
+                Box(Modifier.size(30.dp).clearAndSetSemantics{},contentAlignment=Alignment.Center){
+                    if(status.busy)StudySyncOrbit(20)else Text(if(status.attention)"!"else"✓",fontSize=16.sp,fontWeight=FontWeight.Bold)
                 }
             }
         }
     }
+}
+
+/** The branded introduction is bounded; cloud synchronization remains independent. */
+@Composable internal fun rememberStudyIntro():Boolean {
+    var visible by androidx.compose.runtime.saveable.rememberSaveable{mutableStateOf(true)}
+    LaunchedEffect(Unit){delay(2600);visible=false}
+    return visible
 }
 
 @Composable private fun StudySyncOrbit(size:Int){
@@ -61,6 +69,19 @@ object SyncFeedbackRules {
         CircularProgressIndicator(Modifier.fillMaxSize(),strokeWidth=2.dp,trackColor=MaterialTheme.colorScheme.primary.copy(alpha=.15f))
         Box(Modifier.size((size/3).dp).background(MaterialTheme.colorScheme.primary,CircleShape))
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable internal fun StudyTopBar(title:String,photo:String,sync:SyncStatus,pending:Int,catalogBusy:Boolean,connected:Boolean,online:Boolean,onHome:()->Unit,onAccount:()->Unit){
+    TopAppBar(
+        colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.background),
+        navigationIcon={IconButton(onClick=onHome){Image(painterResource(R.drawable.pilot_icon),"Página inicial",Modifier.size(26.dp))}},
+        title={Text(title,fontWeight=FontWeight.SemiBold,fontSize=18.sp,lineHeight=24.sp,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)},
+        actions={
+            StudySyncFeedback(sync,pending,catalogBusy,connected,online,onAccount)
+            IconButton(onClick=onAccount){ProfileAvatar(photo,Modifier.size(28.dp).semantics{contentDescription="Conta e sincronização"})}
+        }
+    )
 }
 
 @Composable internal fun StudyLoading(){

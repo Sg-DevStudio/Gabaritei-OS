@@ -120,7 +120,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val error by vm.error.collectAsStateWithLifecycle()
     val account by vm.account.collectAsStateWithLifecycle()
     val sync by vm.syncStatus.collectAsStateWithLifecycle()
-    val firstSyncPending by vm.firstSyncPending.collectAsStateWithLifecycle()
+    val studyIntro=rememberStudyIntro()
     val online by vm.online.collectAsStateWithLifecycle()
     val pending by vm.pendingCount.collectAsStateWithLifecycle()
     val guestCount by vm.guestRecords.collectAsStateWithLifecycle()
@@ -219,15 +219,12 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         TimerScreen(visibleTimer,timerTopic?.name.orEmpty(),timerTopic?.let{timerPlan?.discipline(it)?.name}.orEmpty(),{vm.elapsed(visibleTimer)},noticeAllowed,notifications,precise,
             onBack={timerScreen=false},onPause={if(visibleTimer.startedElapsed==null)vm.resume(visibleTimer)else vm.pause(visibleTimer)},onFinish={finishTimer(visibleTimer)},onDiscard={discard=visibleTimer},
             onNotifications={enableTimerNotifications()},onPrecision={context.startActivity(Intent(SystemSettings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:${context.packageName}")))},snackbar=snackbar,
-            syncFeedback={StudySyncFeedback(sync,pending,catalogBusy,account!=null,online){accountDialog=true}})
+            syncFeedback={StudySyncFeedback(sync,pending,catalogBusy,account!=null,online){accountDialog=true};IconButton(onClick={accountDialog=true}){ProfileAvatar(profilePhoto,Modifier.size(28.dp).semantics{contentDescription="Conta e sincronização"})}})
     }else {
         Scaffold(snackbarHost={SnackbarHost(snackbar)},bottomBar={PrimaryNavigation(tab,moreMenu,onNavigate={tab=it},onStudy={studyActions=true},onMore={moreMenu=true})},topBar={
-            Column{
-                TopAppBar(colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.background),navigationIcon={IconButton(onClick={tab=0}){Image(painterResource(R.drawable.pilot_icon),"Página inicial",Modifier.size(26.dp))}},title={Text(if(tab==0)"Gabaritei OS" else destinations[tab],fontWeight=FontWeight.SemiBold,fontSize=18.sp,lineHeight=24.sp)},actions={IconButton(onClick={accountDialog=true}){ProfileAvatar(profilePhoto,Modifier.size(28.dp).semantics{contentDescription="Conta e sincronização"})}})
-                StudySyncFeedback(sync,pending,catalogBusy,account!=null,online){accountDialog=true}
-            }
+            StudyTopBar(if(tab==0)"Gabaritei OS"else destinations[tab],profilePhoto,sync,pending,catalogBusy,account!=null,online,onHome={tab=0},onAccount={accountDialog=true})
         }) { padding ->
-            if(!ready||(firstSyncPending&&online&&!sync.failed)||plans.isEmpty())Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(error!=null)Text(error!!)else StudyLoading()}
+            if(studyIntro||!ready||plans.isEmpty())Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(error!=null)Text(error!!)else if(studyIntro)StudyLoading()else CircularProgressIndicator()}
             else if(tab==8&&outline!=null)EditalScreen(outline,progress,pageScroll,Modifier.padding(padding),onTopic={editalTopic=it},onManage={tab=6})
             else if(plan!=null&&selected!=null) LazyColumn(Modifier.padding(padding).fillMaxSize(),state=pageScroll,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 if(tab!=1)item { Surface(onClick={tab=1},shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.secondaryContainer){Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){

@@ -24,7 +24,7 @@ internal fun timerTime(seconds:Long)="%02d:%02d:%02d".format(seconds/3600,(secon
     LaunchedEffect(t){while(true){elapsed=elapsedNow();delay(1000)}}
     BackHandler(onBack=onBack)
     val reached=t.goalSeconds>0&&elapsed>=t.goalSeconds
-    Scaffold(snackbarHost={SnackbarHost(snackbar)},topBar={Column{TopAppBar(title={Text("Cronômetro")},navigationIcon={IconButton(onClick=onBack){Icon(Icons.AutoMirrored.Outlined.ArrowBack,"Voltar à tela inicial")}});syncFeedback()}}){padding->
+    Scaffold(snackbarHost={SnackbarHost(snackbar)},topBar={TopAppBar(title={Text("Cronômetro",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)},navigationIcon={IconButton(onClick=onBack){Icon(Icons.AutoMirrored.Outlined.ArrowBack,"Voltar à tela inicial")}},actions={syncFeedback()})}){padding->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal=24.dp,vertical=16.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(18.dp)){
             Text(if(reached)"Meta atingida 🎯"else if(t.startedElapsed==null)"Estudo pausado"else"Hora de focar",color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
             if(discipline.isNotBlank())Text(discipline,style=MaterialTheme.typography.titleMedium,textAlign=TextAlign.Center)
