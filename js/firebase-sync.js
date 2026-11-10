@@ -2,19 +2,22 @@
    firebase-sync.js - sincronizacao real via Firebase.
    Mantem o app estatico no GitHub Pages usando o SDK modular via CDN.
    ============================================================ */
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js';
 import {
   getAuth,
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
   signOut
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import {
   collection,
   doc,
   getDoc,
   getDocs,
+  query,
+  limit,
+  orderBy,
   getFirestore,
   onSnapshot,
   deleteField,
@@ -22,17 +25,17 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
 import {
   getFunctions,
   httpsCallable
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+} from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-functions.js';
 import {
   getMessaging,
   getToken,
   deleteToken,
   isSupported as isMessagingSupported
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
+} from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-messaging.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBAxmw7gFkMk0aPwIGHQblo5nLFz8fKKnU',
@@ -1098,10 +1101,41 @@ async function gerarFlashcardsIA(payload) {
   return res.data;
 }
 
+function usuarioQuestoesIA(){
+  if(!usuario)throw new Error('Entre na sua conta para usar questões com IA.');
+  return usuario;
+}
+async function gerarQuestoesIA(config,parts){
+  const user=usuarioQuestoesIA();
+  if(parts.length!==1||!parts[0]||(!parts[0].text&&!parts[0].inlineData))throw new Error('Envie um material antes de gerar.');
+  const provider=await import('./questoes-ia-provider.js?v=20261110-questoes1');
+  if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+  const response=await provider.gerar(window.QuestoesIA.configurar(config),parts);
+  if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+  return response;
+}
+async function listarCadernosIA(){
+  const user=usuarioQuestoesIA();
+  const snap=await getDocs(query(collection(db,'users',user.uid,'questionSets'),orderBy('atualizadoEm','desc'),limit(50)));
+  if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+  const lista=[];
+  snap.forEach(item=>{try{const data=item.data();const raw=JSON.parse(data.conteudo);raw.id=item.id;lista.push(window.QuestoesIA.caderno(raw));}catch(e){console.warn('Caderno de IA inválido ignorado.');}});
+  return lista;
+}
+async function salvarCadernoIA(banco){
+  const user=usuarioQuestoesIA();
+  if(!banco.id)banco.id=crypto.randomUUID();
+  const now=new Date().toISOString();
+  const clean=window.QuestoesIA.caderno({...banco,criadoEm:banco.criadoEm||now,atualizadoEm:now});
+  await setDoc(doc(db,'users',user.uid,'questionSets',clean.id),{nome:clean.nome,quantidade:clean.questoes.length,conteudo:JSON.stringify(clean),criadoEm:clean.criadoEm,atualizadoEm:now,arquivadoEm:clean.arquivadoEm});
+  if(usuario!==user)throw new Error('A conta mudou. O caderno foi salvo na conta anterior.');
+  return clean;
+}
+
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, registrarPush,
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, registrarPush,
   desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
 };

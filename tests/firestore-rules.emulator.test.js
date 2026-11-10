@@ -18,6 +18,21 @@ const {
 const ativo = !!process.env.FIRESTORE_EMULATOR_HOST;
 let ambiente;
 
+test('cadernos IA são privados e aceitam apenas documentos limitados', { skip: !ativo }, async () => {
+  const owner=ambiente.authenticatedContext('aluno').firestore();
+  const other=ambiente.authenticatedContext('outro').firestore();
+  const anon=ambiente.unauthenticatedContext().firestore();
+  const data={nome:'Meu caderno',quantidade:10,conteudo:'{}',criadoEm:'2026-11-10',atualizadoEm:'2026-11-10',arquivadoEm:''};
+  await assertSucceeds(setDoc(doc(owner,'users/aluno/questionSets/exemplo'),data));
+  await assertSucceeds(getDoc(doc(owner,'users/aluno/questionSets/exemplo')));
+  await assertFails(getDoc(doc(other,'users/aluno/questionSets/exemplo')));
+  await assertFails(getDoc(doc(anon,'users/aluno/questionSets/exemplo')));
+  await assertFails(setDoc(doc(other,'users/aluno/questionSets/exemplo'),data));
+  await assertFails(setDoc(doc(owner,'users/aluno/questionSets/invalido'),{...data,quantidade:100}));
+  await assertFails(setDoc(doc(owner,'users/aluno/questionSets/grande'),{...data,conteudo:'x'.repeat(160001)}));
+  await assertSucceeds(setDoc(doc(owner,'users/aluno/questionSets/exemplo'),{...data,arquivadoEm:'2026-11-10'}));
+});
+
 test.before(async () => {
   if (!ativo) return;
   ambiente = await initializeTestEnvironment({

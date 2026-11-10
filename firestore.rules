@@ -160,6 +160,21 @@ service cloud.firestore {
         (isStateMetadataId(docId) || isStateChunkId(docId));
     }
 
+    // Cadernos autorais: privados, independentes do estado legado dos estudos.
+    match /users/{userId}/questionSets/{setId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['nome','quantidade','conteudo','criadoEm','atualizadoEm','arquivadoEm'])
+        && request.resource.data.nome is string && request.resource.data.nome.size() <= 120
+        && request.resource.data.quantidade in [10,20]
+        && request.resource.data.conteudo is string && request.resource.data.conteudo.size() <= 160000
+        && request.resource.data.criadoEm is string && request.resource.data.criadoEm.size() <= 40
+        && request.resource.data.atualizadoEm is string && request.resource.data.atualizadoEm.size() <= 40
+        && request.resource.data.arquivadoEm is string && request.resource.data.arquivadoEm.size() <= 40;
+      // Arquivar é reversível; não há exclusão permanente nesta interface.
+      allow delete: if false;
+    }
+
     // Um único documento e no máximo 20 dispositivos por conta. O Admin SDK da
     // Cloud Function ignora estas regras e continua podendo enviar lembretes.
     match /users/{userId}/push/{docId} {

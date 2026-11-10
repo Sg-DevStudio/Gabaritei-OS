@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v259-desempenho';
+const CACHE = CACHE_PREFIXO + 'v260-questoes';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -56,45 +56,49 @@ try {
   console.warn('Firebase Messaging indisponível no service worker.', e);
 }
 const ESTATICOS = [
-  './data/caderno-tec.js?v=20261110-desempenho1',
-  './data/caderno-qconcursos.js?v=20261110-desempenho1',
+  './data/ia-config.js?v=20261110-questoes1',
+  './js/questoes-ia.js?v=20261110-questoes1',
+  './js/questoes-ia-ui.js?v=20261110-questoes1',
+  './js/questoes-ia-provider.js?v=20261110-questoes1',
+  './data/caderno-tec.js?v=20261110-questoes1',
+  './data/caderno-qconcursos.js?v=20261110-questoes1',
   './assets/ferramentas/logo-qconcursos.svg',
   './assets/carreiras/logo-ufrj.png',
   './assets/ferramentas/logo-tec-concursos.png',
   './assets/carreiras/logo-tjsp.jpg',
-  './js/planos-atualizacao.js?v=20261110-desempenho1',
-  './js/tec-questoes.js?v=20261110-desempenho1',
-  './data/caderno-trt4-analista.js?v=20261110-desempenho1',
+  './js/planos-atualizacao.js?v=20261110-questoes1',
+  './js/tec-questoes.js?v=20261110-questoes1',
+  './data/caderno-trt4-analista.js?v=20261110-questoes1',
   './assets/carreiras/logo-trt4.jpg',
-  './data/edital-tjsp-2026.js?v=20261110-desempenho1',
-  './data/edital-trt4-2026.js?v=20261110-desempenho1',
-  './data/edital-trt4-analista-2026.js?v=20261110-desempenho1',
-  './data/caderno-trt4.js?v=20261110-desempenho1',
-  './data/caderno-tjsp.js?v=20261110-desempenho1',
+  './data/edital-tjsp-2026.js?v=20261110-questoes1',
+  './data/edital-trt4-2026.js?v=20261110-questoes1',
+  './data/edital-trt4-analista-2026.js?v=20261110-questoes1',
+  './data/caderno-trt4.js?v=20261110-questoes1',
+  './data/caderno-tjsp.js?v=20261110-questoes1',
   './assets/ferramentas/logo-gran-questoes.webp',
-  './js/ajuda.js?v=20261110-desempenho1',
-  './js/trilha.js?v=20261110-desempenho1',
+  './js/ajuda.js?v=20261110-questoes1',
+  './js/trilha.js?v=20261110-questoes1',
   './js/demo.js',
   './data/trilha-trf2.js',
-  './data/trilha-vinculos-trf2.js?v=20261110-desempenho1',
-  './assets/android/qr-download.png?v=android-native-v0141',
-  './js/android-bridge.js?v=20261110-desempenho1',
+  './data/trilha-vinculos-trf2.js?v=20261110-questoes1',
+  './assets/android/qr-download.png?v=android-native-v0150',
+  './js/android-bridge.js?v=20261110-questoes1',
   './',
   './index.html',
   './manifest.json',
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
-  './js/frases.js?v=20261110-desempenho1',
-  './css/styles.css?v=20261110-desempenho1',
-  './js/domain.js?v=20261110-desempenho1',
-  './js/store.js?v=20261110-desempenho1',
+  './js/frases.js?v=20261110-questoes1',
+  './css/styles.css?v=20261110-questoes1',
+  './js/domain.js?v=20261110-questoes1',
+  './js/store.js?v=20261110-questoes1',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261110-desempenho1',
-  './js/timer.js?v=20261110-desempenho1',
-  './js/charts.js?v=20261110-desempenho1',
-  './data/catalogo-editais.js?v=20261110-desempenho1',
-  './data/carreiras.js?v=20261110-desempenho1',
+  './js/firebase-sync.js?v=20261110-questoes1',
+  './js/timer.js?v=20261110-questoes1',
+  './js/charts.js?v=20261110-questoes1',
+  './data/catalogo-editais.js?v=20261110-questoes1',
+  './data/carreiras.js?v=20261110-questoes1',
   './assets/carreiras/capa-inss-tecnico.png',
   './assets/carreiras/capa-ifrj-assistente.svg',
   './assets/carreiras/capa-trf2-tjaa.svg',
@@ -102,17 +106,17 @@ const ESTATICOS = [
   './assets/carreiras/capa-trt-tjaa.jpg?v=20260721-real1',
   './data/exemplo-trf3.json?v=20261028-demo-imagem',
   './assets/carreiras/logo-trf3.png',
-  './data/ferramentas.js?v=20261110-desempenho1',
+  './data/ferramentas.js?v=20261110-questoes1',
   './assets/ferramentas/logo-anki.png',
   './assets/ferramentas/logo-notebooklm.svg',
   './assets/ferramentas/logo-notion.svg',
   './assets/ferramentas/logo-scielo.svg',
   './assets/ferramentas/logo-trello.svg',
   './assets/ferramentas/logo-zlibrary.png',
-  './js/inicio-layout.js?v=20261110-desempenho1',
-  './js/profile-photo.js?v=20261110-desempenho1',
-  './js/app-status.js?v=20261110-desempenho1',
-  './js/app.js?v=20261110-desempenho1',
+  './js/inicio-layout.js?v=20261110-questoes1',
+  './js/profile-photo.js?v=20261110-questoes1',
+  './js/app-status.js?v=20261110-questoes1',
+  './js/app.js?v=20261110-questoes1',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'
@@ -138,6 +142,7 @@ self.addEventListener('activate', (e) => {
 // every script delayed startup on slow connections, even with an offline copy.
 // New releases still install in the background and reload only in a safe state.
 const URLS_ESTATICOS = new Set(ESTATICOS.map((path) => new URL(path, self.location.href).href));
+URLS_ESTATICOS.add(new URL('./assets/vendor/pdf-lib-1.17.1.min.js',self.location.href).href);
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);

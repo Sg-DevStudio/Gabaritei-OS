@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ActivityNotFoundException
 import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 
 /** Rota declarada pelo Gran Questões 5.2.37 e conferida no aparelho. Nunca modifica os filtros. */
 object GranLinks {
@@ -19,6 +20,10 @@ object GranLinks {
     }
     fun open(context:Context,url:String,preferApp:Boolean){
         require(StudyRules.safeLink(url))
+        val own=URI(url)
+        if(own.host.equals("sg-devstudio.github.io",true)&&own.path=="/Gabaritei-OS/"&&own.fragment=="questoes-ia"){
+            try{CustomTabsIntent.Builder().setShowTitle(false).setShareState(CustomTabsIntent.SHARE_STATE_OFF).build().launchUrl(context,Uri.parse(url));return}catch(_:ActivityNotFoundException){}
+        }
         fun intent(link:String)=Intent(Intent.ACTION_VIEW,Uri.parse(link)).apply{if(context !is Activity)addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}
         if(preferApp)appUrl(url)?.let{target->try{context.startActivity(intent(target).setPackage(PACKAGE));return}catch(_:ActivityNotFoundException){}catch(_:SecurityException){}}
         context.startActivity(intent(url))

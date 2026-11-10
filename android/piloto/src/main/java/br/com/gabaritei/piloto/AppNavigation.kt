@@ -34,12 +34,12 @@ import androidx.compose.ui.unit.sp
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun MoreNavigationSheet(onClose:()->Unit,onNavigate:(Int)->Unit,onProfile:()->Unit,onReminders:()->Unit){
+@Composable internal fun MoreNavigationSheet(onClose:()->Unit,onNavigate:(Int)->Unit,onProfile:()->Unit,onReminders:()->Unit,onQuestions:()->Unit={}){
     ModalBottomSheet(onDismissRequest=onClose,sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom=16.dp)){
             Text("Mais opções",Modifier.padding(horizontal=20.dp,vertical=8.dp),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
-            listOf(1 to "Planos de estudo",2 to "Caderno de questões",3 to "Estatísticas",4 to "Histórico",7 to "Revisões",6 to "Organizar disciplinas").forEach{(id,label)->
-                ListItem(headlineContent={Text(label,style=MaterialTheme.typography.bodyMedium)},leadingContent={when(id){3->Icon(painterResource(R.drawable.stats_outline),null);7,4->Icon(painterResource(R.drawable.history_outline),null);1->Icon(Icons.Outlined.DateRange,null);else->Icon(painterResource(R.drawable.book_outline),null)}},modifier=Modifier.fillMaxWidth().clickableItem{onClose();onNavigate(id)})
+            listOf(1 to "Planos de estudo",2 to "Caderno de questões",9 to "Questões com IA",3 to "Estatísticas",4 to "Histórico",7 to "Revisões",6 to "Organizar disciplinas").forEach{(id,label)->
+                ListItem(headlineContent={Text(label,style=MaterialTheme.typography.bodyMedium)},leadingContent={when(id){3->Icon(painterResource(R.drawable.stats_outline),null);7,4->Icon(painterResource(R.drawable.history_outline),null);1->Icon(Icons.Outlined.DateRange,null);else->Icon(painterResource(R.drawable.book_outline),null)}},modifier=Modifier.fillMaxWidth().clickableItem{onClose();if(id==9)onQuestions()else onNavigate(id)})
             }
             HorizontalDivider(Modifier.padding(horizontal=20.dp))
             ListItem(headlineContent={Text("Lembretes",style=MaterialTheme.typography.bodyMedium)},leadingContent={Icon(Icons.Outlined.Notifications,null)},modifier=Modifier.fillMaxWidth().clickableItem{onClose();onReminders()})

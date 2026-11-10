@@ -340,7 +340,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                 }
             }
         }
-        if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true})
+        if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true},onQuestions={onOpen("https://sg-devstudio.github.io/Gabaritei-OS/#questoes-ia")})
     }
     if(studyActions&&plan!=null&&selected!=null)StudyActionsSheet(selected.name,onClose={studyActions=false},onStart={if(!plan.enrolled)creatingPlan=plan else{vm.start(plan,selected);tab=0}},onRecord={if(!plan.enrolled)creatingPlan=plan else{recordingTimer=null;record=plan to selected}},onFree={freeStudy=true},canStart=timer==null&&activeTopics.isNotEmpty())
     editalTopic?.let{t->if(outline!=null)ModalBottomSheet(onDismissRequest={editalTopic=null},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){

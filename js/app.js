@@ -12500,6 +12500,7 @@
 
   function telaMais() {
     const itens = [
+      ['#questoes-ia', 'Questões com IA'],
       ['#stats', 'Desempenho'],
       ['#simulados', 'Simulados'],
       ['#timer', 'Timer'],
@@ -12695,6 +12696,7 @@
 
   // ---------------- roteador ----------------
   const telas = {
+    "questoes-ia": {render: function(){return window.QuestoesIAUI.render();}, ligar:function(){window.QuestoesIAUI.mount(document.getElementById("questoes-ia"),{usuario:usuarioAtual});}},
     hoje: { render: telaHoje, ligar: ligarHoje },
     planos: { render: telaPlanosNova, ligar: ligarPlanos },
     planejamento: { render: telaPlanejamento, ligar: ligarPlanejamento },
@@ -12816,7 +12818,7 @@
   function atualizarContextoPlano() {
     const noCaderno = rotaAtual() === 'caderno';
     const planoContexto = noCaderno ? estadoCaderno().plano : state.plano;
-    const nomeRota = { hoje: 'Hoje', planejamento: 'Planejamento', planos: 'Planos', timer: 'Timer', revisoes: 'Revisões', simulados: 'Simulados', stats: 'Desempenho', ferramentas: 'Ferramentas', ajustes: 'Configurações' };
+    const nomeRota = { 'questoes-ia': 'Questões com IA', hoje: 'Hoje', planejamento: 'Planejamento', planos: 'Planos', timer: 'Timer', revisoes: 'Revisões', simulados: 'Simulados', stats: 'Desempenho', ferramentas: 'Ferramentas', ajustes: 'Configurações' };
     const tituloTopo = document.getElementById('topbar-rota');
     if (tituloTopo) tituloTopo.textContent = nomeRota[rotaAtual()] || 'Meus estudos';
     const raiz = document.getElementById('plano-contexto');
@@ -12829,11 +12831,11 @@
   }
 
   function abrirAplicativoAndroid() {
-    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.14.1/Gabaritei.apk';
+    const url = 'https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.15.0/Gabaritei.apk';
     const modal = abrirModal('<h3>Gabaritei no Android</h3><p class="sub">Estudos, questões e estatísticas em um app nativo.</p>' +
-      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v0141" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
-      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.14.1 · em testes</small>' +
-      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.14.1" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
+      '<div class="android-app-download"><a href="' + url + '" aria-label="Baixar o APK Android pelo QR Code"><img src="assets/android/qr-download.png?v=android-native-v0150" alt="QR Code para baixar o Gabaritei OS" width="144" height="144"></a>' +
+      '<a class="botao" href="' + url + '">Baixar Gabaritei · APK</a><small>Android 8 ou superior · 0.15.0 · em testes</small>' +
+      '<a class="android-app-detalhes" href="https://github.com/Sg-DevStudio/Gabaritei-OS/releases/tag/android-native-v0.15.0" target="_blank" rel="noopener noreferrer">Sobre esta versão</a></div>' +
       '<button type="button" class="botao-quieto" data-notificacoes-android' + (window.GabariteiAndroid && window.GabariteiAndroid.ativo() ? '' : ' hidden') + '>Notificações Android</button>' +
       '<div class="modal-acoes"><button type="button" id="android-fechar" class="botao-quieto">Fechar</button></div>');
     modal.classList.add('modal-dialogo', 'android-app-dialog');
@@ -13584,6 +13586,7 @@
   document.addEventListener('input', marcarEdicaoPendente, true);
   document.addEventListener('change', marcarEdicaoPendente, true);
   window.GabariteiAtualizacaoSegura = function () {
+    if(window.QuestoesIAUI && window.QuestoesIAUI.ocupado())return false;
     // A demonstração vive em memória: recarregar aqui apagaria o plano que a
     // pessoa está experimentando. A atualização pode esperar a saída do demo.
     if (modoDemo || window.Timer.estado() || document.querySelector('[role="dialog"], #modal-raiz .modal')) return false;
@@ -13700,6 +13703,7 @@
           modoOfflineLocal = false;
         }
         if (usuarioAntes !== usuarioDepois) syncInicialFeito = false;
+        if(window.QuestoesIAUI)window.QuestoesIAUI.setUsuario(novoStatus && novoStatus.usuario ? novoStatus.usuario.uid : null);
         if (novoStatus && novoStatus.estado === 'sincronizado') syncInicialFeito = true;
         firebaseStatus = novoStatus;
         atualizarSyncUi();
