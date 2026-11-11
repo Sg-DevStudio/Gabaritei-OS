@@ -122,5 +122,26 @@ class AccountSync(private val context:Context, firebaseApp:FirebaseApp?=null) {
             }
         }
     }
+    internal suspend fun practiceList(kind:String):List<JSONObject>{
+        require(kind in setOf("questionSets","essays"));val uid=auth.currentUser?.uid?:error("Entre com Google para acessar seus cadernos.")
+        val rows=cloud.collection("users/$uid/$kind").orderBy("atualizadoEm",Query.Direction.DESCENDING).limit(50).get().await()
+        check(auth.currentUser?.uid==uid){"A conta mudou."}
+        return rows.documents.mapNotNull{runCatching{JSONObject(it.getString("conteudo")!!).put("id",it.id)}.getOrNull()}
+    }
+    internal suspend fun practiceSave(kind:String,input:JSONObject):JSONObject{
+        require(kind in setOf("questionSets","essays"));val uid=auth.currentUser?.uid?:error("Entre com Google para salvar.")
+        val value=JSONObject(input.toString());val id=value.optString("id").ifBlank{UUID.randomUUID().toString()};require(id.matches(Regex("[a-zA-Z0-9_-]{1,100}")))
+        val now=Instant.now().toString();value.put("id",id).put("criadoEm",value.optString("criadoEm").ifBlank{now}).put("atualizadoEm",now)
+        if(kind=="questionSets")NativePractice.validateBank(value)else NativePractice.validateEssay(value)
+        val fields=mutableMapOf<String,Any>("conteudo" to value.toString(),"criadoEm" to value.getString("criadoEm"),"atualizadoEm" to now)
+        if(kind=="questionSets")fields.putAll(mapOf("nome" to value.getString("nome"),"quantidade" to value.getJSONArray("questoes").length(),"arquivadoEm" to value.optString("arquivadoEm")))else fields.putAll(mapOf("tema" to value.getString("tema"),"excluidoEm" to value.optString("excluidoEm")))
+        cloud.document("users/$uid/$kind/$id").set(fields).await();check(auth.currentUser?.uid==uid){"A conta mudou. O registro foi salvo na conta anterior."};return value
+    }
+    internal suspend fun practiceCredential():JSONObject{
+        val uid=auth.currentUser?.uid?:error("Entre com Google para usar a IA.")
+        val data=cloud.document("users/$uid/privateSettings/ai").get(Source.SERVER).await().data?:error("A IA gratuita não está configurada para este perfil.")
+        check(auth.currentUser?.uid==uid){"A conta mudou."};require(data["freeOnly"]==true){"Este perfil não está configurado para a cota gratuita."}
+        return JSONObject(data)
+    }
     fun close(){listener?.remove();auth.removeAuthStateListener(authListener)}
 }

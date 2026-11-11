@@ -20,6 +20,7 @@ import java.util.UUID
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class PilotViewModel(application: Application) : AndroidViewModel(application) {
     private val cloud=AccountSync(application)
+    internal val practice=NativePracticeRepository(cloud,viewModelScope)
     val account=cloud.account
     val syncStatus=cloud.status
     val firstSyncPending=MutableStateFlow(cloud.account.value!=null)
@@ -59,6 +60,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             account.collectLatest { a ->
                 if(initialized&&bound!=a?.uid){val previous=dao(bound);previous.currentTimer()?.let{previous.timer(it.copy(seconds=elapsed(it),startedElapsed=null))};StudyTimerService.stop(application)}
                 bound=a?.uid;initialized=true
+                practice.bind(a?.uid.orEmpty())
                 firstSyncPending.value=a!=null&&online.value
                 application.getSharedPreferences("study_reminders",0).edit().putString("owner",a?.uid.orEmpty()).apply()
                 ready.value=false;rawSnapshot.value=StateCompat.empty().toString();plans.value=emptyList();sessions.value=emptyList();progress.value=emptyList();links.value=emptyList();timer.value=null;settings.value=null;pendingCount.value=0

@@ -65,3 +65,21 @@ import androidx.compose.ui.unit.dp
     }},confirmButton={TextButton(enabled=!busy,onClick={if(form)save()else{adding=true;url="";name="";error=null}}){Text(if(busy)"Salvando…"else if(form)"Salvar"else"Adicionar link")}},dismissButton={TextButton(enabled=!busy,onClick={if(form)back()else onClose()}){Text(if(form)"Voltar"else"Concluir")}})
     deleting?.let{link->AlertDialog(onDismissRequest={if(!busy)deleting=null},title={Text("Remover este link?")},text={Text(link.label)},confirmButton={TextButton(enabled=!busy,onClick={save(true)}){Text("Remover")}},dismissButton={TextButton(enabled=!busy,onClick={deleting=null}){Text("Cancelar")}})}
 }
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable internal fun NotebookPlatformLinks(links:List<QuestionLink>,onOpen:(String)->Unit){
+    val groups=links.groupBy{it.platform}
+    androidx.compose.foundation.layout.FlowRow(Modifier.fillMaxWidth().padding(bottom=12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){
+        listOf("TEC Concursos","Gran Questões","Qconcursos").forEach{platform->
+            val entries=groups[platform].orEmpty()
+            if(entries.isNotEmpty()){
+                var choose by remember{mutableStateOf(false)}
+                OutlinedButton(onClick={if(entries.size==1)onOpen(entries.single().url)else choose=true},contentPadding=PaddingValues(horizontal=12.dp,vertical=6.dp)){
+                    androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(when(platform){"TEC Concursos"->R.drawable.tec_question_logo;"Gran Questões"->R.drawable.gran_question_logo;else->R.drawable.qconcursos_logo}),"Resolver questões deste assunto no $platform",Modifier.size(24.dp))
+                    Spacer(Modifier.width(6.dp));Text(when(platform){"TEC Concursos"->"TEC";"Gran Questões"->"Gran";else->"Qconcursos"},style=MaterialTheme.typography.labelSmall)
+                }
+                if(choose)AlertDialog(onDismissRequest={choose=false},title={Text(platform)},text={Column{entries.forEach{entry->TextButton(onClick={choose=false;onOpen(entry.url)}){Text(entry.note.ifBlank{entry.label})}}}},confirmButton={TextButton(onClick={choose=false}){Text("Voltar")}})
+            }
+        }
+    }
+}

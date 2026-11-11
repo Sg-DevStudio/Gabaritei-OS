@@ -175,7 +175,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var confirmRemote by remember{mutableStateOf(false)}
     var confirmLocal by remember{mutableStateOf(false)}
     var tab by rememberSaveable { mutableIntStateOf(0) }
-    val scrollStates=(0..8).map{rememberLazyListState()}
+    val scrollStates=(0..9).map{rememberLazyListState()}
     val pageScroll=scrollStates[tab]
     var moreMenu by remember{mutableStateOf(false)}
     var studyActions by remember{mutableStateOf(false)}
@@ -190,6 +190,8 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val outline=remember(plan,raw){plan?.let{EditalOutline.read(it,raw)}}
     val notebookLinks=remember(raw,outline,personal){outline?.let{NotebookLinks.index(raw,it,personal)}.orEmpty()}
     var personalNotebook by rememberSaveable(plan?.id){mutableStateOf(false)}
+    var notebookSection by rememberSaveable {mutableIntStateOf(0)}
+    var organizeDisciplines by rememberSaveable {mutableStateOf(false)}
     var questionSearch by rememberSaveable(plan?.id){mutableStateOf("")}
     var historyDay by rememberSaveable{mutableStateOf<String?>(null)}
     var historyFree by rememberSaveable{mutableStateOf(false)}
@@ -207,8 +209,8 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val completed=remember(outline,progress){outline?.let{EditalOutline.completed(it,progress)}.orEmpty()}
     val snackbar=remember { SnackbarHostState() }
     LaunchedEffect(error){error?.let { snackbar.showSnackbar(it);vm.error.value=null }}
-    val destinations=listOf("Hoje","Planos","Caderno de questões","Estatísticas","Histórico","Planejamento","Disciplinas","Revisões","Edital")
-    BackHandler(moreMenu||studyActions||tab!=0){when{moreMenu->moreMenu=false;studyActions->studyActions=false;else->tab=0}}
+    val destinations=listOf("Hoje","Planos","Caderno de questões","Estatísticas","Histórico","Planejamento","Disciplinas","Revisões","Edital","Redações")
+    BackHandler(moreMenu||studyActions||tab!=0){when{moreMenu->moreMenu=false;studyActions->studyActions=false;tab==5&&organizeDisciplines->organizeDisciplines=false;else->tab=0}}
     fun finishTimer(t:Timer){
         val p=plans.firstOrNull{it.id==t.planId};val topic=p?.topics?.firstOrNull{it.id==t.topicId}
         if(p==null||topic==null){vm.error.value="O plano ou tópico foi removido. O tempo permanece salvo no aparelho.";return}
@@ -226,7 +228,9 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             StudyTopBar(if(tab==0)"Gabaritei OS"else destinations[tab],profilePhoto,sync,pending,catalogBusy,account!=null,online,onHome={tab=0},onAccount={accountDialog=true})
         }) { padding ->
             if(studyIntro||!ready||plans.isEmpty())Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(error!=null)Text(error!!)else if(studyIntro)StudyLoading()else CircularProgressIndicator()}
-            else if(tab==8&&outline!=null)EditalScreen(outline,progress,pageScroll,Modifier.padding(padding),onTopic={editalTopic=it},onManage={tab=6})
+            else if(tab==9)NativeEssaysScreen(vm.practice,Modifier.padding(padding))
+            else if(tab==2&&notebookSection!=0)NativeQuestionScreen(vm.practice,notebookSection,{notebookSection=it},Modifier.padding(padding))
+            else if(tab==8&&outline!=null)EditalScreen(outline,progress,pageScroll,Modifier.padding(padding),onTopic={editalTopic=it},onManage={organizeDisciplines=true;tab=5})
             else if(plan!=null&&selected!=null) LazyColumn(Modifier.padding(padding).fillMaxSize(),state=pageScroll,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 if(tab!=1)item { Surface(onClick={tab=1},shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.secondaryContainer){Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
                     Icon(painterResource(R.drawable.book_outline),null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.primary)
@@ -284,9 +288,9 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                             }
                         }}
                     }
-                    1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);tab=6},onOpen=onOpen)}
+                    1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);organizeDisciplines=true;tab=5},onOpen=onOpen)}
                     2 -> {
-                        item{OutlinedButton(onClick={onOpen("https://sg-devstudio.github.io/Gabaritei-OS/#cadernos")},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(18.dp)){Text("Meus cadernos e criação com IA")}}
+                        item{NotebookSections(0){notebookSection=it}}
                         item{Row(verticalAlignment=Alignment.CenterVertically){Text("Caderno de questões",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold);TextButton(onClick={howTo=true}){Text("Como usar?")}}}
                         val hasLinks=notebookLinks.values.any{it.isNotEmpty()}
                         if(!hasLinks&&!personalNotebook)item{Block{
@@ -312,13 +316,17 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                                             else->chooseLink=t
                                         }
                                     },onEdit={if(plan.enrolled)editLink=t else creatingPlan=plan})
+                                    NotebookPlatformLinks(options,onOpen)
                                 }
                             }
                         }
                     }
                     }
                     3 -> {item{StatisticsScreen(outline?:plan,activities,progress,raw,sessions,onOpen,achievements)}}
-                    5 -> {item{PlanningScreen(plan,raw,vm,onChoose={vm.select(plan,it);picker=true},onStart={topic,blockId->vm.start(plan,topic,blockId);tab=0})}}
+                    5 -> {item{Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
+                        if(organizeDisciplines){TextButton(onClick={organizeDisciplines=false}){Icon(Icons.AutoMirrored.Outlined.ArrowBack,null);Text("Voltar ao planejamento")};DisciplineManager(plan,raw,vm)}
+                        else{OutlinedButton(onClick={organizeDisciplines=true},modifier=Modifier.fillMaxWidth()){Icon(painterResource(R.drawable.book_outline),null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Organizar disciplinas")};PlanningScreen(plan,raw,vm,onChoose={vm.select(plan,it);picker=true},onStart={topic,blockId->vm.start(plan,topic,blockId);tab=0})}
+                    }}}
                     6 -> {item{DisciplineManager(plan,raw,vm)}}
                     7 -> {
                         val removed=runCatching{JSONObject(raw).obj("config").array("removidos").let{a->(0 until a.length()).map{a.optString(it)}}}.getOrDefault(emptyList())
@@ -341,7 +349,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                 }
             }
         }
-        if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true},onEssays={onOpen("https://sg-devstudio.github.io/Gabaritei-OS/#redacoes")})
+        if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true},onEssays={tab=9})
     }
     if(studyActions&&plan!=null&&selected!=null)StudyActionsSheet(selected.name,onClose={studyActions=false},onStart={if(!plan.enrolled)creatingPlan=plan else{vm.start(plan,selected);tab=0}},onRecord={if(!plan.enrolled)creatingPlan=plan else{recordingTimer=null;record=plan to selected}},onFree={freeStudy=true},canStart=timer==null&&activeTopics.isNotEmpty())
     editalTopic?.let{t->if(outline!=null)ModalBottomSheet(onDismissRequest={editalTopic=null},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){

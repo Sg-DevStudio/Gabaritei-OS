@@ -5513,3 +5513,12 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .red-importar summary{cursor:pointer;font-weight:650;font-size:14px;color:var(--caneta);}
 .red-importar input[type=file]{width:100%;max-width:100%;box-sizing:border-box;}
 .red-importar #red-arquivo-info{overflow-wrap:anywhere;}
+
+.red-dialogo{width:min(680px,calc(100vw - 32px));max-height:85dvh;overflow:auto;padding:26px;border:1px solid var(--caneta);border-radius:22px;background:var(--papel);color:var(--tinta);box-shadow:0 24px 90px #0005;}
+.red-dialogo::backdrop{background:#071020a8;backdrop-filter:blur(5px);}
+.red-dialogo-topo{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;}.red-dialogo h2{margin:0;font-size:23px;}.red-dialogo .sub{line-height:1.6;}
+.red-configurar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:18px 0;}.red-configurar .sub{margin:0;}
+.red-entrada{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:22px 0 26px;}.red-arquivo-botao{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;text-align:left;}.red-arquivo-botao>span:first-child{font-size:26px;}.red-arquivo-botao strong,.red-arquivo-botao small{display:block;}.red-arquivo-botao small{font-size:11px;opacity:.8;margin-top:4px;font-weight:400;}
+.red-escolha-opcoes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0;}.red-escolha-opcoes button{display:flex;align-items:flex-start;flex-direction:column;text-align:left;gap:12px;padding:22px;border-radius:16px;background:var(--papel-elevado);color:var(--tinta);border:1px solid var(--linha);box-shadow:none;}.red-escolha-opcoes button:hover{border-color:var(--caneta);background:var(--caneta-suave);}.red-escolha-opcoes button>span{font-size:25px;color:var(--caneta);}.red-escolha-opcoes small{font-weight:400;line-height:1.6;color:var(--grafite);}
+.red-modal-status{font-size:13px;color:var(--caneta-forte);line-height:1.7;}.red-sobre{margin-top:18px;font-size:12px;}
+@media(max-width:520px){.red-dialogo{padding:20px;width:calc(100vw - 24px);box-sizing:border-box;}.red-escolha-opcoes{grid-template-columns:1fr;}.red-entrada>button{width:100%;}.red-configurar>button{width:100%;}}

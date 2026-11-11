@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable internal fun PrimaryNavigation(tab:Int,more:Boolean,onNavigate:(Int)->Unit,onStudy:()->Unit,onMore:()->Unit){
     NavigationBar(containerColor=MaterialTheme.colorScheme.surface,tonalElevation=0.dp){
-        listOf(0 to "Hoje",2 to "Cadernos",-1 to "Estudar",5 to "Planejar",-2 to "Mais").forEach{(id,label)->
+        listOf(0 to "Hoje",5 to "Planejar",-1 to "Estudar",2 to "Cadernos",-2 to "Mais").forEach{(id,label)->
             NavigationBarItem(selected=if(id==-2)more||tab !in listOf(0,2,5) else id==tab,onClick={when(id){-1->onStudy();-2->onMore();else->onNavigate(id)}},label={Text(label,fontSize=10.sp,lineHeight=14.sp)},icon={
                 when(id){
                     0->Icon(Icons.Outlined.Home,null)
@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
     ModalBottomSheet(onDismissRequest=onClose,sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom=16.dp)){
             Text("Mais opções",Modifier.padding(horizontal=20.dp,vertical=8.dp),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
-            listOf(1 to "Planos de estudo",2 to "Caderno de questões",9 to "Redações",8 to "Edital e provas",3 to "Estatísticas",4 to "Histórico",6 to "Organizar disciplinas").forEach{(id,label)->
+            listOf(1 to "Planos de estudo",9 to "Redações",8 to "Edital e provas",3 to "Estatísticas",4 to "Histórico").forEach{(id,label)->
                 ListItem(headlineContent={Text(label,style=MaterialTheme.typography.bodyMedium)},leadingContent={when(id){9->Icon(Icons.Outlined.Edit,null);3->Icon(painterResource(R.drawable.stats_outline),null);7,4->Icon(painterResource(R.drawable.history_outline),null);1->Icon(Icons.Outlined.DateRange,null);else->Icon(painterResource(R.drawable.book_outline),null)}},modifier=Modifier.fillMaxWidth().clickableItem{onClose();if(id==9)onEssays()else onNavigate(id)})
             }
             HorizontalDivider(Modifier.padding(horizontal=20.dp))

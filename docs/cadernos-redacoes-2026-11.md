@@ -65,3 +65,15 @@ Referências das questões: mostrar “Referência da resposta: página X” em 
 ## Publicação alternativa
 
 Firebase Hosting (app-gestao-estudos.web.app) mantém uma cópia de contingência com o mesmo Auth/Firestore. Publicar somente arquivos públicos rastreados: node scripts/prepare-hosting.cjs, depois firebase deploy --only hosting --project app-gestao-estudos. Não enviar diretório completo do projeto nem dados privados. A configuração não ativa faturamento; limites do plano gratuito continuam aplicáveis. GitHub Pages permanece endereço principal do Android.
+
+
+## Android nativo 0.17.0
+
+A pedido de Samuel, os cadernos pessoais e redações deixam de depender da área web: biblioteca, resolução com uma questão por vez, cartões, geração de 1–100 questões, lixeira, redação, transcrição e parecer usam o mesmo Auth/Firestore dentro do app. O servidor não ganha chave nova nem faturamento. Links de TEC/Gran/Qconcursos ficam visíveis por tópico, com filtros existentes preservados.
+
+Navegação ajustada: Hoje / Planejar / Estudar / Cadernos / Mais. Remover Cadernos duplicado de Mais; Redações permanece em Mais. Organizar disciplinas passa a ser uma ação dentro de Planejar e sai de Mais. As opções de revisão e os registros existentes não são apagados.
+
+
+## Polimento final de redações
+
+Em 11/11 Samuel pediu remover os grupos recolhíveis de proposta e importação. Nova redação abre escolha centralizada (arquivo ou editor). Proposta/critérios e importação usam diálogos acessíveis; fechar e Escape preservam o rascunho. Botão principal passa a “Corrigir”, sem texto técnico abaixo. Privacidade/cota permanecem em uma ação própria. Android usa a mesma nomenclatura, bibliotecas e referência literal.

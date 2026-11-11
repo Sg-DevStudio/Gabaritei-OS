@@ -1,0 +1,12 @@
+package br.com.gabaritei.piloto
+import org.json.JSONObject
+import org.json.JSONArray
+import org.junit.Assert.*
+import org.junit.Test
+class NativePracticeTest{
+ private fun bank()=JSONObject().put("nome","Teste").put("config",JSONObject().put("formato","certoerrado").put("quantidade",1)).put("questoes",JSONArray().put(JSONObject().put("id","q1").put("enunciado","O prazo é de 3 dias.").put("alternativas",JSONArray(listOf("Certo","Errado"))).put("correta",0).put("comentario","O material estabelece 3 dias.").put("trecho","Prazo: 3 dias."))).put("respostas",JSONObject().put("q1",0))
+ @Test fun bankKeepsAnswersAndRejectsIncompleteOrDuplicateQuestions(){val b=bank();NativePractice.validateBank(b);assertEquals(0,b.getJSONObject("respostas").getInt("q1"));b.getJSONArray("questoes").put(JSONObject(b.getJSONArray("questoes").getJSONObject(0).toString()).put("id","q2"));assertThrows(IllegalArgumentException::class.java){NativePractice.validateBank(b)};assertThrows(IllegalArgumentException::class.java){NativePractice.validateBank(bank().put("questoes",JSONArray()))}}
+ @Test fun essayRejectsInventedQuotesAndNeverKeepsANumericScore(){val text="A tecnologia facilita o acesso.";val criteria=JSONArray();repeat(4){criteria.put(JSONObject().put("nome","Tema").put("analise","Claro.").put("trecho",text).put("sugestao","Detalhe o exemplo."))};val a=JSONObject().put("resumo","Há uma tese.").put("criterios",criteria).put("ajustes",JSONArray()).put("proximoTreino","Desenvolva um parágrafo.").put("nota",99);assertTrue(NativePractice.validateAssessment(a,text).isNull("nota"));criteria.getJSONObject(0).put("trecho","Trecho inventado.");assertThrows(IllegalArgumentException::class.java){NativePractice.validateAssessment(a,text)}}
+ @Test fun editedEssayBecomesANewVersionWithoutChangingThePrevious(){val r=NativePractice.newEssay().put("id","original").put("texto","original preservado").put("avaliacao",JSONObject()).put("corrigidaEm","hoje");val next=NativePractice.newVersion(r).put("texto","nova versão");assertFalse(next.has("id"));assertFalse(next.has("avaliacao"));assertEquals("original preservado",r.getString("texto"));assertTrue(r.has("avaliacao"))}
+ @Test fun errorsDoNotOfferPaidFallback(){assertTrue(NativePractice.error(IllegalStateException("HTTP 429")).contains("Nenhum modelo pago"));assertTrue(NativePractice.error(IllegalStateException("HTTP 503")).contains("ocupado"))}
+}
