@@ -40,14 +40,14 @@ Preservar identidade azul e temas existentes. Cartões 18–22 px de raio, borda
 
 ## Implementação e aceitação
 
-- [ ] Navegação web/Android sem entrada Revisões, sugestões preservadas.
-- [ ] Hub reúne planos/links e IA, com compatibilidade das URLs antigas.
-- [ ] Organização, edição, busca, lixeira/restauração e modo cartões com progresso preservado.
-- [ ] Redação com validação de original/citações, correção real, persistência privada e rascunhos.
-- [ ] Regras no emulador: dono permitido, terceiros/anônimos negados, cargas inválidas negadas.
-- [ ] Geração/correção com material sintético, reabrir após reload, desktop/celular e temas.
-- [ ] Android: testes, lint, APK assinado, atualização sem limpar dados e fluxo em aparelho.
-- [ ] Publicação verificada; informar limites e o que não foi testado.
+- [x] Menus principais web/Android sem entrada Revisões, sugestões preservadas.
+- [x] Hub reúne planos/links e IA, com compatibilidade das URLs antigas.
+- [x] Organização, edição, busca, lixeira/restauração e modo cartões com progresso preservado.
+- [x] Redação com validação de original/citações, correção real, persistência privada e rascunhos.
+- [x] Regras no emulador: dono permitido, terceiros/anônimos negados, cargas inválidas negadas.
+- [x] Geração/correção com material sintético, reabrir após reload, desktop/celular e temas.
+- [x] Android: testes, lint, APK assinado, atualização sem limpar dados e fluxo em aparelho.
+- [x] Publicação verificada; informar limites e o que não foi testado.
 
 ## Ajustes adicionais solicitados na execução
 
@@ -80,3 +80,10 @@ Em 11/11 Samuel pediu remover os grupos recolhíveis de proposta e importação.
 
 
 O parecer da redação passa a abrir em um diálogo centralizado, com fundo desfocado, visão geral, critérios, evidências, ajustes e próximo treino. Ícones e cores identificam seções, sem atribuir nota ou gravidade inventada. Fechar devolve ao texto e a ação Ver correção reabre o mesmo parecer salvo.
+
+
+## Verificação final
+
+11/11/2026: 437 testes web (427 aprovados, 10 ignorados); regras reais do Firestore aprovadas no CI; 112 testes JVM Android sem falhas e lint sem erros. S25 atualizado para 0.17.0/code21, certificado anterior preservado. Biblioteca de 100 questões mantém a resposta; redação transcrita de PDF, corrigida e reaberta após atualização do APK; os mesmos dois documentos aparecem corrigidos no site. Foto em PNG e PDF com texto impresso testados; manuscrito real não foi incluído nesta execução.
+
+GitHub Pages e cópia Firebase Hosting publicados. APK público comparado por SHA-256 ao instalado e QR Code decodificado para a URL 0.17.0. Auditoria das dependências de Functions atualizada sem alteração de versão principal: zero vulnerabilidades altas/críticas, seis moderadas remanescentes. As Functions não foram redeployadas nesta etapa. Faturamento não foi ativado. DeepSeek e OpenAI não foram integrados; Gemini pessoal continua sendo o provedor configurado.
