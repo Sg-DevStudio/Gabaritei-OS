@@ -1116,14 +1116,14 @@ async function obterConfiguracaoIAPessoal(user){
   configuracaoIAPessoal={uid:user.uid,apiKey:value.apiKey,model:value.model,freeOnly:true};
   return configuracaoIAPessoal;
 }
-async function gerarQuestoesIA(config,parts,onStatus){
+async function gerarQuestoesIA(config,parts,onStatus,origem){
   const user=usuarioQuestoesIA();
   if(parts.length!==1||!parts[0]||(!parts[0].text&&!parts[0].inlineData))throw new Error('Envie um material antes de gerar.');
   return window.QuestoesIA.gerarEmLotes(config,async(chunk,contexto)=>{
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const controller=new AbortController();let timeout;
     const tarefa=(async()=>{
-      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos1'),obterConfiguracaoIAPessoal(user)]);
+      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos2'),obterConfiguracaoIAPessoal(user)]);
       if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
       if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
       const informar=()=>{if(onStatus)onStatus('Gerando '+(contexto.geradas+1)+'–'+(contexto.geradas+chunk.quantidade)+' de '+contexto.solicitadas+' questões · etapa '+contexto.indice+' de '+contexto.total+'…');};informar();
@@ -1132,7 +1132,7 @@ async function gerarQuestoesIA(config,parts,onStatus){
     })();
     try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
     finally{clearTimeout(timeout);}
-  });
+  },origem);
 }
 async function listarCadernosIA(){
   const user=usuarioQuestoesIA();
@@ -1156,7 +1156,7 @@ async function corrigirRedacao(input,onStatus){
   const user=usuarioQuestoesIA(),clean=window.Redacoes.preparar(input,true);
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos1'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos2'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,8000);

@@ -82,17 +82,18 @@
       'Responda apenas JSON: {"questoes":[{"enunciado":"...","alternativas":[...],"correta":0,"comentario":"...","trecho":"...","pagina":1}]}.'
     ].join('\n');
   }
-  async function gerarEmLotes(config,solicitar){
+  async function gerarEmLotes(config,solicitar,origem){
     const c=configurar(config),questoes=[],total=Math.ceil(c.quantidade/20);
     for(let lote=0;lote<total;lote++){
       const chunk={...c,quantidade:Math.min(20,c.quantidade-questoes.length)},contexto={indice:lote+1,total,geradas:questoes.length,solicitadas:c.quantidade,anteriores:questoes.map(q=>q.enunciado.slice(0,300))};
-      try{const raw=await solicitar(chunk,contexto),parsed=validar(raw,chunk),data=typeof raw==='string'?JSON.parse(raw):raw;parsed.questoes.forEach((q,i)=>{q.pagina=data.questoes[i].pagina;});const usados=new Set(questoes.map(q=>q.enunciado.toLowerCase()));if(parsed.questoes.some(q=>usados.has(q.enunciado.toLowerCase())))throw Error('A IA repetiu uma questão entre as etapas.');questoes.push(...parsed.questoes);}
+      try{const raw=await solicitar(chunk,contexto),parsed=validar(raw,chunk,origem),data=typeof raw==='string'?JSON.parse(raw):raw;parsed.questoes.forEach((q,i)=>{q.pagina=data.questoes[i].pagina;});const usados=new Set(questoes.map(q=>q.enunciado.toLowerCase()));if(parsed.questoes.some(q=>usados.has(q.enunciado.toLowerCase())))throw Error('A IA repetiu uma questão entre as etapas.');questoes.push(...parsed.questoes);}
       catch(error){if(questoes.length){error.questoesParciais=questoes;error.quantidadeSolicitada=c.quantidade;}throw error;}
     }
     return {questoes};
   }
   function mensagemErro(error){
     const s=String(error&&error.code||'')+' '+String(error&&error.message||error||'');
+    if(/503|high.demand|overloaded/i.test(s))return 'O serviço de IA está ocupado. Tente novamente em alguns minutos. Seu material foi preservado.';
     if(/quota|429|resource.exhaust|rate.limit/i.test(s))return 'A cota gratuita foi atingida. Aguarde a liberação da cota para gerar novamente. Seus cadernos continuam disponíveis.';
     if(/app.?check|recaptcha|attestation/i.test(s))return 'Não foi possível verificar este acesso. Reabra a aba e tente novamente.';
     if(/401|unauthenticated|sign.in/i.test(s))return 'Entre na sua conta para gerar e salvar questões.';
