@@ -77,3 +77,6 @@ Navegação ajustada: Hoje / Planejar / Estudar / Cadernos / Mais. Remover Cader
 ## Polimento final de redações
 
 Em 11/11 Samuel pediu remover os grupos recolhíveis de proposta e importação. Nova redação abre escolha centralizada (arquivo ou editor). Proposta/critérios e importação usam diálogos acessíveis; fechar e Escape preservam o rascunho. Botão principal passa a “Corrigir”, sem texto técnico abaixo. Privacidade/cota permanecem em uma ação própria. Android usa a mesma nomenclatura, bibliotecas e referência literal.
+
+
+O parecer da redação passa a abrir em um diálogo centralizado, com fundo desfocado, visão geral, critérios, evidências, ajustes e próximo treino. Ícones e cores identificam seções, sem atribuir nota ou gravidade inventada. Fechar devolve ao texto e a ação Ver correção reabre o mesmo parecer salvo.
