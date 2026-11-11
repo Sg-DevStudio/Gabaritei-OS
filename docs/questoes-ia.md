@@ -4,7 +4,7 @@ Primeira versão para uso pessoal no Gabaritei OS.
 
 ## Fluxo
 
-PDF até 10 MB, com seleção de até 20 páginas e trecho final até 5 MB; TXT ou texto colado entre 150 e 30.000 caracteres. A geração oferece 10/20 questões, dificuldade e foco de conteúdo. Formatos: múltipla escolha com 4/5 alternativas e certo/errado. O resultado deve passar pela validação de estrutura, quantidade, gabaritos, alternativas, duplicatas e referências antes de aparecer. Citações textuais são conferidas contra o texto enviado; referências de PDFs são limitadas às páginas enviadas e traduzidas para a numeração do original.
+PDF até 10 MB, com seleção de até 20 páginas e trecho final até 5 MB; TXT ou texto colado entre 150 e 30.000 caracteres. A geração oferece 1 a 100 questões, dificuldade e foco de conteúdo. Formatos: múltipla escolha com 4/5 alternativas e certo/errado. O resultado deve passar pela validação de estrutura, quantidade, gabaritos, alternativas, duplicatas e referências antes de aparecer. Citações textuais são conferidas contra o texto enviado; referências de PDFs são limitadas às páginas enviadas e traduzidas para a numeração do original.
 
 O aluno pode resolver, conferir o comentário, salvar o progresso, reabrir, arquivar e restaurar. Questões geradas não registram sessões de estudo nem alteram automaticamente as estatísticas dos planos.
 
@@ -18,7 +18,7 @@ O arquivo original fica apenas na memória da página e é enviado à IA após o
 
 ## Persistência
 
-Coleção privada users/{uid}/questionSets/{id}. Regras exigem dono autenticado, campos conhecidos, quantidade 10/20 e conteúdo com tamanho limitado. Coleção independente do codec legado de estudos para preservar compatibilidade com versões anteriores do Android e do site. Arquivar é reversível; não há exclusão permanente na interface.
+Coleção privada users/{uid}/questionSets/{id}. Regras exigem dono autenticado, campos conhecidos, quantidade entre 1 e 100 e conteúdo com até 700 kB em UTF-8. Coleção independente do codec legado de estudos para preservar compatibilidade com versões anteriores do Android e do site. Arquivar é reversível; não há exclusão permanente na interface.
 
 ## Android
 
@@ -27,3 +27,5 @@ Novo item Mais → Questões com IA. A mesma aba autenticada do Gabaritei abre e
 ## Verificação
 
 Testes de contrato das questões, correção, persistência e seleção de páginas. Regras verificadas em emulador com dono, outra conta e acesso anônimo. QA local usa material fictício e transporte simulado; validar também uma geração real em produção sem dados pessoais. Nunca limpar dados do app principal para testar.
+
+Lotes acima de 20 são gerados sequencialmente, com progresso e aproveitamento do lote parcial em caso de falha. Organização por disciplina, assunto e plano; lixeira reversível. A resolução usa uma tela de foco e diálogos do próprio aplicativo.

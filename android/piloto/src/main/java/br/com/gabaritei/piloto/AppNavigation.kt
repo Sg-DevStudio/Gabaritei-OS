@@ -20,11 +20,11 @@ import androidx.compose.ui.unit.sp
 
 @Composable internal fun PrimaryNavigation(tab:Int,more:Boolean,onNavigate:(Int)->Unit,onStudy:()->Unit,onMore:()->Unit){
     NavigationBar(containerColor=MaterialTheme.colorScheme.surface,tonalElevation=0.dp){
-        listOf(0 to "Hoje",8 to "Edital",-1 to "Estudar",5 to "Planejar",-2 to "Mais").forEach{(id,label)->
-            NavigationBarItem(selected=if(id==-2)more||tab !in listOf(0,8,5) else id==tab,onClick={when(id){-1->onStudy();-2->onMore();else->onNavigate(id)}},label={Text(label,fontSize=10.sp,lineHeight=14.sp)},icon={
+        listOf(0 to "Hoje",2 to "Cadernos",-1 to "Estudar",5 to "Planejar",-2 to "Mais").forEach{(id,label)->
+            NavigationBarItem(selected=if(id==-2)more||tab !in listOf(0,2,5) else id==tab,onClick={when(id){-1->onStudy();-2->onMore();else->onNavigate(id)}},label={Text(label,fontSize=10.sp,lineHeight=14.sp)},icon={
                 when(id){
                     0->Icon(Icons.Outlined.Home,null)
-                    8->Icon(painterResource(R.drawable.book_outline),null)
+                    2->Icon(painterResource(R.drawable.book_outline),null)
                     -1->Surface(Modifier.size(34.dp),shape=CircleShape,color=MaterialTheme.colorScheme.primary){Box(contentAlignment=Alignment.Center){Icon(Icons.Outlined.Add,null,Modifier.size(23.dp),tint=MaterialTheme.colorScheme.onPrimary)}}
                     5->Icon(Icons.Outlined.DateRange,null)
                     else->Icon(Icons.Outlined.Menu,null)
@@ -34,12 +34,12 @@ import androidx.compose.ui.unit.sp
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun MoreNavigationSheet(onClose:()->Unit,onNavigate:(Int)->Unit,onProfile:()->Unit,onReminders:()->Unit,onQuestions:()->Unit={}){
+@Composable internal fun MoreNavigationSheet(onClose:()->Unit,onNavigate:(Int)->Unit,onProfile:()->Unit,onReminders:()->Unit,onEssays:()->Unit={}){
     ModalBottomSheet(onDismissRequest=onClose,sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom=16.dp)){
             Text("Mais opções",Modifier.padding(horizontal=20.dp,vertical=8.dp),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
-            listOf(1 to "Planos de estudo",2 to "Caderno de questões",9 to "Questões com IA",3 to "Estatísticas",4 to "Histórico",7 to "Revisões",6 to "Organizar disciplinas").forEach{(id,label)->
-                ListItem(headlineContent={Text(label,style=MaterialTheme.typography.bodyMedium)},leadingContent={when(id){3->Icon(painterResource(R.drawable.stats_outline),null);7,4->Icon(painterResource(R.drawable.history_outline),null);1->Icon(Icons.Outlined.DateRange,null);else->Icon(painterResource(R.drawable.book_outline),null)}},modifier=Modifier.fillMaxWidth().clickableItem{onClose();if(id==9)onQuestions()else onNavigate(id)})
+            listOf(1 to "Planos de estudo",2 to "Caderno de questões",9 to "Redações",8 to "Edital e provas",3 to "Estatísticas",4 to "Histórico",6 to "Organizar disciplinas").forEach{(id,label)->
+                ListItem(headlineContent={Text(label,style=MaterialTheme.typography.bodyMedium)},leadingContent={when(id){9->Icon(Icons.Outlined.Edit,null);3->Icon(painterResource(R.drawable.stats_outline),null);7,4->Icon(painterResource(R.drawable.history_outline),null);1->Icon(Icons.Outlined.DateRange,null);else->Icon(painterResource(R.drawable.book_outline),null)}},modifier=Modifier.fillMaxWidth().clickableItem{onClose();if(id==9)onEssays()else onNavigate(id)})
             }
             HorizontalDivider(Modifier.padding(horizontal=20.dp))
             ListItem(headlineContent={Text("Lembretes",style=MaterialTheme.typography.bodyMedium)},leadingContent={Icon(Icons.Outlined.Notifications,null)},modifier=Modifier.fillMaxWidth().clickableItem{onClose();onReminders()})
@@ -61,7 +61,7 @@ private fun Modifier.clickableItem(action:()->Unit)=this.then(Modifier.clickable
     }
 }
 @Composable internal fun DashboardMetric(label:String,value:String,detail:String,ratio:Float?,modifier:Modifier,onClick:()->Unit){
-    Card(onClick=onClick,modifier=modifier,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){
+    Card(onClick=onClick,modifier=modifier,shape=RoundedCornerShape(20.dp),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface)){
         Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(7.dp)){
             Row(verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f),style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant);Icon(Icons.Outlined.KeyboardArrowRight,null,Modifier.size(17.dp),tint=MaterialTheme.colorScheme.primary)}
             Text(value,style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)

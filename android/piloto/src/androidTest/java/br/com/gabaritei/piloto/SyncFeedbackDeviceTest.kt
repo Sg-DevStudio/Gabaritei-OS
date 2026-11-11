@@ -45,7 +45,7 @@ class SyncFeedbackDeviceTest {
                     Scaffold(modifier=Modifier.widthIn(max=360.dp).fillMaxHeight(),topBar={StudyTopBar("Gabaritei OS","",state.value,pending.value,false,true,online.value,{},{})}){padding->
                         Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(intro)StudyLoading()else Text("Seu histórico continua salvo neste aparelho.",style=MaterialTheme.typography.bodyMedium)}
                     }
-                    if(menu.value)MoreNavigationSheet({menu.value=false},{destination=it},{},{},onQuestions={destination=9})
+                    if(menu.value)MoreNavigationSheet({menu.value=false},{destination=it},{},{},onEssays={destination=9})
                 }}
             }}}
             waitFor("Preparando seus estudos…");val introSeen=SystemClock.elapsedRealtime();SystemClock.sleep(420);capture("brand-loading.png")
@@ -62,8 +62,8 @@ class SyncFeedbackDeviceTest {
             instrument.runOnMainSync{online.value=true};waitFor("Sincronizando…")
             instrument.runOnMainSync{state.value=SyncStatus("Sincronizado");pending.value=0};waitFor("Tudo atualizado");capture("sync-done.png")
             waitFor("Tudo atualizado",false)
-            val items=listOf("Planos de estudo" to 1,"Caderno de questões" to 2,"Questões com IA" to 9,"Estatísticas" to 3,"Histórico" to 4,"Revisões" to 7)
-            instrument.runOnMainSync{menu.value=true};waitFor("Revisões");SystemClock.sleep(400);capture("more-menu.png")
+            val items=listOf("Planos de estudo" to 1,"Caderno de questões" to 2,"Redações" to 9,"Estatísticas" to 3,"Histórico" to 4)
+            instrument.runOnMainSync{menu.value=true};waitFor("Organizar disciplinas");SystemClock.sleep(400);capture("more-menu.png")
             val tops=items.map{bounds(it.first).top};assertEquals(tops.sorted(),tops);assertEquals(tops.size,tops.distinct().size)
             items.forEach{(label,id)->
                 instrument.runOnMainSync{menu.value=true};waitFor(label)

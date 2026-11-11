@@ -4,7 +4,7 @@ function provider(response){
  const requests=[];
  const c={window:{GabariteiIAConfig:{freeOnly:true},QuestoesIA:{prompt:()=> 'prompt'}},
   fetch:async(url,options)=>{requests.push({url,options});return response||{ok:true,json:async()=>({candidates:[{content:{parts:[{thought:true,text:'omit'},{text:'{"questoes":'},{text:'[]}'}]}}]})};}};
- const source=fs.readFileSync(path.join(__dirname,'../js/questoes-ia-provider.js'),'utf8').replace('export async function gerar','async function gerar');
+ const source=fs.readFileSync(path.join(__dirname,'../js/questoes-ia-provider.js'),'utf8').replaceAll('export async function','async function');
  vm.runInNewContext(source+'\nthis.gerar=gerar;',c);return {c,requests};
 }
 test('personal credential stays in its header and the free model is fixed',async()=>{

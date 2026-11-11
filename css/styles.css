@@ -5430,3 +5430,81 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .qia-comentario p,.qia-comentario blockquote{white-space:pre-wrap;line-height:1.7;overflow-wrap:anywhere;}.qia-comentario blockquote{margin:14px 0;border-left:3px solid var(--caneta);padding:4px 16px;}
 @media(max-width:800px){.qia-layout{grid-template-columns:1fr;}.qia-criar,.qia-biblioteca,.qia-resolver{padding:18px;}.qia-cabecalho,.qia-resolver-topo{flex-wrap:wrap;}.qia-selo{font-size:11px;padding:5px 10px;}.qia-campos{gap:12px;}.qia-enunciado{font-size:16px;}}
 @media(max-width:420px){.qia-campos{grid-template-columns:1fr;}.qia-criar form>button{width:100%;}.qia-cabecalho h1{font-size:25px;}}
+
+/* Cadernos e redações: uma área de prática, com a mesma identidade do planejamento. */
+:root{--raio:18px;--raio-s:10px;}
+.hoje-refinada .card,.planejamento-card,.planejamento-disciplinas-card{border-radius:20px;}
+.agenda-bloco{border-radius:14px;}
+.questoes-ia,.redacoes{max-width:1440px;margin:0 auto;}
+.redacoes [hidden]{display:none!important;}
+.questoes-ia h1,.redacoes h1{font-size:clamp(25px,2.1vw,32px);font-weight:700;letter-spacing:-.025em;line-height:1.2;}
+.questoes-ia h2,.redacoes h2{font-size:20px;line-height:1.35;letter-spacing:-.015em;}
+.estudo-segmentos{display:flex;flex-wrap:wrap;gap:5px;padding:5px;background:var(--papel-elevado);border:1px solid var(--linha);border-radius:14px;width:fit-content;max-width:100%;margin-bottom:24px;}
+.estudo-segmentos button{border:0;background:transparent;color:var(--grafite);box-shadow:none;border-radius:10px;min-height:40px;padding:8px 16px;font-weight:600;}
+.estudo-segmentos button[aria-pressed="true"]{background:var(--caneta-suave);color:var(--caneta-forte);}
+.estudo-segmentos button:focus-visible,.qia-plano:focus-visible{outline:2px solid var(--caneta);outline-offset:3px;}
+.qia-hub .qia-layout{display:block;}
+.qia-painel>h2{margin:0 0 8px;}.qia-painel>.sub{margin-bottom:22px;}
+.qia-hub .qia-criar{max-width:900px;margin:0 auto;}
+.qia-planos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px;margin:20px 0;}
+.qia-plano{display:flex;gap:14px;align-items:center;min-height:106px;padding:20px;color:var(--tinta);text-decoration:none;border-radius:20px;transition:border-color .15s;}
+.qia-plano:hover{border-color:var(--caneta);}.qia-plano img{width:48px;height:48px;object-fit:contain;border-radius:10px;flex-shrink:0;}
+.qia-plano>span:first-of-type{flex:1;min-width:0;}.qia-plano strong{display:block;font-size:15px;line-height:1.45;overflow-wrap:anywhere;}.qia-plano small{display:block;color:var(--grafite);margin-top:7px;}
+.qia-hub .qia-biblioteca{padding:0;}
+.qia-biblioteca-topo{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;}
+.qia-biblioteca-topo h2{margin:0;}.qia-biblioteca-topo .sub{margin:6px 0;}
+.qia-biblioteca-topo label{display:grid;gap:5px;min-width:140px;margin:0;font-size:12px;}
+.qia-biblioteca-topo select{margin:0;}
+.qia-busca{display:grid;gap:7px;margin:0 0 22px;max-width:560px;}.qia-busca input{margin:0;}
+.qia-grade-cadernos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:18px;}
+.qia-hub .qia-caderno{display:block;margin:0;padding:22px;min-width:0;border:1px solid var(--linha);border-radius:20px;}
+.qia-caderno h3{font-size:18px;line-height:1.4;margin:14px 0 8px;overflow-wrap:anywhere;}.qia-caderno .sub{margin:0 0 12px;}
+.qia-caderno small{overflow-wrap:anywhere;}
+.qia-etiquetas{display:flex;flex-wrap:wrap;gap:6px;}.qia-etiquetas span{display:inline-block;padding:4px 9px;border-radius:8px;color:var(--caneta-forte);background:var(--caneta-suave);font-size:11px;line-height:1.45;overflow-wrap:anywhere;}
+.qia-caderno-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}.qia-caderno-acoes button{min-height:40px;font-size:12px;padding:8px 12px;border-radius:11px;}
+.qia-organizar{border-top:1px solid var(--linha);margin-top:18px;padding-top:14px;}.qia-organizar summary{font-size:12px;color:var(--grafite);cursor:pointer;}
+.qia-organizar label,.redacoes label{display:grid;gap:7px;font-size:13px;font-weight:600;margin:14px 0 0;}
+.qia-organizar input,.redacoes input,.redacoes textarea,.redacoes select{width:100%;min-width:0;box-sizing:border-box;margin:0;}
+.qia-organizar button{margin-top:14px;}
+.estudo-vazio{border:1px dashed var(--campo-borda);background:var(--papel-elevado);border-radius:20px;padding:30px 24px;line-height:1.6;color:var(--grafite);}
+.estudo-vazio strong{color:var(--tinta);font-size:16px;}.estudo-vazio p{margin:8px 0 16px;}
+.qia-treino-barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0;}
+.qia-treino-barra .estudo-segmentos{margin:0;}.qia-contagem{margin:0;}
+.qia-resolver .qia-enunciado{max-width:1000px;font-size:19px;font-weight:500;line-height:1.75;margin:24px 0;}
+.qia-alternativa{border-radius:14px;padding:15px 17px;min-height:52px;box-sizing:border-box;}
+.qia-alternativa.correta:has(input:checked){border-color:var(--correto);background:var(--correto-suave);}
+.qia-alternativa.incorreta:has(input:checked){border-color:var(--errado);background:var(--errado-suave);}
+.qia-alternativa span{flex:1;}.qia-alternativa b{font-weight:600;color:var(--grafite);}
+.qia-comentario{max-width:1000px;}.qia-acoes{margin-top:20px;}
+.red-resumo{display:flex;flex-wrap:wrap;gap:12px 30px;margin:4px 0 26px;color:var(--grafite);font-size:13px;}.red-resumo strong{color:var(--tinta);font-size:22px;margin-right:7px;font-variant-numeric:tabular-nums;}
+.red-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.46fr);gap:22px;align-items:start;}.red-layout:has(#red-editor[hidden]){grid-template-columns:1fr;}
+.red-editor,.red-biblioteca,.red-parecer{padding:26px;border-radius:20px;}
+.red-etapas{display:flex;flex-wrap:wrap;gap:12px 24px;color:var(--grafite);font-size:12px;border-bottom:1px solid var(--linha);padding-bottom:20px;margin-bottom:22px;}
+.red-etapas span:first-child{color:var(--caneta);}
+.redacoes form{display:grid;gap:18px;}.redacoes form>label{margin:0;}.redacoes input,.redacoes select,.redacoes textarea,.qia-hub input,.qia-hub textarea,.qia-hub select{border-radius:12px;transition:border-color .15s,box-shadow .15s;}
+.redacoes input:focus,.redacoes textarea:focus,.redacoes select:focus,.qia-hub input:focus,.qia-hub textarea:focus,.qia-hub select:focus{outline:2px solid var(--caneta);outline-offset:2px;}
+.red-contexto summary{cursor:pointer;color:var(--caneta);font-size:13px;}.red-contexto .sub{margin:14px 0 0;}
+.red-folha-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;}.red-folha-topo label{margin:0;}.red-folha-topo span{font-size:12px;color:var(--grafite);font-variant-numeric:tabular-nums;}
+#red-texto{min-height:380px;font-size:16px;line-height:1.85;resize:vertical;padding:16px 18px;background-color:var(--campo);}
+.red-editor-acoes{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;}.redacoes .sub{font-size:12px;line-height:1.7;}
+.red-item{padding:22px 0;border-top:1px solid var(--linha);}.red-item h3{font-size:16px;line-height:1.5;margin:12px 0 7px;overflow-wrap:anywhere;}.red-item .sub{margin:0;}
+.red-cota{margin-top:22px;padding-top:18px;border-top:1px solid var(--linha);font-size:12px;color:var(--grafite);}.red-cota summary{cursor:pointer;}
+.red-parecer{margin-top:24px;scroll-margin-top:110px;}.red-diagnostico{font-size:17px;line-height:1.8;max-width:1050px;}
+.red-criterios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:26px 0;}.red-criterios article{background:var(--papel-elevado);border:1px solid var(--linha);border-radius:16px;padding:22px;}
+.red-criterios h3,.red-proximo h3{margin:0 0 12px;font-size:16px;}.red-parecer p,.red-parecer blockquote{line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere;}
+.red-parecer blockquote{border-left:3px solid var(--campo-borda);padding-left:16px;margin:18px 0;color:var(--grafite);font-size:14px;}
+.red-ajuste{padding:20px 0;border-top:1px solid var(--linha);}.red-sugestao{color:var(--caneta-forte);}.red-rotulo{display:block;text-transform:uppercase;letter-spacing:.05em;font-size:10px;font-weight:700;color:var(--grafite);margin-bottom:5px;}
+.red-proximo{border:1px solid var(--campo-borda);border-radius:16px;padding:22px;margin:22px 0;background:var(--papel-elevado);}.red-proximo p{margin:0;}
+.red-original{font-size:16px;line-height:1.85;}.red-editor{scroll-margin-top:110px;}
+@media(max-width:900px){.red-layout,.red-criterios{grid-template-columns:1fr;}.qia-hub .qia-cabecalho>button,.redacoes .qia-cabecalho>button{min-height:44px;}.qia-resolver .qia-enunciado{font-size:17px;}}
+@media(max-width:520px){.questoes-ia h1,.redacoes h1{font-size:26px;}.qia-cabecalho{margin-bottom:20px;}.qia-biblioteca-topo{align-items:flex-start;flex-wrap:wrap;}.qia-biblioteca-topo label{min-width:130px;}.qia-planos{grid-template-columns:1fr;}.qia-plano{padding:18px;}.red-editor,.red-biblioteca,.red-parecer{padding:18px;}.red-editor-acoes>button{flex:1;}.red-etapas{gap:9px;font-size:10px;}.estudo-segmentos{width:100%;box-sizing:border-box;}.estudo-segmentos button{flex:1;font-size:12px;padding:8px 9px;}.qia-treino-barra .estudo-segmentos{width:auto;}.qia-hub input,.qia-hub textarea,.qia-hub select,.redacoes input,.redacoes textarea,.redacoes select{font-size:16px;}#red-texto{padding:14px;min-height:360px;}.red-resumo{gap:10px 20px;}}
+@media(prefers-reduced-motion:reduce){.qia-plano,.qia-hub input,.qia-hub textarea,.redacoes input,.redacoes textarea{transition:none;}}
+
+/* Foco na prática e confirmações do próprio Gabaritei. */
+.qia-em-treino>.qia-cabecalho,.qia-em-treino>.estudo-segmentos,.qia-em-treino>#qia-edital,.qia-em-treino>.qia-layout{display:none!important;}
+.qia-em-treino{max-width:1000px;}.qia-em-treino .qia-resolver{margin:0 auto;width:100%;box-sizing:border-box;padding:30px;}
+.qia-em-treino .qia-status{margin:0 auto 18px;}.qia-foco-acoes{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 24px;padding-bottom:20px;border-bottom:1px solid var(--linha);}.qia-foco-acoes>div{display:flex;gap:8px;flex-wrap:wrap;}.qia-foco-acoes button{font-size:12px;min-height:40px;padding:8px 13px;}
+.qia-em-treino .qia-resolver-topo h2{font-size:21px;}.questoes-ia{scroll-margin-top:100px;}
+.estudo-dialogo{box-sizing:border-box;width:min(480px,calc(100vw - 36px));border:1px solid var(--campo-borda);border-radius:22px;padding:26px;background:var(--papel-card);color:var(--tinta);box-shadow:0 18px 70px rgba(0,0,0,.22);}
+.estudo-dialogo::backdrop{background:rgba(7,16,34,.55);backdrop-filter:blur(3px);}.estudo-dialogo h2{font-size:20px;margin:0 0 12px;line-height:1.35;}.estudo-dialogo p{font-size:14px;line-height:1.75;margin:0 0 24px;}.estudo-dialogo-acoes{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;}.estudo-dialogo button{min-height:44px;}.estudo-dialogo .estudo-perigo{background:var(--errado);color:#fff;}
+@media(max-width:520px){.qia-em-treino .qia-resolver{padding:18px;}.qia-foco-acoes{gap:10px;margin-bottom:20px;}.qia-foco-acoes>div{gap:6px;}.qia-foco-acoes button{font-size:11px;padding:8px 10px;}.estudo-dialogo{padding:22px;}.estudo-dialogo-acoes button{flex:1;}}

@@ -18,10 +18,14 @@ object GranLinks {
         if(u.path !in listOf("/questoes","/questoes/","/aluno/filtro/concursos","/aluno/filtro/concursos/"))return null
         return "https://questoes.grancursosonline.com.br/aluno/filtro/concursos"+(u.rawQuery?.let{"?$it"}?:"")+(u.rawFragment?.let{"#$it"}?:"")
     }
+    fun internalStudyUrl(value:String):Boolean {
+        if(!StudyRules.safeLink(value))return false
+        val own=URI(value)
+        return own.host.equals("sg-devstudio.github.io",true)&&own.port in listOf(-1,443)&&own.path=="/Gabaritei-OS/"&&own.fragment in setOf("questoes-ia","cadernos","redacoes")
+    }
     fun open(context:Context,url:String,preferApp:Boolean){
         require(StudyRules.safeLink(url))
-        val own=URI(url)
-        if(own.host.equals("sg-devstudio.github.io",true)&&own.path=="/Gabaritei-OS/"&&own.fragment=="questoes-ia"){
+        if(internalStudyUrl(url)){
             try{CustomTabsIntent.Builder().setShowTitle(false).setShareState(CustomTabsIntent.SHARE_STATE_OFF).build().launchUrl(context,Uri.parse(url));return}catch(_:ActivityNotFoundException){}
         }
         fun intent(link:String)=Intent(Intent.ACTION_VIEW,Uri.parse(link)).apply{if(context !is Activity)addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)}

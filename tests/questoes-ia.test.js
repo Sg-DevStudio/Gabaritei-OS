@@ -37,3 +37,29 @@ test('cota gratuita é um erro explícito, sem trocar para modelo pago',()=>{
  assert.throws(()=>Q.configurar({...config,quantidade:1000}));
  assert.throws(()=>Q.caderno({...Q.validar(resposta(),config,origem),id:'../../outro'}));
 });
+
+test('organização e lixeira não removem respostas ou referências de cadernos antigos',()=>{
+ const original=Q.validar(resposta(),config,origem);original.id='bank-1';original.respostas.q1=0;
+ const clean=Q.caderno({...original,config:{...original.config,disciplina:'Administrativo',assunto:'Atos',planoId:'trf2',planoNome:'TRF2'},excluidoEm:'2026-11-11T12:00:00Z'});
+ assert.equal(clean.respostas.q1,0);assert.equal(clean.config.disciplina,'Administrativo');assert.equal(clean.origem.arquivo,original.origem.arquivo);
+ const restored=Q.caderno({...clean,excluidoEm:''});assert.deepEqual(restored.questoes,clean.questoes);assert.deepEqual(restored.respostas,clean.respostas);
+ assert.equal(Q.caderno(original).config.disciplina,'');
+});
+
+test('quantidade personalizada aceita de 1 a 100 e gera etapas de até 20',async()=>{
+ for(const quantidade of [1,17,100])assert.equal(Q.configurar({...config,quantidade}).quantidade,quantidade);
+ for(const quantidade of [0,101,1.5])assert.throws(()=>Q.configurar({...config,quantidade}),/1 e 100/);
+ const chamadas=[];const result=await Q.gerarEmLotes({...config,quantidade:100},async(c,contexto)=>{
+  chamadas.push(c.quantidade);return {questoes:Array.from({length:c.quantidade},(_,i)=>({...resposta().questoes[0],enunciado:'Questão '+(contexto.geradas+i)}))};
+ });assert.deepEqual(chamadas,[20,20,20,20,20]);assert.equal(Q.validar(result,{...config,quantidade:100},origem).questoes.length,100);
+});
+test('uma falha de cota preserva o que já foi gerado para salvar um lote parcial',async()=>{
+ await assert.rejects(Q.gerarEmLotes({...config,quantidade:41},async(c,ctx)=>{
+  if(ctx.indice===3)throw Error('HTTP 429: quota');return {questoes:Array.from({length:c.quantidade},(_,i)=>({...resposta().questoes[0],enunciado:'Questão '+(ctx.geradas+i)}))};
+ }),error=>error.questoesParciais.length===40&&error.quantidadeSolicitada===41);
+});
+
+test('geração em etapas mantém a página do PDF até o mapeamento final',async()=>{
+ const result=await Q.gerarEmLotes(config,async()=>{const data=resposta();data.questoes.forEach(q=>q.pagina=2);return JSON.stringify(data);});
+ const bank=Q.validar(result,config,{tipo:'pdf',nome:'arquivo.pdf',paginas:[1,3]});assert.equal(bank.questoes[0].pagina,4);
+});

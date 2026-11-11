@@ -172,12 +172,25 @@ service cloud.firestore {
       allow create, update: if isOwner(userId)
         && request.resource.data.keys().hasOnly(['nome','quantidade','conteudo','criadoEm','atualizadoEm','arquivadoEm'])
         && request.resource.data.nome is string && request.resource.data.nome.size() <= 120
-        && request.resource.data.quantidade in [10,20]
-        && request.resource.data.conteudo is string && request.resource.data.conteudo.size() <= 160000
+        && request.resource.data.quantidade is int && request.resource.data.quantidade >= 1 && request.resource.data.quantidade <= 100
+        && request.resource.data.conteudo is string && request.resource.data.conteudo.size() <= 700000
         && request.resource.data.criadoEm is string && request.resource.data.criadoEm.size() <= 40
         && request.resource.data.atualizadoEm is string && request.resource.data.atualizadoEm.size() <= 40
         && request.resource.data.arquivadoEm is string && request.resource.data.arquivadoEm.size() <= 40;
       // Arquivar é reversível; não há exclusão permanente nesta interface.
+      allow delete: if false;
+    }
+
+    // Redações: texto original e parecer separados, privados por usuário.
+    match /users/{userId}/essays/{essayId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['tema','conteudo','criadoEm','atualizadoEm','excluidoEm'])
+        && request.resource.data.tema is string && request.resource.data.tema.size() >= 4 && request.resource.data.tema.size() <= 240
+        && request.resource.data.conteudo is string && request.resource.data.conteudo.size() <= 120000
+        && request.resource.data.criadoEm is string && request.resource.data.criadoEm.size() <= 40
+        && request.resource.data.atualizadoEm is string && request.resource.data.atualizadoEm.size() <= 40
+        && request.resource.data.excluidoEm is string && request.resource.data.excluidoEm.size() <= 40;
       allow delete: if false;
     }
 

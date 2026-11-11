@@ -228,7 +228,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             if(studyIntro||!ready||plans.isEmpty())Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(error!=null)Text(error!!)else if(studyIntro)StudyLoading()else CircularProgressIndicator()}
             else if(tab==8&&outline!=null)EditalScreen(outline,progress,pageScroll,Modifier.padding(padding),onTopic={editalTopic=it},onManage={tab=6})
             else if(plan!=null&&selected!=null) LazyColumn(Modifier.padding(padding).fillMaxSize(),state=pageScroll,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                if(tab!=1)item { Surface(onClick={tab=1},shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.secondaryContainer){Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
+                if(tab!=1)item { Surface(onClick={tab=1},shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.secondaryContainer){Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
                     Icon(painterResource(R.drawable.book_outline),null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.primary)
                     Column(Modifier.weight(1f)){Text(plan.name.replace(Regex(" \\(.*?\\)"),""),fontSize=12.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)}
                 }} }
@@ -245,7 +245,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                             "study" -> {
                         item(key="home-study") { if(activeTopics.isEmpty())Block{Text("Suas disciplinas estão pausadas ou arquivadas.");TextButton(onClick={tab=6}){Text("Organizar disciplinas")}}else Block {
                             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("PLANEJAMENTO DO DIA",fontSize=10.sp,lineHeight=14.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM",Locale("pt","BR"))),fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.primary)}
-                            Surface(shape=RoundedCornerShape(12.dp),color=MaterialTheme.colorScheme.primaryContainer){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+                            Surface(shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.primaryContainer){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
                                 Text(if(studyGoalMinutes>0)"PRÓXIMO ESTUDO · $studyGoalMinutes MIN"else"PRÓXIMO ESTUDO · SEM META DE TEMPO",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onPrimaryContainer)
                                 Text(plan.discipline(selected).name,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
                                 Row(verticalAlignment=Alignment.CenterVertically) {
@@ -254,8 +254,8 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                                 }
                             }}
                             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                                Button(onClick={if(!plan.enrolled)creatingPlan=plan else vm.start(plan,selected)},enabled=timer==null&&activeTopics.isNotEmpty(),modifier=Modifier.weight(1f),shape=RoundedCornerShape(10.dp)){Icon(Icons.Outlined.PlayArrow,null,Modifier.size(18.dp));Text("Iniciar estudo",fontSize=12.sp,lineHeight=17.sp)}
-                                OutlinedButton(enabled=activeTopics.isNotEmpty(),onClick={if(!plan.enrolled)creatingPlan=plan else {recordingTimer=null;record=plan to selected}},shape=RoundedCornerShape(10.dp)){Text("Registrar",fontSize=12.sp,lineHeight=17.sp)}
+                                Button(onClick={if(!plan.enrolled)creatingPlan=plan else vm.start(plan,selected)},enabled=timer==null&&activeTopics.isNotEmpty(),modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp)){Icon(Icons.Outlined.PlayArrow,null,Modifier.size(18.dp));Text("Iniciar estudo",fontSize=12.sp,lineHeight=17.sp)}
+                                OutlinedButton(enabled=activeTopics.isNotEmpty(),onClick={if(!plan.enrolled)creatingPlan=plan else {recordingTimer=null;record=plan to selected}},shape=RoundedCornerShape(14.dp)){Text("Registrar",fontSize=12.sp,lineHeight=17.sp)}
                                 IconButton(onClick={tab=2}){Icon(painterResource(R.drawable.book_outline),"Abrir caderno de questões",tint=MaterialTheme.colorScheme.primary)}
                             }
                             if(nextSuggested!=null){HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(5.dp)){Text("AINDA HOJE",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(plan.discipline(nextSuggested).name,fontSize=12.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold);Text(nextSuggested.name,fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)};IconButton(onClick={vm.select(plan,nextSuggested)}){Icon(Icons.AutoMirrored.Outlined.ArrowForward,"Escolher próximo tópico",Modifier.size(18.dp))}}}
@@ -286,6 +286,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     }
                     1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);tab=6},onOpen=onOpen)}
                     2 -> {
+                        item{OutlinedButton(onClick={onOpen("https://sg-devstudio.github.io/Gabaritei-OS/#cadernos")},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(18.dp)){Text("Meus cadernos e criação com IA")}}
                         item{Row(verticalAlignment=Alignment.CenterVertically){Text("Caderno de questões",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold);TextButton(onClick={howTo=true}){Text("Como usar?")}}}
                         val hasLinks=notebookLinks.values.any{it.isNotEmpty()}
                         if(!hasLinks&&!personalNotebook)item{Block{
@@ -340,7 +341,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                 }
             }
         }
-        if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true},onQuestions={onOpen("https://sg-devstudio.github.io/Gabaritei-OS/#questoes-ia")})
+        if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true},onEssays={onOpen("https://sg-devstudio.github.io/Gabaritei-OS/#redacoes")})
     }
     if(studyActions&&plan!=null&&selected!=null)StudyActionsSheet(selected.name,onClose={studyActions=false},onStart={if(!plan.enrolled)creatingPlan=plan else{vm.start(plan,selected);tab=0}},onRecord={if(!plan.enrolled)creatingPlan=plan else{recordingTimer=null;record=plan to selected}},onFree={freeStudy=true},canStart=timer==null&&activeTopics.isNotEmpty())
     editalTopic?.let{t->if(outline!=null)ModalBottomSheet(onDismissRequest={editalTopic=null},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){
@@ -479,7 +480,7 @@ internal fun searchKey(value:String)=java.text.Normalizer.normalize(value,java.t
         Text("Sua semana",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(3.dp)){
             (0..6).forEach{i->val day=monday.plusDays(i.toLong());val min=sessions.filter{it.date==day}.sumOf{it.minutes}.toInt()
-                Surface(onClick={onDay(day)},modifier=Modifier.weight(1f),shape=RoundedCornerShape(10.dp),color=if(day==today)MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface){
+                Surface(onClick={onDay(day)},modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp),color=if(day==today)MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface){
                     Column(Modifier.padding(vertical=10.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)){
                         Text(listOf("Seg","Ter","Qua","Qui","Sex","Sáb","Dom")[i],fontSize=11.sp,lineHeight=15.sp)
                         Text("${day.dayOfMonth}",fontWeight=FontWeight.SemiBold,fontSize=14.sp,lineHeight=20.sp)

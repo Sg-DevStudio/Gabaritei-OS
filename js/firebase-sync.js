@@ -1119,17 +1119,20 @@ async function obterConfiguracaoIAPessoal(user){
 async function gerarQuestoesIA(config,parts,onStatus){
   const user=usuarioQuestoesIA();
   if(parts.length!==1||!parts[0]||(!parts[0].text&&!parts[0].inlineData))throw new Error('Envie um material antes de gerar.');
-  const controller=new AbortController();let timeout;
-  const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261110-questoes5'),obterConfiguracaoIAPessoal(user)]);
-    if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
+  return window.QuestoesIA.gerarEmLotes(config,async(chunk,contexto)=>{
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
-    const response=await provider.gerar(window.QuestoesIA.configurar(config),parts,controller.signal,onStatus,credential);
-    if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
-    return response;
-  })();
-  try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
-  finally{clearTimeout(timeout);}
+    const controller=new AbortController();let timeout;
+    const tarefa=(async()=>{
+      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos1'),obterConfiguracaoIAPessoal(user)]);
+      if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
+      if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+      const informar=()=>{if(onStatus)onStatus('Gerando '+(contexto.geradas+1)+'–'+(contexto.geradas+chunk.quantidade)+' de '+contexto.solicitadas+' questões · etapa '+contexto.indice+' de '+contexto.total+'…');};informar();
+      const response=await provider.gerar(chunk,parts,controller.signal,informar,credential,contexto);
+      if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');return response;
+    })();
+    try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
+    finally{clearTimeout(timeout);}
+  });
 }
 async function listarCadernosIA(){
   const user=usuarioQuestoesIA();
@@ -1149,10 +1152,37 @@ async function salvarCadernoIA(banco){
   return clean;
 }
 
+async function corrigirRedacao(input,onStatus){
+  const user=usuarioQuestoesIA(),clean=window.Redacoes.preparar(input,true);
+  const controller=new AbortController();let timeout;
+  const tarefa=(async()=>{
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos1'),obterConfiguracaoIAPessoal(user)]);
+    if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
+    if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+    const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,8000);
+    if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+    return window.Redacoes.validarAvaliacao(response,clean);
+  })();
+  try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
+  finally{clearTimeout(timeout);}
+}
+async function listarRedacoes(){
+  const user=usuarioQuestoesIA();
+  const snap=await getDocs(query(collection(db,'users',user.uid,'essays'),orderBy('atualizadoEm','desc'),limit(50)));
+  if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
+  const lista=[];snap.forEach(item=>{try{const raw=JSON.parse(item.data().conteudo);raw.id=item.id;lista.push(window.Redacoes.documento(raw));}catch(_){console.warn('Redação inválida ignorada.');}});return lista;
+}
+async function salvarRedacao(input){
+  const user=usuarioQuestoesIA();if(!input.id)input.id=crypto.randomUUID();
+  const now=new Date().toISOString(),clean=window.Redacoes.documento({...input,criadoEm:input.criadoEm||now,atualizadoEm:now});
+  await setDoc(doc(db,'users',user.uid,'essays',clean.id),{tema:clean.tema,conteudo:JSON.stringify(clean),criadoEm:clean.criadoEm,atualizadoEm:now,excluidoEm:clean.excluidoEm});
+  if(usuario!==user)throw new Error('A conta mudou. A redação foi salva na conta anterior.');return clean;
+}
+
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, registrarPush,
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, corrigirRedacao, listarRedacoes, salvarRedacao, registrarPush,
   desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
 };

@@ -13,6 +13,7 @@ const {
   collection,
   getDocs,
   getDoc,
+  deleteDoc,
   setDoc,
   Timestamp
 } = require('firebase/firestore');
@@ -42,8 +43,8 @@ test('cadernos IA são privados e aceitam apenas documentos limitados', { skip: 
   await assertFails(getDoc(doc(other,'users/aluno/questionSets/exemplo')));
   await assertFails(getDoc(doc(anon,'users/aluno/questionSets/exemplo')));
   await assertFails(setDoc(doc(other,'users/aluno/questionSets/exemplo'),data));
-  await assertFails(setDoc(doc(owner,'users/aluno/questionSets/invalido'),{...data,quantidade:100}));
-  await assertFails(setDoc(doc(owner,'users/aluno/questionSets/grande'),{...data,conteudo:'x'.repeat(160001)}));
+  await assertFails(setDoc(doc(owner,'users/aluno/questionSets/invalido'),{...data,quantidade:101}));
+  await assertFails(setDoc(doc(owner,'users/aluno/questionSets/grande'),{...data,conteudo:'x'.repeat(700001)}));
   await assertSucceeds(setDoc(doc(owner,'users/aluno/questionSets/exemplo'),{...data,arquivadoEm:'2026-11-10'}));
 });
 
@@ -176,4 +177,17 @@ test('catálogo continua público e pedido é limitado ao próprio usuário', { 
     usuario: { uid: 'aluno', email: 'aluno@teste.local', nome: 'Aluno' },
     savedAt: Timestamp.now()
   }));
+});
+
+test('redações são privadas e a exclusão usa lixeira sem apagar o documento', {skip:!ativo},async()=>{
+ const owner=ambiente.authenticatedContext('aluno').firestore(),other=ambiente.authenticatedContext('outro').firestore(),anon=ambiente.unauthenticatedContext().firestore();
+ const data={tema:'Tema de treino',conteudo:'{}',criadoEm:'2026-11-11',atualizadoEm:'2026-11-11',excluidoEm:''};
+ await assertSucceeds(setDoc(doc(owner,'users/aluno/essays/exemplo'),data));
+ await assertSucceeds(getDoc(doc(owner,'users/aluno/essays/exemplo')));
+ await assertFails(getDoc(doc(other,'users/aluno/essays/exemplo')));await assertFails(getDoc(doc(anon,'users/aluno/essays/exemplo')));
+ await assertFails(setDoc(doc(other,'users/aluno/essays/exemplo'),data));
+ await assertFails(setDoc(doc(owner,'users/aluno/essays/grande'),{...data,conteudo:'x'.repeat(120001)}));
+ await assertFails(setDoc(doc(owner,'users/aluno/essays/extra'),{...data,publico:true}));
+ await assertSucceeds(setDoc(doc(owner,'users/aluno/essays/exemplo'),{...data,excluidoEm:'2026-11-11'}));
+ await assertSucceeds(setDoc(doc(owner,'users/aluno/essays/exemplo'),data));await assertFails(deleteDoc(doc(owner,'users/aluno/essays/exemplo')));
 });
