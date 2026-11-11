@@ -54,3 +54,14 @@ Preservar identidade azul e temas existentes. Cartões 18–22 px de raio, borda
 - Quantidade personalizada de 1 a 100; chamadas sequenciais com no máximo 20 por etapa, progresso por etapa e referências verificadas. Se uma etapa falhar, oferecer o lote parcial já validado para salvar, sem afirmar que o pedido inteiro terminou.
 - Resolução em card central, com ações Voltar, Criar outras e Excluir. Biblioteca e formulário ficam fora da tela de foco.
 - Confirmações dentro de um diálogo HTML do Gabaritei. Nenhum alert/confirm/prompt nativo nos fluxos do aplicativo. O aviso de fechar uma aba com dados não salvos permanece como proteção do navegador.
+
+
+## Ampliação aprovada na execução
+
+Samuel solicitou também foto/PDF em 11/11. Entrada por JPG/PNG/WebP ou PDF de até 5 páginas e 10 MB; transcrição via mesma configuração gratuita, com revisão explícita do texto antes da correção. Preservar erros de escrita e marcar [ilegível], não completar palavras. O arquivo original permanece só em memória; não salvar no Firestore. Não corrigir automaticamente após transcrever. Nova transcrição de redação corrigida cria versão para preservar o parecer anterior.
+
+Referências das questões: mostrar “Referência da resposta: página X” em PDF, ou “Referência da resposta no material” sem paginação. Manter o trecho de apoio. Retirar aviso repetido sobre texto colado/gabarito e manter identificação IA na entrada do recurso.
+
+## Publicação alternativa
+
+Firebase Hosting (app-gestao-estudos.web.app) mantém uma cópia de contingência com o mesmo Auth/Firestore. Publicar somente arquivos públicos rastreados: node scripts/prepare-hosting.cjs, depois firebase deploy --only hosting --project app-gestao-estudos. Não enviar diretório completo do projeto nem dados privados. A configuração não ativa faturamento; limites do plano gratuito continuam aplicáveis. GitHub Pages permanece endereço principal do Android.

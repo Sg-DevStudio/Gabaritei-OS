@@ -18,5 +18,39 @@
       "port": 8080
     },
     "singleProjectMode": true
+  },
+  "hosting": {
+    "site": "app-gestao-estudos",
+    "public": ".hosting-dist",
+    "ignore": [],
+    "headers": [
+      {
+        "source": "/sw.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/index.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      }
+    ]
   }
 }

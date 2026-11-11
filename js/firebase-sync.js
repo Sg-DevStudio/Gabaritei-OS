@@ -1123,7 +1123,7 @@ async function gerarQuestoesIA(config,parts,onStatus,origem){
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const controller=new AbortController();let timeout;
     const tarefa=(async()=>{
-      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos2'),obterConfiguracaoIAPessoal(user)]);
+      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos3'),obterConfiguracaoIAPessoal(user)]);
       if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
       if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
       const informar=()=>{if(onStatus)onStatus('Gerando '+(contexto.geradas+1)+'–'+(contexto.geradas+chunk.quantidade)+' de '+contexto.solicitadas+' questões · etapa '+contexto.indice+' de '+contexto.total+'…');};informar();
@@ -1156,15 +1156,30 @@ async function corrigirRedacao(input,onStatus){
   const user=usuarioQuestoesIA(),clean=window.Redacoes.preparar(input,true);
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos2'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos3'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
-    const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,8000);
+    const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,12000,window.Redacoes.avaliacaoSchema);
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     return window.Redacoes.validarAvaliacao(response,clean);
   })();
   try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
   finally{clearTimeout(timeout);}
+}
+async function transcreverRedacao(part,onStatus){
+  const user=usuarioQuestoesIA();
+  const data=part&&part.inlineData;
+  if(!data||!['application/pdf','image/jpeg','image/png','image/webp'].includes(data.mimeType)||typeof data.data!=='string'||data.data.length>14000000||!/^[A-Za-z0-9+/]+={0,2}$/.test(data.data))throw Error('Arquivo de transcrição inválido.');
+  const controller=new AbortController();let timeout;
+  const tarefa=(async()=>{
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos3'),obterConfiguracaoIAPessoal(user)]);
+    if(controller.signal.aborted)throw Error('timeout: transcrição cancelada.');
+    if(usuario!==user)throw Error('A conta mudou. Abra a aba novamente.');
+    const response=await provider.solicitar(window.Redacoes.promptTranscricao(),[part],controller.signal,onStatus,credential,12000,window.Redacoes.transcricaoSchema);
+    if(usuario!==user)throw Error('A conta mudou. Abra a aba novamente.');
+    return window.Redacoes.validarTranscricao(response);
+  })();
+  try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(Error('timeout: a transcrição demorou. Tente novamente.'));},90000);})]);}finally{clearTimeout(timeout);}
 }
 async function listarRedacoes(){
   const user=usuarioQuestoesIA();
@@ -1182,7 +1197,7 @@ async function salvarRedacao(input){
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, corrigirRedacao, listarRedacoes, salvarRedacao, registrarPush,
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
   desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
 };

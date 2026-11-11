@@ -660,15 +660,15 @@
     return '<section class="login-shell">' +
       '<div class="login-card">' +
       '<div class="login-marca"><span class="marca-bolha" aria-hidden="true"></span><span>Gabaritei OS</span></div>' +
-      '<h1>Seu plano de aprovação, no piloto automático</h1>' +
-      '<p>O Gabaritei OS transforma o edital verticalizado em um plano de estudos semanal que se recalcula sozinho conforme você avança — prioriza o que mais cai, equilibra teoria e questões e ajusta as revisões ao seu desempenho até o dia da prova.</p>' +
+      '<h1>Seu estudo organizado, do plano à prática</h1>' +
+      '<p>Organize seu edital, planeje a semana e acompanhe o que estudou. Reúna os assuntos, seus cadernos de questões e as versões das suas redações no mesmo lugar.</p>' +
       '<ul class="login-features">' +
       '<li><span aria-hidden="true">📌</span> Editais verticalizados com os tópicos que mais caem (regra 80/20)</li>' +
       '<li><span aria-hidden="true">📅</span> Plano semanal gerado do edital que se recalcula sozinho no seu ritmo</li>' +
       '<li><span aria-hidden="true">🔁</span> Revisões espaçadas que se adaptam ao seu desempenho e à incidência do tópico</li>' +
       '<li><span aria-hidden="true">🎯</span> Fila do dia inteligente: estuda primeiro o que mais rende pontos</li>' +
       '<li><span aria-hidden="true">⚖️</span> Comparação de editais para conciliar concursos sem perder tempo</li>' +
-      '<li><span aria-hidden="true">🃏</span> Flashcards inteligentes — geração com IA em breve</li>' +
+      '<li><span aria-hidden="true">🃏</span> Cadernos, cartões de estudo e redações com IA nos perfis configurados</li>' +
       '</ul>' +
       '<button id="login-google" class="login-botao" type="button"' + (carregando || entrando ? ' disabled' : '') + '>' + texto + '</button>' +
       '<button id="login-demo" class="login-demo" type="button">Explorar com um plano de exemplo</button>' +

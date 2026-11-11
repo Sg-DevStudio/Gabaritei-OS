@@ -5508,3 +5508,8 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .estudo-dialogo{box-sizing:border-box;width:min(480px,calc(100vw - 36px));border:1px solid var(--campo-borda);border-radius:22px;padding:26px;background:var(--papel-card);color:var(--tinta);box-shadow:0 18px 70px rgba(0,0,0,.22);}
 .estudo-dialogo::backdrop{background:rgba(7,16,34,.55);backdrop-filter:blur(3px);}.estudo-dialogo h2{font-size:20px;margin:0 0 12px;line-height:1.35;}.estudo-dialogo p{font-size:14px;line-height:1.75;margin:0 0 24px;}.estudo-dialogo-acoes{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;}.estudo-dialogo button{min-height:44px;}.estudo-dialogo .estudo-perigo{background:var(--errado);color:#fff;}
 @media(max-width:520px){.qia-em-treino .qia-resolver{padding:18px;}.qia-foco-acoes{gap:10px;margin-bottom:20px;}.qia-foco-acoes>div{gap:6px;}.qia-foco-acoes button{font-size:11px;padding:8px 10px;}.estudo-dialogo{padding:22px;}.estudo-dialogo-acoes button{flex:1;}}
+
+.red-importar{border:1px dashed var(--linha);border-radius:14px;padding:16px;margin:18px 0;background:var(--papel);}
+.red-importar summary{cursor:pointer;font-weight:650;font-size:14px;color:var(--caneta);}
+.red-importar input[type=file]{width:100%;max-width:100%;box-sizing:border-box;}
+.red-importar #red-arquivo-info{overflow-wrap:anywhere;}

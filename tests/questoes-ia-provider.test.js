@@ -5,7 +5,7 @@ function provider(response){
  const c={setTimeout:fn=>{queueMicrotask(fn);return 0;},clearTimeout(){},window:{GabariteiIAConfig:{freeOnly:true},QuestoesIA:{prompt:()=> 'prompt'}},
   fetch:async(url,options)=>{requests.push({url,options});return (typeof response==='function'?response(requests.length):response)||{ok:true,json:async()=>({candidates:[{content:{parts:[{thought:true,text:'omit'},{text:'{"questoes":'},{text:'[]}'}]}}]})};}};
  const source=fs.readFileSync(path.join(__dirname,'../js/questoes-ia-provider.js'),'utf8').replaceAll('export async function','async function');
- vm.runInNewContext(source+'\nthis.gerar=gerar;',c);return {c,requests};
+ vm.runInNewContext(source+'\nthis.gerar=gerar;this.solicitar=solicitar;',c);return {c,requests};
 }
 test('personal credential stays in its header and the free model is fixed',async()=>{
  const h=provider(),controller=new AbortController();
@@ -35,4 +35,12 @@ test('a temporary 503 is retried once, whereas quota is never retried',async()=>
  const h=provider(n=>n===1?{status:503,ok:false}:{ok:true,json:async()=>({candidates:[{content:{parts:[{text:'ok'}]}}]})});
  assert.equal(await h.c.gerar({},[],null,null,credential),'ok');assert.equal(h.requests.length,2);
  const quota=provider({ok:false,status:429,json:async()=>({error:{message:'Quota'}})});await assert.rejects(quota.c.gerar({},[],null,null,credential),/429/);assert.equal(quota.requests.length,1);
+});
+
+test('parecer estruturado envia schema e sinaliza resposta truncada',async()=>{
+ const h=provider();const schema={type:'OBJECT',properties:{texto:{type:'STRING'}},required:['texto']};
+ await h.c.solicitar('transcrever',[],null,null,credential,12000,schema);
+ const config=JSON.parse(h.requests[0].options.body).generationConfig;assert.deepEqual(config.responseSchema,schema);assert.equal(config.maxOutputTokens,12000);
+ const truncated=provider({ok:true,json:async()=>({candidates:[{finishReason:'MAX_TOKENS',content:{parts:[{text:'{"incompleto":'}]}}]})});
+ await assert.rejects(truncated.c.gerar({},[],null,null,credential),/limite de geração/);
 });

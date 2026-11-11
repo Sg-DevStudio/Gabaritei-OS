@@ -1,16 +1,17 @@
 (function(){
   'use strict';const R=window.Redacoes;
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let atual=null;
+  let atual=null,pdfPromise=null;
   const confirmar=(texto,acao,titulo)=>window.EstudoDialogo.confirmar({texto,acao:acao||'Continuar',titulo:titulo||'Sua redação',perigo:acao==='Mover para a lixeira'});
   const nova=()=>({id:'',tema:'',banca:'',proposta:'',criterios:'',texto:'',avaliacao:null,criadoEm:'',atualizadoEm:'',corrigidaEm:'',excluidoEm:''});
-  function sessao(uid){if(!atual||atual.uid!==uid)atual={uid,redacao:null,lista:[],carregada:false,ocupado:false,sujo:false,mensagem:'',erro:false,filtro:'ativos'};return atual;}
+  function sessao(uid){if(!atual||atual.uid!==uid)atual={uid,redacao:null,lista:[],carregada:false,ocupado:false,sujo:false,mensagem:'',erro:false,filtro:'ativos',arquivo:null};return atual;}
   function render(){return `<section class="redacoes" id="redacoes">
     <header class="qia-cabecalho"><div><p class="qia-eyebrow">DA ESCRITA AO PRÓXIMO TREINO</p><h1>Redações</h1><p class="sub">Escreva, confira o parecer e guarde cada versão da sua evolução.</p></div><button type="button" class="botao" id="red-nova">Nova redação</button></header>
     <div class="qia-status" role="status" aria-live="polite" hidden></div><div class="red-resumo" id="red-resumo"></div>
     <div class="red-layout"><section class="card red-editor" id="red-editor" hidden><div class="red-etapas"><span>1 · Tema e critérios</span><span>2 · Seu texto</span><span>3 · Correção</span></div><form id="red-form" novalidate>
       <label>Tema da redação<input name="tema" maxlength="240" required placeholder="Ex.: Tecnologia e qualidade dos serviços públicos"></label>
       <details class="red-contexto"><summary>Proposta e critérios da prova</summary><label>Banca ou concurso<input name="banca" maxlength="120" placeholder="Opcional · identificação da sua prova"></label><label>Proposta e textos de apoio<textarea name="proposta" maxlength="6000" rows="4" placeholder="Cole o comando da redação e o contexto necessário."></textarea></label><label>Critérios do edital<textarea name="criterios" maxlength="6000" rows="4" placeholder="Cole os critérios que você quer considerar na avaliação."></textarea></label><p class="sub">O parecer é formativo. Não calculamos uma nota oficial nem presumimos critérios só pelo nome da banca.</p></details>
+      <details class="red-importar"><summary>Enviar redação em PDF ou foto</summary><p class="sub">Uma foto nítida (JPG, PNG ou WebP) ou PDF de até 5 páginas e 10 MB. A transcrição vai para o editor para você conferir antes de corrigir.</p><label>PDF ou foto da redação<input type="file" name="arquivo" accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp"></label><p class="sub" id="red-arquivo-info">Nenhum arquivo selecionado.</p><button type="button" class="botao-quieto" id="red-transcrever" disabled>Transcrever arquivo</button><p class="sub">Ao transcrever, o arquivo será enviado ao Gemini e usará sua cota gratuita. Ele não fica salvo no Gabaritei. Evite incluir nome, documento ou outros dados pessoais.</p></details>
       <div class="red-folha-topo"><label for="red-texto">Seu texto original</label><span id="red-contagem" aria-live="polite">0 palavras</span></div><textarea id="red-texto" name="texto" maxlength="16000" rows="18" placeholder="Comece sua redação aqui…" spellcheck="true"></textarea><p class="sub">O original é preservado. Sugestões aparecem separadamente na correção.</p>
       <div class="red-editor-acoes"><button type="button" class="botao-quieto" data-red-salvar>Salvar rascunho</button><button type="submit" class="botao" id="red-corrigir">Corrigir com IA</button></div><p class="sub">Ao corrigir, seu texto, proposta e critérios serão enviados ao Gemini. Na cota gratuita, o Google pode usar esse conteúdo para melhorar seus produtos. Evite incluir dados pessoais. Geração disponível nos perfis pessoais configurados.</p>
     </form></section>
@@ -22,7 +23,7 @@
     const form=root.querySelector('#red-form'),status=root.querySelector('.qia-status');
     const api=()=>{const p=window.FirebaseSync;if(!p||!p.corrigirRedacao)throw Error('A conexão com sua conta ainda está carregando. Tente novamente.');return p;};
     function aviso(text,erro){s.mensagem=text||'';s.erro=!!erro;if(!ativo()){if(s.refresh)s.refresh();return;}status.hidden=!text;status.textContent=text||'';status.dataset.erro=erro?'true':'false';}
-    function ocupado(value){s.ocupado=value;if(!ativo()){if(s.refresh)s.refresh();return;}root.querySelectorAll('#red-form input,#red-form textarea,#red-form button,#red-nova,[data-red-abrir],[data-red-mutar],[data-red-salvar]').forEach(el=>el.disabled=value||!uid);root.querySelector('#red-corrigir').textContent=value?'Analisando sua redação…':'Corrigir com IA';}
+    function ocupado(value){s.ocupado=value;if(!ativo()){if(s.refresh)s.refresh();return;}root.querySelectorAll('#red-form input,#red-form textarea,#red-form button,#red-nova,[data-red-abrir],[data-red-mutar],[data-red-salvar]').forEach(el=>el.disabled=value||!uid);root.querySelector('#red-corrigir').textContent=value?'Aguarde…':'Corrigir com IA';root.querySelector('#red-transcrever').disabled=value||!uid||!s.arquivo;}
     function contagem(){if(ativo())root.querySelector('#red-contagem').textContent=R.palavras(s.redacao&&s.redacao.texto)+' palavras';}
     function parecer(){
       if(!ativo()){if(s.refresh)s.refresh();return;}const el=root.querySelector('#red-parecer'),r=s.redacao,a=r&&r.avaliacao;el.hidden=!a;if(!a)return;
@@ -43,7 +44,26 @@
       try{const saved=await api().salvarRedacao(s.redacao);if(atual!==s)return;s.redacao=saved;s.lista=[saved,...s.lista.filter(r=>r.id!==saved.id)];s.sujo=false;biblioteca();preencher();aviso('Redação salva na sua conta.');}catch(e){aviso(window.QuestoesIA.mensagemErro(e)+' Seu texto continua nesta tela.',true);}finally{ocupado(false);}
     }
     root.querySelector('#red-nova').onclick=async()=>{if(s.ocupado)return;if(s.sujo&&!await confirmar('Há alterações não salvas. Começar outra redação sem guardá-las?','Começar outra','Alterações não salvas'))return;if(atual!==s)return;s.redacao=nova();s.sujo=false;preencher();aviso('');root.querySelector('#red-editor').scrollIntoView({behavior:'smooth',block:'start'});form.elements.tema.focus();};
-    form.oninput=e=>{if(!s.redacao||!e.target.name)return;if(s.redacao.avaliacao){s.redacao={...s.redacao,id:'',avaliacao:null,criadoEm:'',atualizadoEm:'',corrigidaEm:''};aviso('Você está criando uma nova versão. A correção anterior continua no histórico.');parecer();}s.redacao[e.target.name]=e.target.value;s.sujo=true;contagem();};
+    form.elements.arquivo.onchange=()=>{try{const file=form.elements.arquivo.files[0];if(!file){s.arquivo=null;return;}R.validarArquivo(file);s.arquivo=file;root.querySelector('#red-arquivo-info').textContent=file.name;aviso('Arquivo selecionado. Clique em Transcrever arquivo para importar o texto.');}catch(err){s.arquivo=null;form.elements.arquivo.value='';aviso(err.message,true);}finally{ocupado(false);}};
+    root.querySelector('#red-transcrever').onclick=async()=>{
+      if(s.ocupado||!s.redacao||!s.arquivo)return;
+      if(s.redacao.texto.trim()&&!await confirmar('A transcrição substituirá o texto do editor. Se houver uma correção salva, ela continuará no histórico. Continuar?','Transcrever e substituir','Importar redação'))return;
+      if(atual!==s)return;const arquivo=s.arquivo;ocupado(true);aviso('Preparando o arquivo para transcrição…');
+      try{
+        const mime=R.validarArquivo(arquivo);let bytes=new Uint8Array(await arquivo.arrayBuffer());
+        if(mime==='application/pdf'){
+          if(!window.PDFLib){if(!pdfPromise)pdfPromise=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='assets/vendor/pdf-lib-1.17.1.min.js';script.onload=resolve;script.onerror=()=>{pdfPromise=null;script.remove();reject(Error('Não foi possível abrir o leitor de PDF. Confira sua conexão.'));};document.head.appendChild(script);});await pdfPromise;}
+          const pdf=await window.PDFLib.PDFDocument.load(bytes);if(pdf.getPageCount()>5)throw Error('Use um PDF de até 5 páginas para transcrever a redação.');
+        }
+        let binary='';for(let i=0;i<bytes.length;i+=32768)binary+=String.fromCharCode(...bytes.subarray(i,i+32768));
+        const resultado=await api().transcreverRedacao({inlineData:{mimeType:mime,data:btoa(binary)}},t=>aviso(t));if(atual!==s)return;
+        if(s.redacao.avaliacao)s.redacao={...s.redacao,id:'',avaliacao:null,criadoEm:'',atualizadoEm:'',corrigidaEm:''};
+        s.redacao.texto=resultado.texto;s.sujo=true;s.arquivo=null;if(ativo()){form.elements.arquivo.value='';root.querySelector('#red-arquivo-info').textContent='Transcrição concluída. O arquivo não fica salvo.';}
+        preencher();aviso('Texto transcrito. Confira a leitura antes de corrigir.'+(resultado.observacoes.length?' '+resultado.observacoes.join(' '):''));
+        if(ativo())form.elements.texto.focus();
+      }catch(err){aviso(/encrypt|password/i.test(err.message)?'Este PDF está protegido por senha. Use uma cópia desbloqueada.':window.QuestoesIA.mensagemErro(err),true);}finally{ocupado(false);}
+    };
+    form.oninput=e=>{if(!s.redacao||!['tema','banca','proposta','criterios','texto'].includes(e.target.name))return;if(s.redacao.avaliacao){s.redacao={...s.redacao,id:'',avaliacao:null,criadoEm:'',atualizadoEm:'',corrigidaEm:''};aviso('Você está criando uma nova versão. A correção anterior continua no histórico.');parecer();}s.redacao[e.target.name]=e.target.value;s.sujo=true;contagem();};
     form.onsubmit=async e=>{
       e.preventDefault();if(s.ocupado||!s.redacao)return;
       try{R.preparar(s.redacao,true);}catch(err){aviso(err.message,true);return;}
@@ -52,7 +72,7 @@
       try{const assessment=await api().corrigirRedacao(s.redacao,t=>aviso(t));if(atual!==s)return;s.redacao={...s.redacao,avaliacao:assessment,corrigidaEm:new Date().toISOString()};s.sujo=true;parecer();aviso('Correção pronta. Salvando o original e o parecer…');
         try{const saved=await api().salvarRedacao(s.redacao);if(atual!==s)return;s.redacao=saved;s.lista=[saved,...s.lista.filter(r=>r.id!==saved.id)];s.sujo=false;biblioteca();aviso('Correção salva com o texto original.');}catch(err){aviso('A correção está pronta, mas não foi salva na nuvem. Use Salvar correção para tentar novamente.',true);}
         preencher();if(ativo())root.querySelector('#red-parecer').scrollIntoView({behavior:'smooth',block:'start'});
-      }catch(err){aviso(window.QuestoesIA.mensagemErro(err)+' Seu texto foi preservado.',true);}finally{ocupado(false);}
+      }catch(err){aviso(window.QuestoesIA.mensagemErro(err).replace(/ Seu texto foi preservado\./g,'')+' Seu texto foi preservado.',true);}finally{ocupado(false);}
     };
     root.querySelector('#red-filtro').value=s.filtro;root.querySelector('#red-filtro').onchange=e=>{s.filtro=e.target.value;biblioteca();};root.querySelectorAll('#red-form [data-red-salvar]').forEach(b=>b.onclick=salvar);
     s.refresh=()=>{if(!ativo())return;preencher();biblioteca();ocupado(s.ocupado);aviso(s.mensagem,s.erro);};s.refresh();
