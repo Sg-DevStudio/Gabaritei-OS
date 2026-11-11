@@ -15,7 +15,7 @@ data class Plan(val id: String, val name: String, val disciplines: List<Discipli
 @Entity(primaryKeys = ["planId", "topicId"]) data class Progress(val planId: String, val topicId: String, val completed: Boolean)
 @Entity(primaryKeys = ["planId", "topicId"]) data class PersonalLink(val planId: String, val topicId: String, val url: String)
 @Entity data class Settings(@PrimaryKey val id: Int = 1, val planId: String, val topicId: String)
-@Entity data class Timer(@PrimaryKey val id: Int = 1, val sessionId: String, val planId: String, val topicId: String, val seconds: Long, val startedElapsed: Long?, val boot: Int, @ColumnInfo(defaultValue="0") val goalSeconds:Long=0)
+@Entity data class Timer(@PrimaryKey val id: Int = 1, val sessionId: String, val planId: String, val topicId: String, val seconds: Long, val startedElapsed: Long?, val boot: Int, @ColumnInfo(defaultValue="0") val goalSeconds:Long=0, @ColumnInfo(defaultValue="''") val blockReference:String="")
 @Entity data class RemoteSnapshot(@PrimaryKey val id: Int = 1, val json: String, val syncedAt: Long)
 @Entity data class PendingMutation(@PrimaryKey val id: String, val kind: String, val payload: String, val generation: String, val createdAt: Long)
 @Entity data class RecoveryCopy(@PrimaryKey val id: String, val json: String, val createdAt: Long)
@@ -97,7 +97,7 @@ data class Plan(val id: String, val name: String, val disciplines: List<Discipli
         acknowledge(pending.map{it.id})
     }
 }
-@Database(entities = [Session::class, Progress::class, PersonalLink::class, Settings::class, Timer::class, RemoteSnapshot::class, PendingMutation::class, RecoveryCopy::class], version = 3, exportSchema = true)
+@Database(entities = [Session::class, Progress::class, PersonalLink::class, Settings::class, Timer::class, RemoteSnapshot::class, PendingMutation::class, RecoveryCopy::class], version = 4, exportSchema = true)
 abstract class PilotDatabase : RoomDatabase() {
     abstract fun dao(): PilotDao
     companion object {
@@ -108,9 +108,10 @@ abstract class PilotDatabase : RoomDatabase() {
             db.execSQL("CREATE TABLE IF NOT EXISTS `RecoveryCopy` (`id` TEXT NOT NULL, `json` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
         }}
         val migration2to3=object:androidx.room.migration.Migration(2,3){override fun migrate(db:androidx.sqlite.db.SupportSQLiteDatabase){db.execSQL("ALTER TABLE Timer ADD COLUMN goalSeconds INTEGER NOT NULL DEFAULT 0")}}
+        val migration3to4=object:androidx.room.migration.Migration(3,4){override fun migrate(db:androidx.sqlite.db.SupportSQLiteDatabase){db.execSQL("ALTER TABLE Timer ADD COLUMN blockReference TEXT NOT NULL DEFAULT ''")}}
         fun get(context: Context, uid: String? = null):PilotDatabase = synchronized(instances) {
             val name=if(uid==null)"pilot.db" else "account-"+java.security.MessageDigest.getInstance("SHA-256").digest(uid.toByteArray()).joinToString(""){"%02x".format(it)}.take(32)+".db"
-            instances.getOrPut(name){Room.databaseBuilder(context.applicationContext,PilotDatabase::class.java,name).addMigrations(migration,migration2to3).build()}
+            instances.getOrPut(name){Room.databaseBuilder(context.applicationContext,PilotDatabase::class.java,name).addMigrations(migration,migration2to3,migration3to4).build()}
         }
     }
 }

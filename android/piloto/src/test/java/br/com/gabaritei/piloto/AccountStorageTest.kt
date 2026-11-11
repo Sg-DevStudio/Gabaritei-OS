@@ -46,9 +46,10 @@ class AccountStorageTest {
         legacy.execSQL("CREATE TABLE Settings (id INTEGER NOT NULL PRIMARY KEY, planId TEXT NOT NULL, topicId TEXT NOT NULL)")
         legacy.execSQL("CREATE TABLE Timer (id INTEGER NOT NULL PRIMARY KEY, sessionId TEXT NOT NULL, planId TEXT NOT NULL, topicId TEXT NOT NULL, seconds INTEGER NOT NULL, startedElapsed INTEGER, boot INTEGER NOT NULL)")
         legacy.execSQL("INSERT INTO Session VALUES ('old-session','p','t',60,10,8,1000)");legacy.execSQL("INSERT INTO PersonalLink VALUES ('p','t','https://example.com')")
+        legacy.execSQL("INSERT INTO Timer VALUES (1,'paused-study','p','t',76,NULL,4)")
         legacy.version=1;legacy.close()
-        val db=Room.databaseBuilder(app,PilotDatabase::class.java,name).addMigrations(PilotDatabase.migration,PilotDatabase.migration2to3).build()
-        try{assertEquals("old-session",db.dao().sessions().first().single().id);assertEquals("https://example.com",db.dao().links().first().single().url);assertTrue(db.dao().pendingNow().isEmpty())}
+        val db=Room.databaseBuilder(app,PilotDatabase::class.java,name).addMigrations(PilotDatabase.migration,PilotDatabase.migration2to3,PilotDatabase.migration3to4).build()
+        try{assertEquals("old-session",db.dao().sessions().first().single().id);assertEquals("https://example.com",db.dao().links().first().single().url);assertTrue(db.dao().pendingNow().isEmpty());val timer=db.dao().currentTimer()!!;assertEquals(76L,timer.seconds);assertNull(timer.startedElapsed);assertEquals("",timer.blockReference)}
         finally{db.close();app.deleteDatabase(name)}
     }
 }

@@ -62,7 +62,7 @@ class SyncFeedbackDeviceTest {
             instrument.runOnMainSync{online.value=true};waitFor("Sincronizando…")
             instrument.runOnMainSync{state.value=SyncStatus("Sincronizado");pending.value=0};waitFor("Tudo atualizado");capture("sync-done.png")
             waitFor("Tudo atualizado",false)
-            val items=listOf("Planos de estudo" to 1,"Redações" to 9,"Estatísticas" to 3,"Histórico" to 4)
+            val items=listOf("Planos de estudo" to 1,"Planejamento" to 5,"Redações" to 9,"Estatísticas" to 3,"Histórico" to 4)
             instrument.runOnMainSync{menu.value=true};waitFor("Histórico");SystemClock.sleep(400);capture("more-menu.png")
             val tops=items.map{bounds(it.first).top};assertEquals(tops.sorted(),tops);assertEquals(tops.size,tops.distinct().size)
             items.forEach{(label,id)->

@@ -206,7 +206,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     fun select(plan:Plan)=select(plan,plan.topics.firstOrNull{t->progress.value.none{it.planId==plan.id&&it.topicId==t.id&&it.completed}}?:plan.topics.firstOrNull()?:Topic("","",null,""))
     fun start(plan:Plan,topic:Topic,blockId:String?=null)=viewModelScope.launch {
         try{val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d);d.settings(Settings(planId=p.id,topicId=topic.id))
-            if(!d.startTimer(Timer(sessionId=UUID.randomUUID().toString(),planId=p.id,topicId=topic.id,seconds=0,startedElapsed=SystemClock.elapsedRealtime(),boot=boot(),goalSeconds=StudyGoals.minutes(d.currentSnapshot()?.json?:"{}",p.id,topic.id,getApplication<Application>().getSharedPreferences("native_display",0).getInt("focusMinutes",50),blockId=blockId)*60L)))error.value="Conclua ou descarte o cronômetro atual antes de iniciar outro."
+            if(!d.startTimer(Timer(sessionId=UUID.randomUUID().toString(),planId=p.id,topicId=topic.id,seconds=0,startedElapsed=SystemClock.elapsedRealtime(),boot=boot(),blockReference=blockId.orEmpty(),goalSeconds=StudyGoals.minutes(d.currentSnapshot()?.json?:"{}",p.id,topic.id,getApplication<Application>().getSharedPreferences("native_display",0).getInt("focusMinutes",50),blockId=blockId)*60L)))error.value="Conclua ou descarte o cronômetro atual antes de iniciar outro."
         }catch(e:Exception){error.value=e.message?:"Não foi possível iniciar o estudo."}
     }
     fun elapsed(t:Timer)=TimerClock.elapsed(t,SystemClock.elapsedRealtime(),boot())
@@ -214,12 +214,14 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
     fun resume(t:Timer)=viewModelScope.launch{dao().changeTimer(t.sessionId,SystemClock.elapsedRealtime(),boot(),true)}
     fun refreshTimerNotice(){val t=timer.value?:return;val title=plans.value.find{it.id==t.planId}?.topics?.find{it.id==t.topicId}?.name?:"Estudo em andamento";StudyTimerService.connect(getApplication(),t,account.value?.uid.orEmpty(),title)}
     fun discard(t:Timer)=viewModelScope.launch{dao().clearTimer(t.sessionId)}
-    fun save(plan:Plan,topic:Topic,input:StudyInput,completed:Boolean,timer:Timer?,id:String,category:String="",date:LocalDate=LocalDate.now(),failed:()->Unit={},success:()->Unit){
+    fun save(plan:Plan,topic:Topic,input:StudyInput,completed:Boolean,timer:Timer?,id:String,category:String="",date:LocalDate=LocalDate.now(),blockReference:String="",failed:()->Unit={},success:()->Unit){
         val validation=StudyRules.error(input)?:if(date.isAfter(LocalDate.now()))"A data não pode estar no futuro." else null;if(validation!=null){error.value=validation;failed();return}
         viewModelScope.launch{try{
             val d=dao(plan.owner.takeIf{it.isNotEmpty()});val p=ensurePlan(plan,d);val now=date.atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val kind=category.ifBlank{if(input.questions>0)"questoes" else "teoria"}
-            val row=JSONObject().put("id",id).put("planoId",p.id).put("topicoId",topic.id).put("data",date.toString()).put("registradoEm",Instant.ofEpochMilli(System.currentTimeMillis()).toString()).put("tipo",kind).put("duracaoMin",input.seconds/60.0).put("qFeitas",input.questions).put("qCertas",input.correct).put("obs","").put("origemRegistroRapido","android")
+            val source=(timer?.blockReference?.takeIf{it.isNotBlank()}?:blockReference)
+            val block=(DailyStudyPlan.pending(d.currentSnapshot()?.json?:"{}",p,date)).find{it.reference==source&&it.topic.id==topic.id}
+            val kind=category.ifBlank{block?.kind?:if(input.questions>0)"questoes" else "teoria"}
+            val row=JSONObject().put("id",id).put("planoId",p.id).put("topicoId",topic.id).put("data",date.toString()).put("registradoEm",Instant.ofEpochMilli(System.currentTimeMillis()).toString()).put("tipo",kind).put("duracaoMin",input.seconds/60.0).put("qFeitas",input.questions).put("qCertas",input.correct).put("obs","").put("origemRegistroRapido","android").also{if(source.isNotBlank())it.put("androidBlocoReferencia",source)}
             if(plan.owner.isEmpty())d.record(Session(id,p.id,topic.id,input.seconds,input.questions,input.correct,now),completed,timer!=null,row.toString())
             else{
                 val s=row

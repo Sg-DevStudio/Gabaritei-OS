@@ -75,4 +75,25 @@ class StateCompatTest {
         val block=twice.getJSONArray("planos").getJSONObject(0).getJSONObject("plano").getJSONObject("ciclo").getJSONArray("blocos").getJSONObject(0)
         assertEquals(40,block.getInt("feitoMin"));assertEquals(1,block.getJSONObject("creditosCiclo").getJSONObject("eventos").length())
     }
+    @Test fun timedSessionCreditsTheChosenRepeatedBlockAndPreservesTheOthers(){
+        val initial=JSONObject(state())
+        fun block(id:String,minutes:Int)=JSONObject().put("id",id).put("planoId","pl-real").put("disciplinaId","D1").put("topicoId","T1").put("data","2026-10-29").put("duracaoMin",minutes).put("obs","teoria")
+        initial.put("agenda",JSONArray().put(block("short",30)).put(block("long",60)))
+        val op=session(completed=false);val payload=JSONObject(op.payload);payload.getJSONObject("session").put("androidBlocoReferencia","short")
+        val once=StateCompat.apply(initial.toString(),listOf(op.copy(payload=payload.toString())))
+        val result=JSONObject(StateCompat.apply(once,listOf(op.copy(payload=payload.toString()))))
+        val rows=result.array("agenda").objects();assertEquals(2,rows.size)
+        assertTrue(rows.first{it.getString("id")=="short"}.getBoolean("feito"))
+        assertEquals(0,rows.first{it.getString("id")=="long"}.optInt("feitoMin"))
+        assertEquals(1,result.array("sessoes").length())
+    }
+    @Test fun removedSourceBlockDoesNotCreditAnotherPendingStudy(){
+        val initial=JSONObject(state()).put("agenda",JSONArray().put(JSONObject().put("id","other").put("planoId","pl-real").put("disciplinaId","D1").put("topicoId","T1").put("data","2026-10-29").put("duracaoMin",60)))
+        val op=session(completed=false);val payload=JSONObject(op.payload);payload.getJSONObject("session").put("androidBlocoReferencia","removed")
+        val result=JSONObject(StateCompat.apply(initial.toString(),listOf(op.copy(payload=payload.toString()))))
+        assertEquals(0,result.array("agenda").getJSONObject(0).optInt("feitoMin"))
+        assertEquals(2,result.array("agenda").length());assertTrue(result.array("agenda").getJSONObject(1).getBoolean("extra"))
+        assertEquals(1,result.array("sessoes").length())
+    }
+
 }

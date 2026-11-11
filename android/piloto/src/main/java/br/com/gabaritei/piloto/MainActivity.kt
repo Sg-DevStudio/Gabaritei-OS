@@ -151,8 +151,10 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         }else if(!TimerNotices.activeAllowed(context)||!TimerNotices.alertAllowed(context))context.startActivity(Intent(SystemSettings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(SystemSettings.EXTRA_APP_PACKAGE,context.packageName))
         else {notifications=true;noticeAllowed=true;vm.refreshTimerNotice()}
     }
+    var today by remember{mutableStateOf(LocalDate.now())}
+    LaunchedEffect(Unit){while(true){today=LocalDate.now();kotlinx.coroutines.delay(30_000)}}
     val lifecycle=androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle){val observer=androidx.lifecycle.LifecycleEventObserver{_,event->if(event==androidx.lifecycle.Lifecycle.Event.ON_RESUME){noticeAllowed=TimerNotices.activeAllowed(context);notifications=TimerNotices.optedIn(context)&&TimerNotices.alertAllowed(context);precise=TimerNotices.precise(context);vm.refreshTimerNotice()}};lifecycle.addObserver(observer);onDispose{lifecycle.removeObserver(observer)}}
+    DisposableEffect(lifecycle){val observer=androidx.lifecycle.LifecycleEventObserver{_,event->if(event==androidx.lifecycle.Lifecycle.Event.ON_RESUME){today=LocalDate.now();noticeAllowed=TimerNotices.activeAllowed(context);notifications=TimerNotices.optedIn(context)&&TimerNotices.alertAllowed(context);precise=TimerNotices.precise(context);vm.refreshTimerNotice()}};lifecycle.addObserver(observer);onDispose{lifecycle.removeObserver(observer)}}
     LaunchedEffect(timer?.sessionId){
         timerScreen=timer!=null
         if(timer!=null&&Build.VERSION.SDK_INT>=33&&!TimerNotices.allowed(context)&&!preferences.getBoolean("timer_permission_asked",false)){
@@ -183,6 +185,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var picker by rememberSaveable { mutableStateOf(false) }
     var record by remember { mutableStateOf<Pair<Plan,Topic>?>(null) }
     var recordingTimer by remember { mutableStateOf<Timer?>(null) }
+    var recordingBlock by remember {mutableStateOf("")}
     var editLink by remember { mutableStateOf<Topic?>(null) }
     var chooseLink by remember { mutableStateOf<Topic?>(null) }
     var discard by remember { mutableStateOf<Timer?>(null) }
@@ -196,12 +199,13 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     var historyDay by rememberSaveable{mutableStateOf<String?>(null)}
     var historyFree by rememberSaveable{mutableStateOf(false)}
     var howTo by remember{mutableStateOf(false)}
-    val agenda=remember(raw,plan?.id){runCatching{JSONObject(raw).optJSONArray("agenda")?.objects()?.filter{it.optString("planoId")==plan?.id&&it.optString("data")==LocalDate.now().toString()&&!it.optBoolean("feito")}.orEmpty()}.getOrDefault(emptyList())}
+    val scheduled=remember(raw,plan,today){plan?.let{DailyStudyPlan.pending(raw,it,today)}.orEmpty()}
+    val nextStudy=scheduled.firstOrNull()
     val activeTopics=plan?.disciplines?.filter{!it.paused&&!it.archived}?.flatMap{it.topics}.orEmpty()
-    val selected=activeTopics.find { it.id==settings?.topicId } ?: activeTopics.firstOrNull { t -> progress.none { it.planId==plan?.id && it.topicId==t.id && it.completed } } ?: plan?.topics?.firstOrNull() ?: plan?.let{Topic("","Nenhum tópico ativo",null,"")}
-    val studyGoalMinutes=StudyGoals.minutes(raw,plan?.id.orEmpty(),selected?.id.orEmpty(),focusMinutes)
-    LaunchedEffect(account?.uid,plan?.id){moreMenu=false;studyActions=false;editalTopic=null;chooseLink=null;record=null;recordingTimer=null;editLink=null;picker=false;discard=null;freeStudy=false}
-    val nextSuggested=agenda.firstNotNullOfOrNull{a->activeTopics.find{it.id==a.optString("topicoId")&&it.id!=selected?.id}}?:activeTopics.firstOrNull{t->t.id!=selected?.id&&progress.none{it.planId==plan?.id&&it.topicId==t.id&&it.completed}}
+    val selected=nextStudy?.topic ?: activeTopics.find { it.id==settings?.topicId } ?: activeTopics.firstOrNull { t -> progress.none { it.planId==plan?.id && it.topicId==t.id && it.completed } } ?: plan?.topics?.firstOrNull() ?: plan?.let{Topic("","Nenhum tópico ativo",null,"")}
+    val studyGoalMinutes=nextStudy?.remainingMinutes?:focusMinutes
+    LaunchedEffect(account?.uid,plan?.id){moreMenu=false;studyActions=false;editalTopic=null;chooseLink=null;record=null;recordingTimer=null;editLink=null;picker=false;discard=null;freeStudy=false;recordingBlock="";recordCategory=""}
+    val nextSuggested=scheduled.drop(1).firstOrNull()
     val current=sessions.filter { it.planId==plan?.id }
     val historyRecords=if(historyFree)sessions.filter{it.planId.isEmpty()} else current
     val activities=remember(plan,current,raw){if(plan==null)emptyList() else StudyMetrics.activities(plan,current,raw)}
@@ -209,12 +213,12 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     val completed=remember(outline,progress){outline?.let{EditalOutline.completed(it,progress)}.orEmpty()}
     val snackbar=remember { SnackbarHostState() }
     LaunchedEffect(error){error?.let { snackbar.showSnackbar(it);vm.error.value=null }}
-    val destinations=listOf("Hoje","Planos","Caderno de questões","Estatísticas","Histórico","Planejamento","Disciplinas","Revisões","Edital","Redações")
+    val destinations=listOf("Hoje","Planos","Caderno de questões","Estatísticas","Histórico","Planejamento","Disciplinas","Revisões","Edital e provas","Redações")
     BackHandler(moreMenu||studyActions||tab!=0){when{moreMenu->moreMenu=false;studyActions->studyActions=false;tab==5&&organizeDisciplines->organizeDisciplines=false;else->tab=0}}
     fun finishTimer(t:Timer){
         val p=plans.firstOrNull{it.id==t.planId};val topic=p?.topics?.firstOrNull{it.id==t.topicId}
         if(p==null||topic==null){vm.error.value="O plano ou tópico foi removido. O tempo permanece salvo no aparelho.";return}
-        vm.pause(t);recordingTimer=t.copy(seconds=vm.elapsed(t),startedElapsed=null);record=p to topic
+        recordingBlock=t.blockReference;vm.pause(t);recordingTimer=t.copy(seconds=vm.elapsed(t),startedElapsed=null);record=p to topic
     }
     val visibleTimer=timer
     if(timerScreen&&visibleTimer!=null){
@@ -247,22 +251,28 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                         item(key="home-quote") { MotivationCard(onOpen) }
                             }
                             "study" -> {
-                        item(key="home-study") { if(activeTopics.isEmpty())Block{Text("Suas disciplinas estão pausadas ou arquivadas.");TextButton(onClick={tab=6}){Text("Organizar disciplinas")}}else Block {
-                            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("PLANEJAMENTO DO DIA",fontSize=10.sp,lineHeight=14.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM",Locale("pt","BR"))),fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.primary)}
+                        item(key="home-study") { if(activeTopics.isEmpty())Block{Text("Suas disciplinas estão pausadas ou arquivadas.");TextButton(onClick={organizeDisciplines=true;tab=5}){Text("Organizar disciplinas")}}else Block {
+                            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("PLANEJAMENTO DO DIA",fontSize=10.sp,lineHeight=14.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(today.format(DateTimeFormatter.ofPattern("dd MMM",Locale("pt","BR"))),fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.primary)}
+                            if(nextStudy==null){
+                                val finished=DailyStudyPlan.agenda(raw,plan,today).any{it.done}||DailyStudyPlan.cycle(raw,plan).any{it.done}
+                                Text(if(finished)"Planejamento concluído!"else"Nenhum estudo programado para hoje.",fontWeight=FontWeight.SemiBold)
+                                Text("Você pode estudar por conta própria ou abrir o planejamento.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                             Surface(shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.primaryContainer){Column(Modifier.fillMaxWidth().padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
-                                Text(if(studyGoalMinutes>0)"PRÓXIMO ESTUDO · $studyGoalMinutes MIN"else"PRÓXIMO ESTUDO · SEM META DE TEMPO",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text(if(nextStudy==null)"ESTUDO LIVRE · ${if(studyGoalMinutes>0)"$studyGoalMinutes MIN"else"SEM META DE TEMPO"}"else "${if(nextStudy.cycle)"PRÓXIMA ETAPA DO CICLO"else"PRÓXIMO ESTUDO"} · $studyGoalMinutes MIN",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onPrimaryContainer)
                                 Text(plan.discipline(selected).name,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
                                 Row(verticalAlignment=Alignment.CenterVertically) {
                                     Text(selected.name,Modifier.weight(1f),fontSize=13.sp,lineHeight=19.sp)
-                                    IconButton(onClick={picker=true},modifier=Modifier.size(48.dp)){Icon(Icons.Outlined.Edit,"Escolher tópico",Modifier.size(18.dp))}
+                                    IconButton(onClick={if(nextStudy==null)picker=true else tab=5},modifier=Modifier.size(48.dp)){Icon(Icons.Outlined.Edit,if(nextStudy==null)"Escolher tópico"else"Abrir planejamento",Modifier.size(18.dp))}
                                 }
                             }}
                             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                                Button(onClick={if(!plan.enrolled)creatingPlan=plan else vm.start(plan,selected)},enabled=timer==null&&activeTopics.isNotEmpty(),modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp)){Icon(Icons.Outlined.PlayArrow,null,Modifier.size(18.dp));Text("Iniciar estudo",fontSize=12.sp,lineHeight=17.sp)}
-                                OutlinedButton(enabled=activeTopics.isNotEmpty(),onClick={if(!plan.enrolled)creatingPlan=plan else {recordingTimer=null;record=plan to selected}},shape=RoundedCornerShape(14.dp)){Text("Registrar",fontSize=12.sp,lineHeight=17.sp)}
+                                Button(onClick={if(!plan.enrolled)creatingPlan=plan else vm.start(plan,selected,nextStudy?.reference)},enabled=timer==null&&activeTopics.isNotEmpty(),modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp)){Icon(Icons.Outlined.PlayArrow,null,Modifier.size(18.dp));Text("Iniciar estudo",fontSize=12.sp,lineHeight=17.sp)}
+                                OutlinedButton(enabled=activeTopics.isNotEmpty(),onClick={if(!plan.enrolled)creatingPlan=plan else {recordingTimer=null;recordingBlock=nextStudy?.reference.orEmpty();recordCategory=nextStudy?.kind.orEmpty();record=plan to selected}},shape=RoundedCornerShape(14.dp)){Text("Registrar",fontSize=12.sp,lineHeight=17.sp)}
                                 IconButton(onClick={tab=2}){Icon(painterResource(R.drawable.book_outline),"Abrir caderno de questões",tint=MaterialTheme.colorScheme.primary)}
                             }
-                            if(nextSuggested!=null){HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(5.dp)){Text("AINDA HOJE",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text(plan.discipline(nextSuggested).name,fontSize=12.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold);Text(nextSuggested.name,fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)};IconButton(onClick={vm.select(plan,nextSuggested)}){Icon(Icons.AutoMirrored.Outlined.ArrowForward,"Escolher próximo tópico",Modifier.size(18.dp))}}}
+                            if(nextSuggested!=null){HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(5.dp)){Text(if(nextSuggested.cycle)"DEPOIS NO CICLO"else"AINDA HOJE",fontSize=9.sp,lineHeight=13.sp,fontWeight=FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurfaceVariant);Text("${nextSuggested.discipline.name} · ${nextSuggested.remainingMinutes} min",fontSize=12.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold);Text(nextSuggested.topic.name,fontSize=11.sp,lineHeight=15.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2)};IconButton(onClick={tab=5}){Icon(Icons.AutoMirrored.Outlined.ArrowForward,"Ver planejamento completo",Modifier.size(18.dp))}}}
+                            TextButton(onClick={tab=5}){Text("Ver planejamento completo")}
                         } }
                             }
                             "metrics" -> {
@@ -325,7 +335,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     3 -> {item{StatisticsScreen(outline?:plan,activities,progress,raw,sessions,onOpen,achievements)}}
                     5 -> {item{Column(verticalArrangement=Arrangement.spacedBy(12.dp)){
                         if(organizeDisciplines){TextButton(onClick={organizeDisciplines=false}){Icon(Icons.AutoMirrored.Outlined.ArrowBack,null);Text("Voltar ao planejamento")};DisciplineManager(plan,raw,vm)}
-                        else{OutlinedButton(onClick={organizeDisciplines=true},modifier=Modifier.fillMaxWidth()){Icon(painterResource(R.drawable.book_outline),null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Organizar disciplinas")};PlanningScreen(plan,raw,vm,onChoose={vm.select(plan,it);picker=true},onStart={topic,blockId->vm.start(plan,topic,blockId);tab=0})}
+                        else{OutlinedButton(onClick={organizeDisciplines=true},modifier=Modifier.fillMaxWidth()){Icon(painterResource(R.drawable.book_outline),null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Organizar disciplinas")};PlanningScreen(plan,raw,vm,onRecord={topic,reference->recordingTimer=null;recordingBlock=reference;recordCategory=DailyStudyPlan.pending(raw,plan,today).find{it.reference==reference}?.kind.orEmpty();record=plan to topic},onStart={topic,blockId->vm.start(plan,topic,blockId);tab=0})}
                     }}}
                     6 -> {item{DisciplineManager(plan,raw,vm)}}
                     7 -> {
@@ -333,12 +343,12 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                         val due=runCatching{JSONObject(raw).array("revisoes").objects().filter{it.optString("planoId")==plan.id&&it.isNull("dataConcluida")&&it.optString("id") !in removed}.sortedBy{it.optString("dataAgendada")}}.getOrDefault(emptyList())
                         item{Text("Revisões programadas",style=MaterialTheme.typography.titleMedium);Text("Registre a revisão para atualizar a fila.",style=MaterialTheme.typography.bodySmall)}
                         if(due.isEmpty())item{Block{Text("Nenhuma revisão pendente.");Text("As revisões são sugeridas ao concluir um tópico.",style=MaterialTheme.typography.bodySmall)}}
-                        items(due,key={it.optString("id")}){r->val topic=plan.topics.find{it.id==r.optString("topicoId")};if(topic!=null)Block{Text(topic.name,fontWeight=FontWeight.SemiBold);Text("${r.optString("dataAgendada")} · ${r.optString("tipo")}",style=MaterialTheme.typography.bodySmall);TextButton(onClick={recordCategory="revisao";recordingTimer=null;record=plan to topic}){Text("Registrar revisão")};topic.link?.let{url->TextButton(onClick={onOpen(url)}){Text("Resolver questões ↗")}}}}
+                        items(due,key={it.optString("id")}){r->val topic=plan.topics.find{it.id==r.optString("topicoId")};if(topic!=null)Block{Text(topic.name,fontWeight=FontWeight.SemiBold);Text("${r.optString("dataAgendada")} · ${r.optString("tipo")}",style=MaterialTheme.typography.bodySmall);TextButton(onClick={recordCategory="revisao";recordingBlock="";recordingTimer=null;record=plan to topic}){Text("Registrar revisão")};topic.link?.let{url->TextButton(onClick={onOpen(url)}){Text("Resolver questões ↗")}}}}
                     }
                     4 -> {
                         item{Row(verticalAlignment=Alignment.CenterVertically){Checkbox(historyFree,{historyFree=it;historyDay=null});Text("Ver estudos livres",style=MaterialTheme.typography.bodyMedium)}}
                         item{Text("${historyRecords.size} ${if(historyRecords.size==1)"sessão" else "sessões"} · ${duration(historyRecords.sumOf { it.seconds })} estudados",style=MaterialTheme.typography.bodyMedium)}
-                        if(historyRecords.isEmpty())item{Block{Text("Seu primeiro registro aparecerá aqui.");TextButton(onClick={if(!plan.enrolled)creatingPlan=plan else {recordingTimer=null;record=plan to selected}}){Text("Registrar estudo")}}}
+                        if(historyRecords.isEmpty())item{Block{Text("Seu primeiro registro aparecerá aqui.");TextButton(onClick={if(!plan.enrolled)creatingPlan=plan else {recordingTimer=null;recordingBlock=nextStudy?.reference.orEmpty();recordCategory=nextStudy?.kind.orEmpty();record=plan to selected}}){Text("Registrar estudo")}}}
                         if(historyDay!=null)item{Row(verticalAlignment=Alignment.CenterVertically){Text("Registros de ${historyDay}",Modifier.weight(1f),style=MaterialTheme.typography.bodySmall);TextButton(onClick={historyDay=null}){Text("Ver todos")}}}
                         items(historyRecords.filter{historyDay==null||Instant.ofEpochMilli(it.endedAt).atZone(ZoneId.systemDefault()).toLocalDate().toString()==historyDay},key={it.id}) { s -> Block {
                             Text(StudyMetrics.sessionTitle(plan,s,raw),fontWeight=FontWeight.SemiBold)
@@ -351,7 +361,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         }
         if(moreMenu)MoreNavigationSheet(onClose={moreMenu=false},onNavigate={tab=it},onProfile={accountDialog=true},onReminders={reminderSettings=true},onEssays={tab=9})
     }
-    if(studyActions&&plan!=null&&selected!=null)StudyActionsSheet(selected.name,onClose={studyActions=false},onStart={if(!plan.enrolled)creatingPlan=plan else{vm.start(plan,selected);tab=0}},onRecord={if(!plan.enrolled)creatingPlan=plan else{recordingTimer=null;record=plan to selected}},onFree={freeStudy=true},canStart=timer==null&&activeTopics.isNotEmpty())
+    if(studyActions&&plan!=null&&selected!=null)StudyActionsSheet(selected.name,onClose={studyActions=false},onStart={if(!plan.enrolled)creatingPlan=plan else{vm.start(plan,selected,nextStudy?.reference);tab=0}},onRecord={if(!plan.enrolled)creatingPlan=plan else{recordingTimer=null;recordingBlock=nextStudy?.reference.orEmpty();recordCategory=nextStudy?.kind.orEmpty();record=plan to selected}},onFree={freeStudy=true},canStart=timer==null&&activeTopics.isNotEmpty())
     editalTopic?.let{t->if(outline!=null)ModalBottomSheet(onDismissRequest={editalTopic=null},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true),containerColor=MaterialTheme.colorScheme.surface){
         Column(Modifier.padding(20.dp).padding(bottom=16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
             Text(outline.discipline(t).name,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
@@ -419,7 +429,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
     if(confirmRemote)AlertDialog(onDismissRequest={confirmRemote=false},title={Text("Manter os dados do site?")},text={Text("As alterações pendentes serão guardadas em uma cópia local de recuperação e deixarão de ser enviadas. O app baixará o histórico do site.")},confirmButton={TextButton(onClick={confirmRemote=false;vm.keepRemote()}){Text("Manter versão do site")}},dismissButton={TextButton(onClick={confirmRemote=false}){Text("Cancelar")}})
     if(howTo)AlertDialog(onDismissRequest={howTo=false},title={Text("Como usar?")},text={Text("Toque no subtópico para resolver. Se houver mais de um link, escolha a plataforma. Pressione o subtópico para editar ou adicionar links.")},confirmButton={TextButton(onClick={howTo=false}){Text("Fechar")}})
     if(picker&&plan!=null) TopicPicker(plan,progress.filter{it.planId==plan.id},selected?.id,onClose={picker=false},onSelect={vm.select(plan,it);picker=false})
-    record?.let { (p,t) -> RecordDialog(p,t,recordingTimer,vm,recordCategory,onClose={record=null;recordingTimer=null;recordCategory=""}) }
+    record?.let { (p,t) -> RecordDialog(p,t,recordingTimer,vm,recordCategory,recordingBlock,onClose={record=null;recordingTimer=null;recordCategory="";recordingBlock=""}) }
     chooseLink?.let{t->if(plan!=null)NotebookChooser(t,notebookLinks[t.id].orEmpty().distinctBy{it.url},onClose={chooseLink=null},onOpen={chooseLink=null;onOpen(it)})}
     editLink?.let{t->if(plan!=null)NotebookLinksDialog(t,notebookLinks[t.id].orEmpty(),onClose={editLink=null},onSave={old,url,name,remove,done->vm.saveNotebookLink(plan,t,old,url,name,remove,done)})}
     discard?.let { t -> AlertDialog(onDismissRequest={discard=null},title={Text("Descartar cronômetro?")},text={Text("Este tempo não será registrado no histórico.")},confirmButton={TextButton(onClick={vm.discard(t);discard=null}){Text("Descartar")}},dismissButton={TextButton(onClick={discard=null}){Text("Continuar estudando")}}) }
@@ -452,7 +462,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         }
     }
 }
-@Composable private fun RecordDialog(plan:Plan,topic:Topic,timer:Timer?,vm:PilotViewModel,initialCategory:String="",onClose:()->Unit) {
+@Composable private fun RecordDialog(plan:Plan,topic:Topic,timer:Timer?,vm:PilotViewModel,initialCategory:String="",blockReference:String="",onClose:()->Unit) {
     val id=remember{timer?.sessionId?:UUID.randomUUID().toString()}
     var minutes by rememberSaveable{mutableStateOf("")};var questions by rememberSaveable{mutableStateOf("0")};var correct by rememberSaveable{mutableStateOf("0")}
     var completed by rememberSaveable{mutableStateOf(false)};var saving by remember{mutableStateOf(false)}
@@ -478,7 +488,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         val validation=StudyRules.error(input)
         if(validation!=null){validationMessage=validation;return@TextButton}
         val day=runCatching{LocalDate.parse(studyDate)}.getOrNull();if(day==null||day.isAfter(LocalDate.now())){validationMessage="Confira a data do estudo.";return@TextButton}
-        validationMessage=null;saving=true;vm.save(plan,topic,input,completed,timer,id,category,day,failed={saving=false;validationMessage="Não foi possível salvar. Tente novamente."}){onClose()}
+        validationMessage=null;saving=true;vm.save(plan,topic,input,completed,timer,id,category,day,blockReference=blockReference,failed={saving=false;validationMessage="Não foi possível salvar. Tente novamente."}){onClose()}
     }){Text(if(saving)"Salvando…" else "Salvar registro")}},dismissButton={TextButton(enabled=!saving,onClick=onClose){Text("Cancelar")}})
 }
 internal fun searchKey(value:String)=java.text.Normalizer.normalize(value,java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}"),"").lowercase(Locale.ROOT)

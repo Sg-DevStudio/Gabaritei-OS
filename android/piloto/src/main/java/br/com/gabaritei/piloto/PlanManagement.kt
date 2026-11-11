@@ -74,17 +74,37 @@ import java.util.UUID
     }){Text(if(saving)"Salvando…" else "Salvar estudo")}},dismissButton={TextButton(enabled=!saving,onClick=onClose){Text("Cancelar")}})
 }
 
-@Composable fun PlanningScreen(plan:Plan,raw:String,vm:PilotViewModel,onChoose:(Topic)->Unit,onStart:(Topic,String)->Unit){
+@Composable fun PlanningScreen(plan:Plan,raw:String,vm:PilotViewModel,onRecord:(Topic,String)->Unit,onStart:(Topic,String)->Unit){
     var date by rememberSaveable{mutableStateOf(LocalDate.now().toString())};var duration by remember{mutableStateOf<JSONObject?>(null)}
-    val blocks=runCatching{JSONObject(raw).array("agenda").objects().filter{it.optString("planoId")==plan.id&&it.optString("data")==date&&plan.disciplines.none{d->d.id==it.optString("disciplinaId")&&(d.paused||d.archived)}}}.getOrDefault(emptyList())
+    val blocks=DailyStudyPlan.agenda(raw,plan,LocalDate.parse(date))
+    val cycle=DailyStudyPlan.cycle(raw,plan)
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)){
         Text("Planejamento",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold)
-        val cycle=runCatching{JSONObject(raw).array("planos").objects().find{it.optString("id")==plan.id}?.obj("plano")?.optJSONObject("ciclo")}.getOrNull()
-        cycle?.let{c->Block{Text("Ciclo · volta ${c.optInt("volta",1)}",fontWeight=FontWeight.SemiBold);c.array("blocos").objects().filter{b->plan.disciplines.none{it.id==b.optString("disciplinaId")&&(it.paused||it.archived)}}.forEach{b->Text(plan.disciplines.find{it.id==b.optString("disciplinaId")}?.name?:"Etapa",style=MaterialTheme.typography.bodyMedium);Text("${b.optInt("feitoMin")} / ${b.optInt("metaMin")} min",style=MaterialTheme.typography.bodySmall);TextButton(onClick={duration=JSONObject(b.toString()).put("cycleBlock",true).put("duracaoMin",b.optInt("metaMin"))}){Text("Ajustar etapa")}}}}
-
+        if(cycle.isNotEmpty())Block{
+            val round=runCatching{DailyStudyPlan.metadata(JSONObject(raw),plan.id).obj("ciclo").optInt("volta",1)}.getOrDefault(1)
+            Text("Ciclo · volta $round",fontWeight=FontWeight.SemiBold)
+            cycle.forEach{b->
+                Text(b.discipline.name,style=MaterialTheme.typography.bodyMedium)
+                Text(b.topic.name,style=MaterialTheme.typography.bodySmall)
+                Text("${b.studied.toInt()} / ${b.minutes.toInt()} min${if(b.done)" · Concluído"else""}",style=MaterialTheme.typography.bodySmall)
+                Row{
+                    if(!b.done)TextButton(onClick={onStart(b.topic,b.reference)}){Text("Estudar")}
+                    TextButton(onClick={duration=JSONObject().put("id",b.id).put("cycleBlock",true).put("duracaoMin",b.minutes.toInt())}){Text("Ajustar etapa")}
+                }
+            }
+        }
         Row(verticalAlignment=Alignment.CenterVertically){IconButton(onClick={date=LocalDate.parse(date).minusDays(1).toString()}){Icon(Icons.Outlined.KeyboardArrowLeft,"Dia anterior")};Text(LocalDate.parse(date).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),Modifier.weight(1f));IconButton(onClick={date=LocalDate.parse(date).plusDays(1).toString()}){Icon(Icons.Outlined.KeyboardArrowRight,"Próximo dia")};TextButton(onClick={date=LocalDate.now().toString()}){Text("Hoje")}}
         if(blocks.isEmpty())Block{Text("Nenhum bloco neste dia.");Text("Escolha um tópico para estudar no seu ritmo.",style=MaterialTheme.typography.bodySmall)}
-        blocks.forEach{b->val topic=plan.topics.find{it.id==b.optString("topicoId")};Block{Text(plan.disciplines.find{it.id==b.optString("disciplinaId")}?.name?:"Estudo",fontWeight=FontWeight.SemiBold);topic?.let{Text(it.name,style=MaterialTheme.typography.bodySmall)};Text("${b.optDouble("feitoMin").toInt()} / ${b.optDouble("duracaoMin").toInt()} min${if(b.optBoolean("feito"))" · Concluído" else ""}",style=MaterialTheme.typography.bodySmall);Row{if(topic!=null&&!b.optBoolean("feito"))TextButton(onClick={onStart(topic,b.getString("id"))}){Text("Estudar")};if(topic!=null)TextButton(onClick={onChoose(topic)}){Text("Escolher tópico")};if(!b.optBoolean("feito"))TextButton(onClick={duration=b}){Text("Ajustar tempo")}}}}
+        blocks.forEach{b->Block{
+            Text(b.discipline.name,fontWeight=FontWeight.SemiBold)
+            Text(b.topic.name,style=MaterialTheme.typography.bodySmall)
+            Text("${b.studied.toInt()} / ${b.minutes.toInt()} min${if(b.done)" · Concluído"else if(b.studied>0)" · faltam ${b.remainingMinutes} min"else""}",style=MaterialTheme.typography.bodySmall)
+            Row{
+                if(!b.done)TextButton(onClick={onStart(b.topic,b.reference)}){Text("Estudar")}
+                TextButton(onClick={onRecord(b.topic,b.reference)}){Text("Registrar")}
+                if(!b.done)TextButton(onClick={duration=JSONObject().put("id",b.id).put("duracaoMin",b.minutes.toInt())}){Text("Ajustar tempo")}
+            }
+        }}
     }
     duration?.let{b->var value by remember{mutableStateOf(b.optInt("duracaoMin").toString())};var error by remember{mutableStateOf<String?>(null)}
         AlertDialog(onDismissRequest={duration=null},title={Text("Tempo deste bloco")},text={Column{OutlinedTextField(value,{value=it},label={Text("Minutos")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number));error?.let{Text(it)}}},confirmButton={TextButton(onClick={val m=value.toIntOrNull();if(m==null||m !in 1..720)error="Use de 1 a 720 minutos." else vm.edit(plan,JSONObject().put("action",if(b.optBoolean("cycleBlock"))"cycle-block" else "agenda").put("blockId",b.getString("id")).put("minutes",m)){err->if(err==null)duration=null else error=err}}){Text("Salvar")}},dismissButton={TextButton(onClick={duration=null}){Text("Cancelar")}})
