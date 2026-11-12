@@ -1,0 +1,47 @@
+name: Publicar atualização do APK
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag da versão Android já publicada
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  metadata:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'android-native-v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: build-tools;35.0.0
+          log-accepted-android-sdk-licenses: false
+      - name: Preparar metadados do APK publicado
+        run: |
+          mkdir -p "$RUNNER_TEMP/app-update"
+          gh release download "$RELEASE_TAG" --pattern Gabaritei.apk --dir "$RUNNER_TEMP/app-update"
+          node scripts/android-release-manifest.cjs --apk "$RUNNER_TEMP/app-update/Gabaritei.apk" --tag "$RELEASE_TAG" --out "$RUNNER_TEMP/app-update/android-release.json"
+      - name: Publicar aviso para os aplicativos
+        run: |
+          if gh release download "$RELEASE_TAG" --pattern android-release.json --dir "$RUNNER_TEMP/app-update/existing"; then
+            if cmp --silent "$RUNNER_TEMP/app-update/android-release.json" "$RUNNER_TEMP/app-update/existing/android-release.json"; then
+              echo "Metadados já conferidos e publicados."
+              exit 0
+            fi
+          fi
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/app-update/android-release.json" --clobber

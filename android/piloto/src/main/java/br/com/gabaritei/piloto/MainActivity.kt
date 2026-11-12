@@ -111,6 +111,10 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun PilotApp(vm:PilotViewModel=viewModel(),theme:String="system",onTheme:(String)->Unit={},fullscreen:Boolean=true,onFullscreen:(Boolean)->Unit={},onOpen:(String)->Unit,openTimerSession:String?=null,onTimerRequestHandled:()->Unit={}) {
+    val updates:AppUpdates=viewModel()
+    var updateDialog by rememberSaveable{mutableStateOf(false)}
+    val practiceBusy by vm.practice.busy.collectAsStateWithLifecycle()
+    val practiceUnsaved by vm.practice.pendingBankSave.collectAsStateWithLifecycle()
     val plans by vm.plans.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
     val sessions by vm.sessions.collectAsStateWithLifecycle()
@@ -391,6 +395,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
         Text(if(account==null)"Foto salva neste aparelho." else "Foto compartilhada com o site nesta conta.",style=MaterialTheme.typography.bodySmall)
         photoError?.let{Text(it,color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)}
         Button(onClick={accountDialog=false;achievementFromSettings=true;achievementDialog=true},modifier=Modifier.fillMaxWidth()){Icon(Icons.Outlined.Star,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Conquistas · ${achievements.count{it.earned}}/${achievements.size}")}
+        AppUpdateProfile(updates){updateDialog=true;updates.check(true)}
     },appearance={
         Text("Aparência",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.SemiBold)
         Row(horizontalArrangement=Arrangement.spacedBy(5.dp)){listOf("system" to "Auto","light" to "Claro","dark" to "Escuro").forEach{(key,label)->FilterChip(selected=theme==key,onClick={onTheme(key)},label={Text(label,fontSize=11.sp,lineHeight=15.sp)})}}
@@ -429,6 +434,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             TextButton(onClick={vm.signOut();accountDialog=false}){Text("Sair desta conta")}
         }
     })
+    AppUpdateHost(updates,updateDialog,allowPrompt=ready&&!studyIntro&&tab==0&&!accountDialog&&!moreMenu&&!achievementDialog&&timer?.startedElapsed==null&&!practiceBusy&&record==null&&!freeStudy&&creatingPlan==null&&!timerScreen,installationBlock=when{timer?.startedElapsed!=null->"Pause o cronômetro antes de instalar a atualização.";practiceBusy->"Aguarde a operação de estudo terminar antes de instalar.";practiceUnsaved->"Salve o progresso do caderno antes de instalar.";else->null}){updateDialog=false}
     if(reminderSettings)ReminderSettingsDialog{reminderSettings=false}
     if(achievementDialog)AchievementsDialog(achievements){achievementDialog=false;accountDialog=achievementFromSettings}
     creatingPlan?.let{p->CreatePlanDialog(p,onClose={creatingPlan=null},onCreate={routine,done->vm.createPlan(p,routine){message->if(message==null){creatingPlan=null;tab=0;focusMinutes=routine.blockMinutes}else done(message)}})}

@@ -1,0 +1,10 @@
+{
+  "versionCode": 27,
+  "versionName": "0.21.0",
+  "packageName": "br.com.gabaritei.os.piloto",
+  "minSdk": 26,
+  "sizeBytes": 13196423,
+  "sha256": "0607d4dcce03535cf15eaa3e466643c82dc9c80ca30ef9675797cbd13844da98",
+  "certificateSha256": "02b7a6d78db229e9106d5e4618f2a9bff088619ce4d92203ab2f67df49ce855c",
+  "apkUrl": "https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.21.0/Gabaritei.apk"
+}
