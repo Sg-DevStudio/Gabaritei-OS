@@ -50,3 +50,29 @@ test('modelo pessoal permitido muda o destino sem expor a chave',async()=>{
  await h.c.gerar({quantidade:1},[],null,null,{...credential,model:'gemini-3.8-flash'});
  assert.match(h.requests[0].url,/gemini-3\.8-flash:generateContent$/);assert.equal(h.requests[0].url.includes(credential.apiKey),false);
 });
+
+const groqCredential={provider:'groq',freeOnly:true,model:'openai/gpt-oss-120b',apiKey:'gsk_'+'x'.repeat(40)};
+function groq(response){const h=provider(response||{ok:true,json:async()=>({choices:[{finish_reason:'stop',message:{content:'{"ok":true}'}}]})});h.c.window.GabariteiIAConfig.groqModel=groqCredential.model;return h;}
+test('Groq envia chave somente no header, JSON e modelo explícito',async()=>{
+ const h=groq();assert.equal(await h.c.solicitar('JSON', [{text:'Material'}],null,null,groqCredential,12000),'{"ok":true}');
+ const r=h.requests[0],body=JSON.parse(r.options.body);assert.equal(r.url,'https://api.groq.com/openai/v1/chat/completions');assert.equal(r.options.headers.Authorization,'Bearer '+groqCredential.apiKey);
+ assert.equal(body.response_format.type,'json_object');assert.equal(body.model,groqCredential.model);assert.ok(body.max_completion_tokens<=3500);assert.ok(!r.options.body.includes(groqCredential.apiKey));
+});
+test('Groq rejeita PDF e material grande sem enviar ou cortar o original',async()=>{
+ const h=groq();await assert.rejects(h.c.solicitar('JSON',[{inlineData:{mimeType:'application/pdf',data:'YWJj'}}],null,null,groqCredential),/PDF/);
+ await assert.rejects(h.c.solicitar('JSON',[{text:'a'.repeat(20000)}],null,null,groqCredential),/Nenhum texto foi cortado/);assert.equal(h.requests.length,0);
+});
+test('Groq não aceita modelo arbitrário, flag paga ou chave inválida',async()=>{
+ const h=groq();for(const c of [{...groqCredential,freeOnly:false},{...groqCredential,model:'other'},{...groqCredential,apiKey:'bad'}])await assert.rejects(h.c.solicitar('JSON',[],null,null,c),/Configure/);assert.equal(h.requests.length,0);
+});
+test('erro de cota Groq oculta a chave e não troca de provedor',async()=>{
+ const h=groq({ok:false,status:429,json:async()=>({error:{message:'quota '+groqCredential.apiKey}})});
+ await assert.rejects(h.c.solicitar('JSON',[],null,null,groqCredential),e=>e.message.includes('Groq HTTP 429')&&!e.message.includes(groqCredential.apiKey));assert.equal(h.requests.length,1);
+});
+test('Groq rejeita resposta truncada e respeita cancelamento antes da chamada',async()=>{
+ const h=groq({ok:true,json:async()=>({choices:[{finish_reason:'length',message:{content:'{}'}}]})});await assert.rejects(h.c.solicitar('JSON',[],null,null,groqCredential),/incompleta/);
+ const c=new AbortController();c.abort();const clean=groq();await assert.rejects(clean.c.solicitar('JSON',[],c.signal,null,groqCredential),/cancelada/);assert.equal(clean.requests.length,0);
+});
+test('Groq informa a pausa entre chamadas gratuitas',async()=>{
+ const h=groq(),status=[];await h.c.solicitar('JSON',[],null,null,groqCredential);await h.c.solicitar('JSON',[],null,t=>status.push(t),groqCredential);assert.ok(status.some(t=>t.includes('aguardando a janela')));assert.equal(h.requests.length,2);
+});

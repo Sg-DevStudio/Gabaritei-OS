@@ -144,8 +144,9 @@ class AccountSync(private val context:Context, firebaseApp:FirebaseApp?=null) {
         if(kind=="questionSets")fields.putAll(mapOf("nome" to value.getString("nome"),"quantidade" to value.getJSONArray("questoes").length(),"arquivadoEm" to value.optString("arquivadoEm")))else fields.putAll(mapOf("tema" to value.getString("tema"),"excluidoEm" to value.optString("excluidoEm")))
         cloud.document("users/$uid/$kind/$id").set(fields).await();check(auth.currentUser?.uid==uid){"A conta mudou. O registro foi salvo na conta anterior."};return value
     }
-    internal suspend fun practiceCredential():JSONObject{
+    internal suspend fun practiceCredential(files:Boolean=false):JSONObject{
         val uid=auth.currentUser?.uid?:error("Entre com Google para usar a IA.")
+        if(!files){val groq=cloud.document("users/$uid/privateSettings/groq").get(Source.SERVER).await();check(auth.currentUser?.uid==uid){"A conta mudou."};if(groq.exists())return JSONObject(groq.data!!).put("provider","groq")}
         val personal=cloud.document("users/$uid/privateSettings/aiPersonal").get(Source.SERVER).await()
         val data=(if(personal.exists())personal else cloud.document("users/$uid/privateSettings/ai").get(Source.SERVER).await()).data?:error("A IA gratuita não está configurada para este perfil.")
         check(auth.currentUser?.uid==uid){"A conta mudou."};require(data["freeOnly"]==true){"Este perfil não está configurado para a cota gratuita."}

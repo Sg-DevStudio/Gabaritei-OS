@@ -68,3 +68,7 @@ test('exemplos de concursos são cadernos comuns, editáveis e com referências 
  const examples=require('../data/cadernos-exemplos.json');assert.equal(examples.length,3);
  for(const bank of examples){const clean=Q.caderno(bank);assert.equal(clean.questoes.length,5);assert.equal(clean.excluidoEm,'');assert.equal(clean.arquivadoEm,'');assert.equal(clean.id,'');assert.equal(/teste|fictíci/i.test(clean.nome),false);assert.ok(clean.questoes.every(q=>q.comentario.includes('Referência:')));}
 });
+
+test('lotes Groq respeitam cinco questões mantendo a meta personalizada',async()=>{
+ const chunks=[];const result=await Q.gerarEmLotes({...config,quantidade:12},async(c,ctx)=>{chunks.push(c.quantidade);return {questoes:Array.from({length:c.quantidade},(_,i)=>({...resposta().questoes[0],enunciado:'Assunto '+(ctx.geradas+i)}))};},undefined,5);assert.deepEqual(chunks,[5,5,2]);assert.equal(result.questoes.length,12);
+});

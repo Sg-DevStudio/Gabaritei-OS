@@ -203,3 +203,10 @@ test('chave pessoal é privada e não permite configurar provedores pagos', {ski
  await assertFails(setDoc(doc(owner,target),{...data,freeOnly:false}));await assertFails(setDoc(doc(owner,target),{...data,model:'other-model'}));
  await assertFails(setDoc(doc(owner,target),{...data,apiKey:'invalid'}));await assertSucceeds(deleteDoc(doc(owner,target)));
 });
+
+test('chave Groq é isolada por conta e limitada ao modelo permitido',{skip:!ativo},async()=>{
+ const owner=ambiente.authenticatedContext('aluno').firestore(),other=ambiente.authenticatedContext('outro').firestore(),anon=ambiente.unauthenticatedContext().firestore(),target='users/aluno/privateSettings/groq';
+ const data={apiKey:'gsk_'+'x'.repeat(40),model:'openai/gpt-oss-120b',freeOnly:true};
+ await assertSucceeds(setDoc(doc(owner,target),data));await assertSucceeds(getDoc(doc(owner,target)));await assertFails(getDoc(doc(other,target)));await assertFails(getDoc(doc(anon,target)));await assertFails(setDoc(doc(other,target),data));await assertFails(deleteDoc(doc(other,target)));
+ await assertFails(setDoc(doc(owner,target),{...data,model:'other'}));await assertFails(setDoc(doc(owner,target),{...data,freeOnly:false}));await assertFails(setDoc(doc(owner,target),{...data,apiKey:'invalid'}));await assertSucceeds(deleteDoc(doc(owner,target)));
+});

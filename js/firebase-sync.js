@@ -1108,7 +1108,8 @@ function usuarioQuestoesIA(){
   if(!usuario)throw new Error('Entre na sua conta para usar questões com IA.');
   return usuario;
 }
-async function obterConfiguracaoIAPessoal(user){
+async function obterConfiguracaoIAPessoal(user,arquivos=false){
+  if(!arquivos){const groq=await getDoc(doc(db,'users',user.uid,'privateSettings','groq'));if(usuario!==user)throw Error('A conta mudou.');if(groq.exists())return {...groq.data(),uid:user.uid,provider:'groq'};}
   if(configuracaoIAPessoal&&configuracaoIAPessoal.uid===user.uid)return configuracaoIAPessoal;
   const personal=await getDoc(doc(db,'users',user.uid,'privateSettings','aiPersonal'));
   const snapshot=personal.exists()?personal:await getDoc(doc(db,'users',user.uid,'privateSettings','ai'));
@@ -1132,23 +1133,35 @@ async function configurarIAPessoal(apiKey,model){
   if(usuario!==user)throw Error('A conta mudou. Reabra a configuração.');
   configuracaoIAPessoal=null;return {configurado:true,modelo:model};
 }
+async function configurarGroq(apiKey){
+ const user=usuarioQuestoesIA();apiKey=String(apiKey||'').trim();const model=window.GabariteiIAConfig.groqModel;
+ if(!/^gsk_[A-Za-z0-9_-]{20,200}$/.test(apiKey))throw Error('Cole uma chave válida do console Groq.');
+ const response=await fetch('https://api.groq.com/openai/v1/models',{headers:{Authorization:'Bearer '+apiKey}});
+ if(!response.ok)throw Error('Não foi possível validar sua chave Groq.');const result=await response.json();
+ if(!result.data?.some(m=>m.id===model))throw Error('O modelo escolhido não está disponível nesta conta Groq.');
+ if(usuario!==user)throw Error('A conta mudou.');
+ await setDoc(doc(db,'users',user.uid,'privateSettings','groq'),{apiKey,model,freeOnly:true});
+ if(usuario!==user)throw Error('A conta mudou.');return {modelo:model};
+}
+async function desativarGroq(){const user=usuarioQuestoesIA();await deleteDoc(doc(db,'users',user.uid,'privateSettings','groq'));if(usuario!==user)throw Error('A conta mudou.');return statusIAPessoal();}
 async function gerarQuestoesIA(config,parts,onStatus,origem){
   const user=usuarioQuestoesIA();
   if(parts.length!==1||!parts[0]||(!parts[0].text&&!parts[0].inlineData))throw new Error('Envie um material antes de gerar.');
+  const credential=await obterConfiguracaoIAPessoal(user,parts.some(p=>p.inlineData));
   return window.QuestoesIA.gerarEmLotes(config,async(chunk,contexto)=>{
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const controller=new AbortController();let timeout;
     const tarefa=(async()=>{
-      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-cadernos1'),obterConfiguracaoIAPessoal(user)]);
+      const [provider]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-groq1'),Promise.resolve(credential)]);
       if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
       if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
       const informar=()=>{if(onStatus)onStatus('Gerando '+(contexto.geradas+1)+'–'+(contexto.geradas+chunk.quantidade)+' de '+contexto.solicitadas+' questões · etapa '+contexto.indice+' de '+contexto.total+'…');};informar();
       const response=await provider.gerar(chunk,parts,controller.signal,informar,credential,contexto);
       if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');return response;
     })();
-    try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
+    try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},credential.provider==='groq'?150000:90000);})]);}
     finally{clearTimeout(timeout);}
-  },origem);
+  },origem,credential.provider==='groq'?5:20);
 }
 async function listarCadernosIA(){
   const user=usuarioQuestoesIA();
@@ -1177,14 +1190,14 @@ async function corrigirRedacao(input,onStatus){
   const user=usuarioQuestoesIA(),clean=window.Redacoes.preparar(input,true);
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-cadernos1'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-groq1'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,12000,window.Redacoes.avaliacaoSchema);
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     return window.Redacoes.validarAvaliacao(response,clean);
   })();
-  try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},90000);})]);}
+  try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(new Error('timeout: a conexão com a IA demorou. Tente novamente.'));},150000);})]);}
   finally{clearTimeout(timeout);}
 }
 async function transcreverRedacao(part,onStatus){
@@ -1193,7 +1206,7 @@ async function transcreverRedacao(part,onStatus){
   if(!data||!['application/pdf','image/jpeg','image/png','image/webp'].includes(data.mimeType)||typeof data.data!=='string'||data.data.length>14000000||!/^[A-Za-z0-9+/]+={0,2}$/.test(data.data))throw Error('Arquivo de transcrição inválido.');
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-cadernos1'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-groq1'),obterConfiguracaoIAPessoal(user,true)]);
     if(controller.signal.aborted)throw Error('timeout: transcrição cancelada.');
     if(usuario!==user)throw Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.promptTranscricao(),[part],controller.signal,onStatus,credential,12000,window.Redacoes.transcricaoSchema);
@@ -1218,7 +1231,7 @@ async function salvarRedacao(input){
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, excluirCadernoIA, statusIAPessoal, configurarIAPessoal, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, excluirCadernoIA, statusIAPessoal, configurarIAPessoal, configurarGroq, desativarGroq, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
   desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
 };

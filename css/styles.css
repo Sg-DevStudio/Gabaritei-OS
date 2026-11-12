@@ -5535,3 +5535,5 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .qia-chave-dialogo{max-width:min(560px,calc(100vw - 32px))}.qia-chave-form{display:grid;gap:1rem}.qia-chave-form label{display:grid;gap:.5rem}.qia-chave-form input[type=checkbox]{width:auto}.qia-chave-dialogo p{font-size:.85rem;line-height:1.6}.qia-chave-status{font-size:.85rem;color:var(--texto-secundario,#8f9bb4)}
 
 .qia-em-treino>.qia-chave{display:none!important}
+
+.qia-chave-dialogo{max-height:85dvh;overflow:auto}.qia-groq-form{display:grid;gap:1rem}.qia-groq-form label{display:grid;gap:.5rem}.qia-groq-form input[type=checkbox]{width:auto}.qia-chave-dialogo hr{margin:1.5rem 0;border:0;border-top:1px solid var(--linha,#ddd)}

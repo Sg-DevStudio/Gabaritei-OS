@@ -178,6 +178,17 @@ service cloud.firestore {
       allow list: if false;
     }
 
+    match /users/{userId}/privateSettings/groq {
+      allow get, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['apiKey','model','freeOnly'])
+        && request.resource.data.apiKey is string
+        && request.resource.data.apiKey.matches('^gsk_[A-Za-z0-9_-]{20,200}$')
+        && request.resource.data.model == 'openai/gpt-oss-120b'
+        && request.resource.data.freeOnly == true;
+      allow list: if false;
+    }
+
     // Cadernos autorais: privados, independentes do estado legado dos estudos.
     match /users/{userId}/questionSets/{setId} {
       allow read: if isOwner(userId);

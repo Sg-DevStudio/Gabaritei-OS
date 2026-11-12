@@ -82,10 +82,11 @@
       'Responda apenas JSON: {"questoes":[{"enunciado":"...","alternativas":[...],"correta":0,"comentario":"...","trecho":"...","pagina":1}]}.'
     ].join('\n');
   }
-  async function gerarEmLotes(config,solicitar,origem){
-    const c=configurar(config),questoes=[],total=Math.ceil(c.quantidade/20);
+  async function gerarEmLotes(config,solicitar,origem,tamanho=20){
+    tamanho=Number.isInteger(tamanho)&&tamanho>=1&&tamanho<=20?tamanho:20;
+    const c=configurar(config),questoes=[],total=Math.ceil(c.quantidade/tamanho);
     for(let lote=0;lote<total;lote++){
-      const chunk={...c,quantidade:Math.min(20,c.quantidade-questoes.length)},contexto={indice:lote+1,total,geradas:questoes.length,solicitadas:c.quantidade,anteriores:questoes.map(q=>q.enunciado.slice(0,300))};
+      const chunk={...c,quantidade:Math.min(tamanho,c.quantidade-questoes.length)},contexto={indice:lote+1,total,geradas:questoes.length,solicitadas:c.quantidade,anteriores:questoes.map(q=>q.enunciado.slice(0,300))};
       try{const raw=await solicitar(chunk,contexto),parsed=validar(raw,chunk,origem),data=typeof raw==='string'?JSON.parse(raw):raw;parsed.questoes.forEach((q,i)=>{q.pagina=data.questoes[i].pagina;});const usados=new Set(questoes.map(q=>q.enunciado.toLowerCase()));if(parsed.questoes.some(q=>usados.has(q.enunciado.toLowerCase())))throw Error('A IA repetiu uma questão entre as etapas.');questoes.push(...parsed.questoes);}
       catch(error){if(questoes.length){error.questoesParciais=questoes;error.quantidadeSolicitada=c.quantidade;}throw error;}
     }
