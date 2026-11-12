@@ -48,3 +48,27 @@ Limite: autenticação e sincronização com uma conta real não foram exercitad
 ## Android nativo — 29/10/2026
 
 A revisão do piloto 0.3 e suas limitações estão em [docs/android-design-qa.md](docs/android-design-qa.md). Este registro não altera os resultados anteriores do site.
+
+
+---
+
+# QA — prática visual de questões e cartões
+
+final result: passed
+
+Escopo: adaptação das três fotos do usuário (image-1794509497987.jpg, image-1794509688286.jpg e image-1794509804958.jpg) ao produto existente; não é uma cópia em pixels. As fotos têm perspectiva, outro conteúdo, densidade e enquadramento. Preservamos tipografia, marca, temas, fontes e autenticação do Gabaritei.
+
+## Comparação e iterações
+
+Referência e implementação foram reunidas em uma página de comparação visual, capturada em C:/tmp/gabaritei-qa-comparacao.png. Capturas individuais: C:/tmp/gabaritei-pratica-alternativas.png, C:/tmp/gabaritei-pratica-cartoes.png, C:/tmp/gabaritei-cartoes-mobile.png e C:/tmp/gabaritei-criar-teste-visual.png. As capturas de conteúdo são exemplos locais; não são cadernos de contas reais.
+
+1. P1: os ícones não carregavam por resolução relativa do CSS. Corrigido o caminho dos SVGs oficiais; nova captura mostra ícones de navegação, acerto, erro e expansão.
+2. P2: no modo imersivo móvel, o cabeçalho empurrava os botões de avaliação para fora da primeira tela. Reduzidos metadados/ações secundárias e espaçamentos nesse modo. Captura em 390 × 844 mostra cartão, Errei/Acertei e navegação sem corte horizontal.
+3. P1: um erro de gravação poderia ficar fora da região expandida. O alerta e o retry agora estão dentro da prática. Simulada uma falha e confirmada a recuperação, sem perda de resposta.
+4. P2: indicação de salvamento podia parecer concluída com progresso pendente. O cabeçalho agora distingue salvando, ainda não salvo e salvamento automático.
+
+## Resultado visual e funcional
+
+As alternativas agrupam resposta e justificativa, distinguindo seleção errada e gabarito por cor, texto e ícones. Os cartões mantêm a pergunta como foco, verso clicável e avaliação separada; quantidade/dificuldade/tema têm controles reais. A comparação final não identificou P0/P1/P2 pendente dentro desse recorte.
+
+Conferidos desktop, 390 × 844, temas claro e escuro, ações por clique e Espaço/setas. O navegador bloqueou a API nativa de fullscreen na automação; o modo imersivo foi validado. Console sem erros na execução final. Native Android: build, testes e lint aprovados; teste visual em aparelho permanece fora da validação, pois não há aparelho conectado. Geração por IA real não executada.

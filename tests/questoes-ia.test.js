@@ -69,6 +69,21 @@ test('exemplos de concursos são cadernos comuns, editáveis e com referências 
  for(const bank of examples){const clean=Q.caderno(bank);assert.equal(clean.questoes.length,5);assert.equal(clean.excluidoEm,'');assert.equal(clean.arquivadoEm,'');assert.equal(clean.id,'');assert.equal(/teste|fictíci/i.test(clean.nome),false);assert.ok(clean.questoes.every(q=>q.comentario.includes('Referência:')));}
 });
 
-test('lotes Groq respeitam cinco questões mantendo a meta personalizada',async()=>{
- const chunks=[];const result=await Q.gerarEmLotes({...config,quantidade:12},async(c,ctx)=>{chunks.push(c.quantidade);return {questoes:Array.from({length:c.quantidade},(_,i)=>({...resposta().questoes[0],enunciado:'Assunto '+(ctx.geradas+i)}))};},undefined,5);assert.deepEqual(chunks,[5,5,2]);assert.equal(result.questoes.length,12);
+test('lotes Groq com justificativas respeitam três questões por etapa',async()=>{
+ const chunks=[];const result=await Q.gerarEmLotes({...config,quantidade:12},async(c,ctx)=>{chunks.push(c.quantidade);return {questoes:Array.from({length:c.quantidade},(_,i)=>({...resposta().questoes[0],enunciado:'Assunto '+(ctx.geradas+i)}))};},undefined,3);assert.deepEqual(chunks,[3,3,3,3]);assert.equal(result.questoes.length,12);
+});
+
+test('justificativas por alternativa são opcionais em cadernos antigos e preservadas nos novos',()=>{
+ const raw=resposta();raw.questoes[0].explicacoes=['Razão A','Razão B','Razão C','Razão D','Razão E'];const bank=Q.validar(raw,config,origem);bank.respostas.q1=2;
+ const restored=Q.caderno(JSON.parse(JSON.stringify(bank)));assert.deepEqual(restored.questoes[0].explicacoes,raw.questoes[0].explicacoes);assert.equal(restored.respostas.q1,2);assert.equal(restored.questoes[1].explicacoes,undefined);
+ raw.questoes[0].explicacoes=['Incompleta'];assert.throws(()=>Q.validar(raw,config,origem),/justificativas/);
+});
+test('geração nova exige justificativas completas sem invalidar a leitura de versões antigas',async()=>{
+ await assert.rejects(Q.gerarEmLotes(config,async()=>resposta(),origem,10,true),/justificativas/);
+ const raw=resposta();raw.questoes.forEach(q=>q.explicacoes=q.alternativas.map((a,i)=>'Explicação '+i));const result=await Q.gerarEmLotes(config,async()=>raw,origem,10,true);assert.equal(result.questoes[0].explicacoes.length,5);
+});
+test('autoavaliação dos cartões é independente das respostas e conserva tentativas anteriores',()=>{
+ const bank=Q.validar(resposta(),config,origem);bank.respostas.q1=0;bank.treinoCartoes=Q.avaliarCartao(bank,'q1',false,'2026-11-12');bank.treinoCartoes=Q.avaliarCartao(bank,'q1',true,'2026-11-12');
+ const restored=Q.caderno(JSON.parse(JSON.stringify(bank)));assert.equal(restored.respostas.q1,0);assert.equal(restored.treinoCartoes.q1.acertos,1);assert.equal(restored.treinoCartoes.q1.erros,1);assert.equal(restored.treinoCartoes.q1.ultimo,'acertou');
+ assert.throws(()=>Q.avaliarCartao(bank,'inexistente',true,''));assert.throws(()=>Q.caderno({...bank,treinoCartoes:{q1:{acertos:-1,erros:0,ultimo:'acertou'}}}),/inválido/);
 });
