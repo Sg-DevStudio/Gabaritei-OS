@@ -1143,7 +1143,7 @@ textarea { min-height: 70px; resize: vertical; }
    nativo (cujo popup do calendário não dá para estilizar). */
 .seletor-mes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .seletor-mes .sm-mes { text-transform: capitalize; }
-input:focus, select:focus, textarea:focus { border-color: var(--caneta); outline: none; box-shadow: 0 0 0 3px var(--caneta-suave); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--caneta); outline: none; box-shadow: 0 0 0 3px var(--caneta-suave); }
 
 .campo-erro { border-color: var(--errado) !important; }
 .msg-erro { color: var(--errado); font-size: 0.82rem; margin-top: 0.25rem; }
@@ -5482,7 +5482,7 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .red-etapas{display:flex;flex-wrap:wrap;gap:12px 24px;color:var(--grafite);font-size:12px;border-bottom:1px solid var(--linha);padding-bottom:20px;margin-bottom:22px;}
 .red-etapas span:first-child{color:var(--caneta);}
 .redacoes form{display:grid;gap:18px;}.redacoes form>label{margin:0;}.redacoes input,.redacoes select,.redacoes textarea,.qia-hub input,.qia-hub textarea,.qia-hub select{border-radius:12px;transition:border-color .15s,box-shadow .15s;}
-.redacoes input:focus,.redacoes textarea:focus,.redacoes select:focus,.qia-hub input:focus,.qia-hub textarea:focus,.qia-hub select:focus{outline:2px solid var(--caneta);outline-offset:2px;}
+.redacoes input:focus-visible,.redacoes textarea:focus-visible,.redacoes select:focus-visible,.qia-hub input:focus-visible,.qia-hub textarea:focus-visible,.qia-hub select:focus-visible{outline:2px solid var(--caneta);outline-offset:2px;}
 .red-contexto summary{cursor:pointer;color:var(--caneta);font-size:13px;}.red-contexto .sub{margin:14px 0 0;}
 .red-folha-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;}.red-folha-topo label{margin:0;}.red-folha-topo span{font-size:12px;color:var(--grafite);font-variant-numeric:tabular-nums;}
 #red-texto{min-height:380px;font-size:16px;line-height:1.85;resize:vertical;padding:16px 18px;background-color:var(--campo);}
@@ -5566,3 +5566,7 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .qia-chave-dialogo [hidden]{display:none!important;}
 @media(max-width:520px){.qia-chave-dialogo{padding:20px;}.qia-chave-dialogo button{min-height:44px;}.qia-chave-dialogo .qia-chave-acoes button{flex:0 1 auto;}.qia-chave-conexao{gap:10px;}.qia-chave-conexao>div{min-width:0;}}
 @media(forced-colors:active){.qia-chave-dialogo .qia-chave-consentimento input[type=checkbox]{appearance:auto;}}
+
+/* Mouse/touch selection has no persistent focus halo; keyboard focus stays visible. */
+:root[data-interacao="ponteiro"] :is(input[type="checkbox"],input[type="radio"],select):focus{outline:none;box-shadow:none;}
+:root[data-interacao="ponteiro"] select:focus{border-color:var(--campo-borda);}

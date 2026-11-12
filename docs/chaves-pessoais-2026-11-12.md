@@ -13,3 +13,9 @@
 Botões menores no PC e com área de toque de 44 px no celular. Fechar é secundário; Conectar chave é a ação principal. Desconectar aparece numa área separada e apenas quando há Groq conectado. O consentimento tem marca de seleção azul com contraste, texto clicável e foco de teclado visível. Validação de consentimento ocorre dentro do card.
 
 Conferido no navegador em tela de PC e em 390 × 844, nos temas claro e escuro, com identidade/chaves sintéticas. Testados o clique no texto do consentimento, o aviso ao tentar conectar sem confirmar, os dois provedores no campo único e o desaparecimento da ação de desconectar quando não há Groq conectado. Nenhuma chamada real de geração ou chave de usuário foi usada na validação.
+
+## Foco dos controles de seleção no site
+
+As regras gerais de foco agora usam focus-visible. A modalidade de interação é identificada por pointerdown/keydown, porque o select nativo do Chrome também pode corresponder a focus-visible depois de um clique. Durante mouse/toque, caixinhas, rádios e listas não exibem contorno ou sombra de foco persistente. O foco continua no elemento e a indicação de teclado volta ao usar as teclas, sem blur forçado nem alteração do estado selecionado.
+
+Verificação no navegador: marcar/desmarcar nas regras gerais, nos cadernos e nas redações; alternar rádio; abrir/fechar select; Tab para checkbox e select. Confirmados outline/shadow ausentes após clique e outline de teclado preservado. Sem erros de console. O teste local não gravou dados de contas.
