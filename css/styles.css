@@ -5536,4 +5536,11 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 
 .qia-em-treino>.qia-chave{display:none!important}
 
-.qia-chave-dialogo{max-height:85dvh;overflow:auto}.qia-groq-form{display:grid;gap:1rem}.qia-groq-form label{display:grid;gap:.5rem}.qia-groq-form input[type=checkbox]{width:auto}.qia-chave-dialogo hr{margin:1.5rem 0;border:0;border-top:1px solid var(--linha,#ddd)}
+.qia-chave-dialogo{max-height:85dvh;overflow:auto}
+
+/* A configuração de IA também fica acessível a contas sem chave/plano. */
+.qia-chave-dialogo form label:has(input[type=checkbox]){display:flex;align-items:flex-start;gap:.65rem;font-size:.8rem;line-height:1.5}
+.qia-chave-dialogo input[type=checkbox]{width:18px!important;height:18px!important;min-height:18px!important;flex:0 0 18px;margin:2px 0 0;padding:0}
+.qia-provedor-aviso:empty{display:none}
+
+.qia-chave-dialogo [hidden]{display:none!important}

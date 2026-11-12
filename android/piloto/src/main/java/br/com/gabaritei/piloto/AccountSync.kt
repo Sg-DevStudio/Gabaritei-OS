@@ -144,11 +144,29 @@ class AccountSync(private val context:Context, firebaseApp:FirebaseApp?=null) {
         if(kind=="questionSets")fields.putAll(mapOf("nome" to value.getString("nome"),"quantidade" to value.getJSONArray("questoes").length(),"arquivadoEm" to value.optString("arquivadoEm")))else fields.putAll(mapOf("tema" to value.getString("tema"),"excluidoEm" to value.optString("excluidoEm")))
         cloud.document("users/$uid/$kind/$id").set(fields).await();check(auth.currentUser?.uid==uid){"A conta mudou. O registro foi salvo na conta anterior."};return value
     }
+    internal suspend fun practiceAIStatus():String{
+        val uid=auth.currentUser?.uid?:return "Entre com Google para configurar sua IA."
+        val entries=listOf("groq" to "Groq", "aiPersonal" to "Gemini", "ai" to "Gemini")
+        val active=mutableListOf<String>()
+        for((document,label) in entries){
+            val snapshot=cloud.document("users/$uid/privateSettings/$document").get(Source.SERVER).await()
+            check(auth.currentUser?.uid==uid){"A conta mudou."}
+            if(snapshot.exists()&&active.none{it.startsWith(label)})active+="$label · ${snapshot.getString("model").orEmpty()}"
+        }
+        return active.joinToString("\n").ifBlank{"Conecte sua própria chave Gemini ou Groq para gerar questões."}
+    }
+    internal suspend fun configurePracticeAI(key:String,provider:String,model:String){
+        val uid=auth.currentUser?.uid?:error("Entre com Google para configurar sua IA.")
+        PersonalAI.checkAccess(key,provider,model)
+        check(auth.currentUser?.uid==uid){"A conta mudou. Reabra a configuração."}
+        cloud.document("users/$uid/privateSettings/${if(provider=="groq")"groq"else"aiPersonal"}").set(mapOf("apiKey" to key,"model" to model,"freeOnly" to true)).await()
+        check(auth.currentUser?.uid==uid){"A conta mudou. Reabra a configuração."}
+    }
     internal suspend fun practiceCredential(files:Boolean=false):JSONObject{
         val uid=auth.currentUser?.uid?:error("Entre com Google para usar a IA.")
         if(!files){val groq=cloud.document("users/$uid/privateSettings/groq").get(Source.SERVER).await();check(auth.currentUser?.uid==uid){"A conta mudou."};if(groq.exists())return JSONObject(groq.data!!).put("provider","groq")}
         val personal=cloud.document("users/$uid/privateSettings/aiPersonal").get(Source.SERVER).await()
-        val data=(if(personal.exists())personal else cloud.document("users/$uid/privateSettings/ai").get(Source.SERVER).await()).data?:error("A IA gratuita não está configurada para este perfil.")
+        val data=(if(personal.exists())personal else cloud.document("users/$uid/privateSettings/ai").get(Source.SERVER).await()).data?:error("Conecte sua chave em Cadernos → Ajustar minha IA. Para PDF e foto, conecte Gemini.")
         check(auth.currentUser?.uid==uid){"A conta mudou."};require(data["freeOnly"]==true){"Este perfil não está configurado para a cota gratuita."}
         return JSONObject(data)
     }

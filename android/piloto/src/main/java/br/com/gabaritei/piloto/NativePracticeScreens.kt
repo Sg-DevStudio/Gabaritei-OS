@@ -47,7 +47,7 @@ import org.json.JSONObject
     LaunchedEffect(Unit){repo.load("questionSets")}
     if(bank!=null){NativeQuestionFocus(repo,bank!!,modifier,onCreate={repo.currentBank.value=null;repo.file.value=null;onSection(2)}){repo.currentBank.value=null};return}
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-        NotebookSections(section,onSection);PracticeMessage(repo)
+        NotebookSections(section,onSection);PersonalAICard(repo);PracticeMessage(repo)
         if(section==2){
             Text("Crie com o seu material",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
             Text("Questões autorais organizadas por disciplina e assunto.",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
@@ -64,7 +64,7 @@ import org.json.JSONObject
                 listOf("multipla5" to "Múltipla escolha · 5 alternativas","multipla4" to "Múltipla escolha · 4 alternativas","certoerrado" to "Certo ou errado").forEach{(id,label)->Row(Modifier.fillMaxWidth().selectable(draft.optString("formato")==id,enabled=!busy,role=Role.RadioButton,onClick={edit("formato",id)}),verticalAlignment=Alignment.CenterVertically){RadioButton(draft.optString("formato")==id,onClick=null);Text(label,style=MaterialTheme.typography.bodyMedium)}}
                 var quantity by rememberSaveable{mutableStateOf(draft.optInt("quantidade",10).toString())}
                 OutlinedTextField(quantity,{quantity=it.filter(Char::isDigit).take(3);edit("quantidade",quantity.toIntOrNull()?:0)},Modifier.fillMaxWidth(),label={Text("Quantidade · de 1 a 100")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,enabled=!busy)
-                Text("Ao gerar, o material será enviado ao Gemini. Na cota gratuita, o Google pode usá-lo para melhorar seus produtos. O arquivo original não fica salvo. Disponível no perfil pessoal configurado.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Ao gerar, o material será enviado ao provedor configurado. Groq recebe texto; PDF e foto usam Gemini. Na cota gratuita, o Google pode usá-lo para melhorar seus produtos. O arquivo original não fica salvo. Disponível no perfil pessoal configurado.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                 Button(onClick={repo.generate()},enabled=!busy,modifier=Modifier.fillMaxWidth(),contentPadding=PaddingValues(16.dp)){Text(if(busy)"Gerando…"else"Gerar e salvar caderno")}
             }
         }else{

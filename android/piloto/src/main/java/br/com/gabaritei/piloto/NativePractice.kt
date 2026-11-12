@@ -71,10 +71,19 @@ internal suspend fun readPracticeFile(context:Context,uri:Uri,essay:Boolean):Pra
 }
 internal class NativePracticeRepository(private val cloud:AccountSync,private val scope:CoroutineScope){
     val banks=MutableStateFlow<List<JSONObject>>(emptyList());val essays=MutableStateFlow<List<JSONObject>>(emptyList());val busy=MutableStateFlow(false);val message=MutableStateFlow("");val currentBank=MutableStateFlow<JSONObject?>(null);val essay=MutableStateFlow<JSONObject?>(null)
+    val aiOwner=MutableStateFlow("")
+    val aiStatus=MutableStateFlow("Verificando sua configuração de IA…")
+    private var aiRefresh:Job?=null
+    fun refreshAI(){val uid=owner;aiRefresh?.cancel();aiRefresh=scope.launch{try{val status=cloud.practiceAIStatus();checkOwner(uid);aiStatus.value=status}catch(e:CancellationException){throw e}catch(_:Throwable){if(owner==uid)aiStatus.value="Ajuste sua chave Gemini ou Groq na sua conta."}}}
+    fun configureAI(key:String,provider:String,model:String,onSaved:()->Unit)=run{uid->
+        message.value="Validando sua chave…";cloud.configurePracticeAI(key.trim(),provider,model);checkOwner(uid)
+        aiStatus.value=cloud.practiceAIStatus();checkOwner(uid)
+        message.value="Chave conectada. Modelo: $model. A geração depende da cota disponível na sua conta.";onSaved()
+    }
     val pendingBankSave=MutableStateFlow(false)
     val questionDraft=MutableStateFlow(JSONObject().put("nome","").put("disciplina","").put("assunto","").put("texto","").put("formato","multipla5").put("quantidade",10))
     val file=MutableStateFlow<PracticeFile?>(null);private var owner="";private var operation:Job?=null
-    fun bind(uid:String){if(uid==owner)return;operation?.cancel();owner=uid;banks.value=emptyList();essays.value=emptyList();busy.value=false;message.value="";pendingBankSave.value=false;currentBank.value=null;essay.value=null;file.value=null;questionDraft.value=JSONObject().put("nome","").put("disciplina","").put("assunto","").put("texto","").put("formato","multipla5").put("quantidade",10)}
+    fun bind(uid:String){if(uid==owner)return;operation?.cancel();aiRefresh?.cancel();aiOwner.value=uid;aiStatus.value="Conecte sua própria chave Gemini ou Groq.";owner=uid;banks.value=emptyList();essays.value=emptyList();busy.value=false;message.value="";pendingBankSave.value=false;currentBank.value=null;essay.value=null;file.value=null;questionDraft.value=JSONObject().put("nome","").put("disciplina","").put("assunto","").put("texto","").put("formato","multipla5").put("quantidade",10)}
     private fun run(work:suspend(String)->Unit){if(busy.value)return;val uid=owner;if(uid.isBlank()){message.value="Entre com Google no perfil para acessar seus registros privados.";return};busy.value=true;message.value="";operation=scope.launch{try{work(uid)}catch(e:CancellationException){throw e}catch(e:Throwable){if(owner==uid)message.value=NativePractice.error(e)}finally{if(owner==uid)busy.value=false}}}
     private fun checkOwner(uid:String){check(owner==uid&&cloud.auth.currentUser?.uid==uid){"A conta mudou."}}
     fun load(kind:String)=run{uid->message.value="Atualizando seus registros…";val rows=cloud.practiceList(kind).filter{runCatching{if(kind=="essays")NativePractice.validateEssay(it)else NativePractice.validateBank(it)}.isSuccess};checkOwner(uid);if(kind=="essays")essays.value=rows else banks.value=rows;message.value=""}
