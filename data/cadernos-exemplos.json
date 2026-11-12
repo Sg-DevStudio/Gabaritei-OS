@@ -1,0 +1,293 @@
+[
+  {
+    "nome": "Administração Pública · Princípios constitucionais",
+    "config": {
+      "nome": "Administração Pública · Princípios constitucionais",
+      "disciplina": "Direito Administrativo",
+      "assunto": "Art. 37, caput",
+      "formato": "multipla5",
+      "quantidade": 5,
+      "dificuldade": "intermediaria",
+      "planoId": "",
+      "planoNome": ""
+    },
+    "questoes": [
+      {
+        "enunciado": "Qual conjunto contém somente princípios expressos no caput do art. 37 da Constituição?",
+        "alternativas": [
+          "Legalidade, conveniência e eficiência",
+          "Legalidade, impessoalidade, moralidade, publicidade e eficiência",
+          "Publicidade, oportunidade e hierarquia",
+          "Moralidade, sigilo e conveniência",
+          "Eficiência, autonomia e oportunidade"
+        ],
+        "correta": 1,
+        "comentario": "O caput enumera cinco princípios expressos. Conveniência e oportunidade não integram essa enumeração. Referência: CF, art. 37, caput.",
+        "trecho": "legalidade, impessoalidade, moralidade, publicidade e eficiência",
+        "pagina": null,
+        "id": "q1"
+      },
+      {
+        "enunciado": "Uma autarquia federal sustenta que os princípios do art. 37 só obrigam ministérios. À luz do caput, essa afirmação está:",
+        "alternativas": [
+          "Correta, pois autarquias têm personalidade própria",
+          "Correta apenas para a publicidade",
+          "Incorreta, pois a administração indireta também está abrangida",
+          "Correta quando a autarquia arrecada receitas próprias",
+          "Incorreta apenas para empresas privadas"
+        ],
+        "correta": 2,
+        "comentario": "O dispositivo abrange a administração direta e indireta. Personalidade própria não exclui a autarquia desse alcance. Referência: CF, art. 37, caput.",
+        "trecho": "A administração pública direta e indireta",
+        "pagina": null,
+        "id": "q2"
+      },
+      {
+        "enunciado": "Segundo o art. 37, caput, os princípios administrativos alcançam a administração de quais Poderes?",
+        "alternativas": [
+          "Somente do Executivo",
+          "Somente do Executivo e Legislativo",
+          "Somente do Judiciário",
+          "De qualquer dos Poderes",
+          "Apenas de órgãos com poder de polícia"
+        ],
+        "correta": 3,
+        "comentario": "A Constituição se refere a qualquer dos Poderes. A regra não se limita ao Executivo. Referência: CF, art. 37, caput.",
+        "trecho": "de qualquer dos Poderes",
+        "pagina": null,
+        "id": "q3"
+      },
+      {
+        "enunciado": "Um município afirma que o caput do art. 37 se aplica apenas à União. Qual resposta corresponde ao texto constitucional?",
+        "alternativas": [
+          "A afirmação é incorreta: os Municípios também estão incluídos",
+          "A afirmação é correta para a administração direta",
+          "A aplicação depende de convênio com a União",
+          "Somente capitais estão abrangidas",
+          "A regra alcança apenas Estados e Distrito Federal"
+        ],
+        "correta": 0,
+        "comentario": "O caput inclui União, Estados, Distrito Federal e Municípios. Não depende de convênio. Referência: CF, art. 37, caput.",
+        "trecho": "da União, dos Estados, do Distrito Federal e dos Municípios",
+        "pagina": null,
+        "id": "q4"
+      },
+      {
+        "enunciado": "Assinale o princípio que NÃO aparece expressamente na enumeração do caput do art. 37.",
+        "alternativas": [
+          "Moralidade",
+          "Publicidade",
+          "Impessoalidade",
+          "Eficiência",
+          "Oportunidade"
+        ],
+        "correta": 4,
+        "comentario": "Oportunidade não integra a lista expressa do caput. Isso não dispensa o estudo de outros princípios e conceitos administrativos. Referência: CF, art. 37, caput.",
+        "trecho": "legalidade, impessoalidade, moralidade, publicidade e eficiência",
+        "pagina": null,
+        "id": "q5"
+      }
+    ],
+    "respostas": {},
+    "origem": {
+      "arquivo": "https://www.camara.leg.br/internet/infdoc/novoconteudo/html/leginfra/ArtCF0820.htm",
+      "paginas": []
+    },
+    "arquivadoEm": "",
+    "excluidoEm": ""
+  },
+  {
+    "nome": "Licitações · Fundamentos constitucionais",
+    "config": {
+      "nome": "Licitações · Fundamentos constitucionais",
+      "disciplina": "Direito Administrativo",
+      "assunto": "Art. 37, XXI",
+      "formato": "multipla5",
+      "quantidade": 5,
+      "dificuldade": "intermediaria",
+      "planoId": "",
+      "planoNome": ""
+    },
+    "questoes": [
+      {
+        "enunciado": "Segundo o art. 37, XXI, o processo de licitação pública deve assegurar:",
+        "alternativas": [
+          "Preferência irrestrita a fornecedores locais",
+          "Igualdade de condições a todos os concorrentes",
+          "Escolha livre pelo gestor",
+          "Dispensa de obrigações de pagamento",
+          "Sigilo permanente das condições de participação"
+        ],
+        "correta": 1,
+        "comentario": "A igualdade de condições está expressamente prevista. O inciso não concede liberdade irrestrita de escolha ao gestor. Referência: CF, art. 37, XXI.",
+        "trecho": "igualdade de condições a todos os concorrentes",
+        "pagina": null,
+        "id": "q1"
+      },
+      {
+        "enunciado": "O dever constitucional de licitar admite exceções?",
+        "alternativas": [
+          "Não, em nenhuma hipótese",
+          "Sim, sempre que houver urgência declarada verbalmente",
+          "Sim, nos casos especificados na legislação",
+          "Sim, por preferência pessoal do gestor",
+          "Somente mediante autorização judicial"
+        ],
+        "correta": 2,
+        "comentario": "O inciso ressalva os casos especificados na legislação. A ressalva não equivale a autorização genérica de contratação direta. Referência: CF, art. 37, XXI.",
+        "trecho": "ressalvados os casos especificados na legislação",
+        "pagina": null,
+        "id": "q2"
+      },
+      {
+        "enunciado": "A Constituição limita exigências de qualificação técnica e econômica às que sejam:",
+        "alternativas": [
+          "As mais rigorosas imagináveis",
+          "Fixadas livremente pelo concorrente vencedor",
+          "Idênticas em qualquer objeto",
+          "Indispensáveis à garantia do cumprimento das obrigações",
+          "Substituídas por indicação política"
+        ],
+        "correta": 3,
+        "comentario": "A exigência deve ser indispensável à garantia do cumprimento das obrigações. Não pode decorrer de preferência arbitrária. Referência: CF, art. 37, XXI.",
+        "trecho": "indispensáveis à garantia do cumprimento das obrigações",
+        "pagina": null,
+        "id": "q3"
+      },
+      {
+        "enunciado": "Qual grupo de objetos está expressamente mencionado no art. 37, XXI?",
+        "alternativas": [
+          "Obras, serviços, compras e alienações",
+          "Somente obras e serviços de engenharia",
+          "Somente compras de material permanente",
+          "Somente concessões de aposentadoria",
+          "Somente nomeações e promoções"
+        ],
+        "correta": 0,
+        "comentario": "O inciso menciona obras, serviços, compras e alienações. Nomeações e aposentadorias não integram essa enumeração. Referência: CF, art. 37, XXI.",
+        "trecho": "as obras, serviços, compras e alienações",
+        "pagina": null,
+        "id": "q4"
+      },
+      {
+        "enunciado": "As cláusulas referidas no art. 37, XXI, devem estabelecer obrigações de pagamento, mantendo:",
+        "alternativas": [
+          "As preferências pessoais da autoridade",
+          "As condições de qualquer concorrente",
+          "A possibilidade de alterar livremente a proposta",
+          "A remuneração pessoal do agente",
+          "As condições efetivas da proposta"
+        ],
+        "correta": 4,
+        "comentario": "O texto constitucional determina a manutenção das condições efetivas da proposta, nos termos da lei. Referência: CF, art. 37, XXI.",
+        "trecho": "mantidas as condições efetivas da proposta",
+        "pagina": null,
+        "id": "q5"
+      }
+    ],
+    "respostas": {},
+    "origem": {
+      "arquivo": "https://www.camara.leg.br/internet/infdoc/novoconteudo/html/leginfra/ArtCF0820.htm",
+      "paginas": []
+    },
+    "arquivadoEm": "",
+    "excluidoEm": ""
+  },
+  {
+    "nome": "Servidores federais · Posse e exercício",
+    "config": {
+      "nome": "Servidores federais · Posse e exercício",
+      "disciplina": "Direito Administrativo",
+      "assunto": "Lei 8.112/1990, arts. 13 a 15",
+      "formato": "multipla5",
+      "quantidade": 5,
+      "dificuldade": "intermediaria",
+      "planoId": "",
+      "planoNome": ""
+    },
+    "questoes": [
+      {
+        "enunciado": "Qual é o prazo geral para a posse, contado da publicação do ato de provimento, segundo a Lei 8.112/1990?",
+        "alternativas": [
+          "Quinze dias",
+          "Trinta dias",
+          "Cinco dias úteis",
+          "Sessenta dias",
+          "Noventa dias"
+        ],
+        "correta": 1,
+        "comentario": "A regra geral é de trinta dias. O prazo de quinze dias se refere à entrada em exercício após a posse. Referência: Lei 8.112/1990, art. 13, § 1º.",
+        "trecho": "A posse ocorrerá no prazo de trinta dias",
+        "pagina": null,
+        "id": "q1"
+      },
+      {
+        "enunciado": "Um servidor federal tomou posse e não se enquadra em hipótese especial. Em quanto tempo deve entrar em exercício?",
+        "alternativas": [
+          "Trinta dias da nomeação",
+          "Dez dias da homologação",
+          "Quinze dias da posse",
+          "Sessenta dias da publicação do edital",
+          "Cinco dias da classificação"
+        ],
+        "correta": 2,
+        "comentario": "O prazo é de quinze dias contados da posse. Não se confunde com o prazo para tomar posse. Referência: Lei 8.112/1990, art. 15, § 1º.",
+        "trecho": "contados da data da posse",
+        "pagina": null,
+        "id": "q2"
+      },
+      {
+        "enunciado": "A posse em cargo público depende de prévia:",
+        "alternativas": [
+          "Indicação de sindicato",
+          "Avaliação de produtividade semestral",
+          "Autorização de outro candidato",
+          "Inspeção médica oficial",
+          "Conclusão do estágio probatório"
+        ],
+        "correta": 3,
+        "comentario": "A inspeção médica oficial antecede a posse. O estágio probatório não é requisito para tomar posse. Referência: Lei 8.112/1990, art. 14.",
+        "trecho": "A posse em cargo público dependerá de prévia inspeção médica oficial.",
+        "pagina": null,
+        "id": "q3"
+      },
+      {
+        "enunciado": "Como a Lei 8.112/1990 define exercício?",
+        "alternativas": [
+          "Efetivo desempenho das atribuições do cargo público ou da função de confiança",
+          "Aprovação no concurso público",
+          "Publicação do edital de abertura",
+          "Assinatura do requerimento de inscrição",
+          "Homologação do resultado final"
+        ],
+        "correta": 0,
+        "comentario": "Exercício é o desempenho efetivo das atribuições. Aprovação e homologação são acontecimentos distintos. Referência: Lei 8.112/1990, art. 15, caput.",
+        "trecho": "Exercício é o efetivo desempenho das atribuições",
+        "pagina": null,
+        "id": "q4"
+      },
+      {
+        "enunciado": "Se a posse não ocorrer no prazo legal aplicável, qual consequência prevê o art. 13, § 6º?",
+        "alternativas": [
+          "Demissão por abandono de cargo",
+          "Suspensão por trinta dias",
+          "Aposentadoria compulsória",
+          "Conversão automática em contratação temporária",
+          "O ato de provimento será tornado sem efeito"
+        ],
+        "correta": 4,
+        "comentario": "A consequência é tornar sem efeito o ato de provimento. Não se trata de demissão por abandono. Referência: Lei 8.112/1990, art. 13, § 6º.",
+        "trecho": "Será tornado sem efeito o ato de provimento",
+        "pagina": null,
+        "id": "q5"
+      }
+    ],
+    "respostas": {},
+    "origem": {
+      "arquivo": "https://www.gov.br/servidor/pt-br/acesso-a-informacao/gestao-de-pessoas/lei-8112-anotada/titulo-ii-do-provimento-vacancia-remocao-redistribuicao-e-substituicao/capitulo-i-do-provimento/secao-iv-da-posse-e-do-exercicio",
+      "paginas": []
+    },
+    "arquivadoEm": "",
+    "excluidoEm": ""
+  }
+]

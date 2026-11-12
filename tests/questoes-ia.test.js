@@ -63,3 +63,8 @@ test('geração em etapas mantém a página do PDF até o mapeamento final',asyn
  const result=await Q.gerarEmLotes(config,async()=>{const data=resposta();data.questoes.forEach(q=>q.pagina=2);return JSON.stringify(data);});
  const bank=Q.validar(result,config,{tipo:'pdf',nome:'arquivo.pdf',paginas:[1,3]});assert.equal(bank.questoes[0].pagina,4);
 });
+
+test('exemplos de concursos são cadernos comuns, editáveis e com referências legais',()=>{
+ const examples=require('../data/cadernos-exemplos.json');assert.equal(examples.length,3);
+ for(const bank of examples){const clean=Q.caderno(bank);assert.equal(clean.questoes.length,5);assert.equal(clean.excluidoEm,'');assert.equal(clean.arquivadoEm,'');assert.equal(clean.id,'');assert.equal(/teste|fictíci/i.test(clean.nome),false);assert.ok(clean.questoes.every(q=>q.comentario.includes('Referência:')));}
+});

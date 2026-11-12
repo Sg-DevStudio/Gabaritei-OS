@@ -44,3 +44,9 @@ test('parecer estruturado envia schema e sinaliza resposta truncada',async()=>{
  const truncated=provider({ok:true,json:async()=>({candidates:[{finishReason:'MAX_TOKENS',content:{parts:[{text:'{"incompleto":'}]}}]})});
  await assert.rejects(truncated.c.gerar({},[],null,null,credential),/limite de geração/);
 });
+
+test('modelo pessoal permitido muda o destino sem expor a chave',async()=>{
+ const h=provider();h.c.window.GabariteiIAConfig.personalModels=[credential.model,'gemini-3.8-flash'];
+ await h.c.gerar({quantidade:1},[],null,null,{...credential,model:'gemini-3.8-flash'});
+ assert.match(h.requests[0].url,/gemini-3\.8-flash:generateContent$/);assert.equal(h.requests[0].url.includes(credential.apiKey),false);
+});

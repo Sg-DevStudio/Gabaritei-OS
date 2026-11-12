@@ -126,7 +126,14 @@ class AccountSync(private val context:Context, firebaseApp:FirebaseApp?=null) {
         require(kind in setOf("questionSets","essays"));val uid=auth.currentUser?.uid?:error("Entre com Google para acessar seus cadernos.")
         val rows=cloud.collection("users/$uid/$kind").orderBy("atualizadoEm",Query.Direction.DESCENDING).limit(50).get().await()
         check(auth.currentUser?.uid==uid){"A conta mudou."}
-        return rows.documents.mapNotNull{runCatching{JSONObject(it.getString("conteudo")!!).put("id",it.id)}.getOrNull()}
+        val result=mutableListOf<JSONObject>()
+        for(item in rows.documents){val value=runCatching{JSONObject(item.getString("conteudo")!!).put("id",item.id)}.getOrNull()?:continue
+            if(kind=="questionSets"&&value.optString("excluidoEm").isNotBlank()){check(auth.currentUser?.uid==uid);item.reference.delete().await()}else result+=value
+        };return result
+    }
+    internal suspend fun deleteBank(id:String){
+        val uid=auth.currentUser?.uid?:error("Entre com Google para excluir.");require(id.matches(Regex("[a-zA-Z0-9_-]{1,100}")))
+        cloud.document("users/$uid/questionSets/$id").delete().await();check(auth.currentUser?.uid==uid){"A conta mudou."}
     }
     internal suspend fun practiceSave(kind:String,input:JSONObject):JSONObject{
         require(kind in setOf("questionSets","essays"));val uid=auth.currentUser?.uid?:error("Entre com Google para salvar.")
@@ -139,7 +146,8 @@ class AccountSync(private val context:Context, firebaseApp:FirebaseApp?=null) {
     }
     internal suspend fun practiceCredential():JSONObject{
         val uid=auth.currentUser?.uid?:error("Entre com Google para usar a IA.")
-        val data=cloud.document("users/$uid/privateSettings/ai").get(Source.SERVER).await().data?:error("A IA gratuita não está configurada para este perfil.")
+        val personal=cloud.document("users/$uid/privateSettings/aiPersonal").get(Source.SERVER).await()
+        val data=(if(personal.exists())personal else cloud.document("users/$uid/privateSettings/ai").get(Source.SERVER).await()).data?:error("A IA gratuita não está configurada para este perfil.")
         check(auth.currentUser?.uid==uid){"A conta mudou."};require(data["freeOnly"]==true){"Este perfil não está configurado para a cota gratuita."}
         return JSONObject(data)
     }

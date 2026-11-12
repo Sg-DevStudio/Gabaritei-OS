@@ -21,6 +21,7 @@ import {
   getFirestore,
   onSnapshot,
   deleteField,
+  deleteDoc,
   runTransaction,
   serverTimestamp,
   setDoc,
@@ -1109,12 +1110,27 @@ function usuarioQuestoesIA(){
 }
 async function obterConfiguracaoIAPessoal(user){
   if(configuracaoIAPessoal&&configuracaoIAPessoal.uid===user.uid)return configuracaoIAPessoal;
-  const snapshot=await getDoc(doc(db,'users',user.uid,'privateSettings','ai'));
+  const personal=await getDoc(doc(db,'users',user.uid,'privateSettings','aiPersonal'));
+  const snapshot=personal.exists()?personal:await getDoc(doc(db,'users',user.uid,'privateSettings','ai'));
   if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
   const value=snapshot.exists()?snapshot.data():null;
   if(!value||value.freeOnly!==true||typeof value.apiKey!=='string')throw new Error('A IA gratuita está disponível apenas no perfil pessoal configurado.');
   configuracaoIAPessoal={uid:user.uid,apiKey:value.apiKey,model:value.model,freeOnly:true};
   return configuracaoIAPessoal;
+}
+async function statusIAPessoal(){
+  const user=usuarioQuestoesIA();try{const c=await obterConfiguracaoIAPessoal(user);return {configurado:true,modelo:c.model};}catch(_){return {configurado:false,modelo:''};}
+}
+async function configurarIAPessoal(apiKey,model){
+  const user=usuarioQuestoesIA();apiKey=String(apiKey||'').trim();
+  if(!/^AIza[\w-]{25,160}$/.test(apiKey))throw Error('Cole uma chave válida do Google AI Studio.');
+  if(!(window.GabariteiIAConfig.personalModels||[window.GabariteiIAConfig.model]).includes(model))throw Error('Escolha um dos modelos disponíveis.');
+  const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model),{headers:{'x-goog-api-key':apiKey}});
+  if(!response.ok)throw Error('Não foi possível validar a chave e o acesso ao modelo. Confira a chave e as restrições do projeto.');
+  if(usuario!==user)throw Error('A conta mudou. Reabra a configuração.');
+  await setDoc(doc(db,'users',user.uid,'privateSettings','aiPersonal'),{apiKey,model,freeOnly:true});
+  if(usuario!==user)throw Error('A conta mudou. Reabra a configuração.');
+  configuracaoIAPessoal=null;return {configurado:true,modelo:model};
 }
 async function gerarQuestoesIA(config,parts,onStatus,origem){
   const user=usuarioQuestoesIA();
@@ -1123,7 +1139,7 @@ async function gerarQuestoesIA(config,parts,onStatus,origem){
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const controller=new AbortController();let timeout;
     const tarefa=(async()=>{
-      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos5'),obterConfiguracaoIAPessoal(user)]);
+      const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-cadernos1'),obterConfiguracaoIAPessoal(user)]);
       if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
       if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
       const informar=()=>{if(onStatus)onStatus('Gerando '+(contexto.geradas+1)+'–'+(contexto.geradas+chunk.quantidade)+' de '+contexto.solicitadas+' questões · etapa '+contexto.indice+' de '+contexto.total+'…');};informar();
@@ -1139,8 +1155,13 @@ async function listarCadernosIA(){
   const snap=await getDocs(query(collection(db,'users',user.uid,'questionSets'),orderBy('atualizadoEm','desc'),limit(50)));
   if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
   const lista=[];
-  snap.forEach(item=>{try{const data=item.data();const raw=JSON.parse(data.conteudo);raw.id=item.id;lista.push(window.QuestoesIA.caderno(raw));}catch(e){console.warn('Caderno de IA inválido ignorado.');}});
+  for(const item of snap.docs){let raw;try{raw=JSON.parse(item.data().conteudo);}catch(_){continue;}if(raw.excluidoEm){await deleteDoc(item.ref);continue;}raw.id=item.id;try{lista.push(window.QuestoesIA.caderno(raw));}catch(_){console.warn('Caderno inválido ignorado.');}}
   return lista;
+}
+async function excluirCadernoIA(id){
+  const user=usuarioQuestoesIA();if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))throw Error('Identificador de caderno inválido.');
+  await deleteDoc(doc(db,'users',user.uid,'questionSets',id));
+  if(usuario!==user)throw Error('A conta mudou. Reabra seus cadernos.');
 }
 async function salvarCadernoIA(banco){
   const user=usuarioQuestoesIA();
@@ -1156,7 +1177,7 @@ async function corrigirRedacao(input,onStatus){
   const user=usuarioQuestoesIA(),clean=window.Redacoes.preparar(input,true);
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos5'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-cadernos1'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,12000,window.Redacoes.avaliacaoSchema);
@@ -1172,7 +1193,7 @@ async function transcreverRedacao(part,onStatus){
   if(!data||!['application/pdf','image/jpeg','image/png','image/webp'].includes(data.mimeType)||typeof data.data!=='string'||data.data.length>14000000||!/^[A-Za-z0-9+/]+={0,2}$/.test(data.data))throw Error('Arquivo de transcrição inválido.');
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261111-cadernos5'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-cadernos1'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw Error('timeout: transcrição cancelada.');
     if(usuario!==user)throw Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.promptTranscricao(),[part],controller.signal,onStatus,credential,12000,window.Redacoes.transcricaoSchema);
@@ -1197,7 +1218,7 @@ async function salvarRedacao(input){
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, excluirCadernoIA, statusIAPessoal, configurarIAPessoal, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
   desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
 };

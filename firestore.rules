@@ -166,6 +166,18 @@ service cloud.firestore {
       allow list, write: if false;
     }
 
+    // Chave pessoal: somente o próprio usuário, fora do estado e dos backups.
+    match /users/{userId}/privateSettings/aiPersonal {
+      allow get, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['apiKey','model','freeOnly'])
+        && request.resource.data.apiKey is string
+        && request.resource.data.apiKey.matches('^AIza[A-Za-z0-9_-]{25,160}$')
+        && request.resource.data.model in ['gemini-3.8-flash','gemini-3.5-flash-lite']
+        && request.resource.data.freeOnly == true;
+      allow list: if false;
+    }
+
     // Cadernos autorais: privados, independentes do estado legado dos estudos.
     match /users/{userId}/questionSets/{setId} {
       allow read: if isOwner(userId);
@@ -177,8 +189,8 @@ service cloud.firestore {
         && request.resource.data.criadoEm is string && request.resource.data.criadoEm.size() <= 40
         && request.resource.data.atualizadoEm is string && request.resource.data.atualizadoEm.size() <= 40
         && request.resource.data.arquivadoEm is string && request.resource.data.arquivadoEm.size() <= 40;
-      // Arquivar é reversível; não há exclusão permanente nesta interface.
-      allow delete: if false;
+      // Exclusão definitiva restrita ao dono do caderno.
+      allow delete: if isOwner(userId);
     }
 
     // Redações: texto original e parecer separados, privados por usuário.

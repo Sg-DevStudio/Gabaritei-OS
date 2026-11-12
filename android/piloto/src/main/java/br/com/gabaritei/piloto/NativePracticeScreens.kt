@@ -69,10 +69,10 @@ import org.json.JSONObject
             }
         }else{
             Row(verticalAlignment=Alignment.CenterVertically){Text("Meus cadernos",Modifier.weight(1f),style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold);IconButton(onClick={repo.load("questionSets")},enabled=!busy){Icon(Icons.Outlined.Refresh,"Atualizar cadernos")}}
-            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(!trash,{trash=false},label={Text("Ativos")});FilterChip(trash,{trash=true},label={Text("Lixeira")})}
+            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(!trash,{trash=false},label={Text("Ativos")});FilterChip(trash,{trash=true},label={Text("Arquivados")})}
             OutlinedTextField(search,{search=it},Modifier.fillMaxWidth(),label={Text("Buscar disciplina ou caderno")},singleLine=true)
-            val list=banks.filter{it.optString("excluidoEm").isNotBlank()==trash}.filter{NativePractice.normalized(it.optString("nome")+it.optJSONObject("config")?.toString().orEmpty()).contains(NativePractice.normalized(search))}
-            if(list.isEmpty())PracticePanel{Text(if(trash)"Nenhum caderno na lixeira."else"Seu próximo treino começa aqui.",fontWeight=FontWeight.SemiBold);if(!trash)Button(onClick={repo.file.value=null;onSection(2)}){Text("Criar caderno")}}
+            val list=banks.filter{it.optString("excluidoEm").isBlank()&&it.optString("arquivadoEm").isNotBlank()==trash}.filter{NativePractice.normalized(it.optString("nome")+it.optJSONObject("config")?.toString().orEmpty()).contains(NativePractice.normalized(search))}
+            if(list.isEmpty())PracticePanel{Text(if(trash)"Nenhum caderno arquivado."else"Seu próximo treino começa aqui.",fontWeight=FontWeight.SemiBold);if(!trash)Button(onClick={repo.file.value=null;onSection(2)}){Text("Criar caderno")}}
             list.forEach{b->PracticePanel{
                 val cfg=b.optJSONObject("config");val answered=b.optJSONObject("respostas")?.length()?:0;val total=b.getJSONArray("questoes").length()
                 if(!cfg?.optString("disciplina").isNullOrBlank())Text(cfg!!.optString("disciplina"),style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary)
@@ -80,17 +80,18 @@ import org.json.JSONObject
                 if(!cfg?.optString("assunto").isNullOrBlank())Text(cfg!!.optString("assunto"),style=MaterialTheme.typography.bodySmall)
                 LinearProgressIndicator(progress={answered.toFloat()/total},modifier=Modifier.fillMaxWidth())
                 Text("$answered de $total respondidas",style=MaterialTheme.typography.bodySmall)
-                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button(onClick={if(trash)repo.trash("questionSets",b)else repo.openBank(b)},enabled=!busy){Text(if(trash)"Restaurar"else"Continuar")};if(!trash)TextButton(onClick={deleting=b},enabled=!busy){Text("Excluir",color=MaterialTheme.colorScheme.error)}}
+                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button(onClick={repo.openBank(b)},enabled=!busy){Text("Continuar")};TextButton(onClick={repo.archive(b)},enabled=!busy){Text(if(trash)"Desarquivar"else"Arquivar")};TextButton(onClick={deleting=b},enabled=!busy){Text("Excluir",color=MaterialTheme.colorScheme.error)}}
             }}
         }
         Spacer(Modifier.height(16.dp))
     }
-    deleting?.let{b->AlertDialog(onDismissRequest={deleting=null},title={Text("Excluir caderno?")},text={Text("O caderno irá para a lixeira. Questões e respostas poderão ser restauradas.")},confirmButton={TextButton(onClick={deleting=null;repo.trash("questionSets",b)}){Text("Mover para a lixeira")}},dismissButton={TextButton(onClick={deleting=null}){Text("Cancelar")}})}
+    deleting?.let{b->AlertDialog(onDismissRequest={deleting=null},title={Text("Excluir caderno?")},text={Text("As questões e respostas deste caderno serão excluídas definitivamente. Não será possível restaurá-lo.")},confirmButton={TextButton(onClick={deleting=null;repo.trash("questionSets",b)}){Text("Excluir definitivamente")}},dismissButton={TextButton(onClick={deleting=null}){Text("Cancelar")}})}
 }
 @Composable internal fun NativeQuestionFocus(repo:NativePracticeRepository,bank:JSONObject,modifier:Modifier=Modifier,onCreate:()->Unit={},onBack:()->Unit){
-    var index by rememberSaveable(bank.optString("id")){mutableIntStateOf(0)};var selected by rememberSaveable(bank.optString("id"),index){mutableIntStateOf(-1)};var deleting by remember{mutableStateOf(false)}
+    var index by rememberSaveable(bank.optString("id")){mutableIntStateOf(0)};var checked by remember(bank.optString("id"),index){mutableStateOf(false)};var selected by remember(bank.optString("id"),index){mutableIntStateOf(-1)};var deleting by remember{mutableStateOf(false)}
     var cards by rememberSaveable{mutableStateOf(false)};var revealed by remember(bank.optString("id"),index,cards){mutableStateOf(false)}
-    val busy by repo.busy.collectAsState();val rows=bank.getJSONArray("questoes");val q=rows.getJSONObject(index.coerceAtMost(rows.length()-1));val answers=bank.optJSONObject("respostas")?:JSONObject();val answered=answers.has(q.getString("id"));val marked=if(answered)answers.optInt(q.getString("id"),-1)else selected;val show=if(cards)revealed else answered;val correct=q.getInt("correta")
+    val busy by repo.busy.collectAsState();val rows=bank.getJSONArray("questoes");val q=rows.getJSONObject(index.coerceAtMost(rows.length()-1));val answers=bank.optJSONObject("respostas")?:JSONObject();val answered=answers.has(q.getString("id"));val marked=if(checked&&answered)answers.optInt(q.getString("id"),-1)else selected;val show=if(cards)revealed else checked;val correct=q.getInt("correta")
+    val previous=if(answered)answers.optInt(q.getString("id"),-1)else -1
     BackHandler(!busy,onBack)
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(16.dp)){
         Row(Modifier.fillMaxWidth().widthIn(max=760.dp),verticalAlignment=Alignment.CenterVertically){TextButton(onClick=onBack,enabled=!busy){Icon(Icons.AutoMirrored.Outlined.ArrowBack,null);Text("Voltar")};Spacer(Modifier.weight(1f));TextButton(onClick=onCreate,enabled=!busy){Text("Criar outras")};TextButton(onClick={deleting=true},enabled=!busy){Text("Excluir",color=MaterialTheme.colorScheme.error)}}
@@ -100,6 +101,7 @@ import org.json.JSONObject
             LinearProgressIndicator(progress={(index+1).toFloat()/rows.length()},modifier=Modifier.fillMaxWidth().height(5.dp))
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(!cards,{cards=false},label={Text("Resolver")});FilterChip(cards,{cards=true},label={Text("Cartões")})}
             PracticePanel{
+                if(answered&&!show)Text(if(previous==correct)"✓ Acertou anteriormente"else"↻ Errou anteriormente",style=MaterialTheme.typography.labelLarge,color=if(previous==correct)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
                 Text(q.getString("enunciado"),style=MaterialTheme.typography.titleMedium.copy(lineHeight=28.sp),fontWeight=FontWeight.Medium)
                 if(!cards)q.getJSONArray("alternativas").let{options->(0 until options.length()).forEach{i->
                     val color=when{show&&i==correct->MaterialTheme.colorScheme.primaryContainer;show&&i==marked->MaterialTheme.colorScheme.errorContainer;marked==i->MaterialTheme.colorScheme.secondaryContainer;else->MaterialTheme.colorScheme.surface}
@@ -111,7 +113,7 @@ import org.json.JSONObject
                         }
                     }
                 }}
-                if(!show)Button(onClick={if(cards)revealed=true else repo.answer(index,selected)},enabled=!busy&&(cards||selected>=0),modifier=Modifier.fillMaxWidth(),contentPadding=PaddingValues(15.dp)){Text(if(cards)"Revelar resposta"else"Conferir resposta")}
+                if(!show)Button(onClick={if(cards)revealed=true else{checked=true;repo.answer(index,selected)}},enabled=!busy&&(cards||selected>=0),modifier=Modifier.fillMaxWidth(),contentPadding=PaddingValues(15.dp)){Text(if(cards)"Revelar resposta"else"Conferir resposta")}
                 if(show){
                     HorizontalDivider();Text(if(cards)"Resposta: ${q.getJSONArray("alternativas").getString(correct)}"else if(marked==correct)"Resposta correta"else"Vamos revisar",style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.primary)
                     Text(q.getString("comentario"),style=MaterialTheme.typography.bodyLarge)
@@ -121,10 +123,10 @@ import org.json.JSONObject
             }
             PracticeMessage(repo)
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)){OutlinedButton(onClick={index--;selected=-1},enabled=index>0&&!busy,modifier=Modifier.weight(1f)){Text("Anterior")};Button(onClick={index++;selected=-1},enabled=index<rows.length()-1&&!busy,modifier=Modifier.weight(1f)){Text("Próxima")}}
-            TextButton(onClick={repo.saveBank()},enabled=!busy,modifier=Modifier.fillMaxWidth()){Text("Salvar progresso")}
+            val unsaved by repo.pendingBankSave.collectAsState();if(unsaved&&!busy)TextButton(onClick={repo.saveBank()},modifier=Modifier.fillMaxWidth()){Text("Tentar salvar novamente")}
         }
     }
-    if(deleting)AlertDialog(onDismissRequest={deleting=false},title={Text("Excluir caderno?")},text={Text("O original e as respostas poderão ser restaurados na lixeira.")},confirmButton={TextButton(onClick={deleting=false;repo.trash("questionSets",bank)}){Text("Mover para a lixeira")}},dismissButton={TextButton(onClick={deleting=false}){Text("Cancelar")}})
+    if(deleting)AlertDialog(onDismissRequest={deleting=false},title={Text("Excluir caderno?")},text={Text("As questões e respostas serão excluídas definitivamente. Não será possível restaurá-las.")},confirmButton={TextButton(onClick={deleting=false;repo.trash("questionSets",bank)}){Text("Excluir definitivamente")}},dismissButton={TextButton(onClick={deleting=false}){Text("Cancelar")}})
 }
 @Composable internal fun NativeEssaysScreen(repo:NativePracticeRepository,modifier:Modifier=Modifier){
     val essays by repo.essays.collectAsState();val current by repo.essay.collectAsState();val busy by repo.busy.collectAsState();val file by repo.file.collectAsState();val context=LocalContext.current

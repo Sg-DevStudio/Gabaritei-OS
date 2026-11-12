@@ -5527,3 +5527,11 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .red-resultado #red-parecer{padding:0;border:0;box-shadow:none;background:transparent;}.red-resultado .qia-resolver-topo{margin:18px 0;}.red-resultado .red-diagnostico{padding:20px;border-radius:16px;background:var(--caneta-suave);line-height:1.8;}.red-diagnostico>strong{display:block;font-size:16px;margin-bottom:8px;color:var(--caneta-forte);}
 .red-resultado .red-criterios{gap:14px;}.red-resultado .red-criterio{border:1px solid var(--linha);border-top:3px solid var(--caneta);border-radius:16px;padding:20px;background:var(--papel-elevado);}.red-criterio h3{display:flex;align-items:center;gap:9px;}.red-criterio h3>span{font-size:22px;}.red-resultado .red-criterio-1{border-top-color:#9975e9;}.red-resultado .red-criterio-2{border-top-color:#2da78d;}.red-resultado .red-criterio-3{border-top-color:#d49c43;}.red-secao-titulo{margin:28px 0 18px;}.red-resultado .red-proximo{border-radius:16px;background:var(--caneta-suave);padding:20px;margin-top:20px;}.red-resultado .red-proximo h3{margin-top:0;}.red-dialogo label+.sub{margin-top:12px;}
 @media(max-width:520px){.red-resultado{width:calc(100vw - 20px);padding:18px;}.red-resultado .red-dialogo-topo{top:-18px;}.red-resultado .red-dialogo-topo h2{font-size:20px;}.red-resultado .red-criterio{padding:16px;}}
+
+/* Private notebook practice */
+.qia-resultado-anterior{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .7rem;border-radius:999px;font-size:.8rem;font-weight:600;background:color-mix(in srgb,var(--azul,#3564e5) 12%,transparent);color:var(--azul,#638bff)}
+.qia-resultado-anterior[data-acerto="false"]{background:#d994251a;color:#c68b2b}
+.qia-chave{margin-block:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.qia-chave-dialogo{max-width:min(560px,calc(100vw - 32px))}.qia-chave-form{display:grid;gap:1rem}.qia-chave-form label{display:grid;gap:.5rem}.qia-chave-form input[type=checkbox]{width:auto}.qia-chave-dialogo p{font-size:.85rem;line-height:1.6}.qia-chave-status{font-size:.85rem;color:var(--texto-secundario,#8f9bb4)}
+
+.qia-em-treino>.qia-chave{display:none!important}

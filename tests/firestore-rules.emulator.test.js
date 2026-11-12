@@ -46,6 +46,9 @@ test('cadernos IA são privados e aceitam apenas documentos limitados', { skip: 
   await assertFails(setDoc(doc(owner,'users/aluno/questionSets/invalido'),{...data,quantidade:101}));
   await assertFails(setDoc(doc(owner,'users/aluno/questionSets/grande'),{...data,conteudo:'x'.repeat(700001)}));
   await assertSucceeds(setDoc(doc(owner,'users/aluno/questionSets/exemplo'),{...data,arquivadoEm:'2026-11-10'}));
+  await assertFails(deleteDoc(doc(other,'users/aluno/questionSets/exemplo')));
+  await assertFails(deleteDoc(doc(anon,'users/aluno/questionSets/exemplo')));
+  await assertSucceeds(deleteDoc(doc(owner,'users/aluno/questionSets/exemplo')));
 });
 
 test.before(async () => {
@@ -190,4 +193,13 @@ test('redações são privadas e a exclusão usa lixeira sem apagar o documento'
  await assertFails(setDoc(doc(owner,'users/aluno/essays/extra'),{...data,publico:true}));
  await assertSucceeds(setDoc(doc(owner,'users/aluno/essays/exemplo'),{...data,excluidoEm:'2026-11-11'}));
  await assertSucceeds(setDoc(doc(owner,'users/aluno/essays/exemplo'),data));await assertFails(deleteDoc(doc(owner,'users/aluno/essays/exemplo')));
+});
+
+test('chave pessoal é privada e não permite configurar provedores pagos', {skip:!ativo}, async()=>{
+ const owner=ambiente.authenticatedContext('aluno').firestore(),other=ambiente.authenticatedContext('outro').firestore();
+ const target='users/aluno/privateSettings/aiPersonal',data={apiKey:'AIza'+'A'.repeat(35),model:'gemini-3.8-flash',freeOnly:true};
+ await assertSucceeds(setDoc(doc(owner,target),data));await assertSucceeds(getDoc(doc(owner,target)));
+ await assertFails(getDoc(doc(other,target)));await assertFails(setDoc(doc(other,target),data));await assertFails(deleteDoc(doc(other,target)));
+ await assertFails(setDoc(doc(owner,target),{...data,freeOnly:false}));await assertFails(setDoc(doc(owner,target),{...data,model:'other-model'}));
+ await assertFails(setDoc(doc(owner,target),{...data,apiKey:'invalid'}));await assertSucceeds(deleteDoc(doc(owner,target)));
 });
