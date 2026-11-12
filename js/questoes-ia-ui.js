@@ -64,8 +64,8 @@
       if(acao==='excluir'&&!await confirmar('Excluir definitivamente este caderno, suas questões e respostas? Não será possível restaurá-lo.','Excluir definitivamente','Excluir caderno'))return;
       if(atual!==s)return;
       const copia=JSON.parse(JSON.stringify(acao==='excluir'&&s.banco&&s.banco.id===banco.id?s.banco:banco));
-      
-      
+
+
       if(acao==='arquivar')copia.arquivadoEm=copia.arquivadoEm?'':new Date().toISOString();
       if(acao==='editar'){copia.nome=container.querySelector('[name="nome"]').value.trim();if(!copia.nome){aviso('Informe um nome para o caderno.',true);return;}copia.config={...copia.config,nome:copia.nome,disciplina:container.querySelector('[name="disciplina"]').value,assunto:container.querySelector('[name="assunto"]').value};}
       ocupado(true);aviso('Salvando o caderno…');
