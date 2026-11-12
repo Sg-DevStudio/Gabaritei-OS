@@ -14,13 +14,13 @@
     <div class="qia-status" role="status" aria-live="polite" hidden></div>
     <section id="qia-edital" class="qia-painel"><h2>Questões do seu plano</h2><p class="sub">TEC, Gran e Qconcursos, com os links por disciplina e assunto. A prática abre na plataforma escolhida.</p><div id="qia-planos" class="qia-planos"></div><a class="botao-quieto" href="#planos">Explorar planos e editais</a></section>
     <section class="card qia-chave"><div class="qia-chave-status" role="status">Verificando modelo de IA…</div><button type="button" class="botao-quieto" data-qia-chave>Ajustar minha IA</button>
-    <dialog class="estudo-dialogo qia-chave-dialogo"><h2>Configurar minha IA</h2><p>Cole sua chave Gemini ou Groq. O provedor será identificado automaticamente e a chave ficará privada na sua conta.</p>
-    <p>Obtenha sua chave no <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Google AI Studio</a> ou no <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Groq Console</a>.</p>
-    <form class="qia-chave-form"><label>Chave de API (Gemini ou Groq)<input name="apiKey" type="password" placeholder="AIza… ou gsk_…" autocomplete="off" spellcheck="false" required></label><p class="qia-provedor-aviso" role="status">A identificação aparece ao colar a chave.</p>
-    <label class="qia-modelo-google" hidden>Modelo Gemini<select name="model"></select></label><p class="qia-modelo-groq" hidden>Groq · GPT-OSS 120B para questões e correção de texto. PDF e foto precisam de Gemini. Lotes grandes têm pausas para respeitar a cota gratuita.</p>
-    <label><input type="checkbox" name="confirmar" required> Para custo zero, usarei Groq Free ou um projeto Google sem faturamento. Entendo que uma conta com faturamento pode cobrar pelo uso.</label>
-    <p class="qia-chave-resultado" role="status"></p><div class="estudo-dialogo-acoes"><button type="button" data-qia-chave-fechar>Fechar</button><button type="submit" class="botao">Conectar chave</button></div></form>
-    <button type="button" class="botao-quieto" data-groq-desativar>Desconectar Groq e usar Gemini para texto</button></dialog></section><div class="qia-layout">
+    <dialog class="estudo-dialogo qia-chave-dialogo" aria-labelledby="qia-chave-titulo" aria-describedby="qia-chave-intro"><h2 id="qia-chave-titulo">Configurar minha IA</h2><p id="qia-chave-intro">Uma chave Gemini ou Groq, privada na sua conta.</p>
+    <div class="qia-chave-links"><span>Obter chave:</span><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Google AI Studio ↗</a><a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Groq Console ↗</a></div>
+    <form class="qia-chave-form" novalidate><label>Chave de API (Gemini ou Groq)<input name="apiKey" type="password" placeholder="AIza… ou gsk_…" autocomplete="off" spellcheck="false" required></label><p class="qia-provedor-aviso" role="status">Identificamos o provedor ao colar a chave.</p>
+    <label class="qia-modelo-google" hidden>Modelo Gemini<select name="model"></select></label><p class="qia-modelo-groq" hidden>Groq · GPT-OSS 120B para texto. PDF e foto usam Gemini. Lotes maiores têm pausas para respeitar a cota gratuita.</p>
+    <label class="qia-chave-consentimento"><input type="checkbox" name="confirmar" required><span>Usarei Groq Free ou um projeto Google sem faturamento.<small>Contas com faturamento podem cobrar pelo uso.</small></span></label>
+    <p class="qia-chave-resultado" role="status"></p><div class="estudo-dialogo-acoes qia-chave-acoes"><button type="button" class="botao-quieto" data-qia-chave-fechar>Fechar</button><button type="submit" class="botao">Conectar chave</button></div></form>
+    <div class="qia-chave-conexao" hidden><div><strong>Groq conectado</strong><p>Ao desconectar, usamos Gemini se houver uma chave configurada.</p></div><button type="button" class="botao-quieto" data-groq-desativar>Desconectar</button></div></dialog></section><div class="qia-layout">
     <section class="card qia-criar qia-painel" id="qia-criar" hidden><h2>Crie com o seu material</h2><p class="sub">Escolha um trecho e organize o caderno antes de gerar.</p><form id="qia-form" novalidate>
       <label>Nome do caderno<input name="nome" maxlength="120" placeholder="Ex.: Licitações · contratação direta"></label>
       <div class="qia-campos"><label>Plano de estudo<select name="planoId"><option value="">Sem vínculo com plano</option></select></label><label>Disciplina<input name="disciplina" maxlength="120" list="qia-disciplinas" placeholder="Ex.: Direito Administrativo"></label></div><datalist id="qia-disciplinas"></datalist>
@@ -126,28 +126,30 @@
     root.querySelector('#qia-busca').value=s.busca;root.querySelector('#qia-busca').oninput=e=>{s.busca=e.target.value;lista();};root.querySelector('#qia-filtro').value=s.filtro;root.querySelector('#qia-filtro').onchange=e=>{s.filtro=e.target.value;lista();};
     s.refresh=()=>{if(!ativo())return;for(const [key,value]of Object.entries(s.draft))if(form.elements[key]&&document.activeElement!==form.elements[key])form.elements[key].value=value;arquivoInfo();lista();mudarAba(s.aba);ocupado(s.ocupado);aviso(s.mensagem,s.erro);};
     if(s.retryOnline)window.removeEventListener('online',s.retryOnline);s.retryOnline=()=>{if(atual===s&&s.bancoSujo&&!s.ocupado)salvar();};window.addEventListener('online',s.retryOnline);
-    const keyDialog=root.querySelector('.qia-chave-dialogo'),keyForm=root.querySelector('.qia-chave-form'),keyStatus=root.querySelector('.qia-chave-status');
+    const keyDialog=root.querySelector('.qia-chave-dialogo'),keyForm=root.querySelector('.qia-chave-form'),keyStatus=root.querySelector('.qia-chave-status'),groqConnection=root.querySelector('.qia-chave-conexao');
     keyForm.elements.model.innerHTML=(window.GabariteiIAConfig.personalModels||[window.GabariteiIAConfig.model]).map(m=>'<option>'+esc(m)+'</option>').join('');
     function identificarChave(){
       const chave=keyForm.elements.apiKey.value.trim(),provedor=chave.startsWith('gsk_')?'groq':chave.startsWith('AIza')?'gemini':'';
       root.querySelector('.qia-modelo-google').hidden=provedor!=='gemini';root.querySelector('.qia-modelo-groq').hidden=provedor!=='groq';
-      root.querySelector('.qia-provedor-aviso').textContent=provedor?'Chave '+(provedor==='groq'?'Groq':'Google Gemini')+' identificada.':'A identificação aparece ao colar a chave.';
+      root.querySelector('.qia-provedor-aviso').textContent=provedor?'Chave '+(provedor==='groq'?'Groq':'Google Gemini')+' identificada.':'Identificamos o provedor ao colar a chave.';
       return provedor;
     }
     keyForm.elements.apiKey.addEventListener('input',()=>{root.querySelector('.qia-chave-resultado').textContent='';identificarChave();});
+    keyForm.elements.confirmar.addEventListener('change',()=>{root.querySelector('.qia-chave-resultado').textContent='';});
     root.querySelector('[data-qia-chave]').onclick=()=>keyDialog.showModal();root.querySelector('[data-qia-chave-fechar]').onclick=()=>keyDialog.close();
     keyDialog.addEventListener('close',()=>{keyForm.reset();identificarChave();root.querySelector('.qia-chave-resultado').textContent='';});
     keyForm.onsubmit=async e=>{e.preventDefault();const result=root.querySelector('.qia-chave-resultado'),button=keyForm.querySelector('[type="submit"]'),provedor=identificarChave();
-      if(!provedor){result.textContent='Cole uma chave Gemini (AIza…) ou Groq (gsk_…).';return;}
+      if(!provedor){result.textContent='Cole uma chave Gemini (AIza…) ou Groq (gsk_…).';keyForm.elements.apiKey.focus();return;}
+      if(!keyForm.elements.confirmar.checked){result.textContent='Confirme a opção de faturamento antes de conectar.';keyForm.elements.confirmar.focus();return;}
       button.disabled=true;result.textContent='Validando chave '+(provedor==='groq'?'Groq':'Gemini')+'…';
       try{const saved=provedor==='groq'?await api().configurarGroq(keyForm.elements.apiKey.value):await api().configurarIAPessoal(keyForm.elements.apiKey.value,keyForm.elements.model.value);
-        keyForm.elements.apiKey.value='';if(!ativo())return;identificarChave();
+        keyForm.elements.apiKey.value='';if(!ativo())return;identificarChave();if(provedor==='groq')groqConnection.hidden=false;
         keyStatus.textContent=provedor==='groq'?'Texto: Groq / '+saved.modelo+' · PDF/foto: conecte Gemini':'Gemini conectado · '+saved.modelo;
         result.textContent='✓ Chave '+(provedor==='groq'?'Groq':'Gemini')+' conectada. Modelo: '+saved.modelo+'. A geração depende da cota disponível na sua conta.';
       }catch(error){if(ativo())result.textContent=error.message;}finally{button.disabled=false;}
     };
-    root.querySelector('[data-groq-desativar]').onclick=async e=>{e.target.disabled=true;const result=root.querySelector('.qia-chave-resultado');try{const info=await api().desativarGroq();if(!ativo())return;keyStatus.textContent=info.configurado?'Gemini conectado · '+info.modelo:'Conecte sua chave Gemini ou Groq.';result.textContent='Groq desconectado. A chave foi removida da sua conta.';}catch(error){if(ativo())result.textContent=error.message;}finally{e.target.disabled=false;}};
-    if(uid)api().statusIAPessoal().then(info=>{if(ativo())keyStatus.textContent=info.configurado?(info.modelo===window.GabariteiIAConfig.groqModel?'Texto: Groq / '+info.modelo+' · PDF/foto: Gemini':'Modelo configurado · '+info.modelo):'Conecte sua chave Gemini ou Groq para gerar questões. Seus cadernos e links já estão disponíveis.';}).catch(()=>{if(ativo())keyStatus.textContent='Não foi possível consultar a configuração da IA.';});else keyStatus.textContent='Entre para configurar sua IA.';
+    root.querySelector('[data-groq-desativar]').onclick=async e=>{e.target.disabled=true;const result=root.querySelector('.qia-chave-resultado');try{const info=await api().desativarGroq();if(!ativo())return;groqConnection.hidden=true;keyStatus.textContent=info.configurado?'Gemini conectado · '+info.modelo:'Conecte sua chave Gemini ou Groq.';result.textContent='Groq desconectado. A chave foi removida da sua conta.';}catch(error){if(ativo())result.textContent=error.message;}finally{e.target.disabled=false;}};
+    if(uid)api().statusIAPessoal().then(info=>{if(!ativo())return;groqConnection.hidden=!(info.configurado&&info.modelo===window.GabariteiIAConfig.groqModel);keyStatus.textContent=info.configurado?(info.modelo===window.GabariteiIAConfig.groqModel?'Texto: Groq / '+info.modelo+' · PDF/foto: Gemini':'Modelo configurado · '+info.modelo):'Conecte sua chave Gemini ou Groq para gerar questões. Seus cadernos e links já estão disponíveis.';}).catch(()=>{if(ativo())keyStatus.textContent='Não foi possível consultar a configuração da IA.';});else keyStatus.textContent='Entre para configurar sua IA.';
     s.refresh();
     if(!uid){aviso('Os links por edital estão disponíveis. Entre com Google para acessar seus cadernos pessoais.');root.querySelector('#qia-lista').textContent='Entre na sua conta para abrir seus cadernos.';return;}
     if(!s.listaCarregada){s.listaCarregada=true;try{api().listarCadernosIA().then(items=>{if(atual===s){s.lista=items;lista();}}).catch(e=>{s.listaCarregada=false;aviso(Q.mensagemErro(e),true);lista();});}catch(e){s.listaCarregada=false;aviso(e.message,true);lista();}}

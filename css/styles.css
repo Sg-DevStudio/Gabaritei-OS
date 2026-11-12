@@ -5532,15 +5532,37 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .qia-resultado-anterior{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .7rem;border-radius:999px;font-size:.8rem;font-weight:600;background:color-mix(in srgb,var(--azul,#3564e5) 12%,transparent);color:var(--azul,#638bff)}
 .qia-resultado-anterior[data-acerto="false"]{background:#d994251a;color:#c68b2b}
 .qia-chave{margin-block:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
-.qia-chave-dialogo{max-width:min(560px,calc(100vw - 32px))}.qia-chave-form{display:grid;gap:1rem}.qia-chave-form label{display:grid;gap:.5rem}.qia-chave-form input[type=checkbox]{width:auto}.qia-chave-dialogo p{font-size:.85rem;line-height:1.6}.qia-chave-status{font-size:.85rem;color:var(--texto-secundario,#8f9bb4)}
-
+/* Compact personal AI dialog: form actions and existing connection are distinct. */
+.qia-chave-status{font-size:.85rem;color:var(--grafite)}
 .qia-em-treino>.qia-chave{display:none!important}
-
-.qia-chave-dialogo{max-height:85dvh;overflow:auto}
-
-/* A configuração de IA também fica acessível a contas sem chave/plano. */
-.qia-chave-dialogo form label:has(input[type=checkbox]){display:flex;align-items:flex-start;gap:.65rem;font-size:.8rem;line-height:1.5}
-.qia-chave-dialogo input[type=checkbox]{width:18px!important;height:18px!important;min-height:18px!important;flex:0 0 18px;margin:2px 0 0;padding:0}
-.qia-provedor-aviso:empty{display:none}
-
-.qia-chave-dialogo [hidden]{display:none!important}
+.qia-chave-dialogo{width:min(460px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:24px;border-radius:20px;}
+.qia-chave-dialogo h2{font-size:19px;margin:0 0 6px;}
+.qia-chave-dialogo p{margin:0;font-size:13px;line-height:1.5;}
+.qia-chave-dialogo #qia-chave-intro{color:var(--grafite);}
+.qia-chave-links{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin:14px 0 18px;font-size:12px;line-height:1.5;}
+.qia-chave-links>span{color:var(--grafite);}
+.qia-chave-links a{color:var(--caneta);text-decoration:none;}
+.qia-chave-links a:hover{text-decoration:underline;}
+.qia-chave-form{display:grid;gap:12px;}
+.qia-chave-form label{display:grid;gap:7px;font-size:12px;font-weight:600;}
+.qia-chave-form input[type=password],.qia-chave-form select{min-height:42px;font-size:14px;border-radius:10px;padding:10px 12px;}
+.qia-chave-dialogo .qia-provedor-aviso,.qia-chave-dialogo .qia-modelo-groq{font-size:12px;color:var(--grafite);}
+.qia-chave-dialogo .qia-chave-consentimento{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--linha);border-radius:12px;background:var(--papel-elevado);font-size:12px;line-height:1.5;font-weight:500;cursor:pointer;}
+.qia-chave-consentimento small{display:block;color:var(--grafite);font-size:11px;margin-top:3px;}
+.qia-chave-dialogo .qia-chave-consentimento input[type=checkbox]{appearance:none;width:18px;height:18px;min-height:18px;flex:0 0 18px;padding:0;margin:1px 0 0;border:1.5px solid var(--campo-borda);border-radius:5px;background:var(--campo);box-shadow:none;cursor:pointer;}
+.qia-chave-dialogo .qia-chave-consentimento input:checked{background:#315ee7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 4 4L19 6'/%3E%3C/svg%3E") center/14px no-repeat;border-color:var(--caneta);}
+.qia-chave-dialogo .qia-chave-consentimento input:focus-visible{outline:2px solid var(--caneta);outline-offset:3px;}
+.qia-chave-consentimento:has(input:checked){border-color:var(--caneta);background:var(--caneta-suave);}
+.qia-chave-dialogo button{min-height:38px;padding:8px 14px;font-size:12px;border-radius:10px;}
+.qia-chave-dialogo .qia-chave-acoes{gap:8px;margin-top:4px;}
+.qia-chave-acoes [data-qia-chave-fechar]{border-color:transparent;background:transparent;color:var(--grafite);}
+.qia-chave-acoes [data-qia-chave-fechar]:hover{background:var(--papel-elevado);color:var(--tinta);}
+.qia-chave-conexao{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--linha);padding-top:14px;margin-top:18px;}
+.qia-chave-conexao strong{font-size:12px;font-weight:600;}
+.qia-chave-dialogo .qia-chave-conexao p{font-size:11px;color:var(--grafite);margin-top:3px;max-width:245px;}
+.qia-chave-conexao button{background:transparent;border-color:var(--linha);color:var(--grafite);flex:0 0 auto;padding:7px 10px;}
+.qia-chave-conexao button:hover{color:var(--errado);border-color:var(--errado);background:var(--errado-suave);}
+.qia-chave-resultado:empty{display:none;}
+.qia-chave-dialogo [hidden]{display:none!important;}
+@media(max-width:520px){.qia-chave-dialogo{padding:20px;}.qia-chave-dialogo button{min-height:44px;}.qia-chave-dialogo .qia-chave-acoes button{flex:0 1 auto;}.qia-chave-conexao{gap:10px;}.qia-chave-conexao>div{min-width:0;}}
+@media(forced-colors:active){.qia-chave-dialogo .qia-chave-consentimento input[type=checkbox]{appearance:auto;}}

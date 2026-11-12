@@ -7,3 +7,9 @@
 - No Android, uma conta sem plano já pode abrir Meus cadernos, Criar com IA e Ajustar minha IA, em vez de permanecer em um carregamento sem fim. A chave digitada não é salva no estado da tela; a troca de conta fecha o formulário.
 - A validação consulta metadados do provedor e grava somente depois de confirmar que o usuário continua sendo o mesmo. Não faz inferência para testar a chave e não ativa faturamento. A geração depende da cota do projeto/conta.
 - O formulário único e o envio ao provedor correto foram conferidos em prévia local com identidade e chaves sintéticas. A geração real exige a chave da própria usuária; nenhum segredo foi solicitado no chat.
+
+## Polimento do formulário
+
+Botões menores no PC e com área de toque de 44 px no celular. Fechar é secundário; Conectar chave é a ação principal. Desconectar aparece numa área separada e apenas quando há Groq conectado. O consentimento tem marca de seleção azul com contraste, texto clicável e foco de teclado visível. Validação de consentimento ocorre dentro do card.
+
+Conferido no navegador em tela de PC e em 390 × 844, nos temas claro e escuro, com identidade/chaves sintéticas. Testados o clique no texto do consentimento, o aviso ao tentar conectar sem confirmar, os dois provedores no campo único e o desaparecimento da ação de desconectar quando não há Groq conectado. Nenhuma chamada real de geração ou chave de usuário foi usada na validação.
