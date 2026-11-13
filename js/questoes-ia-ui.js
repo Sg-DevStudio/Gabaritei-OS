@@ -115,15 +115,23 @@
       const [saved]=await Promise.all([salvar(),new Promise(resolve=>setTimeout(resolve,550))]);if(atual!==s)return;s.feedbackCartao='';
       if(saved&&s.indice<s.banco.questoes.length-1){s.indice++;s.revelados.delete(s.banco.questoes[s.indice].id);}if(ativo()){resolver();root.querySelector('#qia-resolver').focus({preventScroll:true});}else if(s.refresh)s.refresh();
     }
+    async function explicar(){
+      if(s.ocupado||!s.banco)return;const banco=s.banco,q=banco.questoes[s.indice];
+      s.explicando=true;ocupado(true);aviso('Preparando a explicação desta alternativa…');
+      try{const reasons=Q.validarExplicacoes({explicacoes:await api().explicarAlternativas(q,text=>{aviso(text);if(ativo())resolver();})},q);if(atual!==s||s.banco!==banco)return;Q.caderno({...banco,questoes:banco.questoes.map(item=>item===q?{...item,explicacoes:reasons}:item)});q.explicacoes=reasons;s.sujo=true;s.bancoSujo=true;aviso('Explicações prontas. Salvando automaticamente…');}
+      catch(e){aviso(Q.mensagemErro(e),true);}
+      finally{s.explicando=false;ocupado(false);if(atual===s&&s.banco===banco&&s.bancoSujo)await salvar();}
+    }
     function resolver(){
       if(!ativo()){if(s.refresh)s.refresh();return;}const el=root.querySelector('#qia-resolver'),b=s.banco;
       root.classList.toggle('qia-em-treino',!!(s.foco&&b&&!b.excluidoEm));el.hidden=!b||!!b.excluidoEm||s.aba!=='meus'||!s.foco;el.classList.toggle('qia-tela-cheia',!!s.telaCheia);if(!b)return;el.tabIndex=-1;
       const q=b.questoes[s.indice],mostrou=s.cartoes?s.revelados.has(q.id):s.mostradas.has(q.id);
-      el.innerHTML=window.PraticarQuestoes.html(b,s.indice,{cartoes:s.cartoes,mostrou,salvando:s.ocupado,erro:s.erro,mensagem:s.mensagem,naoSalvo:s.bancoSujo,feedback:s.feedbackCartao,telaCheia:s.telaCheia||document.fullscreenElement===el});
+      el.innerHTML=window.PraticarQuestoes.html(b,s.indice,{cartoes:s.cartoes,mostrou,salvando:s.ocupado&&!s.explicando,explicando:s.explicando,erro:s.erro,mensagem:s.mensagem,naoSalvo:s.bancoSujo,feedback:s.feedbackCartao,telaCheia:s.telaCheia||document.fullscreenElement===el});
       el.querySelector('#qia-voltar').onclick=()=>deixarTreino('meus');el.querySelector('#qia-novas').onclick=()=>deixarTreino('criar');el.querySelector('#qia-excluir').onclick=()=>mutar(s.banco,'excluir');el.querySelector('#qia-tela-cheia').onclick=telaCheia;
       el.querySelectorAll('[data-qia-modo]').forEach(btn=>btn.onclick=()=>{if(s.ocupado||s.feedbackCartao)return;s.cartoes=btn.dataset.qiaModo==='cartoes';s.revelados.delete(q.id);resolver();el.focus({preventScroll:true});});
       const verificar=el.querySelector('#qia-verificar');if(verificar)verificar.onclick=async()=>{const checked=el.querySelector('input[name="qia-resposta"]:checked');if(!checked){aviso('Escolha uma alternativa para conferir.',true);return;}b.respostas[q.id]=Number(checked.value);s.mostradas.add(q.id);s.sujo=true;s.bancoSujo=true;aviso('');resolver();await salvar();};
       const tentarSalvar=el.querySelector('#qia-tentar-salvar');if(tentarSalvar)tentarSalvar.onclick=()=>salvar();
+      const detalhar=el.querySelector('[data-qia-explicar]');if(detalhar)detalhar.onclick=explicar;
       const revelar=el.querySelector('#qia-revelar');if(revelar)revelar.onclick=virar;
       el.querySelectorAll('[data-qia-avaliar]').forEach(btn=>btn.onclick=()=>avaliarCartao(btn.dataset.qiaAvaliar==='true'));
       el.querySelector('#qia-anterior').onclick=()=>navegar(-1);el.querySelector('#qia-proxima').onclick=()=>navegar(1);

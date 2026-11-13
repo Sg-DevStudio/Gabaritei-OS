@@ -89,9 +89,10 @@ import org.json.JSONObject
                             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
                                 Text("${('A'+i)}. ${options.getString(i)}",style=MaterialTheme.typography.bodyLarge)
                                 if(right||wrong)Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Icon(if(right)Icons.Outlined.Check else Icons.Outlined.Close,null,tint=tone);Text(if(right)"Resposta correta"else"Não é essa",color=tone,fontWeight=FontWeight.SemiBold)}
-                                if(show&&(reason.isNotBlank()||right||wrong))Text(reason.ifBlank{if(right)q.getString("comentario")else"Veja a explicação junto da alternativa correta."},style=MaterialTheme.typography.bodyMedium)
+                                if(show&&(reason.isNotBlank()||right))Text(reason.ifBlank{q.getString("comentario")},style=MaterialTheme.typography.bodyMedium)
                             }
                         }
+                        if(wrong&&reason.isBlank())OutlinedButton(onClick={repo.explainQuestion(index)},enabled=!blocked){Text("Explicar esta alternativa")}
                     }
                     if(!show)Button(onClick={checked=true;repo.answer(index,selected)},enabled=!blocked&&selected>=0,modifier=Modifier.fillMaxWidth()){Text("Conferir resposta")}
                 }

@@ -1,5 +1,7 @@
 # Android 0.21.1 — IA compacta e atalhos dos cadernos
 
+**Complemento da validação física:** a 0.21.2 também corrige a perda de `questionLinks` ao montar o edital. A composição de links descrita abaixo precisava desse ajuste para aparecer no plano real. Veja `android-0.21.2-justificativas.md`.
+
 A configuração de IA ocupa um único atalho no topo dos cadernos. No site, ele fica ao lado de “Criar caderno”; no Android, na barra superior dos cadernos e redações. O modelo e os detalhes da conexão aparecem apenas dentro da janela de configuração. As faixas grandes e suas repetições nas seções foram removidas.
 
 ## Links de questões

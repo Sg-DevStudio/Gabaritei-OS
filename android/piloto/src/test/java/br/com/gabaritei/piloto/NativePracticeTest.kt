@@ -10,4 +10,13 @@ class NativePracticeTest{
  @Test fun editedEssayBecomesANewVersionWithoutChangingThePrevious(){val r=NativePractice.newEssay().put("id","original").put("texto","original preservado").put("avaliacao",JSONObject()).put("corrigidaEm","hoje");val next=NativePractice.newVersion(r).put("texto","nova versão");assertFalse(next.has("id"));assertFalse(next.has("avaliacao"));assertEquals("original preservado",r.getString("texto"));assertTrue(r.has("avaliacao"))}
  @Test fun errorsDoNotOfferPaidFallback(){assertTrue(NativePractice.error(IllegalStateException("HTTP 429")).contains("Nenhum modelo pago"));assertTrue(NativePractice.error(IllegalStateException("HTTP 503")).contains("ocupado"))}
  @Test fun alternativeReasonsAndRecallScoresPreserveObjectiveAnswers(){val b=bank();val q=b.getJSONArray("questoes").getJSONObject(0);q.put("explicacoes",JSONArray(listOf("O prazo está expresso no material.","O texto prevê exatamente três dias.")));NativePractice.validateBank(b);val changed=NativePractice.assessCard(b,0,false,"2026-11-12");val repeated=NativePractice.assessCard(changed,0,true,"2026-11-12");assertFalse(b.has("treinoCartoes"));assertEquals(0,repeated.getJSONObject("respostas").getInt("q1"));assertEquals(1,repeated.getJSONObject("treinoCartoes").getJSONObject("q1").getInt("erros"));assertEquals(1,repeated.getJSONObject("treinoCartoes").getJSONObject("q1").getInt("acertos"));assertEquals(2,repeated.getJSONArray("questoes").getJSONObject(0).getJSONArray("explicacoes").length());q.put("explicacoes",JSONArray(listOf("Incompleta")));assertThrows(IllegalArgumentException::class.java){NativePractice.validateBank(b)}}
+ @Test fun legacyReasonsAreValidatedAndAddedWithoutChangingAnswersOrOriginal(){
+  val old=bank().put("future",42);val before=old.toString();val q=old.getJSONArray("questoes").getJSONObject(0)
+  val output=JSONObject().put("erro","").put("explicacoes",JSONArray(listOf("O prazo coincide com o material.","A negativa contradiz o prazo de três dias expresso no material.")))
+  val next=NativePractice.withExplanations(old,0,output)
+  assertEquals(before,old.toString());assertEquals(42,next.getInt("future"));assertEquals(old.getJSONObject("respostas").toString(),next.getJSONObject("respostas").toString());assertEquals(q.getInt("correta"),next.getJSONArray("questoes").getJSONObject(0).getInt("correta"))
+  assertTrue(NativePractice.explanationPrompt(q).contains("conceito errado"))
+  assertThrows(IllegalArgumentException::class.java){NativePractice.withExplanations(old,0,JSONObject(output.toString()).put("erro","Referência insuficiente."))}
+  assertThrows(IllegalArgumentException::class.java){NativePractice.withExplanations(old,0,JSONObject(output.toString()).put("explicacoes",JSONArray().put("Só uma")))}
+ }
 }

@@ -14,7 +14,7 @@ object EditalOutline {
             val source=plan.disciplines.find{it.id==d.optString("id")}
             Discipline(d.getString("id"),d.optString("nome"),d.array("topicos").objects().filter{!it.optBoolean("orfao")&&!it.optBoolean("removidoDoEdital")&&!excluded("top",it.optString("id"))}.map{t->
                 val old=source?.topics?.find{it.id==t.optString("id")}
-                Topic(t.getString("id"),t.optString("nome"),old?.link,if(t.optBoolean("androidArquivado"))"Arquivado na rotina"else old?.note.orEmpty(),old?.noQuestions?:false)
+                Topic(t.getString("id"),t.optString("nome"),old?.link,if(t.optBoolean("androidArquivado"))"Arquivado na rotina"else old?.note.orEmpty(),old?.noQuestions?:false,old?.questionLinks.orEmpty())
             },d.optString("cor",source?.color?:"#3B82F6"),d.optString("planejamentoStatus")=="paused",d.optBoolean("androidArquivada"))
         }
         return plan.copy(disciplines=disciplines)

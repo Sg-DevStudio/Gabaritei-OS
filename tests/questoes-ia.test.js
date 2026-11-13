@@ -3,6 +3,18 @@ const Q=require('../js/questoes-ia');
 const config={nome:'Licitações',formato:'multipla5',quantidade:10,dificuldade:'intermediaria'};
 const origem={tipo:'texto',texto:'A sessão de estudo tem duração de sessenta minutos.'};
 function resposta(){return {questoes:Array.from({length:10},(_,i)=>({enunciado:'Questão '+i,alternativas:['A','B','C','D','E'],correta:i%5,comentario:'Explicação do gabarito.',trecho:'A sessão de estudo tem duração de sessenta minutos.',pagina:0}))};}
+test('explicações de caderno antigo são validadas e persistem sem alterar gabarito e respostas',()=>{
+ const old=Q.validar(resposta(),config,origem);old.respostas.q1=2;const before=JSON.stringify(old),q=old.questoes[0];
+ const reasons=Q.validarExplicacoes({erro:'',explicacoes:q.alternativas.map((_,i)=>'A justificativa específica da alternativa '+i+'.')},q);
+ const copy=JSON.parse(before);copy.questoes[0].explicacoes=reasons;const restored=Q.caderno(copy);
+ assert.equal(JSON.stringify(old),before);assert.equal(restored.respostas.q1,2);assert.equal(restored.questoes[0].correta,q.correta);assert.deepEqual(restored.questoes[0].explicacoes,reasons);
+});
+test('não aceita explicação truncada ou sem fundamento e pede o conceito errado no prompt',()=>{
+ const q=resposta().questoes[0];assert.throws(()=>Q.validarExplicacoes({erro:'A referência não sustenta esta distinção.',explicacoes:[]},q),/referência/);
+ assert.throws(()=>Q.validarExplicacoes({explicacoes:['Só uma']},q),/incompletas/);
+ assert.throws(()=>Q.validarExplicacoes({explicacoes:q.alternativas.map(()=>'<'.repeat(801))},q),/incompletas/);
+ const prompt=Q.promptExplicacoes(q);assert.match(prompt,/conceito errado/);assert.match(prompt,/SOMENTE/);assert.match(prompt,/Não altere o gabarito/);assert.match(prompt,/sessão de estudo/);
+});
 test('valida questões e preserva somente o contrato esperado',()=>{
  const r=resposta();r.questoes[0].extra='ignorado';const bank=Q.validar(JSON.stringify(r),config,origem);
  assert.equal(bank.questoes.length,10);assert.equal(bank.questoes[0].extra,undefined);assert.equal(bank.questoes[0].pagina,null);

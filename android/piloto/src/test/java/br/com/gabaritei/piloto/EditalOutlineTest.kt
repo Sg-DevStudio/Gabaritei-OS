@@ -21,6 +21,14 @@ class EditalOutlineTest {
     }
     @Test fun deletedDisciplineDoesNotExposeItsTopics(){val s=raw();s.obj("config").obj("entidadesExcluidas").put("disc:p:d",true);assertTrue(EditalOutline.read(base,s.toString()).topics.isEmpty())}
     @Test fun instanceNamesOrderAndLinkIdentityArePreserved(){val s=raw();s.array("planos").getJSONObject(0).array("disciplinas").getJSONObject(0).put("nome","Minha matéria");val outline=EditalOutline.read(base,s.toString());assertEquals("Minha matéria",outline.disciplines.single().name);assertEquals("https://example.com",outline.topics.first().link);assertEquals(base.id,outline.id)}
+    @Test fun notebookUsesAllPlatformsAfterBuildingTheFullOutline(){
+        val links=listOf(QuestionLink("gran","https://questoes.grancursosonline.com.br/questoes?assunto=42"),QuestionLink("tec","https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].id=1026&f[0].tipo=ASSUNTO"),QuestionLink("qconcursos","https://www.qconcursos.com/questoes-de-concursos/disciplinas/letras-portugues/crase/questoes"))
+        val source=base.copy(disciplines=listOf(base.disciplines.single().copy(topics=listOf(base.topics.single().copy(questionLinks=links)))))
+        val s=raw();val before=s.toString();val outline=EditalOutline.read(source,before)
+        assertEquals(links,outline.topics.first().questionLinks)
+        assertEquals(listOf("Gran Questões","TEC Concursos","Qconcursos"),NotebookLinks.available(before,outline,outline.topics.first()).map{it.platform})
+        assertEquals(before,s.toString())
+    }
     @Test fun catalogAndInvalidSnapshotsFallBackToCurrentPlan(){assertEquals(base,EditalOutline.read(base,"{}"));assertEquals(base,EditalOutline.read(base,"broken"))}
     @Test fun deletedInstanceNeverLeaksIntoCatalogPreview(){val s=raw();s.obj("config").obj("planosExcluidos").put("p",true);assertTrue(EditalOutline.read(base.copy(enrolled=true),s.toString()).topics.isEmpty());assertEquals(base,EditalOutline.read(base,s.toString()))}
     @Test fun completionNeverCountsOtherPlansMissingTopicsOrDuplicates(){val outline=EditalOutline.read(base,raw().toString());val progress=listOf(Progress("p","t",true),Progress("p","t",true),Progress("other","archived",true),Progress("p","missing",true),Progress("p","archived",false));assertEquals(setOf("t"),EditalOutline.completed(outline,progress))}

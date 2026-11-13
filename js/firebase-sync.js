@@ -1152,7 +1152,7 @@ async function gerarQuestoesIA(config,parts,onStatus,origem){
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const controller=new AbortController();let timeout;
     const tarefa=(async()=>{
-      const [provider]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-ia-compacta'),Promise.resolve(credential)]);
+      const [provider]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-justificativas'),Promise.resolve(credential)]);
       if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
       if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
       const informar=()=>{if(onStatus)onStatus('Gerando '+(contexto.geradas+1)+'–'+(contexto.geradas+chunk.quantidade)+' de '+contexto.solicitadas+' questões · etapa '+contexto.indice+' de '+contexto.total+'…');};informar();
@@ -1186,11 +1186,24 @@ async function salvarCadernoIA(banco){
   return clean;
 }
 
+async function explicarAlternativas(questao,onStatus){
+  const user=usuarioQuestoesIA(),prompt=window.QuestoesIA.promptExplicacoes(questao);
+  const controller=new AbortController();let timeout;
+  const tarefa=(async()=>{
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-justificativas'),obterConfiguracaoIAPessoal(user)]);
+    if(controller.signal.aborted)throw Error('timeout: a explicação demorou. Tente novamente.');
+    if(usuario!==user)throw Error('A conta mudou. Abra o caderno novamente.');
+    const response=await provider.solicitar(prompt,[],controller.signal,onStatus,credential,3500,window.QuestoesIA.explicacoesSchema);
+    if(usuario!==user)throw Error('A conta mudou. Abra o caderno novamente.');
+    return window.QuestoesIA.validarExplicacoes(response,questao);
+  })();
+  try{return await Promise.race([tarefa,new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(Error('timeout: a explicação demorou. Tente novamente.'));},150000);})]);}finally{clearTimeout(timeout);}
+}
 async function corrigirRedacao(input,onStatus){
   const user=usuarioQuestoesIA(),clean=window.Redacoes.preparar(input,true);
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-ia-compacta'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-justificativas'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,12000,window.Redacoes.avaliacaoSchema);
@@ -1206,7 +1219,7 @@ async function transcreverRedacao(part,onStatus){
   if(!data||!['application/pdf','image/jpeg','image/png','image/webp'].includes(data.mimeType)||typeof data.data!=='string'||data.data.length>14000000||!/^[A-Za-z0-9+/]+={0,2}$/.test(data.data))throw Error('Arquivo de transcrição inválido.');
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-ia-compacta'),obterConfiguracaoIAPessoal(user,true)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-justificativas'),obterConfiguracaoIAPessoal(user,true)]);
     if(controller.signal.aborted)throw Error('timeout: transcrição cancelada.');
     if(usuario!==user)throw Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.promptTranscricao(),[part],controller.signal,onStatus,credential,12000,window.Redacoes.transcricaoSchema);
@@ -1231,7 +1244,7 @@ async function salvarRedacao(input){
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
-  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, listarCadernosIA, salvarCadernoIA, excluirCadernoIA, statusIAPessoal, configurarIAPessoal, configurarGroq, desativarGroq, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
+  carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, explicarAlternativas, listarCadernosIA, salvarCadernoIA, excluirCadernoIA, statusIAPessoal, configurarIAPessoal, configurarGroq, desativarGroq, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
   desativarPushAtual, pushConfigurado,
   listarBackupsNuvem, lerBackupNuvem
 };
