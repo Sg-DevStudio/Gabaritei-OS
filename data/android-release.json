@@ -1,10 +1,10 @@
 {
-  "versionCode": 29,
-  "versionName": "0.21.2",
+  "versionCode": 30,
+  "versionName": "0.21.3",
   "packageName": "br.com.gabaritei.os.piloto",
   "minSdk": 26,
-  "sizeBytes": 13196419,
-  "sha256": "5fed01acc47d2b56dbaf1becb8a56142583cf9139d6709e3d005d9990dbad792",
+  "sizeBytes": 13197627,
+  "sha256": "f28b15e6db18e2b45f210fa8767a293de93d4ee8f0569ae12cec1afe3dc02343",
   "certificateSha256": "02b7a6d78db229e9106d5e4618f2a9bff088619ce4d92203ab2f67df49ce855c",
-  "apkUrl": "https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.21.2/Gabaritei.apk"
+  "apkUrl": "https://github.com/Sg-DevStudio/Gabaritei-OS/releases/download/android-native-v0.21.3/Gabaritei.apk"
 }

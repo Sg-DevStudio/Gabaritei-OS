@@ -3,11 +3,14 @@ package br.com.gabaritei.piloto
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
@@ -17,21 +20,28 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import org.json.JSONObject
+import org.json.JSONArray
 
 @Composable internal fun NativeQuestionFocus(repo:NativePracticeRepository,bank:JSONObject,modifier:Modifier=Modifier,onCreate:()->Unit={},onBack:()->Unit){
     var index by rememberSaveable(bank.optString("id")){mutableIntStateOf(0)}
     var checked by remember(bank.optString("id"),index){mutableStateOf(false)}
     var selected by remember(bank.optString("id"),index){mutableIntStateOf(-1)}
+    var eliminationJson by rememberSaveable(bank.optString("id")){mutableStateOf("{}")}
     var cards by rememberSaveable{mutableStateOf(false)}
     var revealed by remember(bank.optString("id"),index,cards){mutableStateOf(false)}
     var deleting by remember{mutableStateOf(false)}
@@ -39,6 +49,7 @@ import org.json.JSONObject
     var feedback by remember{mutableStateOf("")}
     val busy by repo.busy.collectAsState();val unsaved by repo.pendingBankSave.collectAsState()
     val rows=bank.getJSONArray("questoes");val q=rows.getJSONObject(index.coerceAtMost(rows.length()-1))
+    val eliminated=remember(eliminationJson,q.getString("id")){val a=JSONObject(eliminationJson).optJSONArray(q.getString("id"));(0 until (a?.length()?:0)).map{a!!.getInt(it)}.toSet()}
     val answers=bank.optJSONObject("respostas")?:JSONObject();val previous=answers.optInt(q.getString("id"),-1)
     val marked=if(checked)previous else selected;val show=if(cards)revealed else checked;val correct=q.getInt("correta")
     val green=if(MaterialTheme.colorScheme.surface.luminance()<.4f)Color(0xFF6ED5AC)else Color(0xFF227B58)
@@ -80,21 +91,30 @@ import org.json.JSONObject
                 }else{
                     if(previous>=0&&!show)Text(if(previous==correct)"Acertou anteriormente"else"Errou anteriormente",style=MaterialTheme.typography.labelLarge,color=if(previous==correct)green else MaterialTheme.colorScheme.error)
                     Text(q.getString("enunciado"),style=MaterialTheme.typography.titleMedium.copy(lineHeight=28.sp))
+                    if(!show)Text("Use a tesoura para riscar ou restaurar opções.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                     val options=q.getJSONArray("alternativas")
-                    (0 until options.length()).forEach{i->
+                    (0 until options.length()).forEach{i->key(q.getString("id"),i){
                         val right=show&&i==correct;val wrong=show&&i==marked&&i!=correct
+                        val cut=!show&&i in eliminated
+                        val textColor by animateColorAsState(if(cut)MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=.65f)else MaterialTheme.colorScheme.onSurface,animationSpec=tween(170),label="alternative-text")
+                        val cutAngle by animateFloatAsState(if(cut)-12f else 0f,animationSpec=tween(170),label="alternative-cut")
                         val tone=when{right->green;wrong->MaterialTheme.colorScheme.error;marked==i->MaterialTheme.colorScheme.primary;else->MaterialTheme.colorScheme.outlineVariant}
                         val reason=q.optJSONArray("explicacoes")?.optString(i).orEmpty()
-                        Surface(onClick={selected=i},enabled=!blocked&&!show,shape=RoundedCornerShape(16.dp),border=BorderStroke(if(right||wrong||marked==i)2.dp else 1.dp,tone),color=when{right->green.copy(alpha=.08f);wrong->MaterialTheme.colorScheme.errorContainer;else->MaterialTheme.colorScheme.surface},modifier=Modifier.fillMaxWidth()){
-                            Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
-                                Text("${('A'+i)}. ${options.getString(i)}",style=MaterialTheme.typography.bodyLarge)
+                        Surface(shape=RoundedCornerShape(16.dp),border=BorderStroke(if(right||wrong||marked==i)2.dp else 1.dp,tone),color=when{right->green.copy(alpha=.08f);wrong->MaterialTheme.colorScheme.errorContainer;else->MaterialTheme.colorScheme.surface},modifier=Modifier.fillMaxWidth()){
+                            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.Top){
+                            Column(Modifier.weight(1f).selectable(selected=marked==i,enabled=!blocked&&!show&&!cut,role=Role.RadioButton,onClick={selected=i}).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
+                                Text("${('A'+i)}. ${options.getString(i)}",style=MaterialTheme.typography.bodyLarge.copy(textDecoration=if(cut)TextDecoration.LineThrough else TextDecoration.None),color=textColor)
                                 if(right||wrong)Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Icon(if(right)Icons.Outlined.Check else Icons.Outlined.Close,null,tint=tone);Text(if(right)"Resposta correta"else"Não é essa",color=tone,fontWeight=FontWeight.SemiBold)}
                                 if(show&&(reason.isNotBlank()||right))Text(reason.ifBlank{q.getString("comentario")},style=MaterialTheme.typography.bodyMedium)
                             }
+                            if(!show)IconButton(onClick={val next=AlternativeElimination.toggle(eliminated,selected,i,options.length());selected=next.selected;eliminationJson=JSONObject(eliminationJson).put(q.getString("id"),JSONArray(next.eliminated.toList())).toString()},enabled=!blocked,modifier=Modifier.padding(top=6.dp,end=4.dp).semantics{stateDescription=if(cut)"Riscada"else"Disponível"}){
+                                Icon(painterResource(if(cut)R.drawable.option_restore else R.drawable.option_cut),(if(cut)"Restaurar"else"Riscar")+" alternativa ${'A'+i}",Modifier.size(20.dp).graphicsLayer{rotationZ=cutAngle},tint=if(cut)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            }
                         }
                         if(wrong&&reason.isBlank())OutlinedButton(onClick={repo.explainQuestion(index)},enabled=!blocked){Text("Explicar esta alternativa")}
-                    }
-                    if(!show)Button(onClick={checked=true;repo.answer(index,selected)},enabled=!blocked&&selected>=0,modifier=Modifier.fillMaxWidth()){Text("Conferir resposta")}
+                    }}
+                    if(!show)Button(onClick={if(selected !in eliminated){checked=true;eliminationJson=JSONObject(eliminationJson).apply{remove(q.getString("id"))}.toString();repo.answer(index,selected)}},enabled=!blocked&&selected>=0&&selected !in eliminated,modifier=Modifier.fillMaxWidth()){Text("Conferir resposta")}
                 }
                 if(show){val page=q.optInt("pagina",0);Text(if(page>0)"Referência da resposta · página $page"else"Referência da resposta no material",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary);Text(q.getString("trecho"),style=MaterialTheme.typography.bodyMedium)}
                 PracticeMessage(repo)

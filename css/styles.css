@@ -5590,6 +5590,17 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .qia-explicacao-pendente{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px 2px;}
 .qia-explicacao-pendente button{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;min-height:38px;font-size:12px;}
 .qia-explicacao-pendente>span{font-size:12px;color:var(--grafite);}
+.qia-riscar-ajuda{font-size:12px;color:var(--grafite);margin:10px 0 0;}
+.qia-opcao-item.qia-com-tesoura{position:relative;}
+.qia-com-tesoura>.qia-alternativa{padding-right:62px;min-height:64px;}
+.qia-riscar{position:absolute;right:8px;top:9px;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;padding:10px;border:0;border-radius:10px;background:transparent;color:var(--grafite);box-shadow:none;}
+.qia-riscar svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;}
+.qia-riscar:hover,.qia-riscar[aria-pressed="true"]{color:var(--caneta);background:var(--caneta-suave);}
+.qia-riscar:focus-visible{outline:2px solid var(--caneta);outline-offset:2px;}
+.qia-eliminada .qia-opcao-texto{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--grafite);}
+.qia-eliminada .qia-alternativa{border-style:dashed;cursor:default;}
+.qia-eliminada input{opacity:.45;}
+@media(prefers-reduced-motion:reduce){.qia-com-tesoura *{animation:none!important;transition:none!important;}}
 .qia-verificar-linha{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .qia-resultado-atual{color:var(--grafite);font-size:13px;}
 .qia-referencia{margin-top:22px;font-size:12px;color:var(--grafite);}
