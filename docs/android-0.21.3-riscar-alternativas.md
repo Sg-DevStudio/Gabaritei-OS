@@ -26,4 +26,4 @@ Android: estado local da tentativa separado do `JSONObject` do caderno, seleçã
 - Contratos Kotlin/site preservados.
 - Playwright existente (plugin Browser indisponível), 1440 e 390 px: cortar/restaurar, limpar apenas a seleção riscada, preservar seleção de outra opção, navegar, tela cheia, ausência de gravação antes de confirmar, nova tentativa limpa, movimento reduzido e nenhum erro de execução.
 - O fluxo anterior de detalhar alternativas também foi verificado nas duas larguras, incluindo salvamento, falha e reutilização das explicações. Chamadas de IA foram simuladas, sem cota real.
-- APK instalado sobre o aplicativo principal; a área de resolução foi aberta no aparelho e os controles foram renderizados. A conferência interativa exige que a tela permaneça estável durante os toques, sem uso simultâneo do aparelho.
+- APK instalado sobre o aplicativo principal. Com a tela estabilizada, a conferência física confirmou: selecionar uma opção, riscá-la e verificar que ficou desmarcada; restaurá-la e verificar que não foi selecionada automaticamente. O teste usou somente o rascunho da tentativa, sem tocar em “Conferir resposta”, gerar questões ou executar IA.
