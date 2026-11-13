@@ -233,7 +233,7 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
             syncFeedback={StudySyncFeedback(sync,pending,catalogBusy,account!=null,online){accountDialog=true};IconButton(onClick={accountDialog=true}){ProfileAvatar(profilePhoto,Modifier.size(28.dp).semantics{contentDescription="Conta e sincronização"})}})
     }else {
         Scaffold(snackbarHost={SnackbarHost(snackbar)},bottomBar={PrimaryNavigation(tab,moreMenu,onNavigate={tab=it},onStudy={studyActions=true},onMore={moreMenu=true})},topBar={
-            StudyTopBar(if(tab==0)"Gabaritei OS"else destinations[tab],profilePhoto,sync,pending,catalogBusy,account!=null,online,onHome={tab=0},onAccount={accountDialog=true})
+            StudyTopBar(if(tab==0)"Gabaritei OS"else destinations[tab],profilePhoto,sync,pending,catalogBusy,account!=null,online,onHome={tab=0},onAccount={accountDialog=true},extraActions={if(tab==2||tab==9)PersonalAIAction(vm.practice)})
         }) { padding ->
             if(studyIntro||!ready)Box(Modifier.fillMaxSize().padding(padding),contentAlignment=Alignment.Center){if(error!=null)Text(error!!)else if(studyIntro)StudyLoading()else CircularProgressIndicator()}
             else if(tab==9)NativeEssaysScreen(vm.practice,Modifier.padding(padding))
@@ -244,7 +244,6 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                 Text("Crie questões com seu material ou organize seus cadernos pessoais.")
                 Button(onClick={tab=2;notebookSection=1}){Text("Abrir cadernos")}
                 OutlinedButton(onClick={tab=2;notebookSection=2}){Text("Criar questões")}
-                PersonalAICard(vm.practice)
             }
             else if(plan!=null&&selected!=null) LazyColumn(Modifier.padding(padding).fillMaxSize(),state=pageScroll,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 if(tab!=1)item { Surface(onClick={tab=1},shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.secondaryContainer){Row(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
@@ -312,7 +311,6 @@ private fun duration(seconds:Long):String = "%02d:%02d:%02d".format(seconds/3600
                     1 -> item{PlanCatalogCards(plans,plan.id,catalogStatus,catalogBusy,onRefresh={vm.refreshCatalog()},onChoose={p->if(!p.enrolled)creatingPlan=p else {vm.select(p);tab=0}},onNotebook={p->personalNotebook=false;vm.preview(p);tab=2},onManage={p->vm.preview(p);organizeDisciplines=true;tab=5},onOpen=onOpen)}
                     2 -> {
                         item{NotebookSections(0){notebookSection=it}}
-                        item{PersonalAICard(vm.practice)}
                         item{Row(verticalAlignment=Alignment.CenterVertically){Text("Caderno de questões",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold);TextButton(onClick={howTo=true}){Text("Como usar?")}}}
                         val hasLinks=notebookLinks.values.any{it.isNotEmpty()}
                         if(!hasLinks&&!personalNotebook)item{Block{

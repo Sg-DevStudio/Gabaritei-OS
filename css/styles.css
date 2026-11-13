@@ -5531,10 +5531,15 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 /* Private notebook practice */
 .qia-resultado-anterior{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .7rem;border-radius:999px;font-size:.8rem;font-weight:600;background:color-mix(in srgb,var(--azul,#3564e5) 12%,transparent);color:var(--azul,#638bff)}
 .qia-resultado-anterior[data-acerto="false"]{background:#d994251a;color:#c68b2b}
-.qia-chave{margin-block:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.qia-cabecalho .qia-titulo{flex:1;min-width:0;}
+.qia-cabecalho-acoes{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+.qia-ia-atalho{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:6px 10px;border:1px solid var(--linha);border-radius:10px;background:transparent;color:var(--grafite);font-size:12px;font-weight:600;box-shadow:none;white-space:nowrap;}
+.qia-ia-atalho svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;}
+.qia-ia-atalho:hover{color:var(--caneta);border-color:var(--caneta);background:var(--caneta-suave);}
+.qia-ia-atalho:focus-visible{outline:2px solid var(--caneta);outline-offset:3px;}
+@media(max-width:650px){.qia-hub .qia-cabecalho{flex-wrap:nowrap;gap:14px;}.qia-cabecalho-acoes{flex-direction:column;align-items:flex-end;gap:10px;}.qia-cabecalho-acoes .qia-ia-atalho{min-height:44px;min-width:54px;}.qia-cabecalho-acoes>.botao{font-size:12px;padding:8px 12px;}}
 /* Compact personal AI dialog: form actions and existing connection are distinct. */
-.qia-chave-status{font-size:.85rem;color:var(--grafite)}
-.qia-em-treino>.qia-chave{display:none!important}
+.qia-chave-dialogo .qia-chave-status{font-size:12px;color:var(--grafite);padding:12px 0 0;overflow-wrap:anywhere;}
 .qia-chave-dialogo{width:min(460px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:24px;border-radius:20px;}
 .qia-chave-dialogo h2{font-size:19px;margin:0 0 6px;}
 .qia-chave-dialogo p{margin:0;font-size:13px;line-height:1.5;}

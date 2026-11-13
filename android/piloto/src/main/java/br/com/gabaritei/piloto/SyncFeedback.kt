@@ -72,12 +72,13 @@ object SyncFeedbackRules {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun StudyTopBar(title:String,photo:String,sync:SyncStatus,pending:Int,catalogBusy:Boolean,connected:Boolean,online:Boolean,onHome:()->Unit,onAccount:()->Unit){
+@Composable internal fun StudyTopBar(title:String,photo:String,sync:SyncStatus,pending:Int,catalogBusy:Boolean,connected:Boolean,online:Boolean,onHome:()->Unit,onAccount:()->Unit,extraActions:@Composable RowScope.()->Unit={}){
     TopAppBar(
         colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.background),
         navigationIcon={IconButton(onClick=onHome){Image(painterResource(R.drawable.pilot_icon),"Página inicial",Modifier.size(26.dp))}},
         title={Text(title,fontWeight=FontWeight.SemiBold,fontSize=18.sp,lineHeight=24.sp,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)},
         actions={
+            extraActions()
             StudySyncFeedback(sync,pending,catalogBusy,connected,online,onAccount)
             IconButton(onClick=onAccount){ProfileAvatar(photo,Modifier.size(28.dp).semantics{contentDescription="Conta e sincronização"})}
         }

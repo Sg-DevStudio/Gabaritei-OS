@@ -47,7 +47,7 @@ import org.json.JSONObject
     LaunchedEffect(Unit){repo.load("questionSets")}
     if(bank!=null){NativeQuestionFocus(repo,bank!!,modifier,onCreate={repo.currentBank.value=null;repo.file.value=null;onSection(2)}){repo.currentBank.value=null};return}
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-        NotebookSections(section,onSection);PersonalAICard(repo);PracticeMessage(repo)
+        NotebookSections(section,onSection);PracticeMessage(repo)
         if(section==2){
             Text("Crie com o seu material",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Bold)
             Text("Questões autorais organizadas por disciplina e assunto.",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)

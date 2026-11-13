@@ -108,7 +108,8 @@ object StateCompat {
                         if(url.isBlank()){
                             val remaining=ls.objects().filter{it.optString("id")!=id}
                             val next=JSONArray(remaining)
-                            if(p.optBoolean("keepEmpty")&&remaining.none{it.optString("tipo")=="trilha"&&it.optString("topicoChave")==key})next.put(JSONObject().put("id","android-empty-$topicId").put("tipo","trilha").put("topicoChave",key).put("oculto",true).put("atualizadoEm",now))
+                            if(p.optString("provedorOriginal").isNotBlank())next.put(JSONObject().put("id",id).put("tipo","trilha").put("topicoChave",key).put("provedorOriginal",p.getString("provedorOriginal")).put("oculto",true).put("atualizadoEm",now))
+                            if(p.optBoolean("keepEmpty")&&p.optString("provedorOriginal").isBlank()&&remaining.none{it.optString("tipo")=="trilha"&&it.optString("topicoChave")==key})next.put(JSONObject().put("id","android-empty-$topicId").put("tipo","trilha").put("topicoChave",key).put("oculto",true).put("atualizadoEm",now))
                             plan.put("links",next)
                             s.obj("config").obj("entidadesExcluidas").put("link:$planId:${encoded(id)}",true)
                         }else{
@@ -117,6 +118,7 @@ object StateCompat {
                             if(primary)ls.objects().filter{it.optString("topicoChave")==key&&it.optString("id")!=id&&it.optBoolean("principal")}.forEach{it.put("principal",false).put("atualizadoEm",now)}
                             val name=if(p.has("name"))p.optString("name").trim().take(120).ifBlank{NotebookLinks.platform(url)}else old?.optString("nome")?:"Questões de ${topic.optString("nome")}"
                             val next=(old?:JSONObject()).put("id",id).put("tipo","trilha").put("topicoChave",key).put("url",url).put("nome",name).put("principal",primary).put("oculto",false).put("atualizadoEm",now)
+                            if(p.optString("provedorOriginal").isNotBlank())next.put("provedorOriginal",p.getString("provedorOriginal"))
                             if(old==null)ls.put(next)
                         }
                         plan.put("atualizadoEm",now)
@@ -160,7 +162,7 @@ object StateCompat {
                 Discipline(d.getString("id"),d.optString("nome"),d.array("topicos").objects().filter{!it.optBoolean("removidoDoEdital")&&!it.optBoolean("orfao")&&!it.optBoolean("androidArquivado")&&!deleted(s,"top",p.getString("id"),it.optString("id"))}.map{t->
                     val ref=source?.topics?.firstOrNull{it.id==t.optString("id")||it.name==t.optString("nome")}
                     val personal=p.array("links").objects().any{it.optString("tipo")=="trilha"&&it.optString("topicoChave")=="plano:${d.optString("id")}:${t.optString("id")}"}
-                    Topic(t.getString("id"),t.optString("nome"),if(personal)null else ref?.link,if(personal)"Links pessoais deste tópico" else ref?.note?:"Adicione um link de questões para este tópico.",ref?.noQuestions?:false,if(personal)emptyList()else ref?.questionLinks.orEmpty())
+                    Topic(t.getString("id"),t.optString("nome"),if(personal)null else ref?.link,if(personal)"Links pessoais deste tópico" else ref?.note?:"Adicione um link de questões para este tópico.",ref?.noQuestions?:false,ref?.questionLinks.orEmpty())
                 },d.optString("cor","#3B82F6"),d.optString("planejamentoStatus")=="paused",d.optBoolean("androidArquivada"))
             },origin,true,logoAsset=source?.logoAsset.orEmpty(),details=(JSONObject(source?.details?:"{}").also{details->meta.keys().forEach{key->details.put(key,meta.get(key))};details.put("titulo",meta.optString("concurso")).put("id",p.getString("id")).put("disciplinas",p.array("disciplinas"))}).toString())
         }

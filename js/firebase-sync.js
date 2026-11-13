@@ -1152,7 +1152,7 @@ async function gerarQuestoesIA(config,parts,onStatus,origem){
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const controller=new AbortController();let timeout;
     const tarefa=(async()=>{
-      const [provider]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-android-updates'),Promise.resolve(credential)]);
+      const [provider]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-ia-compacta'),Promise.resolve(credential)]);
       if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
       if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
       const informar=()=>{if(onStatus)onStatus('Gerando '+(contexto.geradas+1)+'–'+(contexto.geradas+chunk.quantidade)+' de '+contexto.solicitadas+' questões · etapa '+contexto.indice+' de '+contexto.total+'…');};informar();
@@ -1190,7 +1190,7 @@ async function corrigirRedacao(input,onStatus){
   const user=usuarioQuestoesIA(),clean=window.Redacoes.preparar(input,true);
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-android-updates'),obterConfiguracaoIAPessoal(user)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-ia-compacta'),obterConfiguracaoIAPessoal(user)]);
     if(controller.signal.aborted)throw new Error('timeout: conexão com a IA demorou.');
     if(usuario!==user)throw new Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.prompt(clean),[],controller.signal,onStatus,credential,12000,window.Redacoes.avaliacaoSchema);
@@ -1206,7 +1206,7 @@ async function transcreverRedacao(part,onStatus){
   if(!data||!['application/pdf','image/jpeg','image/png','image/webp'].includes(data.mimeType)||typeof data.data!=='string'||data.data.length>14000000||!/^[A-Za-z0-9+/]+={0,2}$/.test(data.data))throw Error('Arquivo de transcrição inválido.');
   const controller=new AbortController();let timeout;
   const tarefa=(async()=>{
-    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261112-android-updates'),obterConfiguracaoIAPessoal(user,true)]);
+    const [provider,credential]=await Promise.all([import('./questoes-ia-provider.js?v=20261113-ia-compacta'),obterConfiguracaoIAPessoal(user,true)]);
     if(controller.signal.aborted)throw Error('timeout: transcrição cancelada.');
     if(usuario!==user)throw Error('A conta mudou. Abra a aba novamente.');
     const response=await provider.solicitar(window.Redacoes.promptTranscricao(),[part],controller.signal,onStatus,credential,12000,window.Redacoes.transcricaoSchema);

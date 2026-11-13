@@ -28,7 +28,33 @@ class NotebookLinksTest {
         val enrolled=StateCompat.plans(raw,listOf(base)).first{it.id=="p"}
         assertEquals(listOf("Gran Questões","TEC Concursos","Qconcursos"),NotebookLinks.available(raw,enrolled,enrolled.topics.single()).map{it.platform})
         val personal=StateCompat.apply(raw,listOf(op("mine","https://tecconcursos.com.br/s/my-personal")))
-        assertEquals(listOf("https://tecconcursos.com.br/s/my-personal"),NotebookLinks.available(personal,enrolled,enrolled.topics.single()).map{it.url})
+        val customized=StateCompat.plans(personal,listOf(base)).first{it.id=="p"}
+        assertEquals(listOf("https://tecconcursos.com.br/s/my-personal",defaults.last().url),NotebookLinks.available(personal,customized,customized.topics.single()).map{it.url})
+    }
+    private val platformDefaults=listOf(QuestionLink("gran",topic.link!!),QuestionLink("tec","https://www.tecconcursos.com.br/questoes/filtrar?formato=OBJETIVA&f[0].tipo=ASSUNTO&f[0].id=1026"),QuestionLink("qconcursos","https://www.qconcursos.com/questoes-de-concursos/disciplinas/letras-portugues/crase/questoes"))
+    private val multiTopic=topic.copy(questionLinks=platformDefaults)
+    private val multiPlan=plan.copy(disciplines=listOf(plan.disciplines.single().copy(topics=listOf(multiTopic))))
+    @Test fun savedGranDoesNotHideOtherPlatformDefaultsOrChangeSavedHistory(){
+        val raw=StateCompat.apply(state().toString(),listOf(op("gran",topic.link!!)))
+        val before=raw
+        val links=NotebookLinks.available(raw,multiPlan,multiTopic)
+        assertEquals(listOf("Gran Questões","TEC Concursos","Qconcursos"),links.map{it.platform})
+        assertEquals(platformDefaults.map{it.url},links.map{it.url})
+        assertEquals(before,raw);assertEquals(1,JSONObject(raw).array("planos").getJSONObject(0).array("links").length())
+    }
+    @Test fun hiddenAndRetargetedPlatformsDoNotRegainTheirDefaults(){
+        val s=JSONObject(StateCompat.apply(state().toString(),listOf(op("gran",topic.link!!))))
+        val rows=s.array("planos").getJSONObject(0).array("links")
+        rows.put(JSONObject().put("id","hidden-tec").put("tipo","trilha").put("topicoChave","plano:d:t").put("provedorOriginal","tec").put("oculto",true))
+        rows.put(JSONObject().put("id","custom-q").put("tipo","trilha").put("topicoChave","plano:d:t").put("provedorOriginal","qconcursos").put("url","https://example.com/my-notebook"))
+        assertEquals(listOf(topic.link,"https://example.com/my-notebook"),NotebookLinks.available(s.toString(),multiPlan,multiTopic).map{it.url})
+    }
+    @Test fun removingNewDefaultKeepsProviderTombstoneAndOtherPlatforms(){
+        val raw=StateCompat.apply(state().toString(),listOf(op("gran",topic.link!!)))
+        val remove=op("new-tec","").let{it.copy(payload=JSONObject(it.payload).put("provedorOriginal","tec").toString())}
+        val deleted=StateCompat.apply(raw,listOf(remove))
+        assertEquals(listOf("Gran Questões","Qconcursos"),NotebookLinks.available(deleted,multiPlan,multiTopic).map{it.platform})
+        assertTrue(NotebookLinks.rows(deleted,plan,multiTopic).single{it.optString("id")=="new-tec"}.getBoolean("oculto"))
     }
     @Test fun allPlatformsAreKeptButRepeatedUrlsNeedOnlyOneChoice(){
         val s=StateCompat.apply(state().toString(),listOf(op("gran",topic.link!!),op("notebook","https://notebooklm.google.com/notebook/x"),op("duplicate",topic.link!!)).mapIndexed{i,op->op.copy(createdAt=1000L+i)})

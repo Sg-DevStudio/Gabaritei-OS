@@ -242,7 +242,7 @@ class PilotViewModel(application: Application) : AndroidViewModel(application) {
             val payloads=mutableListOf<JSONObject>()
             // On first customization, materialize the other defaults just as the website does.
             if(NotebookLinks.rows(raw,p,topic).isEmpty())entries.filter{it.id!=old?.id}.forEach{entry->payloads+=JSONObject().put("planId",p.id).put("topicId",topic.id).put("linkId","android-link-${UUID.randomUUID()}").put("beforeUrl","").put("url",entry.url).put("name",entry.label).put("makePrimary",false)}
-            payloads+=JSONObject().put("planId",p.id).put("topicId",topic.id).put("linkId",old?.takeIf{it.persisted}?.id?:"android-link-${UUID.randomUUID()}").put("beforeUrl",if(old?.persisted==true)old.url else "").put("url",if(remove)""else value).put("name",name).put("makePrimary",false).put("keepEmpty",true).also{if(old?.persisted==true)it.put("beforeName",old.name)}
+            payloads+=JSONObject().put("planId",p.id).put("topicId",topic.id).put("linkId",old?.takeIf{it.persisted}?.id?:"android-link-${UUID.randomUUID()}").put("beforeUrl",if(old?.persisted==true)old.url else "").put("url",if(remove)""else value).put("name",name).put("makePrimary",false).put("keepEmpty",true).put("provedorOriginal",old?.originalProvider?.ifBlank{NotebookLinks.provider(old.url)}?:NotebookLinks.provider(value)).also{if(old?.persisted==true)it.put("beforeName",old.name)}
             val ops=payloads.mapIndexed{i,payload->mutation(d,"link",payload).let{it.copy(createdAt=it.createdAt+i)}}
             d.notebook(ops,p.id,topic.id,p.owner.isEmpty())
             if(plan.owner==account.value?.uid.orEmpty())onDone(null)
