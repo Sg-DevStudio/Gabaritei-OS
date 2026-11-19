@@ -15,7 +15,7 @@
     <button type="button" class="botao-quieto" data-qia-notebooklm aria-haspopup="dialog" hidden>NotebookLM</button>
     <dialog class="estudo-dialogo" id="qia-notebooklm" aria-labelledby="qia-notebooklm-titulo">
       <h2 id="qia-notebooklm-titulo">Cadernos do NotebookLM</h2>
-      <p class="sub">Importe quizzes de uma aba do NotebookLM aberta no Chrome.</p>
+      <p class="sub">Deixe o Estúdio do NotebookLM aberto no Chrome para escolher um quiz aqui.</p>
       <p role="status" data-notebooklm-status></p>
       <ul data-notebooklm-lista hidden></ul>
       <form class="qia-notebooklm-importar" data-notebooklm-direto>
@@ -28,14 +28,6 @@
           <a class="botao-quieto" href="extensions/notebooklm/gabaritei-notebooklm.zip" download data-notebooklm-extensao hidden>Baixar extensão do Chrome</a>
         </div>
       </form>
-      <details class="qia-notebooklm-arquivo"><summary>Importar por arquivo JSON</summary>
-      <form class="qia-notebooklm-importar" data-notebooklm-importar>
-        <label>Arquivo JSON do quiz <input type="file" name="quiz" accept=".json,application/json"></label>
-        <label data-notebooklm-nome hidden>Nome do caderno <input type="text" name="nome" maxlength="120"></label>
-        <p class="sub" role="status" data-notebooklm-importacao>Escolha o JSON exportado para criar um caderno de treino.</p>
-        <button type="submit" class="botao-quieto" disabled>Importar quiz</button>
-      </form>
-      </details>
       <div class="estudo-dialogo-acoes">
         <form method="dialog"><button class="botao-quieto">Fechar</button></form>
         <button type="button" class="botao" data-notebooklm-conectar>Conectar NotebookLM</button>
@@ -91,13 +83,6 @@
       const resultado = dialogo.querySelector('[data-notebooklm-status]');
       const lista = dialogo.querySelector('[data-notebooklm-lista]');
       const teste = s.notebookLM ||= {emAndamento: false, dados: null, mensagem: ''};
-      const importacao = dialogo.querySelector('[data-notebooklm-importar]');
-      const arquivoQuiz = importacao.elements.quiz;
-      const nomeQuiz = importacao.elements.nome;
-      const campoNome = importacao.querySelector('[data-notebooklm-nome]');
-      const importar = importacao.querySelector('button');
-      const feedbackImportacao = importacao.querySelector('[data-notebooklm-importacao]');
-      let quiz = null;
       const direto = dialogo.querySelector('[data-notebooklm-direto]');
       const seletor = direto.elements.quizDireto;
       const nomeDireto = direto.elements.nomeDireto;
@@ -181,51 +166,6 @@
         } finally {
           s.importandoQuiz = false;
           nomeDireto.disabled = seletor.disabled = importarDireto.disabled = recarregar.disabled = false;
-        }
-      };
-
-      arquivoQuiz.onchange = async () => {
-        const arquivo = arquivoQuiz.files[0];
-        quiz = null;
-        importar.disabled = true;
-        campoNome.hidden = true;
-        nomeQuiz.value = '';
-        if (!arquivo) return;
-        feedbackImportacao.textContent = 'Lendo o quiz…';
-        try {
-          if (arquivo.size > 2 * 1024 * 1024) throw Error('Selecione um quiz de até 2 MB.');
-          const dados = Q.importarQuizNotebookLM(await arquivo.text());
-          if (!ativo() || arquivoQuiz.files[0] !== arquivo) return;
-          quiz = dados;
-          nomeQuiz.value = dados.nome;
-          campoNome.hidden = false;
-          feedbackImportacao.textContent = `${dados.questoes.length} ${dados.questoes.length === 1 ? 'questão pronta' : 'questões prontas'} para importar.`;
-          importar.disabled = false;
-        } catch (error) {
-          if (ativo() && arquivoQuiz.files[0] === arquivo) feedbackImportacao.textContent = error.message;
-        }
-      };
-      importacao.onsubmit = async event => {
-        event.preventDefault();
-        if (!quiz || s.importandoQuiz || !ativo()) return;
-        const banco = quiz;
-        banco.config.nome = nomeQuiz.value.trim() || quiz.nome;
-        s.importandoQuiz = true;
-        nomeQuiz.disabled = arquivoQuiz.disabled = importar.disabled = true;
-        feedbackImportacao.textContent = 'Salvando em Meus cadernos…';
-        try {
-          const salvo = await api().salvarCadernoIA(banco);
-          mostrarImportado(salvo);
-          quiz = null;
-          importacao.reset();
-          campoNome.hidden = true;
-          feedbackImportacao.textContent = 'Escolha o JSON exportado para criar um caderno de treino.';
-        } catch (error) {
-          if (ativo()) feedbackImportacao.textContent = Q.mensagemErro(error);
-        } finally {
-          s.importandoQuiz = false;
-          nomeQuiz.disabled = arquivoQuiz.disabled = false;
-          importar.disabled = !quiz;
         }
       };
 
