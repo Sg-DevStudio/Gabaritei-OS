@@ -1,6 +1,7 @@
 (function(){
   'use strict';
   const Q=window.QuestoesIA;
+  const ID_EXTENSAO_NOTEBOOKLM = 'kefgbdbgkfklhpdcoppafggaghfkjldn';
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let atual=null,pdfLibPromise=null;
   const confirmar=(texto,acao,titulo)=>window.EstudoDialogo.confirmar({texto,acao:acao||'Continuar',titulo:titulo||'Seu caderno',perigo:acao==='Excluir definitivamente'});
@@ -9,24 +10,49 @@
     return atual;
   }
   function render(){return `<section class="questoes-ia qia-hub" id="questoes-ia">
-    <header class="qia-cabecalho"><div class="qia-titulo"><p class="qia-eyebrow">PRÁTICA ORGANIZADA</p><h1>Caderno de questões</h1><p class="sub">Pratique por assunto nas suas plataformas ou crie questões com o seu material.</p></div><div class="qia-cabecalho-acoes"><button type="button" class="qia-ia-atalho" data-qia-chave aria-label="Ajustar minha IA" aria-haspopup="dialog" title="Ajustar minha IA"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>IA</span></button><button type="button" class="botao" data-qia-aba="criar">Criar caderno</button></div></header>
+    <header class="qia-cabecalho"><div class="qia-titulo"><p class="qia-eyebrow">PRÁTICA ORGANIZADA</p><h1>Caderno de questões</h1><p class="sub">Pratique por assunto nas suas plataformas ou crie questões com o seu material.</p></div><div class="qia-cabecalho-acoes"><div class="qia-provedor-atalhos"><button type="button" class="qia-ia-atalho" data-qia-chave aria-label="Ajustar minha IA" aria-haspopup="dialog" title="Ajustar minha IA"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>IA</span></button><button type="button" class="qia-ia-atalho qia-notebooklm-atalho" data-qia-notebooklm aria-label="NotebookLM" aria-haspopup="dialog" title="Importar do NotebookLM" hidden><img src="assets/ferramentas/logo-notebooklm.svg" width="20" height="20" alt=""></button></div><button type="button" class="botao" data-qia-aba="criar">Criar caderno</button></div></header>
     <nav class="estudo-segmentos" aria-label="Áreas do caderno"><button type="button" data-qia-aba="edital" aria-pressed="true">Por edital</button><button type="button" data-qia-aba="meus" aria-pressed="false">Meus cadernos</button><button type="button" data-qia-aba="criar" aria-pressed="false">Criar com IA</button></nav>
     <button type="button" class="botao-quieto" data-qia-notebooklm aria-haspopup="dialog" hidden>NotebookLM</button>
     <dialog class="estudo-dialogo" id="qia-notebooklm" aria-labelledby="qia-notebooklm-titulo">
       <h2 id="qia-notebooklm-titulo">Cadernos do NotebookLM</h2>
-      <p class="sub">Escolha sua conta Google e autorize a leitura dos cadernos.</p>
+      <p class="sub">Importe quizzes de uma aba do NotebookLM aberta no Chrome.</p>
       <p role="status" data-notebooklm-status></p>
       <ul data-notebooklm-lista hidden></ul>
+      <form class="qia-notebooklm-importar" data-notebooklm-direto>
+        <label>Quiz do NotebookLM <select name="quizDireto" disabled></select></label>
+        <label>Nome do caderno <input type="text" name="nomeDireto" maxlength="120" placeholder="Usar o título do quiz"></label>
+        <p class="sub" role="status" data-notebooklm-direto-status></p>
+        <div class="qia-notebooklm-acoes">
+          <button type="submit" class="botao" disabled>Importar do NotebookLM</button>
+          <button type="button" class="botao-quieto" data-notebooklm-recarregar>Atualizar lista</button>
+          <a class="botao-quieto" href="extensions/notebooklm/gabaritei-notebooklm.zip" download data-notebooklm-extensao hidden>Baixar extensão do Chrome</a>
+        </div>
+      </form>
+      <details class="qia-notebooklm-arquivo"><summary>Importar por arquivo JSON</summary>
       <form class="qia-notebooklm-importar" data-notebooklm-importar>
         <label>Arquivo JSON do quiz <input type="file" name="quiz" accept=".json,application/json"></label>
         <label data-notebooklm-nome hidden>Nome do caderno <input type="text" name="nome" maxlength="120"></label>
         <p class="sub" role="status" data-notebooklm-importacao>Escolha o JSON exportado para criar um caderno de treino.</p>
         <button type="submit" class="botao-quieto" disabled>Importar quiz</button>
       </form>
+      </details>
       <div class="estudo-dialogo-acoes">
         <form method="dialog"><button class="botao-quieto">Fechar</button></form>
         <button type="button" class="botao" data-notebooklm-conectar>Conectar NotebookLM</button>
       </div>
+    </dialog>
+    <dialog class="estudo-dialogo qia-config-caderno" aria-labelledby="qia-config-titulo" data-qia-config-dialogo>
+      <h2 id="qia-config-titulo">Configurações do caderno</h2>
+      <form>
+        <label>Nome do caderno <input name="nome" maxlength="120" required></label>
+        <label>Disciplina <input name="disciplina" maxlength="120" list="qia-disciplinas"></label>
+        <label>Assunto <input name="assunto" maxlength="160"></label>
+        <p role="status" hidden></p>
+        <div class="estudo-dialogo-acoes">
+          <button type="button" class="botao-quieto" data-qia-config-fechar>Cancelar</button>
+          <button type="submit" class="botao">Salvar alterações</button>
+        </div>
+      </form>
     </dialog>
     <div class="qia-status" role="status" aria-live="polite" hidden></div>
     <section id="qia-edital" class="qia-painel"><h2>Questões do seu plano</h2><p class="sub">TEC, Gran e Qconcursos, com os links por disciplina e assunto. A prática abre na plataforma escolhida.</p><div id="qia-planos" class="qia-planos"></div><a class="botao-quieto" href="#planos">Explorar planos e editais</a></section>
@@ -72,6 +98,91 @@
       const importar = importacao.querySelector('button');
       const feedbackImportacao = importacao.querySelector('[data-notebooklm-importacao]');
       let quiz = null;
+      const direto = dialogo.querySelector('[data-notebooklm-direto]');
+      const seletor = direto.elements.quizDireto;
+      const nomeDireto = direto.elements.nomeDireto;
+      const importarDireto = direto.querySelector('button[type="submit"]');
+      const recarregar = direto.querySelector('[data-notebooklm-recarregar]');
+      const extensao = direto.querySelector('[data-notebooklm-extensao]');
+      const feedbackDireto = direto.querySelector('[data-notebooklm-direto-status]');
+      let quizzes = [];
+
+      function chamarExtensao(message, timeout = 12000) {
+        return new Promise((resolve, reject) => {
+          if (!window.chrome?.runtime?.sendMessage) return reject(Error('EXTENSAO'));
+          const timer = setTimeout(() => reject(Error('O Chrome não respondeu. Confira a aba do NotebookLM e tente novamente.')), timeout);
+          try {
+            window.chrome.runtime.sendMessage(ID_EXTENSAO_NOTEBOOKLM, message, response => {
+              clearTimeout(timer);
+              if (window.chrome.runtime.lastError || !response) return reject(Error('EXTENSAO'));
+              if (response.ok) resolve(response.data);
+              else reject(Error(response.error || 'Não foi possível abrir o quiz.'));
+            });
+          } catch (_) {
+            clearTimeout(timer);
+            reject(Error('EXTENSAO'));
+          }
+        });
+      }
+
+      async function carregarQuizzes() {
+        if (recarregar.disabled || s.importandoQuiz) return;
+        recarregar.disabled = seletor.disabled = importarDireto.disabled = true;
+        extensao.hidden = true;
+        feedbackDireto.textContent = 'Procurando quizzes nas abas do NotebookLM…';
+        try {
+          quizzes = await chamarExtensao({type: 'notebooklm:list'});
+          if (!ativo()) return;
+          seletor.replaceChildren(...quizzes.map((item, index) => new Option(item.title + (quizzes.some((other, i) => i !== index && other.title === item.title) ? ' · ' + item.notebook : ''), String(index))));
+          seletor.disabled = importarDireto.disabled = quizzes.length === 0;
+          feedbackDireto.textContent = quizzes.length ? 'Escolha o quiz e importe direto para Meus cadernos.' : 'Abra um caderno do NotebookLM neste Chrome, deixe o Estúdio à mostra e atualize a lista.';
+        } catch (error) {
+          seletor.replaceChildren();
+          extensao.hidden = error.message !== 'EXTENSAO';
+          feedbackDireto.textContent = error.message === 'EXTENSAO' ? 'Para importar direto, use a extensão no Chrome para computador.' : error.message;
+        } finally {
+          recarregar.disabled = false;
+        }
+      }
+
+      function mostrarImportado(salvo) {
+        if (atual !== s) return;
+        s.filtro = 'ativos';
+        s.busca = '';
+        substituir(salvo);
+        mudarAba('meus');
+        if (ativo()) {
+          root.querySelector('#qia-filtro').value = 'ativos';
+          root.querySelector('#qia-busca').value = '';
+          dialogo.close();
+        }
+        aviso('Quiz importado. Ele está em Meus cadernos.');
+      }
+
+      recarregar.onclick = carregarQuizzes;
+      direto.onsubmit = async event => {
+        event.preventDefault();
+        const selecionado = quizzes[Number(seletor.value)];
+        if (!selecionado || importarDireto.disabled || s.importandoQuiz || !ativo()) return;
+        s.importandoQuiz = true;
+        nomeDireto.disabled = seletor.disabled = importarDireto.disabled = recarregar.disabled = true;
+        feedbackDireto.textContent = 'Lendo as questões e o gabarito no NotebookLM…';
+        try {
+          const dados = await chamarExtensao({type: 'notebooklm:import', item: selecionado}, 180000);
+          if (atual !== s) return;
+          const banco = Q.importarQuizNotebookLM(JSON.stringify(dados));
+          banco.config.nome = nomeDireto.value.trim() || banco.nome;
+          feedbackDireto.textContent = 'Salvando em Meus cadernos…';
+          mostrarImportado(await api().salvarCadernoIA(banco));
+          nomeDireto.value = '';
+          feedbackDireto.textContent = 'Quiz importado.';
+        } catch (error) {
+          feedbackDireto.textContent = error.message === 'EXTENSAO' ? 'A extensão deixou de responder. Recarregue as duas abas e tente novamente.' : Q.mensagemErro(error);
+        } finally {
+          s.importandoQuiz = false;
+          nomeDireto.disabled = seletor.disabled = importarDireto.disabled = recarregar.disabled = false;
+        }
+      };
 
       arquivoQuiz.onchange = async () => {
         const arquivo = arquivoQuiz.files[0];
@@ -104,17 +215,7 @@
         feedbackImportacao.textContent = 'Salvando em Meus cadernos…';
         try {
           const salvo = await api().salvarCadernoIA(banco);
-          if (atual !== s) return;
-          s.filtro = 'ativos';
-          s.busca = '';
-          substituir(salvo);
-          mudarAba('meus');
-          if (ativo()) {
-            root.querySelector('#qia-filtro').value = 'ativos';
-            root.querySelector('#qia-busca').value = '';
-            dialogo.close();
-          }
-          aviso('Quiz importado. Ele está em Meus cadernos.');
+          mostrarImportado(salvo);
           quiz = null;
           importacao.reset();
           campoNome.hidden = true;
@@ -147,7 +248,7 @@
         }
       }
 
-      piloto.onclick = () => { exibirNotebookLM(); dialogo.showModal(); };
+      piloto.onclick = () => { exibirNotebookLM(); dialogo.showModal(); carregarQuizzes(); };
       conectar.onclick = async () => {
         if (teste.emAndamento) return;
         teste.emAndamento = true;
@@ -183,7 +284,7 @@
     form.elements.planoId.innerHTML='<option value="">Sem vínculo com plano</option>'+planos.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>').join('');
     root.querySelector('#qia-disciplinas').innerHTML=[...new Set(planos.flatMap(p=>(p.disciplinas||[]).map(d=>d.nome)))].map(n=>'<option value="'+esc(n)+'"></option>').join('');
     function aviso(text,erro){s.mensagem=text||'';s.erro=!!erro;if(!ativo()){if(s.refresh)s.refresh();return;}status.hidden=!text;status.textContent=text||'';status.dataset.erro=erro?'true':'false';if(erro&&/cota|quota|429|configurad/i.test(text)){const setup=document.createElement('button');setup.type='button';setup.textContent='Configurar minha IA';setup.onclick=()=>root.querySelector('.qia-chave-dialogo').showModal();status.append(' ',setup);}if(erro&&s.bancoSujo){const retry=document.createElement('button');retry.type='button';retry.textContent='Tentar novamente';retry.onclick=()=>salvar();status.append(' ',retry);}if(erro&&s.foco)resolver();}
-    function ocupado(value){s.ocupado=value;if(!ativo()){if(s.refresh)s.refresh();return;}root.querySelectorAll('#qia-form input,#qia-form textarea,#qia-form select,#qia-form button,[data-qia-salvar],[data-qia-abrir],[data-qia-mutar],[data-qia-editar]').forEach(el=>el.disabled=value||!uid);root.querySelector('#qia-gerar').textContent=value?'Preparando questões…':'Gerar questões';resolver();}
+    function ocupado(value){s.ocupado=value;if(!ativo()){if(s.refresh)s.refresh();return;}root.querySelectorAll('#qia-form input,#qia-form textarea,#qia-form select,#qia-form button,[data-qia-salvar],[data-qia-abrir],[data-qia-mutar],[data-qia-configurar]').forEach(el=>el.disabled=value||!uid);root.querySelector('#qia-gerar').textContent=value?'Preparando questões…':'Gerar questões';resolver();}
     function mudarAba(aba){s.aba=aba;if(!ativo())return;['edital','meus','criar'].forEach(k=>{root.querySelector('#qia-'+k).hidden=k!==aba;});root.querySelectorAll('[data-qia-aba]').forEach(b=>{if(b.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed',String(b.dataset.qiaAba===aba));});resolver();}
     root.querySelectorAll('[data-qia-aba]').forEach(b=>b.onclick=()=>mudarAba(b.dataset.qiaAba));
     function arquivoInfo(){if(!ativo()){if(s.refresh)s.refresh();return;}root.querySelector('#qia-arquivo-info').textContent=s.file?s.file.name+(s.total?' · '+s.total+' páginas':''):'PDF de até 10 MB; selecione até 20 páginas por vez.';root.querySelector('#qia-paginas-label').hidden=!s.pdf;}
@@ -205,7 +306,55 @@
       finally{ocupado(false);if(s.refresh)s.refresh();}
     });
     function substituir(banco){s.lista=[banco,...s.lista.filter(b=>b.id!==banco.id)];if(s.banco&&s.banco.id===banco.id)s.banco=banco;lista();resolver();}
-    async function mutar(banco,acao,container){
+    const configDialogo = root.querySelector('[data-qia-config-dialogo]');
+    const configForm = configDialogo.querySelector('form');
+    const configFeedback = configForm.querySelector('[role="status"]');
+    const configSalvar = configForm.querySelector('[type="submit"]');
+    const configFechar = configForm.querySelector('[data-qia-config-fechar]');
+    let configId = '';
+
+    function configurarCaderno(id) {
+      const banco = s.lista.find(item => item.id === id);
+      if (!banco || s.ocupado) return;
+      configId = id;
+      for (const field of ['nome', 'disciplina', 'assunto']) configForm.elements[field].value = banco.config[field] || '';
+      configFeedback.hidden = true;
+      configDialogo.showModal();
+      configForm.elements.nome.select();
+    }
+
+    configFechar.onclick = () => configDialogo.close();
+    configForm.onsubmit = async event => {
+      event.preventDefault();
+      const banco = s.lista.find(item => item.id === configId);
+      if (!banco || s.ocupado || !ativo()) return;
+      const nome = configForm.elements.nome.value.trim();
+      configFeedback.hidden = false;
+      if (!nome) { configFeedback.textContent = 'Informe o nome do caderno.'; return; }
+      if (s.banco?.id === banco.id && s.bancoSujo) {
+        configFeedback.textContent = 'Salve o progresso do treino antes de editar o caderno.';
+        return;
+      }
+      const config = {...banco.config, nome, disciplina: configForm.elements.disciplina.value, assunto: configForm.elements.assunto.value};
+      ocupado(true);
+      configSalvar.disabled = configFechar.disabled = true;
+      configFeedback.textContent = 'Salvando alterações…';
+      try {
+        const salvo = await api().salvarCadernoIA({...banco, nome, config});
+        if (atual !== s) return;
+        if (configDialogo.open) configDialogo.close();
+        substituir(salvo);
+        aviso('Caderno atualizado.');
+      } catch (error) {
+        if (ativo()) configFeedback.textContent = Q.mensagemErro(error);
+      } finally {
+        configSalvar.disabled = configFechar.disabled = false;
+        ocupado(false);
+        if (ativo() && !configDialogo.open) root.querySelector(`[data-qia-configurar="${banco.id}"]`)?.focus({preventScroll:true});
+      }
+    };
+
+    async function mutar(banco,acao){
       if(s.ocupado)return;if(acao!=='excluir'&&s.banco&&s.banco.id===banco.id&&s.bancoSujo){aviso('Salve o progresso antes de organizar este caderno.',true);return;}
       if(acao==='excluir'&&!await confirmar('Excluir definitivamente este caderno, suas questões e respostas? Não será possível restaurá-lo.','Excluir definitivamente','Excluir caderno'))return;
       if(atual!==s)return;
@@ -213,7 +362,6 @@
 
 
       if(acao==='arquivar')copia.arquivadoEm=copia.arquivadoEm?'':new Date().toISOString();
-      if(acao==='editar'){copia.nome=container.querySelector('[name="nome"]').value.trim();if(!copia.nome){aviso('Informe um nome para o caderno.',true);return;}copia.config={...copia.config,nome:copia.nome,disciplina:container.querySelector('[name="disciplina"]').value,assunto:container.querySelector('[name="assunto"]').value};}
       ocupado(true);aviso('Salvando o caderno…');
       try{if(acao==='excluir'){if(copia.id)await api().excluirCadernoIA(copia.id);if(atual!==s)return;s.lista=s.lista.filter(b=>b.id!==copia.id);if(s.banco===banco||s.banco&&s.banco.id===copia.id){if(document.fullscreenElement===root.querySelector('#qia-resolver'))await document.exitFullscreen();s.telaCheia=false;s.banco=null;s.foco=false;s.bancoSujo=false;s.sujo=false;}lista();resolver();aviso('Caderno excluído definitivamente.');return;}const saved=await api().salvarCadernoIA(copia);if(atual!==s)return;if(acao==='excluir'&&s.banco&&s.banco.id===banco.id){s.banco=null;s.foco=false;s.bancoSujo=false;s.sujo=false;}substituir(saved);aviso(acao==='excluir'?'Caderno movido para a lixeira. Você pode restaurá-lo.':acao==='restaurar'?'Caderno restaurado.':'Caderno atualizado.');}
       catch(e){aviso(Q.mensagemErro(e),true);}finally{ocupado(false);}
@@ -221,10 +369,20 @@
     function lista(){
       if(!ativo()){if(s.refresh)s.refresh();return;}
       const termo=s.busca.toLocaleLowerCase('pt-BR'),items=s.lista.filter(b=>!b.excluidoEm&&(s.filtro==='arquivados'?!!b.arquivadoEm:!b.arquivadoEm)).filter(b=>[b.nome,b.config.disciplina,b.config.assunto,b.config.planoNome].join(' ').toLocaleLowerCase('pt-BR').includes(termo));
-      root.querySelector('#qia-lista').innerHTML=items.length?'<div class="qia-grade-cadernos">'+items.map(b=>{const score=Q.corrigir(b.questoes,b.respostas);return '<article class="card qia-caderno"><div class="qia-etiquetas"><span>'+esc(b.config.disciplina||'Sem disciplina')+'</span>'+(b.config.assunto?'<span>'+esc(b.config.assunto)+'</span>':'')+'</div><h3>'+esc(b.nome)+'</h3><p class="sub">'+b.questoes.length+' questões · '+score.respondidas+' '+(score.respondidas===1?'respondida':'respondidas')+(b.excluidoEm?' · na lixeira':b.arquivadoEm?' · arquivado':'')+'</p>'+(b.config.planoNome?'<small>'+esc(b.config.planoNome)+'</small>':'')+'<div class="qia-caderno-acoes">'+(b.excluidoEm?'<button type="button" data-qia-mutar="restaurar" data-id="'+b.id+'">Restaurar caderno</button>':'<button type="button" class="botao" data-qia-abrir="'+b.id+'">Continuar</button><button type="button" class="botao-quieto" data-qia-mutar="arquivar" data-id="'+b.id+'">'+(b.arquivadoEm?'Desarquivar':'Arquivar')+'</button><button type="button" class="botao-quieto" data-qia-mutar="excluir" data-id="'+b.id+'">Excluir</button>')+'</div>'+(!b.excluidoEm?'<details class="qia-organizar"><summary>Organizar caderno</summary><label>Nome<input name="nome" maxlength="120" value="'+esc(b.nome)+'"></label><label>Disciplina<input name="disciplina" maxlength="120" list="qia-disciplinas" value="'+esc(b.config.disciplina)+'"></label><label>Assunto<input name="assunto" maxlength="160" value="'+esc(b.config.assunto)+'"></label><button type="button" data-qia-editar="'+b.id+'">Salvar organização</button></details>':'')+'</article>';}).join('')+'</div>':'<div class="estudo-vazio"><strong>'+esc(s.busca?'Nenhum caderno corresponde à busca.':s.filtro==='lixeira'?'Sua lixeira está vazia.':s.filtro==='arquivados'?'Nenhum caderno arquivado.':'Seu próximo treino começa aqui.')+'</strong><p>'+esc(s.filtro==='lixeira'?'Cadernos excluídos podem ser restaurados por aqui.':'Crie um caderno com o seu material ou pratique pelos assuntos do edital.')+'</p></div>';
+      root.querySelector('#qia-lista').innerHTML = items.length ? `<div class="qia-grade-cadernos">${items.map(banco => {
+        const {respondidas} = Q.corrigir(banco.questoes, banco.respostas);
+        return `<article class="card qia-caderno">
+          <div class="qia-caderno-topo"><div class="qia-etiquetas"><span>${esc(banco.config.disciplina || 'Sem disciplina')}</span>${banco.config.assunto ? '<span>' + esc(banco.config.assunto) + '</span>' : ''}</div>
+          <button type="button" class="botao-quieto qia-config-atalho" data-qia-configurar="${banco.id}" aria-label="Configurar ${esc(banco.nome)}" title="Configurar caderno" aria-haspopup="dialog"><svg width="17" height="17" aria-hidden="true"><use href="#ic-engrenagem"/></svg></button></div>
+          <h3>${esc(banco.nome)}</h3><p class="sub">${banco.questoes.length} questões · ${respondidas} ${respondidas === 1 ? 'respondida' : 'respondidas'}${banco.arquivadoEm ? ' · arquivado' : ''}</p>
+          ${banco.config.planoNome ? '<small>' + esc(banco.config.planoNome) + '</small>' : ''}
+          <div class="qia-caderno-acoes"><button type="button" class="botao" data-qia-abrir="${banco.id}">Continuar</button>
+          <button type="button" class="botao-quieto" data-qia-mutar="arquivar" data-id="${banco.id}">${banco.arquivadoEm ? 'Desarquivar' : 'Arquivar'}</button>
+          <button type="button" class="botao-quieto" data-qia-mutar="excluir" data-id="${banco.id}">Excluir</button></div></article>`;
+      }).join('')}</div>` : `<div class="estudo-vazio"><strong>${s.busca ? 'Nenhum caderno corresponde à busca.' : s.filtro === 'arquivados' ? 'Nenhum caderno arquivado.' : 'Seu próximo treino começa aqui.'}</strong><p>Crie um caderno com o seu material ou pratique pelos assuntos do edital.</p></div>`;
       root.querySelectorAll('[data-qia-abrir]').forEach(btn=>btn.onclick=async()=>{if(s.ocupado)return;const banco=s.lista.find(b=>b.id===btn.dataset.qiaAbrir);if(!banco||banco.excluidoEm)return;if(s.bancoSujo&&!await confirmar('Há alterações não salvas. Deseja abrir outro caderno sem salvar?','Abrir outro caderno','Alterações não salvas'))return;if(atual!==s)return;s.banco=JSON.parse(JSON.stringify(banco));s.indice=0;s.mostradas=new Set();s.revelados=new Set();s.riscadas=new Map();s.selecionadas=new Map();s.bancoSujo=false;s.sujo=false;s.foco=true;resolver();root.querySelector('#qia-resolver').scrollIntoView({behavior:'smooth',block:'start'});});
       root.querySelectorAll('[data-qia-mutar]').forEach(btn=>btn.onclick=()=>mutar(s.lista.find(b=>b.id===btn.dataset.id),btn.dataset.qiaMutar));
-      root.querySelectorAll('[data-qia-editar]').forEach(btn=>btn.onclick=()=>mutar(s.lista.find(b=>b.id===btn.dataset.qiaEditar),'editar',btn.closest('.qia-caderno')));
+      root.querySelectorAll('[data-qia-configurar]').forEach(btn=>btn.onclick=()=>configurarCaderno(btn.dataset.qiaConfigurar));
     }
     async function salvar(){
       if(!s.banco||s.ocupado)return;ocupado(true);if(!s.foco)aviso('Salvando o caderno na sua conta…');
