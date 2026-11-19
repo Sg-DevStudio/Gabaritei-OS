@@ -5423,6 +5423,8 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 .qia-notebooklm-importar{border-top:1px solid var(--linha);margin:16px 0;padding-top:14px;}
 .qia-notebooklm-importar label,.qia-notebooklm-importar input{display:block;}
 .qia-notebooklm-importar input{max-width:100%;margin-top:8px;}
+.qia-notebooklm-importar [data-notebooklm-nome]{margin-top:12px;}
+.qia-notebooklm-importar [data-notebooklm-nome][hidden]{display:none;}
 #qia-notebooklm .qia-notebooklm-importar p{margin:8px 0;}
 .qia-arquivados{display:flex;gap:8px;align-items:center;font-size:12px;margin:18px 0;}.qia-arquivados input{width:auto;}
 .qia-caderno{border-top:1px solid var(--linha);padding:16px 0;display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
