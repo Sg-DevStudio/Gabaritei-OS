@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v280-riscar-alternativas';
+const CACHE = CACHE_PREFIXO + 'v281-notebooklm-piloto';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -67,7 +67,7 @@ const ESTATICOS = [
   './data/cadernos-exemplos.json',
   './data/ia-config.js?v=20261113-riscar-alternativas',
   './js/questoes-ia.js?v=20261113-riscar-alternativas',
-  './js/questoes-ia-ui.js?v=20261113-riscar-alternativas',
+  './js/questoes-ia-ui.js?v=20261119-notebooklm-piloto',
   './js/estudo-dialogos.js?v=20261113-riscar-alternativas',
   './js/redacoes.js?v=20261113-riscar-alternativas',
   './js/redacoes-ui.js?v=20261113-riscar-alternativas',
@@ -101,12 +101,12 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js?v=20261113-riscar-alternativas',
-  './css/styles.css?v=20261113-riscar-alternativas',
+  './css/styles.css?v=20261119-notebooklm-piloto',
   './js/domain.js?v=20261113-riscar-alternativas',
-  './js/store.js?v=20261113-riscar-alternativas',
+  './js/store.js?v=20261119-notebooklm-piloto',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261113-riscar-alternativas',
+  './js/firebase-sync.js?v=20261119-notebooklm-piloto',
   './js/timer.js?v=20261113-riscar-alternativas',
   './js/charts.js?v=20261113-riscar-alternativas',
   './data/catalogo-editais.js?v=20261113-riscar-alternativas',
@@ -128,7 +128,7 @@ const ESTATICOS = [
   './js/inicio-layout.js?v=20261113-riscar-alternativas',
   './js/profile-photo.js?v=20261113-riscar-alternativas',
   './js/app-status.js?v=20261113-riscar-alternativas',
-  './js/app.js?v=20261113-riscar-alternativas',
+  './js/app.js?v=20261119-notebooklm-piloto',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

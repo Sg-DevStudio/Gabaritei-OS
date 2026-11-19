@@ -6,6 +6,9 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.16.0/fireba
 import {
   getAuth,
   GoogleAuthProvider,
+  browserPopupRedirectResolver,
+  initializeAuth,
+  inMemoryPersistence,
   onAuthStateChanged,
   signInWithPopup,
   signOut
@@ -992,6 +995,69 @@ function login() {
   return signInWithPopup(auth, provider);
 }
 
+function podeTestarNotebookLM(user) {
+  return user?.emailVerified === true && user.email?.toLowerCase() === 'casar70@gmail.com';
+}
+
+let authNotebookLM;
+async function conectarNotebookLM() {
+  const user = auth.currentUser;
+  if (!podeTestarNotebookLM(user)) throw new Error('O teste está disponível apenas no perfil habilitado.');
+  if (!authNotebookLM) {
+    const notebookApp = initializeApp(firebaseConfig, 'notebooklm-piloto');
+    authNotebookLM = initializeAuth(notebookApp, {
+      persistence: inMemoryPersistence,
+      popupRedirectResolver: browserPopupRedirectResolver
+    });
+  }
+  const notebookProvider = new GoogleAuthProvider();
+  notebookProvider.addScope('https://www.googleapis.com/auth/notebook.readonly');
+  notebookProvider.setCustomParameters({prompt: 'select_account'});
+
+  const result = await signInWithPopup(authNotebookLM, notebookProvider);
+  const token = GoogleAuthProvider.credentialFromResult(result)?.accessToken;
+  const email = result.user.email;
+  await signOut(authNotebookLM);
+  if (!token) throw new Error('O Google não autorizou a leitura dos cadernos.');
+
+  const notebooks = new Map();
+  const pages = new Set();
+  let pageToken = '';
+  do {
+    if (auth.currentUser?.uid !== user.uid) throw new Error('A conta do Gabaritei mudou.');
+    const url = new URL('https://notebook.googleapis.com/v1/notebooks');
+    url.searchParams.set('pageSize', '100');
+    if (pageToken) url.searchParams.set('pageToken', pageToken);
+    const response = await fetch(url, {
+      headers: {Authorization: `Bearer ${token}`},
+      cache: 'no-store',
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!response.ok) {
+      const detail = await response.json().catch(() => null);
+      const reasons = detail?.error?.details?.map(entry => entry.reason) || [];
+      if (reasons.includes('WORKSPACE_ACCOUNT_NOT_SUPPORTED')) {
+        throw new Error('Escolha uma conta Google pessoal. A prévia ainda não aceita contas de trabalho ou escola.');
+      }
+      if (reasons.includes('SERVICE_DISABLED')) throw new Error('A API ainda não está disponível para o projeto do Gabaritei.');
+      if (response.status === 403) throw new Error('O Google não liberou a leitura. Confira a conta e a permissão de acesso ao NotebookLM.');
+      if (response.status === 429) throw new Error('O NotebookLM limitou as consultas. Tente novamente em instantes.');
+      throw new Error(`Não foi possível consultar o NotebookLM (HTTP ${response.status}). Tente conectar de novo.`);
+    }
+    const data = await response.json();
+    if (!Array.isArray(data.notebooks) && data.notebooks !== undefined) throw new Error('O NotebookLM retornou uma lista inválida.');
+    for (const notebook of data.notebooks || []) {
+      const id = /^notebooks\/([a-z0-9_-]+)$/i.exec(notebook.name)?.[1];
+      if (id) notebooks.set(id, {id, titulo: notebook.displayName || 'Caderno sem título'});
+    }
+    pageToken = data.nextPageToken || '';
+    if (pageToken && pages.has(pageToken)) throw new Error('A listagem do NotebookLM ficou incompleta. Tente novamente.');
+    pages.add(pageToken);
+  } while (pageToken);
+  if (auth.currentUser?.uid !== user.uid) throw new Error('A conta do Gabaritei mudou.');
+  return {email, notebooks: Array.from(notebooks.values())};
+}
+
 async function logout(opcoesLogout) {
   opcoesLogout = opcoesLogout || {};
   if (opcoesLogout.sincronizarAntes !== false && usuario) {
@@ -1243,6 +1309,7 @@ async function salvarRedacao(input){
 
 window.FirebaseSync = {
   iniciar, agendarEnvio, sincronizarAgora, login, logout, status, ativo, temEnvioPendente,
+  notebookLMPiloto: () => podeTestarNotebookLM(auth.currentUser), conectarNotebookLM,
   carregarCatalogoGlobal, observarCatalogoGlobal, publicarCatalogoGlobal, enviarPedidoEdital,
   carregarPedidosEdital, marcarPedidoAtendido, gerarFlashcardsIA, gerarQuestoesIA, explicarAlternativas, listarCadernosIA, salvarCadernoIA, excluirCadernoIA, statusIAPessoal, configurarIAPessoal, configurarGroq, desativarGroq, corrigirRedacao, transcreverRedacao, listarRedacoes, salvarRedacao, registrarPush,
   desativarPushAtual, pushConfigurado,

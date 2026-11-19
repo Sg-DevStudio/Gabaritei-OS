@@ -11,6 +11,17 @@
   function render(){return `<section class="questoes-ia qia-hub" id="questoes-ia">
     <header class="qia-cabecalho"><div class="qia-titulo"><p class="qia-eyebrow">PRÁTICA ORGANIZADA</p><h1>Caderno de questões</h1><p class="sub">Pratique por assunto nas suas plataformas ou crie questões com o seu material.</p></div><div class="qia-cabecalho-acoes"><button type="button" class="qia-ia-atalho" data-qia-chave aria-label="Ajustar minha IA" aria-haspopup="dialog" title="Ajustar minha IA"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>IA</span></button><button type="button" class="botao" data-qia-aba="criar">Criar caderno</button></div></header>
     <nav class="estudo-segmentos" aria-label="Áreas do caderno"><button type="button" data-qia-aba="edital" aria-pressed="true">Por edital</button><button type="button" data-qia-aba="meus" aria-pressed="false">Meus cadernos</button><button type="button" data-qia-aba="criar" aria-pressed="false">Criar com IA</button></nav>
+    <button type="button" class="botao-quieto" data-qia-notebooklm aria-haspopup="dialog" hidden>NotebookLM</button>
+    <dialog class="estudo-dialogo" id="qia-notebooklm" aria-labelledby="qia-notebooklm-titulo">
+      <h2 id="qia-notebooklm-titulo">Cadernos do NotebookLM</h2>
+      <p class="sub">Escolha sua conta Google e autorize a leitura dos cadernos.</p>
+      <p role="status" data-notebooklm-status></p>
+      <ul data-notebooklm-lista hidden></ul>
+      <div class="estudo-dialogo-acoes">
+        <form method="dialog"><button class="botao-quieto">Fechar</button></form>
+        <button type="button" class="botao" data-notebooklm-conectar>Conectar NotebookLM</button>
+      </div>
+    </dialog>
     <div class="qia-status" role="status" aria-live="polite" hidden></div>
     <section id="qia-edital" class="qia-painel"><h2>Questões do seu plano</h2><p class="sub">TEC, Gran e Qconcursos, com os links por disciplina e assunto. A prática abre na plataforma escolhida.</p><div id="qia-planos" class="qia-planos"></div><a class="botao-quieto" href="#planos">Explorar planos e editais</a></section>
     <dialog class="estudo-dialogo qia-chave-dialogo" aria-labelledby="qia-chave-titulo" aria-describedby="qia-chave-intro"><h2 id="qia-chave-titulo">Configurar minha IA</h2><p id="qia-chave-intro">Uma chave Gemini ou Groq, privada na sua conta.</p><p class="qia-chave-status" role="status">Verificando modelo de IA…</p>
@@ -40,6 +51,65 @@
     const form=root.querySelector('#qia-form'),status=root.querySelector('.qia-status');
     const ativo=()=>atual===s&&s.root===root&&root.isConnected&&((ctx.usuario()&&ctx.usuario().uid)||'')===uid;
     const api=()=>{const p=window.FirebaseSync;if(!p||!p.gerarQuestoesIA)throw Error('A conexão com sua conta ainda está carregando. Tente novamente.');return p;};
+    const piloto = root.querySelector('[data-qia-notebooklm]');
+    if (uid && window.FirebaseSync?.notebookLMPiloto?.()) {
+      piloto.hidden = false;
+      const dialogo = root.querySelector('#qia-notebooklm');
+      const conectar = dialogo.querySelector('[data-notebooklm-conectar]');
+      const resultado = dialogo.querySelector('[data-notebooklm-status]');
+      const lista = dialogo.querySelector('[data-notebooklm-lista]');
+      const teste = s.notebookLM ||= {emAndamento: false, dados: null, mensagem: ''};
+
+      function exibirNotebookLM() {
+        if (!ativo()) return;
+        conectar.disabled = teste.emAndamento;
+        conectar.textContent = teste.dados ? 'Trocar conta ou atualizar' : 'Conectar NotebookLM';
+        resultado.textContent = teste.mensagem;
+        lista.replaceChildren();
+        lista.hidden = !teste.dados?.notebooks.length;
+        for (const notebook of teste.dados?.notebooks || []) {
+          const item = document.createElement('li');
+          const link = document.createElement('a');
+          link.href = 'https://notebooklm.google.com/notebook/' + encodeURIComponent(notebook.id);
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = notebook.titulo;
+          item.append(link);
+          lista.append(item);
+        }
+      }
+
+      piloto.onclick = () => { exibirNotebookLM(); dialogo.showModal(); };
+      conectar.onclick = async () => {
+        if (teste.emAndamento) return;
+        teste.emAndamento = true;
+        teste.dados = null;
+        teste.mensagem = 'Aguardando autorização do Google…';
+        exibirNotebookLM();
+        try {
+          const dados = await api().conectarNotebookLM();
+          teste.dados = dados;
+          const total = dados.notebooks.length;
+          const quantidade = total === 0 ? 'Nenhum caderno encontrado' : total === 1 ? '1 caderno encontrado' : `${total} cadernos encontrados`;
+          teste.mensagem = `${quantidade} · ${dados.email || 'conta Google autorizada'}`;
+        } catch (error) {
+          const mensagens = {
+            'auth/popup-blocked': 'Seu navegador bloqueou a janela do Google. Permita a abertura e tente novamente.',
+            'auth/popup-closed-by-user': 'A janela do Google foi fechada. Conecte novamente quando quiser.',
+            'auth/unauthorized-domain': 'Este endereço ainda não está autorizado para conectar pelo Google.',
+            'auth/operation-not-allowed': 'O Google não liberou esta autorização para o Gabaritei.'
+          };
+          teste.mensagem = mensagens[error.code] || (error.code || error.name !== 'Error'
+            ? 'O Google não concluiu a conexão. Confira a internet e tente novamente.'
+            : error.message);
+        } finally {
+          teste.emAndamento = false;
+          if (ativo()) exibirNotebookLM();
+          else if (s.refreshNotebookLM) s.refreshNotebookLM();
+        }
+      };
+      s.refreshNotebookLM = exibirNotebookLM;
+    }
     const planos=ctx.planos?ctx.planos():[];
     root.querySelector('#qia-planos').innerHTML=planos.length?planos.map(p=>'<a class="card qia-plano" href="#caderno-'+encodeURIComponent(p.id)+'">'+(p.foto?'<img src="'+esc(p.foto)+'" alt="" width="48" height="48">':'')+'<span><strong>'+esc(p.nome)+'</strong><small>'+esc((p.disciplinas||[]).length)+' disciplinas · abrir assuntos</small></span><span aria-hidden="true">›</span></a>').join(''):'<div class="estudo-vazio"><strong>Comece pelo seu plano</strong><p>Escolha um edital para acessar as disciplinas e os atalhos de questões.</p><a href="#planos" class="botao">Escolher plano</a></div>';
     form.elements.planoId.innerHTML='<option value="">Sem vínculo com plano</option>'+planos.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>').join('');
