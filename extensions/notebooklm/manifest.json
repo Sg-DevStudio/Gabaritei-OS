@@ -2,7 +2,13 @@
   "manifest_version": 3,
   "name": "Gabaritei · Importar do NotebookLM",
   "description": "Importa um quiz aberto no NotebookLM para os cadernos do Gabaritei.",
-  "version": "0.1.1",
+  "version": "0.1.2",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxNmKV1nay3yFZZiczE3osyrwPB2uhfniRyIED1eZDPDxzKUoth3EyvtLdYz2E5nrRdAR2sahpkAVcBiYPqgEchxy/YOxHou90yVrvd/D2vYzlSLAnfKM78a8L8BJV9CME1kVYCxb6I2Ssd9X/D+9HgaPDhrW5iusxifhdZ67K/z58CrzMlP6jehTg/+IhfZwS9INjzvzFlL8gQH8QHNpwILCdzWT7SjPRO5hZt04gFkTK1rj50V9vfGorkLX9jNcPSg7I4IvOhVEakiVazXzdfCRlmmnZtiLHvDj99hjh7k/vPWFm0bDsd4WoOz2Hqx+c4UdKkRwCz2jE5MUZ/xFGwIDAQAB",
   "background": {"service_worker": "background.js"},
   "host_permissions": ["https://notebook.google.com/*", "https://notebooklm.google.com/*"],

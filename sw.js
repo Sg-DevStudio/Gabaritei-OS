@@ -1,6 +1,6 @@
 /* Service worker — cache de estáticos (o app funciona 100% sem ele) */
 const CACHE_PREFIXO = 'gabaritei-os-';
-const CACHE = CACHE_PREFIXO + 'v286-notebooklm-perfis';
+const CACHE = CACHE_PREFIXO + 'v287-notebooklm-guia';
 // Nome exato da versão anterior: migração sem apagar caches de outras PWAs.
 const CACHE_LEGADO = 'estudos-v172-continuidade-disciplina';
 
@@ -62,12 +62,12 @@ const ESTATICOS = [
   './assets/icons/heroicons/arrows-pointing-in.svg',
   './assets/icons/heroicons/chevron-left.svg',
   './assets/icons/heroicons/chevron-right.svg',
-  './js/questoes-pratica-ui.js?v=20261119-notebooklm-perfis',
+  './js/questoes-pratica-ui.js?v=20261119-notebooklm-guia',
   './js/foco-ui.js?v=20261113-riscar-alternativas',
   './data/cadernos-exemplos.json',
   './data/ia-config.js?v=20261113-riscar-alternativas',
-  './js/questoes-ia.js?v=20261119-notebooklm-perfis',
-  './js/questoes-ia-ui.js?v=20261119-notebooklm-perfis',
+  './js/questoes-ia.js?v=20261119-notebooklm-guia',
+  './js/questoes-ia-ui.js?v=20261119-notebooklm-guia',
   './js/estudo-dialogos.js?v=20261113-riscar-alternativas',
   './js/redacoes.js?v=20261113-riscar-alternativas',
   './js/redacoes-ui.js?v=20261113-riscar-alternativas',
@@ -101,12 +101,12 @@ const ESTATICOS = [
   './calc/petrobras.html',
   './calc/judiciario-federal.html',
   './js/frases.js?v=20261113-riscar-alternativas',
-  './css/styles.css?v=20261119-notebooklm-perfis',
+  './css/styles.css?v=20261119-notebooklm-guia',
   './js/domain.js?v=20261113-riscar-alternativas',
-  './js/store.js?v=20261119-notebooklm-perfis',
+  './js/store.js?v=20261119-notebooklm-guia',
   './js/sync.js?v=20260718h-seguranca-escala',
   './js/remote-state.js?v=20260718h-seguranca-escala',
-  './js/firebase-sync.js?v=20261119-notebooklm-perfis',
+  './js/firebase-sync.js?v=20261119-notebooklm-guia',
   './js/timer.js?v=20261113-riscar-alternativas',
   './js/charts.js?v=20261113-riscar-alternativas',
   './data/catalogo-editais.js?v=20261113-riscar-alternativas',
@@ -121,6 +121,7 @@ const ESTATICOS = [
   './data/ferramentas.js?v=20261113-riscar-alternativas',
   './assets/ferramentas/logo-anki.png',
   './assets/ferramentas/logo-notebooklm.svg',
+  './extensions/notebooklm/icons/icon-48.png?v=0.1.2',
   './assets/ferramentas/logo-notion.svg',
   './assets/ferramentas/logo-scielo.svg',
   './assets/ferramentas/logo-trello.svg',
@@ -128,7 +129,7 @@ const ESTATICOS = [
   './js/inicio-layout.js?v=20261113-riscar-alternativas',
   './js/profile-photo.js?v=20261113-riscar-alternativas',
   './js/app-status.js?v=20261113-riscar-alternativas',
-  './js/app.js?v=20261119-notebooklm-perfis',
+  './js/app.js?v=20261119-notebooklm-guia',
   './icons/icone.svg',
   './icons/icone-192.png',
   './icons/icone-512.png'

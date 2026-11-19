@@ -15,7 +15,28 @@
     <button type="button" class="botao-quieto" data-qia-notebooklm aria-haspopup="dialog" hidden>NotebookLM</button>
     <dialog class="estudo-dialogo" id="qia-notebooklm" aria-labelledby="qia-notebooklm-titulo">
       <h2 id="qia-notebooklm-titulo">Cadernos do NotebookLM</h2>
-      <p class="sub">Deixe o Estúdio do NotebookLM aberto no Chrome para escolher um quiz aqui.</p>
+      <p class="sub qia-notebooklm-intro">Traga seus quizzes para o Gabaritei e acompanhe seus acertos em Meus cadernos.</p>
+      <section class="qia-notebooklm-guia" aria-label="Extensão do Gabaritei">
+        <div class="qia-notebooklm-extensao">
+          <img src="extensions/notebooklm/icons/icon-48.png?v=0.1.2" width="40" height="40" alt="">
+          <div>
+            <h3>Extensão do Gabaritei para Chrome</h3>
+            <p class="sub">Importa as questões, o gabarito e as explicações disponíveis do quiz escolhido.</p>
+          </div>
+        </div>
+        <div class="qia-notebooklm-acoes">
+          <a class="botao botao-quieto" href="extensions/notebooklm/gabaritei-notebooklm.zip?v=0.1.2" download="gabaritei-notebooklm.zip">Baixar extensão</a>
+          <small data-notebooklm-conectada hidden>✓ Extensão conectada</small>
+        </div>
+        <details class="qia-notebooklm-instalacao">
+          <summary>Como instalar no Chrome</summary>
+          <ol>
+            <li>Baixe e extraia o arquivo ZIP no computador.</li>
+            <li>Abra <code>chrome://extensions</code> no Chrome, ative <strong>Modo do desenvolvedor</strong>, clique em <strong>Carregar sem compactação</strong> e selecione a pasta extraída.</li>
+            <li>Recarregue o Gabaritei e o NotebookLM. Deixe o Estúdio aberto, volte aqui e escolha o quiz.</li>
+          </ol>
+        </details>
+      </section>
       <form class="qia-notebooklm-importar" data-notebooklm-direto>
         <label>Quiz do NotebookLM <select name="quizDireto" disabled></select></label>
         <label>Nome do caderno <input type="text" name="nomeDireto" maxlength="120" placeholder="Usar o título do quiz"></label>
@@ -23,7 +44,6 @@
         <div class="qia-notebooklm-acoes">
           <button type="submit" class="botao" disabled>Importar do NotebookLM</button>
           <button type="button" class="botao-quieto" data-notebooklm-recarregar>Atualizar lista</button>
-          <a class="botao-quieto" href="extensions/notebooklm/gabaritei-notebooklm.zip" download data-notebooklm-extensao hidden>Baixar extensão do Chrome</a>
         </div>
       </form>
       <div class="estudo-dialogo-acoes">
@@ -81,7 +101,7 @@
       const nomeDireto = direto.elements.nomeDireto;
       const importarDireto = direto.querySelector('button[type="submit"]');
       const recarregar = direto.querySelector('[data-notebooklm-recarregar]');
-      const extensao = direto.querySelector('[data-notebooklm-extensao]');
+      const extensaoConectada = dialogo.querySelector('[data-notebooklm-conectada]');
       const feedbackDireto = direto.querySelector('[data-notebooklm-direto-status]');
       let quizzes = [];
 
@@ -106,18 +126,18 @@
       async function carregarQuizzes() {
         if (recarregar.disabled || s.importandoQuiz) return;
         recarregar.disabled = seletor.disabled = importarDireto.disabled = true;
-        extensao.hidden = true;
         feedbackDireto.textContent = 'Procurando quizzes nas abas do NotebookLM…';
         try {
           quizzes = await chamarExtensao({type: 'notebooklm:list'});
           if (!ativo()) return;
+          extensaoConectada.hidden = false;
           seletor.replaceChildren(...quizzes.map((item, index) => new Option(item.title + (quizzes.some((other, i) => i !== index && other.title === item.title) ? ' · ' + item.notebook : ''), String(index))));
           seletor.disabled = importarDireto.disabled = quizzes.length === 0;
           feedbackDireto.textContent = quizzes.length ? 'Escolha o quiz e importe direto para Meus cadernos.' : 'Abra um caderno do NotebookLM neste Chrome, deixe o Estúdio à mostra e atualize a lista.';
         } catch (error) {
           seletor.replaceChildren();
-          extensao.hidden = error.message !== 'EXTENSAO';
-          feedbackDireto.textContent = error.message === 'EXTENSAO' ? 'Para importar direto, use a extensão no Chrome para computador.' : error.message;
+          if (error.message === 'EXTENSAO') extensaoConectada.hidden = true;
+          feedbackDireto.textContent = error.message === 'EXTENSAO' ? 'Instale ou ative a extensão no Chrome para computador para carregar seus quizzes.' : error.message;
         } finally {
           recarregar.disabled = false;
         }
