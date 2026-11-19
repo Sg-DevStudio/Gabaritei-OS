@@ -23,7 +23,11 @@
   }
 
   function named(selector, names) {
-    return [...document.querySelectorAll(selector)].find(element => visible(element) && names.includes(element.textContent.trim()));
+    return [...document.querySelectorAll(selector)].find(element => {
+      const caption = element.querySelector('.mat-mdc-menu-item-text, .mdc-button__label');
+      const label = element.getAttribute('aria-label') || (caption || element).textContent.trim();
+      return visible(element) && names.includes(label);
+    });
   }
 
   async function move(selector, target) {
@@ -34,8 +38,9 @@
   }
 
   async function readQuestion(anchor) {
-    document.querySelector(menu).click();
-    const edit = await waitFor(() => named('[role="menuitem"]', ['Editar pergunta', 'Edit question']), 'O NotebookLM não disponibilizou o editor deste quiz.');
+    const names = ['Editar pergunta', 'Edit question'];
+    if (!named('[role="menuitem"]', names)) document.querySelector(menu).click();
+    const edit = await waitFor(() => named('[role="menuitem"]', names), 'O NotebookLM não disponibilizou o editor deste quiz.');
     edit.click();
     const question = await waitFor(() => {
       const element = document.querySelector(editor);
