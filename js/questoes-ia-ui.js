@@ -17,6 +17,11 @@
       <p class="sub">Escolha sua conta Google e autorize a leitura dos cadernos.</p>
       <p role="status" data-notebooklm-status></p>
       <ul data-notebooklm-lista hidden></ul>
+      <form class="qia-notebooklm-importar" data-notebooklm-importar>
+        <label>Arquivo JSON do quiz <input type="file" name="quiz" accept=".json,application/json"></label>
+        <p class="sub" role="status" data-notebooklm-importacao>Escolha o JSON exportado para criar um caderno de treino.</p>
+        <button type="submit" class="botao-quieto" disabled>Importar quiz</button>
+      </form>
       <div class="estudo-dialogo-acoes">
         <form method="dialog"><button class="botao-quieto">Fechar</button></form>
         <button type="button" class="botao" data-notebooklm-conectar>Conectar NotebookLM</button>
@@ -59,6 +64,60 @@
       const resultado = dialogo.querySelector('[data-notebooklm-status]');
       const lista = dialogo.querySelector('[data-notebooklm-lista]');
       const teste = s.notebookLM ||= {emAndamento: false, dados: null, mensagem: ''};
+      const importacao = dialogo.querySelector('[data-notebooklm-importar]');
+      const arquivoQuiz = importacao.elements.quiz;
+      const importar = importacao.querySelector('button');
+      const feedbackImportacao = importacao.querySelector('[data-notebooklm-importacao]');
+      let quiz = null;
+
+      arquivoQuiz.onchange = async () => {
+        const arquivo = arquivoQuiz.files[0];
+        quiz = null;
+        importar.disabled = true;
+        if (!arquivo) return;
+        feedbackImportacao.textContent = 'Lendo o quiz…';
+        try {
+          if (arquivo.size > 2 * 1024 * 1024) throw Error('Selecione um quiz de até 2 MB.');
+          const dados = Q.importarQuizNotebookLM(await arquivo.text());
+          if (!ativo() || arquivoQuiz.files[0] !== arquivo) return;
+          quiz = dados;
+          feedbackImportacao.textContent = `${dados.nome} · ${dados.questoes.length} ${dados.questoes.length === 1 ? 'questão' : 'questões'}`;
+          importar.disabled = false;
+        } catch (error) {
+          if (ativo() && arquivoQuiz.files[0] === arquivo) feedbackImportacao.textContent = error.message;
+        }
+      };
+      importacao.onsubmit = async event => {
+        event.preventDefault();
+        if (!quiz || s.importandoQuiz || !ativo()) return;
+        const banco = quiz;
+        s.importandoQuiz = true;
+        arquivoQuiz.disabled = importar.disabled = true;
+        feedbackImportacao.textContent = 'Salvando em Meus cadernos…';
+        try {
+          const salvo = await api().salvarCadernoIA(banco);
+          if (atual !== s) return;
+          s.filtro = 'ativos';
+          s.busca = '';
+          substituir(salvo);
+          mudarAba('meus');
+          if (ativo()) {
+            root.querySelector('#qia-filtro').value = 'ativos';
+            root.querySelector('#qia-busca').value = '';
+            dialogo.close();
+          }
+          aviso('Quiz importado. Ele está em Meus cadernos.');
+          quiz = null;
+          importacao.reset();
+          feedbackImportacao.textContent = 'Escolha o JSON exportado para criar um caderno de treino.';
+        } catch (error) {
+          if (ativo()) feedbackImportacao.textContent = Q.mensagemErro(error);
+        } finally {
+          s.importandoQuiz = false;
+          arquivoQuiz.disabled = false;
+          importar.disabled = !quiz;
+        }
+      };
 
       function exibirNotebookLM() {
         if (!ativo()) return;

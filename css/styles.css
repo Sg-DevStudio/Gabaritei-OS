@@ -5420,6 +5420,10 @@ a[class*="botao"], .caderno a { text-decoration:none; }
 #qia-notebooklm [data-notebooklm-status]:empty{display:none;}
 [data-notebooklm-lista]{max-height:36vh;overflow:auto;overflow-wrap:anywhere;padding-inline-start:22px;}
 [data-notebooklm-lista] li{margin-bottom:10px;}
+.qia-notebooklm-importar{border-top:1px solid var(--linha);margin:16px 0;padding-top:14px;}
+.qia-notebooklm-importar label,.qia-notebooklm-importar input{display:block;}
+.qia-notebooklm-importar input{max-width:100%;margin-top:8px;}
+#qia-notebooklm .qia-notebooklm-importar p{margin:8px 0;}
 .qia-arquivados{display:flex;gap:8px;align-items:center;font-size:12px;margin:18px 0;}.qia-arquivados input{width:auto;}
 .qia-caderno{border-top:1px solid var(--linha);padding:16px 0;display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
 .qia-caderno strong,.qia-caderno small{display:block;flex-basis:100%;overflow-wrap:anywhere;}.qia-caderno small{color:var(--grafite);}

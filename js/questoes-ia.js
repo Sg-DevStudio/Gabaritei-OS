@@ -27,23 +27,24 @@
     }
     return [...indices].sort((a,b)=>a-b);
   }
-  function validar(raw,config,origem,exigirExplicacoes=false){
-    const c=configurar(config);let data=raw;
+  function validar(raw,config,origem,exigirExplicacoes=false,importado=false){
+    const c=configurar(importado?{...config,formato:'multipla4'}:config);let data=raw;
+    if(importado)c.formato='notebooklm';
     if(typeof raw==='string'){try{data=JSON.parse(raw);}catch(_){throw Error('A IA retornou uma resposta incompleta. Nenhum caderno foi salvo.');}}
     const questoes=data&&data.questoes;
     if(!Array.isArray(questoes)||questoes.length!==c.quantidade)throw Error('A IA não entregou todas as questões solicitadas. Tente um trecho menor.');
     const vistos=new Set();
     const limpas=questoes.map((q,index)=>{
-      if(!q||!Array.isArray(q.alternativas)||q.alternativas.length!==FORMATOS[c.formato])throw Error('Uma questão veio com alternativas inválidas. Gere novamente.');
+      if(!q||!Array.isArray(q.alternativas)||(importado?q.alternativas.length<2||q.alternativas.length>8:q.alternativas.length!==FORMATOS[c.formato]))throw Error('Uma questão veio com alternativas inválidas.');
       const enunciado=texto(q.enunciado,2500),comentario=texto(q.comentario,3000),trecho=texto(q.trecho,1400);
       const alternativas=q.alternativas.map(a=>texto(a,1400));
-      if(!enunciado||!comentario||!trecho||alternativas.some(a=>!a)||new Set(alternativas).size!==alternativas.length)throw Error('Uma questão veio incompleta ou sem referência ao material.');
+      if(!enunciado||(!importado&&(!comentario||!trecho))||alternativas.some(a=>!a)||new Set(alternativas).size!==alternativas.length)throw Error('Uma questão veio incompleta ou sem referência ao material.');
       if(!Number.isInteger(q.correta)||q.correta<0||q.correta>=alternativas.length)throw Error('Uma questão veio sem um gabarito válido.');
       if(c.formato==='certoerrado'&&(alternativas[0]!=='Certo'||alternativas[1]!=='Errado'))throw Error('Resposta de certo/errado em formato inesperado.');
       if(vistos.has(enunciado.toLowerCase()))throw Error('A IA repetiu uma questão. Tente gerar novamente.');vistos.add(enunciado.toLowerCase());
       let explicacoes;
       if(q.explicacoes!==undefined||exigirExplicacoes){
-        if(!Array.isArray(q.explicacoes)||q.explicacoes.length!==alternativas.length||q.explicacoes.some(e=>typeof e!=='string'||!e.trim()||e.length>800))throw Error('As justificativas das alternativas vieram incompletas. Gere novamente.');
+        if(!Array.isArray(q.explicacoes)||q.explicacoes.length!==alternativas.length||q.explicacoes.some(e=>typeof e!=='string'||(!importado&&!e.trim())||e.length>800))throw Error('As justificativas das alternativas vieram incompletas. Gere novamente.');
         explicacoes=q.explicacoes.map(e=>e.trim());
       }
       const pagina=Number(q.pagina)||null;
@@ -62,7 +63,7 @@
   }
   function caderno(input){
     if(!input||typeof input!=='object'||!input.config)throw Error('Caderno inválido.');
-    const clean=validar({questoes:input.questoes},input.config);
+    const clean=validar({questoes:input.questoes},input.config,null,false,input.config.formato==='notebooklm');
     clean.questoes.forEach((q,i)=>{const page=input.questoes[i].pagina;q.pagina=Number.isInteger(page)&&page>0&&page<=10000?page:null;});
     clean.origem={arquivo:texto(input.origem&&input.origem.arquivo,180)||'Material de estudo',paginas:Array.isArray(input.origem&&input.origem.paginas)?input.origem.paginas.filter(p=>Number.isInteger(p)&&p>0&&p<=10000).slice(0,20):[]};
     for(const q of clean.questoes){const answer=input.respostas&&input.respostas[q.id];if(Number.isInteger(answer)&&answer>=0&&answer<q.alternativas.length)clean.respostas[q.id]=answer;}
@@ -75,6 +76,38 @@
     clean.id=input.id||'';clean.criadoEm=texto(input.criadoEm,40);clean.atualizadoEm=texto(input.atualizadoEm,40);clean.arquivadoEm=texto(input.arquivadoEm,40);clean.excluidoEm=texto(input.excluidoEm,40);
     if(new TextEncoder().encode(JSON.stringify(clean)).length>700000)throw Error('Este caderno ficou muito grande. Gere um lote menor.');
     return clean;
+  }
+  function importarQuizNotebookLM(json){
+    let dados;
+    try{dados=JSON.parse(json.replace(/^\uFEFF/,''));}
+    catch(_){throw Error('Selecione um arquivo JSON de quiz do NotebookLM.');}
+    const questions=dados?.questions;
+    if(!Array.isArray(questions)||!questions.length)throw Error('O arquivo precisa conter questões de um quiz do NotebookLM.');
+    if(questions.length>100)throw Error('Importe um quiz de até 100 questões por vez.');
+    const questoes=questions.map((question,index)=>{
+      const options=question?.answerOptions;
+      const numero=index+1;
+      if(!texto(question?.question,2500)||!Array.isArray(options)||options.length<2||options.length>8||options.some(option=>!texto(option?.text,1400)))throw Error(`Questão ${numero} sem enunciado ou alternativas válidas.`);
+      const correct=options.reduce((indices,option,position)=>{
+        if(option.isCorrect===true)indices.push(position);
+        return indices;
+      },[]);
+      if(correct.length!==1)throw Error(`A questão ${numero} precisa ter exatamente uma alternativa correta.`);
+      const explicacoes=options.map(option=>texto(option.rationale,800));
+      return {
+        enunciado:question.question,
+        alternativas:options.map(option=>option.text),
+        correta:correct[0],
+        comentario:explicacoes[correct[0]],
+        explicacoes,
+        trecho:''
+      };
+    });
+    return caderno({
+      config:{formato:'notebooklm',nome:texto(dados.title,120)||'Quiz do NotebookLM',quantidade:questoes.length,dificuldade:'intermediaria'},
+      questoes,
+      origem:{arquivo:'NotebookLM'}
+    });
   }
   function avaliarCartao(banco,id,acertou,data){
     if(!(banco.questoes||[]).some(q=>q.id===id)||typeof acertou!=='boolean')throw Error('Cartão inválido.');
@@ -139,5 +172,5 @@
     if(/timeout|network|fetch|offline/i.test(s))return 'A conexão com a IA não respondeu. Tente novamente; o material permanece nesta tela.';
     return texto(error&&error.message,400)||'Não foi possível concluir a geração. Tente novamente.';
   }
-  return {FORMATOS,configurar,paginas,validar,caderno,corrigir,avaliarCartao,prompt,promptExplicacoes,validarExplicacoes,explicacoesSchema,gerarEmLotes,mensagemErro};
+  return {FORMATOS,configurar,paginas,validar,caderno,importarQuizNotebookLM,corrigir,avaliarCartao,prompt,promptExplicacoes,validarExplicacoes,explicacoesSchema,gerarEmLotes,mensagemErro};
 });
